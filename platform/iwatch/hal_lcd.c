@@ -85,13 +85,18 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
 	while(k < 8 && line < LCD_COL)						// loop for 8 character lines while within display
 	{
 		i = 0;
-		j = 0;
+		j = col/8;
 		while(j < (LCD_ROW/8) && (c = text[i]) != 0)	// while we did not reach end of line or string
 		{
-			if(c < ' ' || c > 0x7f)						// invalid characters are replace with SPACE
+			if(c < ' ')						// invalid characters are replace with SPACE
 			{
-				c = ' ';
+                          c = ' ';
 			}
+
+                        if (c > 0x7f)
+                        {
+                          c = '?';
+                        }
 
 			c = c - 32;									// convert character to index in font table
 			b = font8x8[(c*8)+k];						// retrieve byte defining one line of character
