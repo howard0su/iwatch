@@ -53,7 +53,7 @@ static volatile uint8_t transmitting;
 uint8_t
 uart1_active(void)
 {
-  return (UCA0STAT & UCBUSY) | transmitting;
+  return (UCA3STAT & UCBUSY) | transmitting;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -67,10 +67,10 @@ uart1_writeb(unsigned char c)
 {
   watchdog_periodic();
   /* Loop until the transmission buffer is available. */
-  while((UCA0STAT & UCBUSY));
+  while((UCA3STAT & UCBUSY));
 
   /* Transmit the data. */
-  UCA0TXBUF = c;
+  UCA3TXBUF = c;
 }
 /*---------------------------------------------------------------------------*/
 #if ! WITH_UIP /* If WITH_UIP is defined, putchar() is defined by the SLIP driver */
@@ -84,48 +84,48 @@ void
 uart1_init(unsigned long ubr)
 {
   /* RS232 */
-  UCA0CTL1 |= UCSWRST;            /* Hold peripheral in reset state */
-  UCA0CTL1 |= UCSSEL_2;           /* CLK = SMCLK */
+  UCA3CTL1 |= UCSWRST;            /* Hold peripheral in reset state */
+  UCA3CTL1 |= UCSSEL_2;           /* CLK = SMCLK */
 
 #if 0
   /* UCA1BR0 = 0x45;                 /\* 8MHz/115200 = 69 = 0x45 *\/ */
-  UCA0BR0 = ubr & 0xff; //0x45; /* tested... */
+  UCA3BR0 = ubr & 0xff; //0x45; /* tested... */
   /* UCA1BR0 = 9; */
-  UCA0BR1 = ubr >> 8;
-  UCA0MCTL = UCBRS_3;             /* Modulation UCBRSx = 3 */
+  UCA3BR1 = ubr >> 8;
+  UCA3MCTL = UCBRS_3;             /* Modulation UCBRSx = 3 */
 #endif
-  UCA0BR0 = 138;  // from family user guide
-  UCA0BR1 = 0;
-  UCA0MCTL= 7 << 1;  // + 0.875
+  UCA3BR0 = 138;  // from family user guide
+  UCA3BR1 = 0;
+  UCA3MCTL= 7 << 1;  // + 0.875
   
-  P3SEL |= BIT4 + BIT5;                  /* P3.4,5 = USCI_A1 TXD/RXD */
-  P3DIR &= ~BIT5;                 /* P3.5 = USCI_A0 RXD as input */
-  P3DIR |= BIT4;                  /* P3.4 = USCI_A0 TXD as output */
+  P10SEL |= BIT4 + BIT5;                  /* P10.4,5 = USCI_A3 TXD/RXD */
+  P10DIR &= ~BIT5;                 /* P10.5 = USCI_A3 RXD as input */
+  P10DIR |= BIT4;                  /* P10.4 = USCI_A3 TXD as output */
   
 
-  UCA0CTL1 &= ~UCSWRST;       /* Initialize USCI state machine */
+  UCA3CTL1 &= ~UCSWRST;       /* Initialize USCI state machine */
 
   transmitting = 0;
 
   /* XXX Clear pending interrupts before enable */
-  UCA0IE &= ~UCRXIFG;
-  UCA0IE &= ~UCTXIFG;
+  UCA3IE &= ~UCRXIFG;
+  UCA3IE &= ~UCTXIFG;
 
-  UCA0CTL1 &= ~UCSWRST;                   /* Initialize USCI state machine **before** enabling interrupts */
-  UCA0IE |= UCRXIE;                        /* Enable UCA1 RX interrupt */
+  UCA3CTL1 &= ~UCSWRST;                   /* Initialize USCI state machine **before** enabling interrupts */
+  UCA3IE |= UCRXIE;                        /* Enable UCA1 RX interrupt */
 }
 /*---------------------------------------------------------------------------*/
-ISR(USCI_A0, uart1_rx_interrupt)
+ISR(USCI_A3, uart1_rx_interrupt)
 {
   uint8_t c;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /*leds_toggle(LEDS_ALL);*/
-  if(UCA0IV == 2) {
-    if(UCA0STAT & UCRXERR) {
-      c = UCA0RXBUF;   /* Clear error flags by forcing a dummy read. */
+  if(UCA3IV == 2) {
+    if(UCA3STAT & UCRXERR) {
+      c = UCA3RXBUF;   /* Clear error flags by forcing a dummy read. */
     } else {
-      c = UCA0RXBUF;
+      c = UCA3RXBUF;
       if(uart1_input_handler != NULL) {
         if(uart1_input_handler(c)) {
           LPM4_EXIT;

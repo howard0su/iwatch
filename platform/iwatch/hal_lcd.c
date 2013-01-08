@@ -5,13 +5,13 @@
 #include "msp430.h"
 #include "font.h"
 
-#define SPIOUT  P10OUT
-#define SPIDIR  P10DIR
-#define SPISEL  P10SEL
+#define SPIOUT  P3OUT
+#define SPIDIR  P3DIR
+#define SPISEL  P3SEL
 
-#define _SCLK	BIT0					// SPI clock
-#define _SDATA	BIT4					// SPI data (sent to display)
-#define _SCS	BIT3					// SPI chip select
+#define _SCLK	BIT3					// SPI clock
+#define _SDATA	BIT1					// SPI data (sent to display)
+#define _SCS	BIT0					// SPI chip select
 
 #define MLCD_WR 0x01					// MLCD write line command
 #define MLCD_CM 0x04					// MLCD clear memory command
@@ -24,14 +24,17 @@ volatile unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
 
 static unsigned char LineBuff[LCD_ROW/8];		// line buffer
 
+static unsigned char ScreenBuffer[LCD_COL * (LCD_ROW/8 + 1)];
 
 static inline void Enable_SCS()
 {
   SPIOUT |= _SCS;
+  ScreenBuffer[0] = 1;
 }
 
 static inline void Disable_SCS()
 {
+  ScreenBuffer[0] = 2;
   SPIOUT &= ~_SCS;
 }
 
@@ -41,9 +44,9 @@ void printSharp(const char* text, unsigned char line, unsigned char options);
 // input: value		byte to be sent
 void SPIWriteByte(unsigned char value)
 {
-    while(!(UCA3IFG & UCTXIFG));  						// wait for transfer to complete
-    UCA3TXBUF = value;							// store byte
-    while(!(UCA3STAT & UCBUSY));
+    while(!(UCB0IFG & UCTXIFG));  						// wait for transfer to complete
+    UCB0TXBUF = value;							// store byte
+    while(!(UCB0STAT & UCBUSY));
 }
 
 // transfer line buffer to display using SPI
@@ -142,19 +145,19 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
 
 static void SPIInit()
 {
-    UCA3CTL1 = UCSWRST;
+    UCB0CTL1 = UCSWRST;
 
-    UCA3CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
-    UCA3CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-    UCA3BR0 = 16; // 16MHZ / 16 = 1Mhz
-    UCA3BR1 = 0;
+    UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
+    UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
+    UCB0BR0 = 16; // 16MHZ / 16 = 1Mhz
+    UCB0BR1 = 0;
 
     //Configure ports.
     SPIDIR |= _SCLK | _SDATA | _SCS;
     SPISEL |= _SCLK | _SDATA;
     SPIOUT &= ~(_SCLK | _SDATA | _SCS);
 
-    UCA3CTL1 &= ~UCSWRST;
+    UCB0CTL1 &= ~UCSWRST;
 }
 
 static struct ctimer timer;
@@ -197,7 +200,9 @@ void halLcdInit()
   ctimer_set(&timer, CLOCK_SECOND, vcomswitch, NULL);
   
   // enable disply
-  P8DIR |= BIT1; // p8.1 is display
+  P8DIR |= BIT1 + BIT0; // p8.1 is display
+
+  P8OUT &= ~BIT0; // p8.0 is gnd
 }
 
 void halLcdActive()
