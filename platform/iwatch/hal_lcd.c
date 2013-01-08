@@ -24,17 +24,13 @@ volatile unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
 
 static unsigned char LineBuff[LCD_ROW/8];		// line buffer
 
-static unsigned char ScreenBuffer[LCD_COL * (LCD_ROW/8 + 1)];
-
 static inline void Enable_SCS()
 {
   SPIOUT |= _SCS;
-  ScreenBuffer[0] = 1;
 }
 
 static inline void Disable_SCS()
 {
-  ScreenBuffer[0] = 2;
   SPIOUT &= ~_SCS;
 }
 
