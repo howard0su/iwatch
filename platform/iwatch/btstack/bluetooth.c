@@ -22,7 +22,7 @@ PROCESS(bluetooth_process, "Bluetooth process");
 
 static uint8_t   rfcomm_channel_nr = 1;
 static uint16_t  rfcomm_channel_id;
-static uint8_t   spp_service_buffer[100];
+static uint8_t   spp_service_buffer[200];
 
 enum STATE {INIT, W4_LOCAL_NAME, W4_CONNECTION, W4_CHANNEL_COMPLETE, ACTIVE} ;
 enum STATE state = INIT;
