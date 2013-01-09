@@ -19,7 +19,7 @@ struct _button_def
 static int
 value(int type)
 {
-  if (type >0 && type <4)
+  if (type >= 0 && type <4)
   {
     return (P2IN & buttons[type].bitmask) || !timer_expired(&buttons[type].debouncetimer);
   }
@@ -75,7 +75,7 @@ status(int type)
   switch (type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
-    return P2IE & buttons[0].bitmask;
+    return P2IE & buttons[1].bitmask;
   }
   return 0;
 }
