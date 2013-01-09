@@ -51,10 +51,10 @@ static unsigned char num_sensors;
 PROCESS(sensors_process, "Sensors");
 
 /*---------------------------------------------------------------------------*/
-static int
+static unsigned int
 get_sensor_index(const struct sensors_sensor *s)
 {
-  int i;
+  unsigned int i;
   for(i = 0; i < num_sensors; ++i) {
     if(sensors[i] == s) {
       return i;
@@ -85,7 +85,7 @@ sensors_changed(const struct sensors_sensor *s)
 const struct sensors_sensor *
 sensors_find(const char *prefix)
 {
-  int i;
+  unsigned int i;
   unsigned short len;
 
   /* Search through all processes and search for the specified process
