@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012 by Matthias Ringwald
+ * Copyright (C) 2009 by Matthias Ringwald
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,9 +13,6 @@
  * 3. Neither the name of the copyright holders nor the names of
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 4. Any redistribution, use, or modification is done solely for
- *    personal benefit and not for any commercial purpose or for
- *    monetary gain.
  *
  * THIS SOFTWARE IS PROVIDED BY MATTHIAS RINGWALD AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -29,8 +26,6 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * Please inquire about commercial licensing options at btstack@ringwald.ch
  *
  */
 
@@ -71,16 +66,6 @@ void run_loop_assert(void){
     }
 #endif
 }
-
-
-void run_loop_set_timer_handler(timer_source_t *ts, void (*process)(timer_source_t *_ts)){
-    ts->process = process;
-};
-
-void run_loop_set_data_source_handler(data_source_t *ds, int (*process)(data_source_t *_ds)){
-    ds->process = process;
-};
-
 
 /**
  * Add data_source to run_loop

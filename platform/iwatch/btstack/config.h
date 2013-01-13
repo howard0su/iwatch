@@ -1,6 +1,6 @@
 #define EMBEDDED
 
-#define HAVE_INIT_SCRIPT
+//#define HAVE_INIT_SCRIPT
 #define HAVE_BZERO
 #define HAVE_TICK
 

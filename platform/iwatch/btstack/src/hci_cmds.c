@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012 by Matthias Ringwald
+ * Copyright (C) 2009 by Matthias Ringwald
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,9 +13,6 @@
  * 3. Neither the name of the copyright holders nor the names of
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 4. Any redistribution, use, or modification is done solely for
- *    personal benefit and not for any commercial purpose or for
- *    monetary gain.
  *
  * THIS SOFTWARE IS PROVIDED BY MATTHIAS RINGWALD AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -29,8 +26,6 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * Please inquire about commercial licensing options at btstack@ringwald.ch
  *
  */
 
@@ -107,11 +102,6 @@ uint16_t hci_create_cmd_internal(uint8_t *hci_cmd_buffer, const hci_cmd_t *cmd, 
                 hci_cmd_buffer[pos++] = ptr[2];
                 hci_cmd_buffer[pos++] = ptr[1];
                 hci_cmd_buffer[pos++] = ptr[0];
-                break;
-            case 'D': // 8 byte data block
-                ptr = va_arg(argptr, uint8_t *);
-                memcpy(&hci_cmd_buffer[pos], ptr, 8);
-                pos += 8;
                 break;
             case 'E': // Extended Inquiry Information 240 octets
                 ptr = va_arg(argptr, uint8_t *);
