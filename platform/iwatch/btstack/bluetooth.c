@@ -22,7 +22,7 @@ PROCESS(bluetooth_process, "Bluetooth process");
 
 static uint8_t   rfcomm_channel_nr = 1;
 static uint16_t  rfcomm_channel_id;
-static uint8_t   spp_service_buffer[200];
+static uint8_t   spp_service_buffer[110];
 
 enum STATE {INIT, W4_LOCAL_NAME, W4_CONNECTION, W4_CHANNEL_COMPLETE, ACTIVE} ;
 enum STATE state = INIT;
@@ -54,6 +54,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
             }
             break;
 
+        case ACTIVE:
         case W4_CONNECTION:
             switch (event) {
                 case HCI_EVENT_PIN_CODE_REQUEST:
@@ -89,14 +90,14 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
                     state = ACTIVE;
                 }
                 break;
-        
+#if 0
         case ACTIVE:
             if (event != RFCOMM_EVENT_CHANNEL_CLOSED) break;
                 
             rfcomm_channel_id = 0;
             state = W4_CONNECTION;
             break;
-
+#endif
         default:
             break;
     }
@@ -138,15 +139,19 @@ static void btstack_setup(){
 // set timer based on current time
 void run_loop_set_timer(timer_source_t *a, uint32_t timeout_in_ms)
 {
+  printf("not implement: run_loop_set_timer\n");
 }
 
 // add/remove timer_source
 void run_loop_add_timer(timer_source_t *timer)
 {
+  printf("not implement: run_loop_add_timer\n");
 }
 
 int  run_loop_remove_timer(timer_source_t *timer)
 {
+  printf("not implement: run_loop_remove_timer\n");
+  return 1;
 }
 
 // add/remove data_source
@@ -165,11 +170,6 @@ int  run_loop_remove_data_source(data_source_t *ds)
 
 PROCESS_THREAD(bluetooth_process, ev, data)
 {
-    static hci_transport_t    * transport;
-    static bt_control_t       * control;
-    static hci_uart_config_t  * config;
-    static remote_device_db_t * remote_db;
-	
     PROCESS_BEGIN();
 
     btstack_setup();

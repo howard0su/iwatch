@@ -53,10 +53,9 @@
 /*--------------------------------------------------------------------------*/
 
 #include "dev/button-sensor.h"
-#include "gyro-sensor.h"
-SENSORS(&button_sensor, &gyro_sensor);
+SENSORS(&button_sensor);
 
-uint8_t bluetooth_uart_active;
+uint8_t bluetooth_uart_active = 1;
 
 #define DEBUG 1
 #if DEBUG

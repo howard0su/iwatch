@@ -211,7 +211,7 @@ void hal_uart_dma_shutdown(void) {
 
 void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
     
-    printf("hal_uart_dma_send_block, size %u\n\r", len);
+    //printf("hal_uart_dma_send_block, size %u\n\r", len);
     
     UCA2IE &= ~UCTXIE ;  // disable TX interrupts
 
@@ -243,6 +243,7 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep){
+  printf("hal_uart_dma_set_sleep: %d\n", sleep);
     hal_cpu_set_uart_needed_during_sleep(!sleep);    
 }
 
