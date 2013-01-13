@@ -541,7 +541,7 @@ msp430_cpu_init(void)
 
    /* Call the MSP430F5438 Experimentor Board Hardware Abstraction Layer*/
    /* to setup the system clock.                                        */
-  // StartCrystalOscillator();
+   StartCrystalOscillator();
    SetSystemClock();
   
   eint();
