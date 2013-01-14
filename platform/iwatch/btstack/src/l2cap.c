@@ -1118,7 +1118,90 @@ void l2cap_close_connection(void *connection){
     l2cap_run();
 }
 
-// Bluetooth 4.0 - allows to register handler for Attribute Protocol and Security Manager Protocol
+
+#if HAVE_BLE
+static void l2cap_packet_handler_le(uint8_t packet_type, uint8_t *packet, uint16_t size);
+
+static btstack_packet_handler_t attribute_protocol_packet_handler;
+static btstack_packet_handler_t security_protocol_packet_handler;
+
+void l2cap_init_le(){
+    
+    packet_handler = NULL;
+    attribute_protocol_packet_handler = NULL;
+    security_protocol_packet_handler = NULL;
+    
+    // 
+    // register callback with HCI
+    //
+    hci_register_packet_handler(&l2cap_packet_handler_le);
+    hci_connectable_control(0); // no services yet
+}
+
+void l2cap_event_handler_le( uint8_t *packet, uint16_t size ){
+    
+    switch(packet[0]){
+            
+        case DAEMON_EVENT_HCI_PACKET_SENT:
+            if (attribute_protocol_packet_handler) {
+                (*attribute_protocol_packet_handler)(HCI_EVENT_PACKET, 0, packet, size);
+            }
+            if (security_protocol_packet_handler) {
+                (*security_protocol_packet_handler)(HCI_EVENT_PACKET, 0, packet, size);
+            }
+            break;
+            
+        default:
+            break;
+    }
+    
+    // pass on
+    if (packet_handler) {
+        (*packet_handler)(NULL, HCI_EVENT_PACKET, 0, packet, size);
+    }
+}
+
+void l2cap_acl_handler_le( uint8_t *packet, uint16_t size ){
+        
+    // Get Channel ID
+    uint16_t channel_id = READ_L2CAP_CHANNEL_ID(packet); 
+    hci_con_handle_t handle = READ_ACL_CONNECTION_HANDLE(packet);
+    
+    switch (channel_id) {
+            
+        case L2CAP_CID_ATTRIBUTE_PROTOCOL:
+            if (attribute_protocol_packet_handler) {
+                (*attribute_protocol_packet_handler)(ATT_DATA_PACKET, handle, &packet[COMPLETE_L2CAP_HEADER], size-COMPLETE_L2CAP_HEADER);
+            }
+            break;
+
+        case L2CAP_CID_SECURITY_MANAGER_PROTOCOL:
+            if (security_protocol_packet_handler) {
+                (*security_protocol_packet_handler)(SM_DATA_PACKET, handle, &packet[COMPLETE_L2CAP_HEADER], size-COMPLETE_L2CAP_HEADER);
+            }
+            break;
+            
+        default: {
+            break;
+        }
+    }
+}
+
+static void l2cap_packet_handler_le(uint8_t packet_type, uint8_t *packet, uint16_t size){
+    switch (packet_type) {
+        case HCI_EVENT_PACKET:
+            l2cap_event_handler_le(packet, size);
+            break;
+        case HCI_ACL_DATA_PACKET:
+            l2cap_acl_handler_le(packet, size);
+            break;
+        default:
+            break;
+    }
+}
+
+
+// Bluetooth 4.0 - allow to register handler for Attribute Protocol and Security Manager Protocol
 void l2cap_register_fixed_channel(btstack_packet_handler_t packet_handler, uint16_t channel_id) {
     switch(channel_id){
         case L2CAP_CID_ATTRIBUTE_PROTOCOL:
@@ -1128,5 +1211,11 @@ void l2cap_register_fixed_channel(btstack_packet_handler_t packet_handler, uint1
             security_protocol_packet_handler = packet_handler;
             break;
     }
+    
+    if (attribute_protocol_packet_handler || security_protocol_packet_handler){
+        hci_connectable_control(1); // new service
+    } else {
+        hci_connectable_control(0); // no services anymore
+    }
 }
-
+#endif

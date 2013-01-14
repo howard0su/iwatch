@@ -43,31 +43,56 @@
 #include "dev/leds.h"
 #include "lib/print-stats.h"
 #include "sys/clock.h"
+#include "lib/sensors.h"
+#include "button.h"
 
 #include "hal_lcd.h"
 
+   extern void mpu6050_init();
+   extern void bluetooth_init(int);
+   
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
-PROCESS(hello_world_process, "Hello world process");
-PROCESS_NAME(bluetooth_process);
-AUTOSTART_PROCESSES(&hello_world_process, &bluetooth_process);
+PROCESS(system_process, "System process");
+AUTOSTART_PROCESSES(&system_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(hello_world_process, ev, data)
+
+/*
+ * This process is the startup process.
+ * It first shows the logo
+ * Like the whole dialog intrufstture.
+ */
+PROCESS_THREAD(system_process, ev, data)
 {
+  static struct etimer et;
+
   PROCESS_BEGIN();
-  PROCESS_EXITHANDLER(goto exit;)
+  PROCESS_EXITHANDLER(goto exit);
 
-  while(1) {
-    static struct etimer et;
-    char buf[10];
-    
-    etimer_set(&et, CLOCK_SECOND);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    snprintf(buf, 10, "  %ld  ", clock_seconds());
-    halLcdPrintXY(buf, 0, 10, WIDE_TEXT | HIGH_TEXT);
+  SENSORS_ACTIVATE(button_sensor);
+
+  //halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);  
+  // give time to starts
+  etimer_set(&et, CLOCK_SECOND);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+  //mpu6050_init();
+
+        bluetooth_init(4);
+
+  
+  while(1)
+  {
+    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
+    printf("Key Changed %d, %d, %d, %d\n", 
+           button_sensor.value(0),
+           button_sensor.value(1),
+           button_sensor.value(2),
+           button_sensor.value(3)
+           );
+      
   }
-
+  
  exit:
   leds_off(LEDS_ALL);
   PROCESS_END();
