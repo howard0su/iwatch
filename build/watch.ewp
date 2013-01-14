@@ -165,6 +165,7 @@
         <option>
           <name>CCDefines</name>
           <state>AUTOSTART_ENABLE=1</state>
+          <state>HAVE_BLE=1</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -686,7 +687,7 @@
         </option>
         <option>
           <name>XList</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>SegmentMap</name>
@@ -794,7 +795,7 @@
         </option>
         <option>
           <name>ModuleSummary</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XlinkStackSize</name>
@@ -884,7 +885,7 @@
         </option>
         <option>
           <name>OverlaySystemMap</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>RawBinaryFile</name>
@@ -964,7 +965,7 @@
         <option>
           <name>ULPRules</name>
           <version>0</version>
-          <state>1111111111111111111</state>
+          <state>1111000011111111111</state>
         </option>
         <option>
           <name>ULPEnable</name>
@@ -2121,6 +2122,7 @@
         <option>
           <name>CCDefines</name>
           <state>AUTOSTART_ENABLE=1</state>
+          <state>HAVE_BLE=1</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -2314,7 +2316,7 @@
         <option>
           <name>CCOptStrategy</name>
           <version>0</version>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>CCOptLevelSlave</name>
@@ -2408,7 +2410,7 @@
         </option>
         <option>
           <name>CCOptimizationNoSizeConstraints</name>
-          <state>0</state>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -2956,14 +2958,10 @@
     <group>
       <name>ble</name>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble\att.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x\ant_cmds.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble\l2cap_le.c</name>
-        <excluded>
-          <configuration>Debug</configuration>
-          <configuration>Retail</configuration>
-        </excluded>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble\att.c</name>
       </file>
     </group>
     <group>
@@ -3031,13 +3029,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\hal_compat.c</name>
-      <excluded>
-        <configuration>Debug</configuration>
-        <configuration>Retail</configuration>
-      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\hal_uart_dma.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\run_loop.c</name>
     </file>
   </group>
   <group>
@@ -3118,9 +3115,6 @@
       <name>$PROJ_DIR$\..\platform\iwatch\flash.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\gyro-sensor.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\hal_lcd.c</name>
     </file>
     <file>
@@ -3134,6 +3128,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\leds-arch.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\Makefile.iwatch</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\mpu6050.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\msp430.c</name>
