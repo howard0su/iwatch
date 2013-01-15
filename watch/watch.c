@@ -72,13 +72,13 @@ PROCESS_THREAD(system_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
 
-  //halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);  
+  halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);  
   // give time to starts
   etimer_set(&et, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   //mpu6050_init();
 
-        bluetooth_init(4);
+        bluetooth_init(2);
 
   
   while(1)
