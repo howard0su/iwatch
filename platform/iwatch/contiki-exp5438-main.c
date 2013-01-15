@@ -89,11 +89,9 @@ main(int argc, char **argv)
   clock_init();
   
   leds_init();
-  ctimer_init();
   leds_on(LEDS_RED);
 
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
-  lcd_init();
 
   leds_on(LEDS_GREEN);
   /* xmem_init(); */
@@ -126,6 +124,9 @@ main(int argc, char **argv)
    * Initialize Contiki and our processes.
    */
   process_init();
+  lcd_init();
+  ctimer_init();
+
   process_start(&etimer_process, NULL);
 
   leds_off(LEDS_ALL);
