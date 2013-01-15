@@ -3,7 +3,7 @@
 
 #include "sys/clock.h"
 
-void     embedded_trigger(void)
+void embedded_trigger(void)
 {
   process_poll(&bluetooth_process);
 }

@@ -65,18 +65,6 @@ void hal_uart_dma_init(void)
     // set BT CTS 
     P1SEL &= ~BIT3;  // = 0 - I/O
     P1DIR &= ~BIT3;  // = 0 - Input
-
-    // Enable ACLK to provide 32 kHz clock to Bluetooth module
-    P11SEL |= BIT0;
-    P11DIR |= BIT0;
-    
-    // set BT SHUTDOWN (P10.7) to 1 (active low)
-    P10SEL &= ~BIT7;  // = 0 - I/O
-    P10DIR |=  BIT7;  // = 1 - Output
-    P10OUT |=  BIT7;  // = 1 - Active low
-    
-    // wait for Bluetooth to power up properly after providing 32khz clock
-    waitAboutOneSecond();
     
     UCA2CTL1 |= UCSWRST;              //Reset State                      
     UCA2CTL0 = UCMODE_0;

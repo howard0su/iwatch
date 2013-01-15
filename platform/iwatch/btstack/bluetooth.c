@@ -307,6 +307,7 @@ PROCESS_NAME(bluetooth_process);
 
 void bluetooth_init(int version)
 {
+  int x = splhigh();
   if (version == 2)
   {
     btstack_setup();
@@ -315,6 +316,16 @@ void bluetooth_init(int version)
   {
     btstack_ble_setup();  
   }
+  splx(x);
   
+  // Enable ACLK to provide 32 kHz clock to Bluetooth module
+  P11SEL |= BIT0;
+  P11DIR |= BIT0;
+  
+  // set BT SHUTDOWN (P10.7) to 1 (active low)
+  P10SEL &= ~BIT7;  // = 0 - I/O
+  P10DIR |=  BIT7;  // = 1 - Output
+  P10OUT |=  BIT7;  // = 1 - Active low
+    
   process_start(&bluetooth_process, NULL);    
 }

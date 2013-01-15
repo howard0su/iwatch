@@ -1,5 +1,5 @@
 #include "contiki.h"
-#include "sys/ctimer.h"
+#include "sys/etimer.h"
 
 PROCESS(bluetooth_process, "Bluetooth process");
 
@@ -55,7 +55,13 @@ int  run_loop_remove_data_source(data_source_t *ds)
 PROCESS_THREAD(bluetooth_process, ev, data)
 {
     PROCESS_BEGIN();
-    
+
+    static struct etimer timer;
+    // wait about one second for bluetooth to start
+    etimer_set(&timer, CLOCK_SECOND);
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_TIMER);
+    etimer_stop(&timer);
+
     // turn on!
     hci_power_control(HCI_POWER_ON);
     // make discoverable
