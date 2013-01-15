@@ -1,8 +1,10 @@
 #include "contiki.h"
-#include "sys/ctimer.h"
-#include "hal_lcd.h"
+#include <string.h>
+#include <stdio.h>
 
-#include "msp430.h"
+#include "sys/etimer.h"
+#include "hal_lcd.h"
+#include "isr_compat.h"
 #include "font.h"
 
 #define SPIOUT  P3OUT
@@ -19,10 +21,27 @@
 #define MLCD_VCOM 0x02					// MLCD VCOM bit
 
 extern void doubleWideAsm(unsigned char c, unsigned char* buff);
+PROCESS(lcd_process, "LCD");
 
-volatile unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
+volatile static unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
+static struct etimer timer;
+static process_event_t clear_event, refresh_event;
+static unsigned char ShortCommandBuffer[2];
 
-static unsigned char LineBuff[LCD_ROW/8];		// line buffer
+enum {STATE_NONE, STATE_SENDING};
+static unsigned char state = STATE_NONE;
+
+struct RefreshData
+{
+  unsigned char start, end;
+};
+
+struct _linebuf
+{
+  unsigned char opcode;
+  unsigned char linenum;
+  unsigned char pixels[LCD_ROW/8];
+}lines[LCD_COL + 1]; // give a dummy 
 
 static inline void Enable_SCS()
 {
@@ -36,30 +55,6 @@ static inline void Disable_SCS()
 
 void printSharp(const char* text, unsigned char line, unsigned char options);
 
-// send one byte over SPI, does not handle SCS
-// input: value		byte to be sent
-void SPIWriteByte(unsigned char value)
-{
-    while(!(UCB0IFG & UCTXIFG));  						// wait for transfer to complete
-    UCB0TXBUF = value;							// store byte
-    while(!(UCB0STAT & UCBUSY));
-}
-
-// transfer line buffer to display using SPI
-// input: line	position where line buffer is rendered
-void SPIWriteLine(unsigned char line, unsigned char* LineBuff)
-{
-    SPIWriteByte(line + 1);								// send line address
-
-    unsigned char j = 0;
-    while(j < (LCD_ROW/8))								// write pixels / 8 bytes
-    {
-      SPIWriteByte(LineBuff[j++]);							// store low byte
-    }
-    
-    SPIWriteByte(0);									// send 16 bit to latch buffers and end transfer        									// SCS low, finished talking to display
-}
-
 // write a string to display, truncated after 12 characters
 // input: text		0-terminated string
 //        line		vertical position of text, 0-95
@@ -69,113 +64,91 @@ void SPIWriteLine(unsigned char line, unsigned char* LineBuff)
 //					DISP_HIGH double-height text
 void halLcdPrintXY(char text[], int col, int line, unsigned char options)
 {
-	Enable_SCS();								// SCS high, ready talking to display
-
-	SPIWriteByte(MLCD_WR | VCOM);						// send command to write line(s)
-	// c = char
-	// b = bitmap
-	// i = text index
-	// j = line buffer index
-	// k = char line
-	unsigned char c, b, i, j, k;
-
-	// rendering happens line-by-line because this display can only be written by line
-	k = 0;
-	while(k < 8 && line < LCD_COL)						// loop for 8 character lines while within display
-	{
-		i = 0;
-		j = col/8;
-		while(j < (LCD_ROW/8) && (c = text[i]) != 0)	// while we did not reach end of line or string
-		{
-			if(c < ' ')						// invalid characters are replace with SPACE
-			{
-                          c = ' ';
-			}
-
-                        if (c > 0x7f)
-                        {
-                          c = '?';
-                        }
-
-			c = c - 32;									// convert character to index in font table
-			b = font8x8[(c*8)+k];						// retrieve byte defining one line of character
-
-			if(!(options & INVERT_TEXT))				// invert bits if DISP_INVERT is _NOT_ selected
-			{											// pixels are LOW active
-				b = ~b;
-			}
-
-			if((options & WIDE_TEXT) && (c != 0) && (j + 1 < LCD_ROW/8))		// double width rendering if DISP_WIDE and character is not SPACE
-			{
-				doubleWideAsm(b, &LineBuff[j]);			// implemented in assembly for efficiency/space reasons
-				j += 2;									// we've written two bytes to buffer
-			}
-			else										// else regular rendering
-			{
-				LineBuff[j] = b;						// store pixels in line buffer
-				j++;									// we've written one byte to buffer
-			}
-
-			i++;										// next character
-		}
-
-		while(j < (LCD_ROW/8))							// pad line for empty characters
-		{
-			LineBuff[j] = 0xff;
-			j++;
-		}
-
-		SPIWriteLine(line++, LineBuff);							// write line buffer
-
-		if(options & HIGH_TEXT && line < LCD_COL)	// repeat line if DISP_HIGH is selected
-		{
-			SPIWriteLine(line++, LineBuff);
-		}
-
-		k++;											// next pixel line
-	}
-
-        SPIWriteByte(0);        
-        Disable_SCS();
+  // c = char
+  // b = bitmap
+  // i = text index
+  // j = line buffer index
+  // k = char line
+  unsigned char c, b, i, j, k;
+  unsigned char *LineBuff;
+  struct RefreshData data;
+  
+  // rendering happens line-by-line because this display can only be written by line
+  k = 0;
+  while(k < 8 && line < LCD_COL)						// loop for 8 character lines while within display
+  {
+    i = 0;
+    j = col/8;
+    while(j < (LCD_ROW/8) && (c = text[i]) != 0)	// while we did not reach end of line or string
+    {
+      LineBuff = lines[line + k].pixels;
+      
+      if(c < ' ')						// invalid characters are replace with SPACE
+      {
+        c = ' ';
+      }
+      
+      if (c > 0x7f)
+      {
+        c = '?';
+      }
+      
+      c = c - 32;									// convert character to index in font table
+      b = font8x8[(c*8)+k];						// retrieve byte defining one line of character
+      
+      if(!(options & INVERT_TEXT))				// invert bits if DISP_INVERT is _NOT_ selected
+      {											// pixels are LOW active
+        b = ~b;
+      }
+      
+      if((options & WIDE_TEXT) && (c != 0) && (j + 1 < LCD_ROW/8))		// double width rendering if DISP_WIDE and character is not SPACE
+      {
+        doubleWideAsm(b, &LineBuff[j]);			// implemented in assembly for efficiency/space reasons
+        j += 2;									// we've written two bytes to buffer
+      }
+      else										// else regular rendering
+      {
+        LineBuff[j] = b;						// store pixels in line buffer
+        j++;									// we've written one byte to buffer
+      }
+      
+      i++;										// next character
+    }
+    
+    if(options & HIGH_TEXT && (line + k + 1) < LCD_COL)	// repeat line if DISP_HIGH is selected
+    {
+      unsigned char *LineBuff1 = lines[line+k+1].pixels;
+      for(unsigned char f = col/8; f < j; f++)
+      {
+        LineBuff1[f] = LineBuff[f];
+      }
+    }
+    
+    k++;											// next pixel line
+  }
+  
+  printf("Update from Line %d to Line %d\n", line, line + k - 1);
+  
+  data.start = line;
+  data.end = line + k - 1;
+  process_post_synch(&lcd_process, refresh_event, &data);
 }
 
 static void SPIInit()
 {
-    UCB0CTL1 = UCSWRST;
-
-    UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
-    UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-    UCB0BR0 = 16; // 16MHZ / 16 = 1Mhz
-    UCB0BR1 = 0;
-
-    //Configure ports.
-    SPIDIR |= _SCLK | _SDATA | _SCS;
-    SPISEL |= _SCLK | _SDATA;
-    SPIOUT &= ~(_SCLK | _SDATA | _SCS);
-
-    UCB0CTL1 &= ~UCSWRST;
-}
-
-static struct ctimer timer;
-
-static void vcomswitch(void* ptr)
-{
-  VCOM ^= MLCD_VCOM;
+  UCB0CTL1 = UCSWRST;
   
-  // put display into low-power static mode
-  Enable_SCS();									// SCS high, ready talking to display
-  SPIWriteByte(MLCD_SM | VCOM);					                // send static mode command
-  SPIWriteByte(0);								// send command trailer
-  Disable_SCS();								// SCS lo, finished talking to display
-}
-
-void halLcdClearScreen()
-{
-  // initialize display
-  Enable_SCS();										// SCS high, ready talking to display
-  SPIWriteByte(MLCD_CM | VCOM);						// send clear display memory command
-  SPIWriteByte(0);									// send command trailer
-  Disable_SCS();
+  UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
+  UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
+  UCB0BR0 = 16; // 16MHZ / 16 = 1Mhz
+  UCB0BR1 = 0;
+  
+  //Configure ports.
+  SPIDIR |= _SCLK | _SDATA | _SCS;
+  SPISEL |= _SCLK | _SDATA;
+  SPIOUT &= ~(_SCLK | _SDATA | _SCS);
+  
+  UCB0CTL1 &= ~UCSWRST;
 }
 
 void halLcdBackLightInit()
@@ -188,20 +161,131 @@ void halLcdSetBackLight(unsigned char n)
 
 void halLcdInit()
 {
+  for(unsigned int i = 0; i < LCD_COL; i++)
+  {
+    lines[i].linenum = i;
+  }
+  
   SPIInit();
   
   // wait spi stable
   __delay_cycles(100);
   
-  ctimer_set(&timer, CLOCK_SECOND, vcomswitch, NULL);
-  
   // enable disply
   P8DIR |= BIT1 + BIT0; // p8.1 is display
-
+  
   P8OUT &= ~BIT0; // p8.0 is gnd
+  
+  process_start(&lcd_process, NULL);
 }
 
+void halLcdClearScreen()
+{
+  for(unsigned int i = 0; i < LCD_COL; i++)
+  {
+    memset(lines[i].pixels, 0, LCD_ROW/8);
+  }
+  
+  process_post_synch(&lcd_process, clear_event, NULL);
+}
+
+static void SPISend(void* data, unsigned int size)
+{
+  state = STATE_SENDING;
+  Enable_SCS();
+  
+  // USB0 TXIFG trigger
+  DMACTL0 = DMA0TSEL_19;                    
+  // Source block address
+  __data16_write_addr((unsigned short) &DMA0SA,(unsigned long) data);
+  // Destination single address
+  __data16_write_addr((unsigned short) &DMA0DA,(unsigned long) &UCB0TXBUF);
+  DMA0SZ = size;                                // Block size
+  DMA0CTL &= ~DMAIFG;
+  DMA0CTL = DMASRCINCR_3+DMASBDB+DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
+}
+
+ISR(DMA, dma0handler)
+{
+  switch(__even_in_range(DMAIV,16))
+  {
+  case 0: break;
+  case 2:                                 // DMA0IFG = DMA Channel 0
+    {
+      process_poll(&lcd_process);
+      LPM4_EXIT;
+      break;
+    }
+  case 4: break;                          // DMA1IFG = DMA Channel 1
+  case 6: break;                          // DMA2IFG = DMA Channel 2
+  case 8: break;                          // DMA3IFG = DMA Channel 3
+  case 10: break;                         // DMA4IFG = DMA Channel 4
+  case 12: break;                         // DMA5IFG = DMA Channel 5
+  case 14: break;                         // DMA6IFG = DMA Channel 6
+  case 16: break;                         // DMA7IFG = DMA Channel 7
+  default: break;
+  }
+}
+
+PROCESS_THREAD(lcd_process, ev, data)
+{
+  static unsigned char refreshStart = 0xff, refreshStop = 0;
+  
+  PROCESS_BEGIN();
+  
+  refresh_event = process_alloc_event();
+  clear_event = process_alloc_event();
+  etimer_set(&timer, CLOCK_SECOND);
+  
+  while(1)
+  {
+    PROCESS_WAIT_EVENT();
+    if (ev == PROCESS_EVENT_POLL)
+    {
+      Disable_SCS();
+      state = STATE_NONE;
+      
+      if (refreshStart != 0xff)
+      {
+        lines[refreshStart].opcode = MLCD_WR | VCOM;
+        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1) 
+                * sizeof(struct _linebuf) + 1);
+        refreshStart = 0xff;
+        refreshStop = 0;
+      }
+    }
+    else if (ev == refresh_event)
+    {
+      struct RefreshData* d = (struct RefreshData*)data;
+      if (refreshStart > d->start)
+        refreshStart = d->start;
+      if (refreshStop < d->end)
+        refreshStop = d->end;
+      
+      if (state == STATE_NONE)
+      {
+        lines[refreshStart].opcode = MLCD_WR | VCOM;
+        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1) 
+                * sizeof(struct _linebuf));
+        
+        refreshStart = 0xff;
+        refreshStop = 0;
+      }
+    }
+    else if (ev == PROCESS_EVENT_TIMER)
+    {
+      VCOM ^= MLCD_VCOM;
+      if (state == STATE_NONE)
+      {
+        ShortCommandBuffer[0] = MLCD_SM | VCOM;
+        SPISend(ShortCommandBuffer, 2);
+      }
+    }
+  }
+  
+  PROCESS_END();
+}
 void halLcdActive()
 {
-    P8OUT |= BIT1; // set 1 to active display
+  P8OUT |= BIT1; // set 1 to active display
 }
