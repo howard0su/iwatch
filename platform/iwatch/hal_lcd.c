@@ -3,6 +3,7 @@
  *    History:
  *      Jun Su          2013/1/2        Created
  *      Jun Su          2013/1/16       Use DMA
+ *      Jun Su          2013/1/17       Use hardware COM switch
  *
  * Copyright (c) Jun Su, 2013
  *
@@ -47,7 +48,7 @@ PROCESS(lcd_process, "LCD");
 
 static unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
 static struct etimer timer;
-static process_event_t clear_event, refresh_event;
+static process_event_t refresh_event;
 static unsigned char ShortCommandBuffer[2];
 
 enum {STATE_NONE, STATE_SENDING};
@@ -178,17 +179,26 @@ void halLcdInit()
   for(i = 0; i < LCD_COL; i++)
   {
     lines[i].linenum = i;
+    lines[i].opcode = MLCD_WR;
   }
   
   SPIInit();
   
   // wait spi stable
   __delay_cycles(100);
+    
+  // configure TA0.1 for COM switch
+  TA0CTL |= TASSEL_1 + ID_3 + MC_1;
+  TA0CCTL1 = OUTMOD_7;
+  TA0CCR0 = 4096;
+  TA0CCR1 = 1;
+
+  P8SEL |= BIT1;
+  P8DIR |= BIT1; // p8.0 is TA0.1
   
   // enable disply
-  P8DIR |= BIT1 + BIT0; // p8.1 is display
-  
-  P8OUT &= ~BIT0; // p8.0 is gnd
+  P8DIR |= BIT2; // p8.1 is display
+  P8OUT |= BIT2; // set 1 to active display
   
   process_start(&lcd_process, NULL);
 }
@@ -196,12 +206,15 @@ void halLcdInit()
 void halLcdClearScreen()
 {
   unsigned int i;
+  struct RefreshData data;
+  
   for(i = 0; i < LCD_COL; i++)
   {
     memset(lines[i].pixels, 0, LCD_ROW/8);
   }
-  
-  process_post_synch(&lcd_process, clear_event, NULL);
+  data.start = 0;
+  data.end = LCD_COL - 1;
+  process_post_synch(&lcd_process, refresh_event, &data);
 }
 
 static void SPISend(void* data, unsigned int size)
@@ -235,31 +248,17 @@ PROCESS_THREAD(lcd_process, ev, data)
   PROCESS_BEGIN();
   
   refresh_event = process_alloc_event();
-  clear_event = process_alloc_event();
-  etimer_set(&timer, CLOCK_SECOND);
   
   while(1)
   {
     PROCESS_WAIT_EVENT();
-    if (ev == PROCESS_EVENT_TIMER)
-    {
-      VCOM ^= MLCD_VCOM;
-      etimer_reset(&timer);
-
-      if (state == STATE_NONE)
-      {
-        ShortCommandBuffer[0] = MLCD_SM | VCOM;
-        SPISend(ShortCommandBuffer, 2);
-      }
-    }
-    else if (ev == PROCESS_EVENT_POLL)
+    if (ev == PROCESS_EVENT_POLL)
     {
       SPIOUT &= ~_SCS;
       state = STATE_NONE;
       
       if (refreshStart != 0xff)
       {
-        lines[refreshStart].opcode = MLCD_WR | VCOM;
         SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1) 
                 * sizeof(struct _linebuf) + 1);
         refreshStart = 0xff;
@@ -276,7 +275,6 @@ PROCESS_THREAD(lcd_process, ev, data)
       
       if (state == STATE_NONE)
       {
-        lines[refreshStart].opcode = MLCD_WR | VCOM;
         SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1) 
                 * sizeof(struct _linebuf));
         
@@ -290,5 +288,5 @@ PROCESS_THREAD(lcd_process, ev, data)
 }
 void halLcdActive()
 {
-  P8OUT |= BIT1; // set 1 to active display
+  P8OUT |= BIT2; // set 1 to active display
 }
