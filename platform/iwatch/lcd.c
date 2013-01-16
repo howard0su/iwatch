@@ -42,7 +42,7 @@
 #define X_MAX (LCD_MAX_X/X_CHAR_SIZE)
 #define Y_MAX (LCD_MAX_Y/Y_CHAR_SIZE)
 
-static int ypos;
+static unsigned char ypos;
 
 static char line[X_MAX + 1];
 static unsigned char xpos;

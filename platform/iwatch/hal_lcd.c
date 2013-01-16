@@ -1,6 +1,5 @@
 #include "contiki.h"
 #include <string.h>
-#include <stdio.h>
 
 #include "sys/etimer.h"
 #include "hal_lcd.h"
@@ -20,10 +19,19 @@
 #define MLCD_SM 0x00					// MLCD static mode command
 #define MLCD_VCOM 0x02					// MLCD VCOM bit
 
+#define DEBUG 1
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(##__FILE__ __VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 extern void doubleWideAsm(unsigned char c, unsigned char* buff);
+
 PROCESS(lcd_process, "LCD");
 
-volatile static unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
+static unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
 static struct etimer timer;
 static process_event_t clear_event, refresh_event;
 static unsigned char ShortCommandBuffer[2];
@@ -42,16 +50,6 @@ struct _linebuf
   unsigned char linenum;
   unsigned char pixels[LCD_ROW/8];
 }lines[LCD_COL + 1]; // give a dummy 
-
-static inline void Enable_SCS()
-{
-  SPIOUT |= _SCS;
-}
-
-static inline void Disable_SCS()
-{
-  SPIOUT &= ~_SCS;
-}
 
 void printSharp(const char* text, unsigned char line, unsigned char options);
 
@@ -127,7 +125,7 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
     k++;											// next pixel line
   }
   
-  printf("Update from Line %d to Line %d\n", line, line + k - 1);
+  PRINTF("Update from Line %d to Line %d\n", line, line + k - 1);
   
   data.start = line;
   data.end = line + k - 1;
@@ -191,8 +189,9 @@ void halLcdClearScreen()
 
 static void SPISend(void* data, unsigned int size)
 {
+  PRINTF("Send Data %d bytes\n", size);
   state = STATE_SENDING;
-  Enable_SCS();
+  SPIOUT |= _SCS;
   
   // USB0 TXIFG trigger
   DMACTL0 = DMA0TSEL_19;                    
@@ -207,6 +206,8 @@ static void SPISend(void* data, unsigned int size)
 
 ISR(DMA, dma0handler)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  
   switch(__even_in_range(DMAIV,16))
   {
   case 0: break;
@@ -225,6 +226,8 @@ ISR(DMA, dma0handler)
   case 16: break;                         // DMA7IFG = DMA Channel 7
   default: break;
   }
+  
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
 PROCESS_THREAD(lcd_process, ev, data)
@@ -242,7 +245,7 @@ PROCESS_THREAD(lcd_process, ev, data)
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_POLL)
     {
-      Disable_SCS();
+      SPIOUT &= ~_SCS;
       state = STATE_NONE;
       
       if (refreshStart != 0xff)
@@ -275,6 +278,8 @@ PROCESS_THREAD(lcd_process, ev, data)
     else if (ev == PROCESS_EVENT_TIMER)
     {
       VCOM ^= MLCD_VCOM;
+      etimer_reset(&timer);
+
       if (state == STATE_NONE)
       {
         ShortCommandBuffer[0] = MLCD_SM | VCOM;
