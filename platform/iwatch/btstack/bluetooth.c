@@ -1,3 +1,18 @@
+/****************************************************************
+ *  Description: Implementation for Initialize for btstack
+ *    History:
+ *      Jun Su          2013/1/1        Created
+ *      Jun Su          2013/1/13       Support BT and BLE
+ *
+ * Copyright (c) Jun Su, 2013
+ *
+ * This unpublished material is proprietary to Jun Su.
+ * All rights reserved. The methods and
+ * techniques described herein are considered trade secrets
+ * and/or confidential. Reproduction or distribution, in whole
+ * or in part, is forbidden except by express written permission.
+ ****************************************************************/
+
 #include "contiki.h"
 
 #include <stdio.h> /* For printf() */

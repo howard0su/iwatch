@@ -1,6 +1,17 @@
-/** 
- * @file  hal_bt.c
- ***************************************************************************/
+/****************************************************************
+ *  Description: Implementation for UART for BTSTack
+ *    History:
+ *      Jun Su          2013/1/2        Created
+ *
+ * Copyright (c) Jun Su, 2013
+ *
+ * This unpublished material is proprietary to Jun Su.
+ * All rights reserved. The methods and
+ * techniques described herein are considered trade secrets
+ * and/or confidential. Reproduction or distribution, in whole
+ * or in part, is forbidden except by express written permission.
+ ****************************************************************/
+
 #include <stdint.h>
 #include "contiki.h"
 #include "contiki.h"
