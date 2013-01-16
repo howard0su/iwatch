@@ -241,7 +241,18 @@ PROCESS_THREAD(lcd_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT();
-    if (ev == PROCESS_EVENT_POLL)
+    if (ev == PROCESS_EVENT_TIMER)
+    {
+      VCOM ^= MLCD_VCOM;
+      etimer_reset(&timer);
+
+      if (state == STATE_NONE)
+      {
+        ShortCommandBuffer[0] = MLCD_SM | VCOM;
+        SPISend(ShortCommandBuffer, 2);
+      }
+    }
+    else if (ev == PROCESS_EVENT_POLL)
     {
       SPIOUT &= ~_SCS;
       state = STATE_NONE;
@@ -271,17 +282,6 @@ PROCESS_THREAD(lcd_process, ev, data)
         
         refreshStart = 0xff;
         refreshStop = 0;
-      }
-    }
-    else if (ev == PROCESS_EVENT_TIMER)
-    {
-      VCOM ^= MLCD_VCOM;
-      etimer_reset(&timer);
-
-      if (state == STATE_NONE)
-      {
-        ShortCommandBuffer[0] = MLCD_SM | VCOM;
-        SPISend(ShortCommandBuffer, 2);
       }
     }
   }
