@@ -18,7 +18,7 @@
 #include "sys/clock.h"
 #include "lib/sensors.h"
 #include "button.h"
-
+#include "lcd.h"
 #include "hal_lcd.h"
 
    extern void mpu6050_init();
@@ -50,19 +50,22 @@ PROCESS_THREAD(system_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   //mpu6050_init();
 
-   bluetooth_init(2);
+  lcd_init();
+  bluetooth_init(2);
 
-  
+  //etimer_adjust(&et, CLOCK_SECOND * 10);
+  //etimer_restart(&et);
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
+    {
     printf("Key Changed %d, %d, %d, %d\n", 
            button_sensor.value(0),
            button_sensor.value(1),
            button_sensor.value(2),
            button_sensor.value(3)
            );
-      
+    }
   }
   
   PROCESS_END();

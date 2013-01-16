@@ -118,11 +118,9 @@ main(int argc, char **argv)
    * Initialize Contiki and our processes.
    */
   process_init();
-  lcd_init();
-  ctimer_init();
-
   process_start(&etimer_process, NULL);
-
+  ctimer_init();
+  
   if(node_id > 0) {
     PRINTF("Node id %u.\n", node_id);
   } else {
@@ -138,8 +136,7 @@ main(int argc, char **argv)
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
   
-  P5DIR |= BIT0;
-  P5OUT |= BIT0;
+  P5DIR |= BIT0 + BIT1 + BIT2;
   /*
    * This is the scheduler loop.
    */
@@ -163,7 +160,6 @@ main(int argc, char **argv)
     } else {
       static unsigned long irq_energest = 0;
 
-      P5OUT &= ~BIT0;
       /* Re-enable interrupts and go to sleep atomically. */
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
@@ -200,7 +196,6 @@ main(int argc, char **argv)
       watchdog_start();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
-      P5OUT |= BIT0;
     }
   }
 }

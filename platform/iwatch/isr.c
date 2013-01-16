@@ -56,20 +56,20 @@ ISR(PORT1, PORT1ISR) {
   
   switch(__even_in_range(P1IV, 16))
   {
-  case 0: break;                          // Pin0
-  case 2: break;                          // Pin1
-  case 4: break;                          // Pin2
-  case 6:                                 // Pin3
+  case 0: break;                          
+  case 2: break;                          // Pin0
+  case 4: break;                          // Pin1
+  case 6: break;                          // Pin2
+  case 8:                                 // Pin3
     {
       if (port1_pin3())
         LPM4_EXIT;
       break;
     }
-  case 8: break;                          // Pin4
-  case 10: break;                          // Pin5
-  case 12: break;                          // Pin6
-  case 14: break;                          // Pin7
-  case 16: break;                          // Pin8
+  case 10: break;                          // Pin4
+  case 12: break;                          // Pin5
+  case 14: break;                          // Pin6
+  case 16: break;                          // Pin7
   default: break;
   }
   
@@ -84,41 +84,41 @@ extern int port2_pin6();
 ISR(PORT2, PORT2ISR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  switch(__even_in_range(P1IV, 16))
+  switch(__even_in_range(P2IV, 16))
   {
-  case 0: 
+  case 0: break;
+  case 2: 
     {
       if (port2_pin0())
         LPM4_EXIT;
       
       break;                          // Pin0
     }
-  case 2:     
+  case 4:     
     {
       if (port2_pin1())
         LPM4_EXIT;
       
       break;                          // Pin1
     }
-  case 4: 
+  case 6: 
     {
       if (port2_pin2())
         LPM4_EXIT;
       
       break;                          // Pin2
     }
-  case 6: break;                          // Pin3
-  case 8: break;                          // Pin4
-  case 10: break;                          // Pin5
-  case 12:     
+  case 8: break;                          // Pin3
+  case 10: break;                          // Pin4
+  case 12: break;                          // Pin5
+  case 14:     
     {
       if (port2_pin6())
         LPM4_EXIT;
       
-      break;                          // Pin0
+      break;                          // Pin6
     }
-  case 14: break;                          // Pin7
-  case 16: break;                          // Pin8
+  case 16: break;                          // Pin7
   default: break;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
