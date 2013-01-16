@@ -32,10 +32,11 @@ value(int type)
 static int
 configure(int type, int c)
 {
+  int i;
   switch (type) {
   case SENSORS_HW_INIT:
     {
-      for(int i = 0; i < 4; i++)
+      for(i = 0; i < 4; i++)
       {
         // INPUT
         //P2DIR &= ~(buttons[i].bitmask);
@@ -56,12 +57,12 @@ configure(int type, int c)
     if (c) {
       if(!status(SENSORS_ACTIVE)) {
         int s = splhigh();
-        for(int i = 0; i < 4; i++)
+        for(i = 0; i < 4; i++)
           P2IE |= buttons[i].bitmask;
         splx(s);
       }
     } else {
-      for(int i = 0; i < 4; i++)
+      for(i = 0; i < 4; i++)
         P2IE &= ~(buttons[i].bitmask);      
     }
     return 1;
@@ -80,21 +81,33 @@ status(int type)
   return 0;
 }
 
-ISR(PORT2, __button_interrupt)
+static int port2_button(int i)
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  for(int i = 0; i < 4 && P2IFG; i++)
-  {
-    if (P2IFG & buttons[i].bitmask)
-    {
-      timer_set(&buttons[i].debouncetimer, CLOCK_SECOND/4);
-      P2IFG &= ~(buttons[i].bitmask);
-      sensors_changed(&button_sensor);
+  timer_set(&buttons[i].debouncetimer, CLOCK_SECOND/4);
+  P2IFG &= ~(buttons[i].bitmask);
+  sensors_changed(&button_sensor);
+  
+  return 1;
+}
 
-      LPM4_EXIT;
-    }
-  }
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+int port2_pin0()
+{
+  return port2_button(0);
+}
+
+int port2_pin1()
+{
+  return port2_button(1);
+}
+
+int port2_pin2()
+{
+  return port2_button(2);
+}
+
+int port2_pin6()
+{
+  return port2_button(3);
 }
 
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,

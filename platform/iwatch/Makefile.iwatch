@@ -8,10 +8,10 @@ endif
 
 CLEAN += *.iwatch symbols.c symbols.h
 
-ARCH=msp430.c leds.c watchdog.c \
+ARCH=msp430.c watchdog.c \
      spix.c \
-     sensors.c button-sensor.c gyro-sensor.c\
-     rtimer-arch.c node-id.c leds-arch.c uart1x.c \
+     sensors.c button-sensor.c hal_lcd.c lcd_helper.S\
+     rtimer-arch.c node-id.c uart1x.c \
      cfs-ram.c
 
 ifeq ($(WITH_SLIP),1)
@@ -47,29 +47,30 @@ endif
 
 BTSTACK_ROOT = $(CONTIKI)/platform/iwatch/btstack
 BTSTACK = 	\
-    hci.c			          \
-    hci_cmds.c		          \
-    hci_dump.c		          \
-    hci_transport_h4_ehcill_dma.c \
-    l2cap.c			          \
-    l2cap_signaling.c         \
+	hci.c			          \
+	hci_cmds.c		          \
+	hci_dump.c		          \
+	hci_transport_h4_ehcill_dma.c \
+	l2cap.c			          \
+	l2cap_signaling.c         \
 	remote_device_db_memory.c \
 	rfcomm.c			      \
-    sdp.c			          \
-    sdp_util.c                \
-    utils.c			          \
-    btstack_memory.c          \
-    memory_pool.c             \
-    linked_list.c             \
-    att.c                     \
-    bt_control_cc256x.c       \
-    bluetooth_init_cc2564_2.5.c \
-    hal_compat.c              \
-    hal.c                     \
-    hal_uart_dma.c            \
-    bluetooth.c               \
+	sdp.c			          \
+	sdp_util.c                \
+	utils.c			          \
+	btstack_memory.c          \
+	memory_pool.c             \
+	linked_list.c             \
+	att.c                     \
+	bt_control_cc256x.c       \
+	bluetooth_init_cc2564_2.5.c \
+	hal_compat.c              \
+	hal.c                     \
+	hal_uart_dma.c            \
+	run_loop.c                \
+	bluetooth.c               
 
-CFLAGS += -I${BTSTACK_ROOT}/include -I${BTSTACK_ROOT} -I${BTSTACK_ROOT}/ble
+CFLAGS += -I${BTSTACK_ROOT}/include -I${BTSTACK_ROOT} -I${BTSTACK_ROOT}/ble -DHAVE_BLE
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(BTSTACK)
 

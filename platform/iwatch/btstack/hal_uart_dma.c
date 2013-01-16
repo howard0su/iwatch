@@ -2,6 +2,7 @@
  *  Description: Implementation for UART for BTSTack
  *    History:
  *      Jun Su          2013/1/2        Created
+ *      Jun Su          2013/1/16       Move ISR to central place
  *
  * Copyright (c) Jun Su, 2013
  *
@@ -39,8 +40,6 @@ extern void hal_cpu_set_uart_needed_during_sleep(uint8_t enabled);
 // RTS P1.4
 // CTS P1.3
 
-void dummy_handler(void){};
-
 // rx state
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
@@ -50,9 +49,9 @@ static uint16_t  bytes_to_write = 0;
 static uint8_t * tx_buffer_ptr = 0;
 
 // handlers
-static void (*rx_done_handler)(void) = dummy_handler;
-static void (*tx_done_handler)(void) = dummy_handler;
-static void (*cts_irq_handler)(void) = dummy_handler;
+static void (*rx_done_handler)(void) = NULL;
+static void (*tx_done_handler)(void) = NULL;
+static void (*cts_irq_handler)(void) = NULL;
 
 /**
  * @brief  Initializes the serial communications peripheral and GPIO ports 
@@ -186,7 +185,7 @@ void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
     }
     
     P1IE  &= ~BIT3;
-    cts_irq_handler = dummy_handler;
+    cts_irq_handler = NULL;
 }
 
 /**********************************************************************/
@@ -199,7 +198,6 @@ void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
  * @return none
  **************************************************************************/
 void hal_uart_dma_shutdown(void) {
-    
     UCA2IE &= ~(UCRXIE | UCTXIE);
     UCA2CTL1 = UCSWRST;                          //Reset State                         
     BT_PORT_SEL &= ~( BT_PIN_RXD + BT_PIN_TXD );
@@ -208,10 +206,15 @@ void hal_uart_dma_shutdown(void) {
     BT_PORT_OUT &= ~(BT_PIN_TXD + BT_PIN_RXD);
 }
 
+int dma_channel_1()
+{
+  return 1;
+}
+
 void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
     
     //printf("hal_uart_dma_send_block, size %u\n\r", len);
-    
+  
     UCA2IE &= ~UCTXIE ;  // disable TX interrupts
 
     tx_buffer_ptr = (uint8_t *) data;
@@ -242,7 +245,6 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep){
-  printf("hal_uart_dma_set_sleep: %d\n", sleep);
     hal_cpu_set_uart_needed_during_sleep(!sleep);    
 }
 
@@ -250,7 +252,7 @@ void hal_uart_dma_set_sleep(uint8_t sleep){
 ISR(USCI_A2, usbRxTxISR)
 {
     // find reason
-    switch (UCA2IV){
+    switch (__even_in_range(UCA2IV, 16)){
     
         case 2: // RXIFG
             if (bytes_to_read == 0) {
@@ -267,10 +269,11 @@ ISR(USCI_A2, usbRxTxISR)
             P1OUT |= BIT4;      // = 1 - RTS high -> stop
             UCA2IE &= ~UCRXIE ; // disable RX interrupts
         
-            (*rx_done_handler)();
+            if (rx_done_handler)
+              (*rx_done_handler)();
             
             // force exit low power mode
-            __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
+            LPM4_EXIT;
             
             break;
 
@@ -289,10 +292,11 @@ ISR(USCI_A2, usbRxTxISR)
             
             UCA2IE &= ~UCTXIE ;  // disable TX interrupts
 
-            (*tx_done_handler)();
+            if (tx_done_handler)
+              (*tx_done_handler)();
 
             // force exit low power mode
-            __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
+            LPM4_EXIT;
 
             break;
 
@@ -303,11 +307,10 @@ ISR(USCI_A2, usbRxTxISR)
 
 
 // CTS ISR
-
-extern void ehcill_handle(uint8_t action);
-#define EHCILL_CTS_SIGNAL      0x034
-
-ISR(PORT1, ctsISR) {
-    P1IV = 0;
+int port1_pin3()
+{
+  if (cts_irq_handler)
     (*cts_irq_handler)();
+  
+  return 0;
 }

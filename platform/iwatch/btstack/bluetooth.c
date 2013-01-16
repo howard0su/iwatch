@@ -40,7 +40,6 @@ enum STATE {INIT, W4_LOCAL_NAME, W4_CONNECTION, W4_CHANNEL_COMPLETE, ACTIVE} ;
 enum STATE state = INIT;
 
 // Bluetooth logic
-//static void packet_handler (void * connection, uint8_t packet_type, uint8_t *packet, uint16_t size)
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;

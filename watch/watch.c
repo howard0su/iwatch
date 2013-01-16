@@ -41,7 +41,6 @@ PROCESS_THREAD(system_process, ev, data)
   static struct etimer et;
 
   PROCESS_BEGIN();
-  PROCESS_EXITHANDLER(goto exit);
 
   SENSORS_ACTIVATE(button_sensor);
 
@@ -51,7 +50,7 @@ PROCESS_THREAD(system_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   //mpu6050_init();
 
-        bluetooth_init(2);
+   bluetooth_init(2);
 
   
   while(1)
@@ -66,7 +65,6 @@ PROCESS_THREAD(system_process, ev, data)
       
   }
   
- exit:
   PROCESS_END();
 
 }

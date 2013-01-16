@@ -2316,7 +2316,7 @@
         <option>
           <name>CCOptStrategy</name>
           <version>0</version>
-          <state>0</state>
+          <state>2</state>
         </option>
         <option>
           <name>CCOptLevelSlave</name>
@@ -3113,6 +3113,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\hal_lcd.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\isr.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\lcd.c</name>

@@ -18,7 +18,6 @@
 
 #include "sys/etimer.h"
 #include "hal_lcd.h"
-#include "isr_compat.h"
 #include "font.h"
 
 #define SPIOUT  P3OUT
@@ -37,7 +36,7 @@
 #define DEBUG 1
 #if DEBUG
 #include <stdio.h>
-#define PRINTF(...) printf(##__FILE__ __VA_ARGS__)
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -131,7 +130,8 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
     if(options & HIGH_TEXT && (line + k + 1) < LCD_COL)	// repeat line if DISP_HIGH is selected
     {
       unsigned char *LineBuff1 = lines[line+k+1].pixels;
-      for(unsigned char f = col/8; f < j; f++)
+      unsigned char f;
+      for(f = col/8; f < j; f++)
       {
         LineBuff1[f] = LineBuff[f];
       }
@@ -174,7 +174,8 @@ void halLcdSetBackLight(unsigned char n)
 
 void halLcdInit()
 {
-  for(unsigned int i = 0; i < LCD_COL; i++)
+  unsigned int i;
+  for(i = 0; i < LCD_COL; i++)
   {
     lines[i].linenum = i;
   }
@@ -194,7 +195,8 @@ void halLcdInit()
 
 void halLcdClearScreen()
 {
-  for(unsigned int i = 0; i < LCD_COL; i++)
+  unsigned int i;
+  for(i = 0; i < LCD_COL; i++)
   {
     memset(lines[i].pixels, 0, LCD_ROW/8);
   }
@@ -219,30 +221,11 @@ static void SPISend(void* data, unsigned int size)
   DMA0CTL = DMASRCINCR_3+DMASBDB+DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
 }
 
-ISR(DMA, dma0handler)
+int dma_channel_0()
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  process_poll(&lcd_process);
   
-  switch(__even_in_range(DMAIV,16))
-  {
-  case 0: break;
-  case 2:                                 // DMA0IFG = DMA Channel 0
-    {
-      process_poll(&lcd_process);
-      LPM4_EXIT;
-      break;
-    }
-  case 4: break;                          // DMA1IFG = DMA Channel 1
-  case 6: break;                          // DMA2IFG = DMA Channel 2
-  case 8: break;                          // DMA3IFG = DMA Channel 3
-  case 10: break;                         // DMA4IFG = DMA Channel 4
-  case 12: break;                         // DMA5IFG = DMA Channel 5
-  case 14: break;                         // DMA6IFG = DMA Channel 6
-  case 16: break;                         // DMA7IFG = DMA Channel 7
-  default: break;
-  }
-  
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+  return 1;
 }
 
 PROCESS_THREAD(lcd_process, ev, data)
