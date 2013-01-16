@@ -14,7 +14,6 @@
 
 #include "contiki.h"
 #include "string.h"
-#include "dev/leds.h"
 #include "lib/print-stats.h"
 #include "sys/clock.h"
 #include "lib/sensors.h"
@@ -68,7 +67,6 @@ PROCESS_THREAD(system_process, ev, data)
   }
   
  exit:
-  leds_off(LEDS_ALL);
   PROCESS_END();
 
 }

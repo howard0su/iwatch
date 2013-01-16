@@ -3041,9 +3041,6 @@
     <name>core</name>
     <group>
       <name>dev</name>
-      <file>
-        <name>$PROJ_DIR$\..\core\dev\leds.c</name>
-      </file>
     </group>
     <group>
       <name>lib</name>
@@ -3125,9 +3122,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\lcd_helper.asm</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\leds-arch.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\Makefile.iwatch</name>

@@ -35,7 +35,6 @@
 #include <stdarg.h>
 
 #include "dev/flash.h"
-#include "dev/leds.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
@@ -88,12 +87,8 @@ main(int argc, char **argv)
   msp430_cpu_init();
   clock_init();
   
-  leds_init();
-  leds_on(LEDS_RED);
-
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 
-  leds_on(LEDS_GREEN);
   /* xmem_init(); */
   
   PRINTF(CONTIKI_VERSION_STRING "\n");
@@ -101,7 +96,6 @@ main(int argc, char **argv)
    * Hardware initialization done!
    */
   
-  leds_on(LEDS_RED);
   /* Restore node id if such has been stored in external mem */
 
   //  node_id_restore();
@@ -128,8 +122,6 @@ main(int argc, char **argv)
   ctimer_init();
 
   process_start(&etimer_process, NULL);
-
-  leds_off(LEDS_ALL);
 
   if(node_id > 0) {
     PRINTF("Node id %u.\n", node_id);
