@@ -2062,11 +2062,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>300</state>
+          <state>400</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>300</state>
+          <state>400</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
