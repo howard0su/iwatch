@@ -50,6 +50,7 @@ ISR(DMA, DMA0ISR)
 }
 
 extern int port1_pin3();
+extern int port1_pin5();
 
 ISR(PORT1, PORT1ISR) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -67,7 +68,12 @@ ISR(PORT1, PORT1ISR) {
       break;
     }
   case 10: break;                          // Pin4
-  case 12: break;                          // Pin5
+  case 12:                                 // Pin5
+      {
+      if (port1_pin5())
+        LPM4_EXIT;
+      break;
+    }
   case 14: break;                          // Pin6
   case 16: break;                          // Pin7
   default: break;
