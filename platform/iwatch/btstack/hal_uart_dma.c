@@ -176,8 +176,7 @@ void hal_uart_dma_set_block_sent( void (*the_block_handler)(void)){
 
 void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
     if (the_irq_handler){
-        P1IFG  =  0;     // no IRQ pending
-        P1IV   =  0;     // no IRQ pending
+        P1IFG  &=  ~BIT3;     // no IRQ pending
         P1IES &= ~BIT3;  // IRQ on 0->1 transition
         P1IE  |=  BIT3;  // enable IRQ for P1.3
         cts_irq_handler = the_irq_handler;

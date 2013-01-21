@@ -194,10 +194,10 @@ void halLcdInit()
   TA0CCR1 = 1;
 
   P8SEL |= BIT1;
-  P8DIR |= BIT1; // p8.0 is TA0.1
+  P8DIR |= BIT1; // p8.1 is TA0.1
   
   // enable disply
-  P8DIR |= BIT2; // p8.1 is display
+  P8DIR |= BIT2; // p8.2 is display
   P8OUT |= BIT2; // set 1 to active display
   
   process_start(&lcd_process, NULL);

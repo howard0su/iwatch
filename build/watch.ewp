@@ -2615,12 +2615,12 @@
         <option>
           <name>OutputFormat</name>
           <version>11</version>
-          <state>33</state>
+          <state>23</state>
         </option>
         <option>
           <name>FormatVariant</name>
           <version>8</version>
-          <state>2</state>
+          <state>11</state>
         </option>
         <option>
           <name>SecondaryOutputFile</name>
@@ -2796,15 +2796,15 @@
         </option>
         <option>
           <name>GenerateExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XExtraOutOverride</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>watch.a43</state>
+          <state>watch.hex</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
@@ -2945,6 +2945,45 @@
     </settings>
   </configuration>
   <group>
+    <name>ant</name>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\ANTInterface.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antinterface.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antmessage.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antplus.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\common_pages.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\config.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\hrm_rx.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\hrm_rx.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\main_hrm.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\serial.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\serial.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\Timer_impl.c</name>
+    </file>
+  </group>
+  <group>
     <name>app</name>
     <file>
       <name>$PROJ_DIR$\..\watch\symbols.c</name>
@@ -2959,6 +2998,9 @@
       <name>ble</name>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x\ant_cmds.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble\att.c</name>
