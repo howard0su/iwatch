@@ -1,17 +1,18 @@
 /****************************************************************
- *  Description: Implementation for Initialize for btstack
- *    History:
- *      Jun Su          2013/1/1        Created
- *      Jun Su          2013/1/13       Support BT and BLE
- *
- * Copyright (c) Jun Su, 2013
- *
- * This unpublished material is proprietary to Jun Su.
- * All rights reserved. The methods and
- * techniques described herein are considered trade secrets
- * and/or confidential. Reproduction or distribution, in whole
- * or in part, is forbidden except by express written permission.
- ****************************************************************/
+*  Description: Implementation for Initialize for btstack
+*    History:
+*      Jun Su          2013/1/1        Created
+*      Jun Su          2013/1/13       Support BT and BLE
+*	   Jun Su		   2013/1/21	   Make BT and BLE runs same time
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
 
 #include "contiki.h"
 
@@ -35,6 +36,8 @@
 static uint8_t   rfcomm_channel_nr = 1;
 static uint16_t  rfcomm_channel_id;
 static uint8_t   spp_service_buffer[110];
+static uint8_t   hsf_service_buffer[110];
+
 
 enum STATE {INIT, W4_LOCAL_NAME, W4_CONNECTION, W4_CHANNEL_COMPLETE, ACTIVE} ;
 enum STATE state = INIT;
@@ -42,23 +45,85 @@ enum STATE state = INIT;
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
-  bd_addr_t event_addr;
+  static bd_addr_t event_addr;
   uint8_t   rfcomm_channel_nr;
   uint16_t  mtu;
   uint8_t event = packet[0];
+  static uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff }; 
   
   // handle events, ignore data
-  if (packet_type != HCI_EVENT_PACKET) return;
+  if (packet_type != HCI_EVENT_PACKET) 
+  {
+	printf("packet_type : %d, size: %d\n", packet_type, size);
+	return;
+  }
   
   switch(state){
   case INIT:
-    // bt stack activated, get started - set local name
-    if (packet[2] == HCI_STATE_WORKING) {
-      hci_send_cmd(&hci_write_local_name, "BlueMSP-Demo");
-      state = W4_LOCAL_NAME;
+	{
+	  switch (packet_type) {
+	  case HCI_EVENT_PACKET:
+		switch (packet[0]) {
+		case BTSTACK_EVENT_STATE:
+		  // bt stack activated, get started - set local name
+		  if (packet[2] == HCI_STATE_WORKING) {
+			printf("Working!\n");
+			hci_send_cmd(&hci_read_local_supported_features);
+		  }
+		  break;
+		  
+		case HCI_EVENT_COMMAND_COMPLETE:
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
+			bt_flip_addr(event_addr, &packet[6]);
+			printf("BD ADDR: %s\n", bd_addr_to_str(event_addr));
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
+			printf("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
+			hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
+			hci_send_cmd(&hci_write_le_host_supported, 1, 1);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
+			hci_send_cmd(&hci_le_set_event_mask, 0xffffffff, 0xffffffff);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
+			hci_send_cmd(&hci_le_read_buffer_size);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
+			printf("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
+			hci_send_cmd(&hci_le_read_supported_states);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
+			hci_send_cmd(&hci_le_set_advertising_parameters,  0x0400, 0x0800, 0, 0, 0, &event_addr, 0x07, 0);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
+			hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
+			hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+			hci_send_cmd(&hci_le_set_advertise_enable, 1);
+			break;
+		  }
+		  if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
+			hci_send_cmd(&hci_write_local_name, "BlueMSP-Demo");
+			state = W4_LOCAL_NAME;
+			break;
+		  }
+		}
+	  }
     }
-    break;
-    
   case W4_LOCAL_NAME:
     if ( COMMAND_COMPLETE_EVENT(packet, hci_write_local_name) ) {
       state = W4_CONNECTION;
@@ -138,108 +203,6 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
   att_try_respond();
 }
 
-
-// enable LE, setup ADV data
-static void packet_handler_le (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
-  bd_addr_t addr;
-  uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff }; 
-  switch (packet_type) {
-    
-  case HCI_EVENT_PACKET:
-    switch (packet[0]) {
-      
-    case BTSTACK_EVENT_STATE:
-      // bt stack activated, get started - set local name
-      if (packet[2] == HCI_STATE_WORKING) {
-        printf("Working!\n");
-        hci_send_cmd(&hci_read_local_supported_features);
-      }
-      break;
-      
-    case DAEMON_EVENT_HCI_PACKET_SENT:
-      att_try_respond();
-      break;
-      
-    case HCI_EVENT_LE_META:
-      switch (packet[2]) {
-      case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
-        // reset connection MTU
-        att_connection.mtu = 23;
-        break;
-      default:
-        break;
-      }
-      break;
-      
-    case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
-      if (packet[2]) {
-        printf("CONNECTED\n");
-      } else {
-        printf("NOT CONNECTED\n");
-      }
-      break;
-      
-    case HCI_EVENT_DISCONNECTION_COMPLETE:
-      att_response_handle =0;
-      att_response_size = 0;
-      
-      // restart advertising
-      hci_send_cmd(&hci_le_set_advertise_enable, 1);
-      break;
-      
-    case HCI_EVENT_COMMAND_COMPLETE:
-      if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
-        bt_flip_addr(addr, &packet[6]);
-        printf("BD ADDR: %s\n", bd_addr_to_str(addr));
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
-        printf("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
-        hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
-        hci_send_cmd(&hci_write_le_host_supported, 1, 1);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
-        hci_send_cmd(&hci_le_set_event_mask, 0xffffffff, 0xffffffff);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
-        hci_send_cmd(&hci_le_read_buffer_size);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
-        printf("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
-        hci_send_cmd(&hci_le_read_supported_states);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
-        hci_send_cmd(&hci_le_set_advertising_parameters,  0x0400, 0x0800, 0, 0, 0, &addr, 0x07, 0);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
-        hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
-        hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
-        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-        break;
-      }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
-        hci_discoverable_control(1);
-        break;
-      }
-      
-    }
-  }
-}
-
 // test profile
 #include "profile.h"
 
@@ -275,11 +238,18 @@ static void btstack_setup(){
   // init L2CAP
   l2cap_init();
   l2cap_register_packet_handler(packet_handler);
+  l2cap_register_fixed_channel(att_packet_handler, L2CAP_CID_ATTRIBUTE_PROTOCOL);
   
   // init RFCOMM
   rfcomm_init();
   rfcomm_register_packet_handler(packet_handler);
   rfcomm_register_service_internal(NULL, rfcomm_channel_nr, 100);  // reserved channel, mtu=100
+  
+  // set up ATT
+  att_set_db(profile_data);
+  att_set_write_callback(att_write_callback);
+  att_dump_attributes();
+  att_connection.mtu = 100;
   
   // init SDP, create record for SPP and register with SDP
   sdp_init();
@@ -288,48 +258,19 @@ static void btstack_setup(){
   sdp_create_spp_service( (uint8_t*) &service_record_item->service_record, 1, "SPP Counter");
   printf("SDP service buffer size: %u\n\r", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   sdp_register_service_internal(NULL, service_record_item);
-}
-
-static void btstack_ble_setup()
-{
-  /// GET STARTED with BTstack ///
-  btstack_memory_init();
   
-  // init HCI
-  hci_transport_t    * transport = hci_transport_h4_dma_instance();
-  bt_control_t       * control   = bt_control_cc256x_instance();
-  hci_uart_config_t  * config    = hci_uart_config_cc256x_instance();
-  remote_device_db_t * remote_db = (remote_device_db_t *) &remote_device_db_memory;
-  hci_init(transport, config, control, remote_db);
-  
-  // use eHCILL
-  bt_control_cc256x_enable_ehcill(1);
-  
-  // set up l2cap_le
-  l2cap_init_le();
-  l2cap_register_fixed_channel(att_packet_handler, L2CAP_CID_ATTRIBUTE_PROTOCOL);
-  l2cap_register_packet_handler(packet_handler_le);
-  
-  // set up ATT
-  att_set_db(profile_data);
-  att_set_write_callback(att_write_callback);
-  att_dump_attributes();
-  att_connection.mtu = 27;
+  service_record_item = (service_record_item_t *) hsf_service_buffer;
+  sdp_create_hsf_service( (uint8_t*) &service_record_item->service_record, 2, "Headset");
+  printf("HSF service buffer size: %u\n\r", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
+  sdp_register_service_internal(NULL, service_record_item);	
 }
 
 PROCESS_NAME(bluetooth_process);
 
-void bluetooth_init(int version)
+void bluetooth_init()
 {
   int x = splhigh();
-  if (version == 2)
-  {
-    btstack_setup();
-  }
-  else if (version == 4)
-  {
-    btstack_ble_setup();  
-  }
+  btstack_setup();
   splx(x);
   
   // Enable ACLK to provide 32 kHz clock to Bluetooth module
@@ -340,6 +281,6 @@ void bluetooth_init(int version)
   P10SEL &= ~BIT7;  // = 0 - I/O
   P10DIR |=  BIT7;  // = 1 - Output
   P10OUT |=  BIT7;  // = 1 - Active low
-    
+  
   process_start(&bluetooth_process, NULL);    
 }
