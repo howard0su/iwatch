@@ -709,10 +709,6 @@ BOOL ANT_RunScript(UCHAR ucPageNum_)
    {
       if(pucBuffer)                                         // If there is space in the queue
       {
-      
-      
-
-      
          pucBuffer[0] = MESG_RUN_SCRIPT_SIZE;
          pucBuffer[1] = MESG_RUN_SCRIPT_ID;
          pucBuffer[2] = 0;
