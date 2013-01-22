@@ -111,7 +111,7 @@ UCHAR* ANTInterface_Transaction()
    Serial_Transaction();
    
    pucRxBuffer = Serial_Read_Rx_Buffer();                // Check if any data has been recieved from serial
-   
+
    ProcessAntEvents(pucRxBuffer);
    
    return(pucRxBuffer);
@@ -153,7 +153,7 @@ BOOL ANT_Reset()
          Serial_Put_Tx_Buffer();                         // Put buffer back in queue
          bSuccess = TRUE; 
       }
-      WaitForResponse(&stCommandTimeout,0, MESG_RESPONSE_EVENT_ID, MESG_SYSTEM_RESET_ID);
+      WaitForResponse(&stCommandTimeout,0, MESG_STARTUP_ID, 0);
    }
    return(bSuccess); 
 

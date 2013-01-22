@@ -86,27 +86,24 @@ PROCESS_THREAD(ant_process, ev, data)
    etimer_set(&timer, CLOCK_SECOND/2);
    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
    // Main loop
-   //ANT_Reset();
-	ANT_NetworkKey(ANTPLUS_NETWORK_NUMBER, aucNetworkKey);
+   ANT_Reset();
+   //ANT_NetworkKey(ANTPLUS_NETWORK_NUMBER, aucNetworkKey);
+   
    while(TRUE)
    {
-	  int i = 0;	 
       pucRxBuffer = ANTInterface_Transaction();                // Check if any data has been recieved from serial
       
       if(pucRxBuffer)
       {
 		
-		if (HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct))
-		{
-		  i = 1;
-		}
+		HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
 		ProcessANTHRMRXEvents(&stEventStruct);
 		
 		ProcessAntEvents(pucRxBuffer);
 		ANTInterface_Complete();                              // Release the serial buffer
-      }
-	  
-	  if (i) continue;      
+		
+		continue;
+      }  
 	  
 	  PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
    }
@@ -245,7 +242,6 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
    if(pucEventBuffer_)
    {
       UCHAR ucANTEvent = pucEventBuffer_[BUFFER_INDEX_MESG_ID];   
-      printf("event: %x\n", ucANTEvent);
       switch( ucANTEvent )
       {
          case MESG_RESPONSE_EVENT_ID:
@@ -263,14 +259,7 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
                
                case RESPONSE_NO_ERROR:
                {   
-               
-                  if(pucEventBuffer_[3] == MESG_SYSTEM_RESET_ID)
-                  {
-                     ANT_NetworkKey(ANTPLUS_NETWORK_NUMBER, aucNetworkKey);
-                     printf("Reset is complete.\n");
-                  }
-               
-                  else if (pucEventBuffer_[3] == MESG_OPEN_CHANNEL_ID)
+               	  if (pucEventBuffer_[3] == MESG_OPEN_CHANNEL_ID)
                   {
                      printf("initialization is complete.\n");
                   }
@@ -286,7 +275,42 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
                   break;
                }
             }
-         }
+         	break;
+		 }
+	  case MESG_STARTUP_ID:
+		{
+		  if (pucEventBuffer_[2] == 0)
+		  {
+			printf("Reset is complete.\n");
+		  }
+		  else 
+		  {
+			if (pucEventBuffer_[2] & BIT0)
+		  	{
+				printf("HARDWARE_RESET_LINE ");
+		  	}
+			if (pucEventBuffer_[2] & BIT1)
+		  	{
+				printf("WATCH_DOG_RESET ");
+		  	}
+			if (pucEventBuffer_[2] & BIT5)
+		  	{
+				printf("COMMAND_RESET ");
+		  	}
+			if (pucEventBuffer_[2] & BIT6)
+		  	{
+				printf("SYNCHRONOUS_RESET ");
+		  	}
+			if (pucEventBuffer_[2] & BIT7)
+		  	{
+				printf(" SUSPEND_RESET ");
+		  	}
+			
+			printf("\n");
+		  }
+		  ANT_NetworkKey(ANTPLUS_NETWORK_NUMBER, aucNetworkKey);
+          break;
+		}
       }
    }      
 }

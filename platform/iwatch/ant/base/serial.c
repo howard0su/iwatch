@@ -34,6 +34,7 @@
 #include "timer.h"
 #include "antmessage.h"
 #include "isr_compat.h"
+#include <stdio.h>
 
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
 #define BAUD_57600_INDEX   1
@@ -63,7 +64,7 @@ static const UART_BAUD_CONTROL asBaudControl[] =
 //   { 0x03, 0x00, 0x06 },                              // 9600  baud using 32768 Hz clock
 //   { 0x0D, 0x00, 0x0A },                              // 2400  baud using 32768 Hz clock
 //   { 0x8A, 0x00, 0x00 }                               // 57600 baud using 8 MHz clock
-   { 0x15, 0x01, 0x0E }                               // 57600 baud using 8 MHz clock
+   { 0x15, 0x01, 0x0E }                               // 57600 baud using 16 MHz clock
 };
 #endif
 
@@ -706,6 +707,11 @@ void Synchronous_WriteByte(UCHAR ucByte)
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
 void Asynchronous_Init(UCHAR ucBaudRate_)
 {
+   // Go int RESET
+   SYSTEM_RST_SEL &= ~SYSTEM_RST_BIT;           // Set as output
+   SYSTEM_RST_DIR |= SYSTEM_RST_BIT;            // Set as output
+   SYSTEM_RST_OUT &= ~SYSTEM_RST_BIT;           // Set low to reset module   
+
    // Set configuration pin     
    ASYNC_RTS_SEL &= ~ASYNC_RTS_BIT;                // Set as gpio
    ASYNC_RTS_DIR &= ~ASYNC_RTS_BIT;                // Set as input
@@ -714,13 +720,9 @@ void Asynchronous_Init(UCHAR ucBaudRate_)
    ASYNC_SUSPEND_DIR |= ASYNC_SUSPEND_BIT;         // Set as output
    ASYNC_SUSPEND_OUT |= ASYNC_SUSPEND_BIT;         // Set high  
 
-   ASYNC_SLEEP_SEL &= ~ASYNC_SLEEP_BIT;            // Set as output
+   ASYNC_SLEEP_SEL &= ~ASYNC_SLEEP_BIT;            // Set as gpio
    ASYNC_SLEEP_DIR |= ASYNC_SLEEP_BIT;             // Set as output
    ASYNC_SLEEP_OUT &= ~ASYNC_SLEEP_BIT;            // Set low  
-
-   // RESET
-   ASYNC_SLEEP_OUT |= ASYNC_SLEEP_BIT;              // Set high
-   ASYNC_SUSPEND_OUT &= ~ASYNC_SUSPEND_BIT;         // Set low
    
    UART_ASYNC_UCI_CTL1 = UCSWRST;
    UART_ASYNC_UCI_CTL0 = UCMODE_0;                 // COnfigure UART no parity, LSB first, 8-bit, one stop bit 
@@ -739,17 +741,13 @@ void Asynchronous_Init(UCHAR ucBaudRate_)
    UART_ASYNC_UCI_CTL1 &= ~UCSWRST;                // Enable UART
    UART_ASYNC_UCI_IFR &= ~UART_ASYNC_RX_INT;       // Clear the RX interrupt
    UART_ASYNC_UCI_IER |= UART_ASYNC_RX_INT;        // Enable the RX interrupt
-   
-   // exit and do power up
-   ASYNC_SUSPEND_OUT |= ASYNC_SUSPEND_BIT;         // Set high  
-   ASYNC_SLEEP_OUT &= ~ASYNC_SLEEP_BIT;            // Set low  
-   
-#if 0  
+
+   SYSTEM_RST_OUT |= SYSTEM_RST_BIT;               // Set high to reset module    
+
    // Enable SEN interrupt
    SYNC_SEN_IES |= SYNC_SEN_BIT;                // interrupt on high-to-low transition
    SYNC_SEN_IFG &= ~SYNC_SEN_BIT;               // reset the interrupt flag
    SYNC_SEN_IE  |= SYNC_SEN_BIT;                // enable the SEN interrupt to allow wake up from sleep                                       
-#endif
 }
 #endif // SERIAL_UART_ASYNC || USE_UART_DEBUG
 
@@ -786,6 +784,7 @@ void Asynchronous_Transaction()
    if(stTheTxQueue.ucHead != stTheTxQueue.ucTail)  // if we have a message to send
    {
       ASYNC_SLEEP_DEASSERT();       // keep ANT from sleeping
+	  __delay_cycles(10);
       // Do HW flow control at the message level
       if (!(ucRts & ASYNC_RTS_BIT))
       {  
@@ -848,7 +847,7 @@ int Asynchronous_ProcessByte(UCHAR ucByte_)
    static UCHAR ucTheLength = 0;
    static UCHAR ucIndex = 0;
    static UCHAR* pucTheBuffer = NULL;
-   
+
    switch(eTheState)
    {
       case UART_STATE_WFSYNC:                         // Wiating for SYNC
@@ -946,10 +945,16 @@ extern void ant_process_poll();
 /////////////////////////////////////////////////////////////////////////////
 int port1_pin5()
 {
-    SYNC_SEN_IFG &= ~SYNC_SEN_BIT;   
-	ant_process_poll();
-	
-	return 1;
+    SYNC_SEN_IFG &= ~SYNC_SEN_BIT;
+	if(stTheTxQueue.ucHead != stTheTxQueue.ucTail)  // if we have a message to send
+	{
+		ant_process_poll();
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 

@@ -130,6 +130,8 @@
 #define MESG_CAPABILITIES_ID              ((UCHAR)0x54)
 #define MESG_SENSRCORE_DIGITAL_DATA       ((UCHAR)0x40)
 
+#define MESG_STARTUP_ID					  ((UCHAR)0x6F)
+
 #define MESG_PIN_DIODE_CONTROL_ID		   ((UCHAR)0x90)
 #define MESG_RUN_SCRIPT_ID                ((UCHAR)0x91)
 
