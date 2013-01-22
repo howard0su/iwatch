@@ -34,21 +34,30 @@ PROCESS(bluetooth_process, "Bluetooth process");
 #include "sdp.h"
 #include "config.h"
 
+static void callback(void *ptr)
+{
+  timer_source_t *timer = (timer_source_t *)ptr;
+  timer->process(ptr);
+}
+
 // set timer based on current time
 void run_loop_set_timer(timer_source_t *a, uint32_t timeout_in_ms)
 {
-  printf("not implement: run_loop_set_timer\n");
+  clock_time_t ticks = embedded_ticks_for_ms(timeout_in_ms);
+  
+  a->_timer.ptr = a;
+  a->timeout = ticks;
 }
 
 // add/remove timer_source
-void run_loop_add_timer(timer_source_t *timer)
+void run_loop_add_timer(timer_source_t *a)
 {
-  printf("not implement: run_loop_add_timer\n");
+  ctimer_set(&a->_timer, a->timeout, callback, a->_timer.ptr);
 }
 
-int  run_loop_remove_timer(timer_source_t *timer)
+int  run_loop_remove_timer(timer_source_t *a)
 {
-  printf("not implement: run_loop_remove_timer\n");
+  ctimer_stop(&a->_timer);
   return 1;
 }
 

@@ -47,6 +47,8 @@
 #include <sys/time.h>
 #endif
 
+#include "sys/ctimer.h"
+
 #if defined __cplusplus
 extern "C" {
 #endif
@@ -72,6 +74,7 @@ typedef struct bttimer {
     uint32_t timeout;                       // timeout in system ticks
 #endif
     void  (*process)(struct bttimer *ts);      // <-- do processing
+	struct ctimer _timer;
 } timer_source_t;
 
 

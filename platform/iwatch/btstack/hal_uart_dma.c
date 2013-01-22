@@ -26,7 +26,7 @@
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
-extern void hal_cpu_set_uart_needed_during_sleep(uint8_t enabled);
+#include "power.h"
 
 #define BT_PORT_OUT      P9OUT
 #define BT_PORT_SEL      P9SEL
@@ -244,7 +244,14 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep){
-    hal_cpu_set_uart_needed_during_sleep(!sleep);    
+    if (!sleep)
+	{
+	  power_pin(POWER_SMCLK);
+	}
+	else
+	{
+	  power_unpin(POWER_SMCLK);
+	}
 }
 
 // block-wise "DMA" RX/TX UART driver
@@ -270,7 +277,7 @@ ISR(USCI_A2, usbRxTxISR)
         
             if (rx_done_handler)
               (*rx_done_handler)();
-            
+
             // force exit low power mode
             LPM4_EXIT;
             
