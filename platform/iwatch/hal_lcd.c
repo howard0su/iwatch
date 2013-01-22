@@ -34,7 +34,7 @@
 #define MLCD_SM 0x00					// MLCD static mode command
 #define MLCD_VCOM 0x02					// MLCD VCOM bit
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
