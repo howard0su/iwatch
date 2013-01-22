@@ -2804,7 +2804,7 @@
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>watch.hex</state>
+          <state>watch.a43</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
@@ -3182,6 +3182,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\platform-conf.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\power.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtimer-arch.c</name>
