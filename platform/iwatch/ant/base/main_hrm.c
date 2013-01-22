@@ -77,8 +77,8 @@ void ant_init()
 ////////////////////////////////////////////////////////////////////////////
 PROCESS_THREAD(ant_process, ev, data)
 {
-   UCHAR* pucRxBuffer;
-   ANTPLUS_EVENT_RETURN stEventStruct;
+   static UCHAR* pucRxBuffer;
+   static ANTPLUS_EVENT_RETURN stEventStruct;
 
    PROCESS_BEGIN();
    static struct etimer timer;
@@ -86,22 +86,28 @@ PROCESS_THREAD(ant_process, ev, data)
    etimer_set(&timer, CLOCK_SECOND/2);
    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
    // Main loop
-   ANT_Reset();
-	 
+   //ANT_Reset();
+	ANT_NetworkKey(ANTPLUS_NETWORK_NUMBER, aucNetworkKey);
    while(TRUE)
-   {	 
+   {
+	  int i = 0;	 
       pucRxBuffer = ANTInterface_Transaction();                // Check if any data has been recieved from serial
       
       if(pucRxBuffer)
       {
-      
-         HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
-         ProcessANTHRMRXEvents(&stEventStruct);
-
-         ProcessAntEvents(pucRxBuffer);
-         ANTInterface_Complete();                              // Release the serial buffer
-      }      
-
+		
+		if (HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct))
+		{
+		  i = 1;
+		}
+		ProcessANTHRMRXEvents(&stEventStruct);
+		
+		ProcessAntEvents(pucRxBuffer);
+		ANTInterface_Complete();                              // Release the serial buffer
+      }
+	  
+	  if (i) continue;      
+	  
 	  PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
    }
    
@@ -239,7 +245,7 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
    if(pucEventBuffer_)
    {
       UCHAR ucANTEvent = pucEventBuffer_[BUFFER_INDEX_MESG_ID];   
-      
+      printf("event: %x\n", ucANTEvent);
       switch( ucANTEvent )
       {
          case MESG_RESPONSE_EVENT_ID:

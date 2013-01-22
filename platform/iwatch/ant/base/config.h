@@ -129,6 +129,7 @@
 
 #define SYNC_SEN_IFG						 P1IFG
 #define SYNC_SEN_BIT						 BIT5			//P1.5
-
+#define SYNC_SEN_IES                         P1IES
+#define SYNC_SEN_IE                          P1IE
 
 #endif 

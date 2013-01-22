@@ -52,7 +52,7 @@ typedef struct
 // Register settings for Baud rates. 
 // Reduce the size of this array to reduce 
 // RAM
-static const UART_BAUD_CONTROL asBaudControl[8] =
+static const UART_BAUD_CONTROL asBaudControl[] =
 {   
 //   { 0x06, 0x00, 0x0C },                              // 4800  baud using 32768 Hz clock
 //   { 0xD0, 0x00, 0x00 },                              // 38400 baud using 8 MHz clock    
@@ -63,7 +63,7 @@ static const UART_BAUD_CONTROL asBaudControl[8] =
 //   { 0x03, 0x00, 0x06 },                              // 9600  baud using 32768 Hz clock
 //   { 0x0D, 0x00, 0x0A },                              // 2400  baud using 32768 Hz clock
 //   { 0x8A, 0x00, 0x00 }                               // 57600 baud using 8 MHz clock
-   { 0x15, 0x01, 0xDD }                               // 57600 baud using 8 MHz clock
+   { 0x15, 0x01, 0x0E }                               // 57600 baud using 8 MHz clock
 };
 #endif
 
@@ -87,10 +87,9 @@ static const UART_BAUD_CONTROL asBaudControl[8] =
                                          TIMER_SRDY_PULSE_DELAY();\
                                          TIMER_SRDY_PULSE_DELAY();\
                                          SYNC_SRDY_DEASSERT(); } 
-                                         
+
 #define ASYNC_SLEEP_ASSERT()           (ASYNC_SLEEP_OUT |= ASYNC_SLEEP_BIT)         // active high
 #define ASYNC_SLEEP_DEASSERT()         (ASYNC_SLEEP_OUT &= ~ASYNC_SLEEP_BIT)  
-                                         
   
 #define SERIAL_QUEUE_BUFFER_LENGTH     ((UCHAR)21)                                  // 15 assumes that an exteneded message is the longest that will be recieved.                                               
 #define SERIAL_QUEUE_RX_SIZE           ((UCHAR)4)                                   // Same for TX and RX buffers
@@ -149,7 +148,7 @@ typedef enum
 } UartRxState;
 
 static void Asynchronous_Transaction();
-static void Asynchronous_ProcessByte(UCHAR ucByte_);
+static int  Asynchronous_ProcessByte(UCHAR ucByte_);
 #endif // SERIAL_UART_ASYNC
 
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
@@ -296,7 +295,7 @@ void Serial_Put_Tx_Buffer()
 ////////////////////////////////////////////////////////////////////////////
 // Serial_Get_Rx_Buffer
 //
-// Try to get a free buffer from the transmit buffer.
+// Try to get a free buffer from the receive buffer.
 //
 // Return pointer to buffer if successful, NULL otherwise.
 // 
@@ -707,15 +706,7 @@ void Synchronous_WriteByte(UCHAR ucByte)
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
 void Asynchronous_Init(UCHAR ucBaudRate_)
 {
-   // Set configuration pin  
-   // Go int RESET
-   SYSTEM_RST_SEL &= ~SYSTEM_RST_BIT;           // Set as output
-   SYSTEM_RST_DIR |= SYSTEM_RST_BIT;            // Set as output
-   SYSTEM_RST_OUT &= ~SYSTEM_RST_BIT;           // Set low to reset module   
-
-   __delay_cycles(200);  
-   SYSTEM_RST_OUT |= SYSTEM_RST_BIT;            // Set high to reset module 
-   
+   // Set configuration pin     
    ASYNC_RTS_SEL &= ~ASYNC_RTS_BIT;                // Set as gpio
    ASYNC_RTS_DIR &= ~ASYNC_RTS_BIT;                // Set as input
 
@@ -727,8 +718,13 @@ void Asynchronous_Init(UCHAR ucBaudRate_)
    ASYNC_SLEEP_DIR |= ASYNC_SLEEP_BIT;             // Set as output
    ASYNC_SLEEP_OUT &= ~ASYNC_SLEEP_BIT;            // Set low  
 
-   UART_ASYNC_UCI_CTL1 = UCSSEL__SMCLK | UCSWRST;       // Disable UART and select ACLK source
-   UART_ASYNC_UCI_CTL0 = 0;                        // COnfigure UART no parity, LSB first, 8-bit, one stop bit 
+   // RESET
+   ASYNC_SLEEP_OUT |= ASYNC_SLEEP_BIT;              // Set high
+   ASYNC_SUSPEND_OUT &= ~ASYNC_SUSPEND_BIT;         // Set low
+   
+   UART_ASYNC_UCI_CTL1 = UCSWRST;
+   UART_ASYNC_UCI_CTL0 = UCMODE_0;                 // COnfigure UART no parity, LSB first, 8-bit, one stop bit 
+   UART_ASYNC_UCI_CTL1 |= UCSSEL__SMCLK;             // Disable UART and select SMCLK source
  
    UART_ASYNC_UCI_BR0 = asBaudControl[ucBaudRate_].ucBR0;    // Baud rate
    UART_ASYNC_UCI_BR1 = asBaudControl[ucBaudRate_].ucBR1;
@@ -739,13 +735,21 @@ void Asynchronous_Init(UCHAR ucBaudRate_)
    
    ASYNC_TX_SEL |= ASYNC_TX_BIT;                   // Enable pin as UART TX
    ASYNC_TX_DIR |= ASYNC_TX_BIT;                   // Enable pin as output
-    
-   ASYNC_RTS_SEL &= ~ASYNC_RTS_BIT;                // Enable pin as GPIO
-   ASYNC_RTS_DIR &= ~ASYNC_RTS_BIT;                // Enable pin as input
-   
+
    UART_ASYNC_UCI_CTL1 &= ~UCSWRST;                // Enable UART
    UART_ASYNC_UCI_IFR &= ~UART_ASYNC_RX_INT;       // Clear the RX interrupt
    UART_ASYNC_UCI_IER |= UART_ASYNC_RX_INT;        // Enable the RX interrupt
+   
+   // exit and do power up
+   ASYNC_SUSPEND_OUT |= ASYNC_SUSPEND_BIT;         // Set high  
+   ASYNC_SLEEP_OUT &= ~ASYNC_SLEEP_BIT;            // Set low  
+   
+#if 0  
+   // Enable SEN interrupt
+   SYNC_SEN_IES |= SYNC_SEN_BIT;                // interrupt on high-to-low transition
+   SYNC_SEN_IFG &= ~SYNC_SEN_BIT;               // reset the interrupt flag
+   SYNC_SEN_IE  |= SYNC_SEN_BIT;                // enable the SEN interrupt to allow wake up from sleep                                       
+#endif
 }
 #endif // SERIAL_UART_ASYNC || USE_UART_DEBUG
 
@@ -837,7 +841,7 @@ void Asynchronous_WriteBuffer(char* pcBuffer_, int iLength_)
 // ANT message is recieved, it is put into the RX serial queue.
 // 
 ////////////////////////////////////////////////////////////////////////////
-void Asynchronous_ProcessByte(UCHAR ucByte_)
+int Asynchronous_ProcessByte(UCHAR ucByte_)
 {   
    static UCHAR ucCheckSum = 0;
    static UartRxState eTheState = UART_STATE_WFSYNC;
@@ -916,7 +920,7 @@ void Asynchronous_ProcessByte(UCHAR ucByte_)
          ucIndex = 0;
          pucTheBuffer = NULL;
    
-         break;
+         return 1; // we need 
       }
       
       
@@ -926,6 +930,8 @@ void Asynchronous_ProcessByte(UCHAR ucByte_)
          break;
       }
    }
+   
+   return 0;
 }
 #endif   // SERIAL_UART_ASYNC
 
@@ -942,6 +948,7 @@ int port1_pin5()
 {
     SYNC_SEN_IFG &= ~SYNC_SEN_BIT;   
 	ant_process_poll();
+	
 	return 1;
 }
 
@@ -957,11 +964,13 @@ int port1_pin5()
 ////////////////////////////////////////////////////////////////////////////
 ISR(USCI_A1, USCI_A1_ISR)
 {
-  switch (__even_in_range(UCA0IV, 16)){
+  switch (__even_in_range(UCA1IV, 16)){
   case 2: // RXIFG
-	Asynchronous_ProcessByte(UART_ASYNC_UCI_RXBUF);
-	ant_process_poll();
-	LPM4_EXIT;
+	if (Asynchronous_ProcessByte(UART_ASYNC_UCI_RXBUF))
+	{
+		ant_process_poll();
+		LPM4_EXIT;
+	}
 	break;
   default:
 	break;
