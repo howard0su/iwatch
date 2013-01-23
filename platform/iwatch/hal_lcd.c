@@ -46,10 +46,7 @@ extern void doubleWideAsm(unsigned char c, unsigned char* buff);
 
 PROCESS(lcd_process, "LCD");
 
-static unsigned char VCOM;			// current state of VCOM (0x04 or 0x00)
-static struct etimer timer;
 static process_event_t refresh_event;
-static unsigned char ShortCommandBuffer[2];
 
 enum {STATE_NONE, STATE_SENDING};
 static unsigned char state = STATE_NONE;
