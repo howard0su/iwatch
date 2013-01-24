@@ -8,6 +8,10 @@
 obj_*
 symbols.*
 Makefile.target
+build/Debug
+build/Retail
 doc/html
+build/*.txt
+*.dep
 patches-*
 tools/tunslip6
