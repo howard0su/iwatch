@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include "contiki.h"
-#include "contiki.h"
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -27,18 +27,6 @@
 #include <btstack/hal_uart_dma.h>
 
 #include "power.h"
-
-#define BT_PORT_OUT      P9OUT
-#define BT_PORT_SEL      P9SEL
-#define BT_PORT_DIR      P9DIR
-#define BT_PORT_REN      P9REN
-#define BT_PIN_TXD       BIT4
-#define BT_PIN_RXD       BIT5
-
-// RXD P9.5
-// TXD P9.4
-// RTS P1.4
-// CTS P1.3
 
 // rx state
 static uint16_t  bytes_to_read = 0;
@@ -63,20 +51,23 @@ static void (*cts_irq_handler)(void) = NULL;
  */
 void hal_uart_dma_init(void)
 {
-    BT_PORT_SEL |= BT_PIN_RXD + BT_PIN_TXD;
-    BT_PORT_DIR |= BT_PIN_TXD;
-    BT_PORT_DIR &= ~BT_PIN_RXD;
-
-    // set BT RTS (P1.4)
-    P1SEL &= ~BIT4;  // = 0 - I/O
-    P1DIR |=  BIT4;  // = 1 - Output
-    P1OUT |=  BIT4;  // = 1 - RTS high -> stop
+    // set BT RTS
+    BT_RTS_SEL &= ~BT_RTS_BIT;  // = 0 - I/O
+    BT_RTS_DIR |=  BT_RTS_BIT;  // = 1 - Output
+    BT_RTS_OUT |=  BT_RTS_BIT;  // = 1 - RTS high -> stop
 
     // set BT CTS 
-    P1SEL &= ~BIT3;  // = 0 - I/O
-    P1DIR &= ~BIT3;  // = 0 - Input
+    BT_CTS_SEL &= ~BT_CTS_BIT;  // = 0 - I/O
+    BT_CTS_DIR &= ~BT_CTS_BIT;  // = 0 - Input
     
     UCA2CTL1 |= UCSWRST;              //Reset State                      
+
+	BT_TXD_SEL |= BT_TXD_BIT;
+    BT_TXD_DIR |= BT_TXD_BIT;
+
+    BT_RXD_SEL |= BT_RXD_BIT;
+    BT_RXD_DIR &= ~BT_RXD_BIT;
+
     UCA2CTL0 = UCMODE_0;
     UCA2CTL1 |= UCSSEL_2;
     
@@ -176,14 +167,14 @@ void hal_uart_dma_set_block_sent( void (*the_block_handler)(void)){
 
 void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
     if (the_irq_handler){
-        P1IFG  &=  ~BIT3;     // no IRQ pending
-        P1IES &= ~BIT3;  // IRQ on 0->1 transition
-        P1IE  |=  BIT3;  // enable IRQ for P1.3
+        BT_CTS_IFG  &=  ~BT_CTS_BIT;     // no IRQ pending
+        BT_CTS_IES &= ~BT_CTS_BIT;  // IRQ on 0->1 transition
+        BT_CTS_IE  |=  BT_CTS_BIT;  // enable IRQ for P1.3
         cts_irq_handler = the_irq_handler;
         return;
     }
     
-    P1IE  &= ~BIT3;
+    BT_CTS_IE &= ~BT_CTS_BIT;
     cts_irq_handler = NULL;
 }
 
@@ -199,10 +190,15 @@ void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
 void hal_uart_dma_shutdown(void) {
     UCA2IE &= ~(UCRXIE | UCTXIE);
     UCA2CTL1 = UCSWRST;                          //Reset State                         
-    BT_PORT_SEL &= ~( BT_PIN_RXD + BT_PIN_TXD );
-    BT_PORT_DIR |= BT_PIN_TXD;
-    BT_PORT_DIR |= BT_PIN_RXD;
-    BT_PORT_OUT &= ~(BT_PIN_TXD + BT_PIN_RXD);
+
+    BT_RXD_SEL &= ~BT_RXD_BIT;
+    BT_TXD_SEL &=  BT_TXD_BIT;
+	
+    BT_TXD_DIR |= BT_TXD_BIT;
+    BT_RXD_DIR |= BT_RXD_BIT;
+	
+    BT_TXD_OUT &= ~BT_TXD_BIT;
+    BT_RXD_OUT &=  BT_RXD_BIT;
 }
 
 int dma_channel_1()
@@ -222,14 +218,6 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
     UCA2IE |= UCTXIE;    // enable TX interrupts
 }
 
-static inline void hal_uart_dma_enable_rx(void){
-    P1OUT &= ~BIT4;  // = 0 - RTS low -> ok
-}
-
-static inline void hal_uart_dma_disable_rx(void){
-    P1OUT |= BIT4;  // = 1 - RTS high -> stop
-}
-
 // int used to indicate a request for more new data
 void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
@@ -240,7 +228,8 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
     
     UCA2IE |= UCRXIE;    // enable RX interrupts
 
-    hal_uart_dma_enable_rx();     // enable receive 
+	// enable send
+    BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep){
@@ -262,7 +251,7 @@ ISR(USCI_A2, usbRxTxISR)
     
         case 2: // RXIFG
             if (bytes_to_read == 0) {
-                hal_uart_dma_disable_rx();
+                BT_RTS_OUT |= BT_RTS_BIT;  // = 1 - RTS high -> stop
                 UCA2IE &= ~UCRXIE ;  // disable RX interrupts
                 return;
             }
@@ -272,7 +261,7 @@ ISR(USCI_A2, usbRxTxISR)
             if (bytes_to_read > 0) {
                 return;
             }
-            P1OUT |= BIT4;      // = 1 - RTS high -> stop
+            BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
             UCA2IE &= ~UCRXIE ; // disable RX interrupts
         
             if (rx_done_handler)

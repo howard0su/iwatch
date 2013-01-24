@@ -274,13 +274,13 @@ void bluetooth_init()
   splx(x);
   
   // Enable ACLK to provide 32 kHz clock to Bluetooth module
-  P11SEL |= BIT0;
-  P11DIR |= BIT0;
+  BT_ACLK_SEL |= BT_ACLK_BIT;
+  BT_ACLK_DIR |= BT_ACLK_BIT;
   
-  // set BT SHUTDOWN (P10.7) to 1 (active low)
-  P10SEL &= ~BIT7;  // = 0 - I/O
-  P10DIR |=  BIT7;  // = 1 - Output
-  P10OUT |=  BIT7;  // = 1 - Active low
+  // set BT SHUTDOWN to 1 (active low)
+  BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
+  BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
+  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low
   
   process_start(&bluetooth_process, NULL);    
 }

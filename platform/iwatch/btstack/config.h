@@ -25,3 +25,38 @@
 #define MAX_NO_DB_MEM_DEVICE_NAMES 0
 #define MAX_NO_DB_MEM_SERVICES 1
 
+#define BT_ACLK_SEL		P11SEL
+#define BT_ACLK_DIR		P11DIR
+#define BT_ACLK_BIT		BIT0 		// P11.0 ACLK 32Khz -> BT
+
+#define BT_SHUTDOWN_SEL	P10SEL
+#define BT_SHUTDOWN_DIR	P10DIR
+#define BT_SHUTDOWN_OUT	P10OUT
+#define BT_SHUTDOWN_BIT BIT7		// P110.7 nShutdown
+
+// TXD P9.4
+#define BT_TXD_OUT      P9OUT
+#define BT_TXD_SEL     	P9SEL
+#define BT_TXD_DIR     	P9DIR
+#define BT_TXD_BIT      BIT4
+
+// RXD P9.5
+#define BT_RXD_OUT      P9OUT
+#define BT_RXD_SEL     	P9SEL
+#define BT_RXD_DIR     	P9DIR
+#define BT_RXD_BIT      BIT5
+
+// RTS P1.4
+#define BT_RTS_OUT      P1OUT
+#define BT_RTS_SEL     	P1SEL
+#define BT_RTS_DIR     	P1DIR
+#define BT_RTS_BIT      BIT4
+
+// CTS P1.3
+#define BT_CTS_OUT      P1OUT
+#define BT_CTS_SEL     	P1SEL
+#define BT_CTS_DIR     	P1DIR
+#define BT_CTS_IFG     	P1IFG
+#define BT_CTS_IES     	P1IES
+#define BT_CTS_IE     	P1IE
+#define BT_CTS_BIT      BIT3
