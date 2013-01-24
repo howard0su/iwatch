@@ -21,9 +21,10 @@
 #include "lcd.h"
 #include "hal_lcd.h"
 
-   extern void mpu6050_init();
-   extern void bluetooth_init(int);
-   
+extern void mpu6050_init();
+extern void ant_init();
+extern void bluetooth_init();
+
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
@@ -51,7 +52,8 @@ PROCESS_THREAD(system_process, ev, data)
   //mpu6050_init();
 
   lcd_init();
-  bluetooth_init(2);
+  ant_init();
+  bluetooth_init();
 
   //etimer_adjust(&et, CLOCK_SECOND * 10);
   //etimer_restart(&et);
