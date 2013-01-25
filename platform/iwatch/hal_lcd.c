@@ -56,14 +56,12 @@ struct RefreshData
   unsigned char start, end;
 };
 
-struct _linebuf
+static struct _linebuf
 {
   unsigned char opcode;
   unsigned char linenum;
   unsigned char pixels[LCD_ROW/8];
 }lines[LCD_COL + 1]; // give a dummy 
-
-void printSharp(const char* text, unsigned char line, unsigned char options);
 
 // write a string to display, truncated after 12 characters
 // input: text		0-terminated string
