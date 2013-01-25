@@ -74,6 +74,8 @@ void hal_uart_dma_init(void)
     UCA2CTL1 &= ~UCSWRST;             // continue
     
     hal_uart_dma_set_baud(115200);
+
+    power_pin(POWER_SMCLK + POWER_ACLK);
 }
 
 /**

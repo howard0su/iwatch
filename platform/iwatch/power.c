@@ -16,24 +16,27 @@
 #include "power.h"
 #include "assert.h"
 
+#include <stdio.h>
+
 // 0 -> SMCLK, 1->ACLK, 3->HighPerf
 static signed char PowerPinCounter[3];
 
 void power_sleep()
 {
   // uart1 && 
-  if ((UCA3STAT & UCBUSY) || (UCA2STAT & UCBUSY))
+  if ((UCA3STAT & UCBUSY) || (UCA2STAT & UCBUSY) || (UCA1STAT & UCBUSY) || PowerPinCounter[0])
   {
-	LPM0;
+	_BIS_SR(GIE | CPUOFF);
   }
   else
   {
-	LPM3;
+	_BIS_SR(GIE | CPUOFF | SCG0 | SCG1);
   }
 }
 
 void power_pin(int clock)
 {
+  printf("PIN : %d\n", clock);
   if (clock & POWER_SMCLK)
   {
 	PowerPinCounter[0]++;
@@ -46,6 +49,7 @@ void power_pin(int clock)
 
 void power_unpin(int clock)
 {
+  printf("UNPIN : %d\n", clock);
   if (clock & POWER_SMCLK)
   {
 	PowerPinCounter[0]--;
