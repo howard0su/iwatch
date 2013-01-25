@@ -38,6 +38,13 @@
 #include "serial.h"
 #include "ioboard.h"
 
+#define DEBUG 1
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 #define MAX_ACK_ALARMS_CHANNELS  ((UCHAR) 2)       // So only channels 0 and 1 can have ack timeouts, which are relevent only for a slave channel anyway
                                                    // Can always expand this to include all channels if necessary
@@ -142,6 +149,7 @@ BOOL ANT_Reset()
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
+   PRINTF("%s\n", __FUNCTION__);
    
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
@@ -170,7 +178,7 @@ BOOL ANT_Reset()
 BOOL ANT_AssignChannel(UCHAR ucChannelNumber_, UCHAR ucChannelType_, UCHAR ucNetworkNumber_)
 {
    BOOL bSuccess = FALSE;
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
@@ -204,7 +212,7 @@ BOOL ANT_AssignChannel(UCHAR ucChannelNumber_, UCHAR ucChannelType_, UCHAR ucNet
 BOOL ANT_UnAssignChannel(UCHAR ucChannelNumber_)
 {
    BOOL bSuccess = FALSE;
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
@@ -233,7 +241,7 @@ BOOL ANT_UnAssignChannel(UCHAR ucChannelNumber_)
 BOOL ANT_SearchTimeout(UCHAR ucChannelNumber_, UCHAR ucTimeout_)
 {
    BOOL bSuccess = FALSE;
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
@@ -267,7 +275,7 @@ BOOL ANT_NetworkKey(UCHAR ucNetworkNumber_, const UCHAR* pucKey_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
    
@@ -303,7 +311,7 @@ BOOL ANT_ChannelId(UCHAR ucANTChannel_, USHORT usDeviceNumber_, UCHAR ucDeviceTy
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-  
+  PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
    
@@ -338,7 +346,7 @@ BOOL ANT_ChannelPower(UCHAR ucANTChannel_, UCHAR ucPower_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       if(pucBuffer)                                         // If there is space in the queue
@@ -365,7 +373,7 @@ BOOL ANT_ChannelRFFreq(UCHAR ucANTChannel_,UCHAR ucFreq_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       if(pucBuffer)                                         // If there is space in the queue
@@ -393,7 +401,7 @@ BOOL ANT_ChannelPeriod(UCHAR ucANTChannel_, USHORT usPeriod_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       if(pucBuffer)                                         // If there is space in the queue
@@ -420,7 +428,7 @@ BOOL ANT_Broadcast(UCHAR ucANTChannel_, UCHAR* pucBuffer_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(pucBuffer)                                         // If there is space in the queue
    {
       pucBuffer[0] = MESG_DATA_SIZE;
@@ -451,7 +459,7 @@ BOOL ANT_Acknowledged(UCHAR ucANTChannel_, UCHAR* pucBuffer_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(pucBuffer)                                         // If there is space in the queue
    {
       pucBuffer[0] = MESG_DATA_SIZE;
@@ -481,7 +489,7 @@ BOOL ANT_Acknowledged(UCHAR ucANTChannel_, UCHAR* pucBuffer_)
 ////////////////////////////////////////////////////////////////////////////////
 BOOL ANT_AcknowledgedTimeout(UCHAR ucChannel_, UCHAR* pucData_, USHORT usTimeout_)
 {
-
+	PRINTF("%s\n", __FUNCTION__);
    if(ucChannel_ >= MAX_ACK_ALARMS_CHANNELS)
       usTimeout_ = 0;
 
@@ -513,7 +521,7 @@ BOOL ANT_BurstPacket(UCHAR ucControl_, UCHAR* pucBuffer_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(pucBuffer)                                         // If there is space in the queue
    {
       pucBuffer[0] = MESG_DATA_SIZE;
@@ -543,7 +551,7 @@ USHORT ANT_SendBurstTransfer(UCHAR ucAntChannel_, UCHAR* pucBuffer_, USHORT usPa
 {
 
    UCHAR ucSeq = 0;
-
+	PRINTF("%s\n", __FUNCTION__);
    do
    {
       if (usPackets_ == 1)
@@ -580,7 +588,7 @@ USHORT ANT_SendBurstTransfer(UCHAR ucAntChannel_, UCHAR* pucBuffer_, USHORT usPa
 ////////////////////////////////////////////////////////////////////////////////
 USHORT ANT_SendPartialBurst(UCHAR ucAntChannel_, UCHAR* pucBuffer_, USHORT usPackets_, ULONG ulInitialPacket_, BOOL bIncludeLast_)
 {
-
+	PRINTF("%s\n", __FUNCTION__);
    UCHAR ucSeq;
    
    // Get initial sequence number
@@ -622,7 +630,7 @@ BOOL ANT_OpenChannel(UCHAR ucANTChannel_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
    
@@ -649,7 +657,7 @@ BOOL ANT_CloseChannel(UCHAR ucANTChannel_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       if(pucBuffer)                                         // If there is space in the queue
@@ -676,7 +684,7 @@ BOOL ANT_RequestMessage(UCHAR ucANTChannel_, UCHAR ucRequestedMessage_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       if(pucBuffer)                                         // If there is space in the queue
@@ -704,7 +712,7 @@ BOOL ANT_RunScript(UCHAR ucPageNum_)
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-   
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
       if(pucBuffer)                                         // If there is space in the queue
@@ -733,7 +741,6 @@ BOOL ANT_RunScript(UCHAR ucPageNum_)
 ////////////////////////////////////////////////////////////////////////////////
 void ProcessAntEvents(UCHAR* pucBuffer_)
 {
-
    UCHAR ucChannel = pucBuffer_[2];     // Only makes sense if message has channel info obviously
 
    if(pucBuffer_)
