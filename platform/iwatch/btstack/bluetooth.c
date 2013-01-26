@@ -49,15 +49,15 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   uint8_t   rfcomm_channel_nr;
   uint16_t  mtu;
   uint8_t event = packet[0];
-  static uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff }; 
-  
+  static uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff };
+
   // handle events, ignore data
-  if (packet_type != HCI_EVENT_PACKET) 
+  if (packet_type != HCI_EVENT_PACKET)
   {
 	printf("packet_type : %d, size: %d\n", packet_type, size);
 	return;
   }
-  
+
   switch(state){
   case INIT:
 	{
@@ -71,7 +71,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 			hci_send_cmd(&hci_read_local_supported_features);
 		  }
 		  break;
-		  
+
 		case HCI_EVENT_COMMAND_COMPLETE:
 		  if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
 			bt_flip_addr(event_addr, &packet[6]);
@@ -129,7 +129,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       state = W4_CONNECTION;
     }
     break;
-    
+
   case W4_CONNECTION:
     switch (event) {
     case HCI_EVENT_PIN_CODE_REQUEST:
@@ -138,10 +138,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       bt_flip_addr(event_addr, &packet[2]);
       hci_send_cmd(&hci_pin_code_request_reply, &event_addr, 4, "0000");
       break;
-      
+
     case RFCOMM_EVENT_INCOMING_CONNECTION:
       // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
-      bt_flip_addr(event_addr, &packet[2]); 
+      bt_flip_addr(event_addr, &packet[2]);
       rfcomm_channel_nr = packet[8];
       rfcomm_channel_id = READ_BT_16(packet, 9);
       printf("RFCOMM channel %u requested for %s\n\r", rfcomm_channel_nr, bd_addr_to_str(event_addr));
@@ -151,10 +151,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     default:
       break;
     }
-    
+
   case W4_CHANNEL_COMPLETE:
     if ( event != RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE ) break;
-    
+
     // data: event(8), len(8), status (8), address (48), server channel(8), rfcomm_cid(16), max frame size(16)
     if (packet[2]) {
       printf("RFCOMM channel open failed, status %u\n\r", packet[2]);
@@ -167,7 +167,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     break;
   case ACTIVE:
     if (event != RFCOMM_EVENT_CHANNEL_CLOSED) break;
-    
+
     rfcomm_channel_id = 0;
     state = W4_CONNECTION;
     break;
@@ -187,7 +187,7 @@ static void att_try_respond(void){
   if (!att_response_size) return;
   if (!att_response_handle) return;
   if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
-  
+
   // update state before sending packet
   uint16_t size = att_response_size;
   att_response_size = 0;
@@ -197,7 +197,7 @@ static void att_try_respond(void){
 
 static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
   if (packet_type != ATT_DATA_PACKET) return;
-  
+
   att_response_handle = handle;
   att_response_size = att_handle_request(&att_connection, packet, size, att_response_buffer);
   att_try_respond();
@@ -224,33 +224,33 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
 static void btstack_setup(){
   /// GET STARTED with BTstack ///
   btstack_memory_init();
-  
+
   // init HCI
   hci_transport_t    * transport = hci_transport_h4_dma_instance();
   bt_control_t       * control   = bt_control_cc256x_instance();
   hci_uart_config_t  * config    = hci_uart_config_cc256x_instance();
   remote_device_db_t * remote_db = (remote_device_db_t *) &remote_device_db_memory;
   hci_init(transport, config, control, remote_db);
-  
+
   // use eHCILL
   bt_control_cc256x_enable_ehcill(1);
-  
+
   // init L2CAP
   l2cap_init();
   l2cap_register_packet_handler(packet_handler);
   l2cap_register_fixed_channel(att_packet_handler, L2CAP_CID_ATTRIBUTE_PROTOCOL);
-  
+
   // init RFCOMM
   rfcomm_init();
   rfcomm_register_packet_handler(packet_handler);
   rfcomm_register_service_internal(NULL, rfcomm_channel_nr, 100);  // reserved channel, mtu=100
-  
+
   // set up ATT
   att_set_db(profile_data);
   att_set_write_callback(att_write_callback);
   att_dump_attributes();
   att_connection.mtu = 100;
-  
+
   // init SDP, create record for SPP and register with SDP
   sdp_init();
   memset(spp_service_buffer, 0, sizeof(spp_service_buffer));
@@ -258,11 +258,11 @@ static void btstack_setup(){
   sdp_create_spp_service( (uint8_t*) &service_record_item->service_record, 1, "SPP Counter");
   printf("SDP service buffer size: %u\n\r", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   sdp_register_service_internal(NULL, service_record_item);
-  
+
   service_record_item = (service_record_item_t *) hsf_service_buffer;
   sdp_create_hsf_service( (uint8_t*) &service_record_item->service_record, 2, "Headset");
   printf("HSF service buffer size: %u\n\r", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
-  sdp_register_service_internal(NULL, service_record_item);	
+  sdp_register_service_internal(NULL, service_record_item);
 }
 
 PROCESS_NAME(bluetooth_process);
@@ -272,15 +272,15 @@ void bluetooth_init()
   int x = splhigh();
   btstack_setup();
   splx(x);
-  
+
   // Enable ACLK to provide 32 kHz clock to Bluetooth module
   BT_ACLK_SEL |= BT_ACLK_BIT;
   BT_ACLK_DIR |= BT_ACLK_BIT;
-  
+
   // set BT SHUTDOWN to 1 (active low)
   BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
   BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
   BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low
-  
-  process_start(&bluetooth_process, NULL);    
+
+  process_start(&bluetooth_process, NULL);
 }

@@ -2944,6 +2944,9 @@
       <data/>
     </settings>
   </configuration>
+  <mfc>
+    <configuration>Retail</configuration>
+  </mfc>
   <group>
     <name>ant</name>
     <file>

@@ -1,16 +1,16 @@
 /****************************************************************
- *  Description: Implementation for runloop for BTStack
- *    History:
- *      Jun Su          2013/1/2        Created
- *
- * Copyright (c) Jun Su, 2013
- *
- * This unpublished material is proprietary to Jun Su.
- * All rights reserved. The methods and
- * techniques described herein are considered trade secrets
- * and/or confidential. Reproduction or distribution, in whole
- * or in part, is forbidden except by express written permission.
- ****************************************************************/
+*  Description: Implementation for runloop for BTStack
+*    History:
+*      Jun Su          2013/1/2        Created
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
 
 #include "contiki.h"
 #include "sys/etimer.h"
@@ -44,7 +44,7 @@ static void callback(void *ptr)
 void run_loop_set_timer(timer_source_t *a, uint32_t timeout_in_ms)
 {
   clock_time_t ticks = embedded_ticks_for_ms(timeout_in_ms);
-  
+
   a->_timer.ptr = a;
   a->timeout = ticks;
 }
@@ -77,30 +77,30 @@ int  run_loop_remove_data_source(data_source_t *ds)
 
 PROCESS_THREAD(bluetooth_process, ev, data)
 {
-    PROCESS_BEGIN();
+  PROCESS_BEGIN();
 
-    static struct etimer timer;
-    // wait about one second for bluetooth to start
-    etimer_set(&timer, CLOCK_SECOND);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+  static struct etimer timer;
+  // wait about one second for bluetooth to start
+  etimer_set(&timer, CLOCK_SECOND);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
 
-    // turn on!
-    hci_power_control(HCI_POWER_ON);
-    // make discoverable
-    hci_discoverable_control(1);
-    
-    while(1)
-    {
-      PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-      
-      // process data sources
-      data_source_t *next;
-      data_source_t *ds;
-      for (ds = (data_source_t *) data_sources; ds != NULL ; ds = next){
-          next = (data_source_t *) ds->item.next; // cache pointer to next data_source to allow data source to remove itself
-          ds->process(ds);
-        }
+  // turn on!
+  hci_power_control(HCI_POWER_ON);
+  // make discoverable
+  hci_discoverable_control(1);
+
+  while(1)
+  {
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
+    // process data sources
+    data_source_t *next;
+    data_source_t *ds;
+    for (ds = (data_source_t *) data_sources; ds != NULL ; ds = next){
+      next = (data_source_t *) ds->item.next; // cache pointer to next data_source to allow data source to remove itself
+      ds->process(ds);
     }
-    
-    PROCESS_END();
+  }
+
+  PROCESS_END();
 }
