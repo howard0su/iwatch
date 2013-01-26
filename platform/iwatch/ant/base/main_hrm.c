@@ -77,20 +77,23 @@ void ant_init()
 ////////////////////////////////////////////////////////////////////////////
 PROCESS_THREAD(ant_process, ev, data)
 {
-  static UCHAR* pucRxBuffer;
-  static ANTPLUS_EVENT_RETURN stEventStruct;
+  static struct etimer timer;
 
   PROCESS_BEGIN();
-  // Main loop
+
+  // wait about 500ms for ant module to start
+  etimer_set(&timer, CLOCK_SECOND/2);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
   ANT_Reset();
 
+  // Main loop
   while(TRUE)
   {
-    pucRxBuffer = ANTInterface_Transaction();                // Check if any data has been recieved from serial
+    UCHAR* pucRxBuffer = ANTInterface_Transaction();                // Check if any data has been recieved from serial
 
     if(pucRxBuffer)
     {
-
+      ANTPLUS_EVENT_RETURN stEventStruct;
       HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
       ProcessANTHRMRXEvents(&stEventStruct);
 
