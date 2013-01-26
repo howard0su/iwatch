@@ -36,7 +36,7 @@
 static uint8_t   rfcomm_channel_nr = 1;
 static uint16_t  rfcomm_channel_id;
 static uint8_t   spp_service_buffer[110];
-static uint8_t   hsf_service_buffer[110];
+static uint8_t   hpf_service_buffer[110];
 
 
 enum STATE {INIT, W4_LOCAL_NAME, W4_CONNECTION, W4_CHANNEL_COMPLETE, ACTIVE} ;
@@ -253,14 +253,17 @@ static void btstack_setup(){
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();
+
+  service_record_item_t * service_record_item;
   memset(spp_service_buffer, 0, sizeof(spp_service_buffer));
-  service_record_item_t * service_record_item = (service_record_item_t *) spp_service_buffer;
+  service_record_item = (service_record_item_t *) spp_service_buffer;
   sdp_create_spp_service( (uint8_t*) &service_record_item->service_record, 1, "SPP Counter");
   printf("SDP service buffer size: %u\n\r", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   sdp_register_service_internal(NULL, service_record_item);
 
-  service_record_item = (service_record_item_t *) hsf_service_buffer;
-  sdp_create_hsf_service( (uint8_t*) &service_record_item->service_record, 2, "Headset");
+  memset(spp_service_buffer, 0, sizeof(hpf_service_buffer));
+  service_record_item = (service_record_item_t *) hpf_service_buffer;
+  sdp_create_hfp_service( (uint8_t*) &service_record_item->service_record, 2, "Headset");
   printf("HSF service buffer size: %u\n\r", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   sdp_register_service_internal(NULL, service_record_item);
 }
