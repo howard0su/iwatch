@@ -1,16 +1,16 @@
 /****************************************************************
- *  Description: Implementation for System process
- *    History:
- *      Jun Su          2013/1/2        Created
- *
- * Copyright (c) Jun Su, 2013
- *
- * This unpublished material is proprietary to Jun Su.
- * All rights reserved. The methods and
- * techniques described herein are considered trade secrets
- * and/or confidential. Reproduction or distribution, in whole
- * or in part, is forbidden except by express written permission.
- ****************************************************************/
+*  Description: Implementation for System process
+*    History:
+*      Jun Su          2013/1/2        Created
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
 
 #include "contiki.h"
 #include "string.h"
@@ -33,10 +33,10 @@ AUTOSTART_PROCESSES(&system_process);
 /*---------------------------------------------------------------------------*/
 
 /*
- * This process is the startup process.
- * It first shows the logo
- * Like the whole dialog intrufstture.
- */
+* This process is the startup process.
+* It first shows the logo
+* Like the whole dialog intrufstture.
+*/
 PROCESS_THREAD(system_process, ev, data)
 {
   static struct etimer et;
@@ -45,13 +45,12 @@ PROCESS_THREAD(system_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
 
-  halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);  
+  lcd_init();
+  halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);
   // give time to starts
   etimer_set(&et, CLOCK_SECOND);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   //mpu6050_init();
-
-  lcd_init();
   ant_init();
   bluetooth_init();
 
@@ -61,15 +60,15 @@ PROCESS_THREAD(system_process, ev, data)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
     {
-    printf("Key Changed %d, %d, %d, %d\n", 
-           button_sensor.value(0),
-           button_sensor.value(1),
-           button_sensor.value(2),
-           button_sensor.value(3)
-           );
+      printf("Key Changed %d, %d, %d, %d\n",
+             button_sensor.value(0),
+             button_sensor.value(1),
+             button_sensor.value(2),
+             button_sensor.value(3)
+               );
     }
   }
-  
+
   PROCESS_END();
 
 }
