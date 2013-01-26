@@ -51,7 +51,7 @@ static const UCHAR aucNetworkKey[] = ANTPLUS_NETWORK_KEY;
 static void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_);
 static void ProcessAntEvents(UCHAR* pucEventBuffer_);
 
-PROCESS(ant_process, "Bluetooth process");
+PROCESS(ant_process, "ANT process");
 
 void ant_process_poll()
 {
@@ -81,13 +81,8 @@ PROCESS_THREAD(ant_process, ev, data)
    static ANTPLUS_EVENT_RETURN stEventStruct;
 
    PROCESS_BEGIN();
-   static struct etimer timer;
-   // wait about 500ms for ant module to start
-   etimer_set(&timer, CLOCK_SECOND/2);
-   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
    // Main loop
    ANT_Reset();
-   //ANT_NetworkKey(ANTPLUS_NETWORK_NUMBER, aucNetworkKey);
    
    while(TRUE)
    {
@@ -96,16 +91,16 @@ PROCESS_THREAD(ant_process, ev, data)
       if(pucRxBuffer)
       {
 		
-		HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
-		ProcessANTHRMRXEvents(&stEventStruct);
-		
-		ProcessAntEvents(pucRxBuffer);
-		ANTInterface_Complete();                              // Release the serial buffer
-		
-		continue;
+	HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
+	ProcessANTHRMRXEvents(&stEventStruct);
+	
+	ProcessAntEvents(pucRxBuffer);
+	ANTInterface_Complete();                              // Release the serial buffer
+	
+	continue;
       }  
 	  
-	  PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+      PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
    }
    
    PROCESS_END();
