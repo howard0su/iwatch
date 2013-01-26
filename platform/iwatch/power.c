@@ -52,12 +52,12 @@ void power_unpin(int clock)
   printf("UNPIN : %d\n", clock);
   if (clock & POWER_SMCLK)
   {
-	PowerPinCounter[0]--;
 	assert(PowerPinCounter[0] > 0);
+	PowerPinCounter[0]--;
   }
   if (clock & POWER_ACLK)
   {
-	PowerPinCounter[1]--;
 	assert(PowerPinCounter[1] > 0);
+	PowerPinCounter[1]--;
   }  
 }
