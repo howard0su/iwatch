@@ -33,7 +33,7 @@
  *  bt_control_cc256x.c
  *
  *  Adapter to use cc256x-based chipsets with BTstack
- *  
+ *
  *  Handles init script (a.k.a. Service Patch)
  *  Allows for non-standard UART baud rate
  *  Allows to configure transmit power
@@ -42,17 +42,17 @@
  *  Issues with mspgcc LTS:
  *  - 20 bit support is not there yet -> .text cannot get bigger than 48 kb
  *  - arrays cannot have more than 32k entries
- * 
+ *
  *  workarounds:
- *  - store init script in .fartext and use assembly code to read from there 
+ *  - store init script in .fartext and use assembly code to read from there
  *  - split into two arrays
- *  
+ *
  */
 
 #include "bt_control_cc256x.h"
 
 #include <stddef.h>   /* NULL */
-#include <stdio.h> 
+#include <stdio.h>
 #include <string.h>   /* memcpy */
 
 #if defined(__GNUC__) && (__MSP430X__ > 0)
@@ -140,8 +140,8 @@ static void update_set_power_vector(uint8_t *hci_cmd_buffer){
 
         if (power_db > DB_MIN_LEVEL) continue;
 
-        power_db = DB_MIN_LEVEL;    // b) 
-    } 
+        power_db = DB_MIN_LEVEL;    // b)
+    }
 }
 
 static void update_set_class2_single_power(uint8_t * hci_cmd_buffer){
@@ -184,11 +184,11 @@ static int bt_control_cc256x_next_cmd(void *config, uint8_t *hci_cmd_buffer){
     if (init_script_offset >= cc256x_init_script_size) {
         return 0;
     }
-    
+
     init_script_offset++;   // extracted init script has 0x01 cmd packet type, but BTstack expects them without
-    
+
 #if defined(__GNUC__) && (__MSP430X__ > 0)
-    
+
     // workaround: use FlashReadBlock with 32-bit integer and assume init script starts at 0x10000
     uint32_t init_script_addr = 0x10000;
     FlashReadBlock(&hci_cmd_buffer[0], init_script_addr + init_script_offset, 3);  // cmd header
@@ -207,15 +207,15 @@ static int bt_control_cc256x_next_cmd(void *config, uint8_t *hci_cmd_buffer){
 
 #endif
 
-    // support for cc256x power commands and ehcill 
+    // support for cc256x power commands and ehcill
     bt_control_cc256x_update_command(hci_cmd_buffer);
 
     init_script_offset += payload_len;
 
-    return 1; 
+    return 1;
 }
 
-// MARK: const structs 
+// MARK: const structs
 
 static const bt_control_t bt_control_cc256x = {
 	.on = bt_control_cc256x_on,
@@ -224,8 +224,8 @@ static const bt_control_t bt_control_cc256x = {
 };
 
 static const hci_uart_config_t hci_uart_config_cc256x = {
-    .baudrate_init = 57600,
-    .baudrate_main = 1000000
+    .baudrate_init = 115200,
+    .baudrate_main = 115200
 };
 
 // MARK: public API
