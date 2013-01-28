@@ -2062,11 +2062,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>400</state>
+          <state>600</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>400</state>
+          <state>600</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -2944,9 +2944,6 @@
       <data/>
     </settings>
   </configuration>
-  <mfc>
-    <configuration>Retail</configuration>
-  </mfc>
   <group>
     <name>ant</name>
     <file>
@@ -2960,6 +2957,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antplus.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\cbsc_rx.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\cbsc_rx.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\ant\base\common_pages.h</name>
@@ -3188,6 +3191,12 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\power.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
+      <excluded>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtimer-arch.c</name>
