@@ -23,8 +23,11 @@ static signed char PowerPinCounter[3];
 
 void power_sleep()
 {
-  // uart1 && 
-  if ((UCA3STAT & UCBUSY) || (UCA2STAT & UCBUSY) || (UCA1STAT & UCBUSY) || PowerPinCounter[0])
+  if (PowerPinCounter[0]
+      || (UCA0STAT & UCBUSY)        // BT uart
+      || (UCA1STAT & UCBUSY)        // ANT uart
+      || (UCB0STAT & UCBUSY)        // LCD
+      || (UCA3STAT & UCBUSY))       // debug uart
   {
 	_BIS_SR(GIE | CPUOFF);
   }
@@ -36,7 +39,6 @@ void power_sleep()
 
 void power_pin(int clock)
 {
-  printf("PIN : %d\n", clock);
   if (clock & POWER_SMCLK)
   {
 	PowerPinCounter[0]++;
@@ -49,7 +51,6 @@ void power_pin(int clock)
 
 void power_unpin(int clock)
 {
-  printf("UNPIN : %d\n", clock);
   if (clock & POWER_SMCLK)
   {
 	assert(PowerPinCounter[0] > 0);
@@ -59,5 +60,5 @@ void power_unpin(int clock)
   {
 	assert(PowerPinCounter[1] > 0);
 	PowerPinCounter[1]--;
-  }  
+  }
 }
