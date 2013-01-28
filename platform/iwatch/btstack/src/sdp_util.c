@@ -729,6 +729,14 @@ void sdp_create_hfp_service(uint8_t *service, int service_id, const char *name){
 	}
 	de_pop_sequence(service, attribute);
 
+    // 0x0005 "Public Browse Group"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BrowseGroupList); // public browse group
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x1002 );
+	}
+	de_pop_sequence(service, attribute);
+
 	// 0x0009 "Bluetooth Profile Descriptor List"
 	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BluetoothProfileDescriptorList);
 	attribute = de_push_sequence(service);
