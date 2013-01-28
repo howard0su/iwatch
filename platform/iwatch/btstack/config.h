@@ -34,16 +34,16 @@
 #define BT_SHUTDOWN_OUT	P10OUT
 #define BT_SHUTDOWN_BIT BIT7		// P110.7 nShutdown
 
-// TXD P9.4
-#define BT_TXD_OUT      P9OUT
-#define BT_TXD_SEL     	P9SEL
-#define BT_TXD_DIR     	P9DIR
+// TXD P3.4
+#define BT_TXD_OUT      P3OUT
+#define BT_TXD_SEL     	P3SEL
+#define BT_TXD_DIR     	P3DIR
 #define BT_TXD_BIT      BIT4
 
-// RXD P9.5
-#define BT_RXD_OUT      P9OUT
-#define BT_RXD_SEL     	P9SEL
-#define BT_RXD_DIR     	P9DIR
+// RXD P3.5
+#define BT_RXD_OUT      P3OUT
+#define BT_RXD_SEL     	P3SEL
+#define BT_RXD_DIR     	P3DIR
 #define BT_RXD_BIT      BIT5
 
 // RTS P1.4

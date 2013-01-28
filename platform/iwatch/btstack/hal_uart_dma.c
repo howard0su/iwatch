@@ -60,7 +60,7 @@ void hal_uart_dma_init(void)
   BT_CTS_SEL &= ~BT_CTS_BIT;  // = 0 - I/O
   BT_CTS_DIR &= ~BT_CTS_BIT;  // = 0 - Input
 
-  UCA2CTL1 |= UCSWRST;              //Reset State
+  UCA0CTL1 |= UCSWRST;              //Reset State
 
   BT_TXD_SEL |= BT_TXD_BIT;
   BT_TXD_DIR |= BT_TXD_BIT;
@@ -68,10 +68,10 @@ void hal_uart_dma_init(void)
   BT_RXD_SEL |= BT_RXD_BIT;
   BT_RXD_DIR &= ~BT_RXD_BIT;
 
-  UCA2CTL0 = UCMODE_0;
-  UCA2CTL1 |= UCSSEL_2;
+  UCA0CTL0 = UCMODE_0;
+  UCA0CTL1 |= UCSSEL_2;
 
-  UCA2CTL1 &= ~UCSWRST;             // continue
+  UCA0CTL1 &= ~UCSWRST;             // continue
 
   hal_uart_dma_set_baud(115200);
 
@@ -96,56 +96,56 @@ In this mode, the maximum USCI baud rate is one-third the UART source clock freq
 int hal_uart_dma_set_baud(uint32_t baud){
   int result = 0;
 
-  UCA2CTL1 |= UCSWRST;              //Reset State
+  UCA0CTL1 |= UCSWRST;              //Reset State
 
   switch (baud){
 
   case 4000000:
-    UCA2BR0 = 2;
-    UCA2BR1 = 0;
-    UCA2MCTL= 0 << 1;  // + 0.000
+    UCA0BR0 = 2;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
     break;
 
   case 3000000:
-    UCA2BR0 = 3;
-    UCA2BR1 = 0;
-    UCA2MCTL= 3 << 1;  // + 0.375
+    UCA0BR0 = 3;
+    UCA0BR1 = 0;
+    UCA0MCTL= 3 << 1;  // + 0.375
     break;
 
   case 2400000:
-    UCA2BR0 = 6;
-    UCA2BR1 = 0;
-    UCA2MCTL= 5 << 1;  // + 0.625
+    UCA0BR0 = 6;
+    UCA0BR1 = 0;
+    UCA0MCTL= 5 << 1;  // + 0.625
     break;
 
   case 2000000:
-    UCA2BR0 = 8;
-    UCA2BR1 = 0;
-    UCA2MCTL= 0 << 1;  // + 0.000
+    UCA0BR0 = 8;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
     break;
 
   case 1000000:
-    UCA2BR0 = 16;
-    UCA2BR1 = 0;
-    UCA2MCTL= 0 << 1;  // + 0.000
+    UCA0BR0 = 16;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
     break;
 
   case 921600:
-    UCA2BR0 = 17;
-    UCA2BR1 = 0;
-    UCA2MCTL= 7 << 1;  // 3 << 1;  // + 0.375
+    UCA0BR0 = 17;
+    UCA0BR1 = 0;
+    UCA0MCTL= 7 << 1;  // 3 << 1;  // + 0.375
     break;
 
   case 115200:
-    UCA2BR0 = 138;  // from family user guide
-    UCA2BR1 = 0;
-    UCA2MCTL= 7 << 1;  // + 0.875
+    UCA0BR0 = 138;  // from family user guide
+    UCA0BR1 = 0;
+    UCA0MCTL= 7 << 1;  // + 0.875
     break;
 
   case 57600:
-    UCA2BR0 = 21;
-    UCA2BR1 = 1;
-    UCA2MCTL= 7 << 1;  // + 0.875
+    UCA0BR0 = 21;
+    UCA0BR1 = 1;
+    UCA0MCTL= 7 << 1;  // + 0.875
     break;
 
   default:
@@ -153,7 +153,7 @@ int hal_uart_dma_set_baud(uint32_t baud){
     break;
   }
 
-  UCA2CTL1 &= ~UCSWRST;             // continue
+  UCA0CTL1 &= ~UCSWRST;             // continue
 
   return result;
 }
@@ -190,8 +190,8 @@ void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
 * @return none
 **************************************************************************/
 void hal_uart_dma_shutdown(void) {
-  UCA2IE &= ~(UCRXIE | UCTXIE);
-  UCA2CTL1 = UCSWRST;                          //Reset State
+  UCA0IE &= ~(UCRXIE | UCTXIE);
+  UCA0CTL1 = UCSWRST;                          //Reset State
 
   BT_RXD_SEL &= ~BT_RXD_BIT;
   BT_TXD_SEL &=  BT_TXD_BIT;
@@ -212,23 +212,23 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 
   //printf("hal_uart_dma_send_block, size %u\n\r", len);
 
-  UCA2IE &= ~UCTXIE ;  // disable TX interrupts
+  UCA0IE &= ~UCTXIE ;  // disable TX interrupts
 
   tx_buffer_ptr = (uint8_t *) data;
   bytes_to_write = len;
 
-  UCA2IE |= UCTXIE;    // enable TX interrupts
+  UCA0IE |= UCTXIE;    // enable TX interrupts
 }
 
 // int used to indicate a request for more new data
 void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
-  UCA2IE &= ~UCRXIE ;  // disable RX interrupts
+  UCA0IE &= ~UCRXIE ;  // disable RX interrupts
 
   rx_buffer_ptr = buffer;
   bytes_to_read = len;
 
-  UCA2IE |= UCRXIE;    // enable RX interrupts
+  UCA0IE |= UCRXIE;    // enable RX interrupts
 
   // enable send
   BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
@@ -246,25 +246,25 @@ void hal_uart_dma_set_sleep(uint8_t sleep){
 }
 
 // block-wise "DMA" RX/TX UART driver
-ISR(USCI_A2, usbRxTxISR)
+ISR(USCI_A0, usbRxTxISR)
 {
   // find reason
-  switch (__even_in_range(UCA2IV, 16)){
+  switch (__even_in_range(UCA0IV, 16)){
 
   case 2: // RXIFG
     if (bytes_to_read == 0) {
       BT_RTS_OUT |= BT_RTS_BIT;  // = 1 - RTS high -> stop
-      UCA2IE &= ~UCRXIE ;  // disable RX interrupts
+      UCA0IE &= ~UCRXIE ;  // disable RX interrupts
       return;
     }
-    *rx_buffer_ptr = UCA2RXBUF;
+    *rx_buffer_ptr = UCA0RXBUF;
     ++rx_buffer_ptr;
     --bytes_to_read;
     if (bytes_to_read > 0) {
       return;
     }
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
-    UCA2IE &= ~UCRXIE ; // disable RX interrupts
+    UCA0IE &= ~UCRXIE ; // disable RX interrupts
 
     if (rx_done_handler)
       (*rx_done_handler)();
@@ -276,10 +276,10 @@ ISR(USCI_A2, usbRxTxISR)
 
   case 4: // TXIFG
     if (bytes_to_write == 0){
-      UCA2IE &= ~UCTXIE ;  // disable TX interrupts
+      UCA0IE &= ~UCTXIE ;  // disable TX interrupts
       return;
     }
-    UCA2TXBUF = *tx_buffer_ptr;
+    UCA0TXBUF = *tx_buffer_ptr;
     ++tx_buffer_ptr;
     --bytes_to_write;
 
@@ -287,7 +287,7 @@ ISR(USCI_A2, usbRxTxISR)
       return;
     }
 
-    UCA2IE &= ~UCTXIE ;  // disable TX interrupts
+    UCA0IE &= ~UCTXIE ;  // disable TX interrupts
 
     if (tx_done_handler)
       (*tx_done_handler)();
