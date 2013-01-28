@@ -35,21 +35,50 @@
 #include "timer.h"
 #include "printf.h"
 #include "hrm_rx.h"
+#include "cbsc_rx.h"
 
 #include "contiki.h"
-
+#include "power.h"
 
 // ANT Channel settings
-#define ANT_CHANNEL_HRMRX                          ((UCHAR) 0)        // Default ANT Channel
+#define ANT_CHANNEL_HRMRX                          ((UCHAR) 0)          // Default ANT Channel
+#define CBSCRX_ANT_CHANNEL                         ((UCHAR) 0)         // Default ANT Channel
 
 // other defines
 #define HRM_PRECISION                              ((ULONG)1000)
 
+// other defines
+#define CBSC_PRECISION                             ((ULONG)1000)
 
 static const UCHAR aucNetworkKey[] = ANTPLUS_NETWORK_KEY;
 
 static void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_);
 static void ProcessAntEvents(UCHAR* pucEventBuffer_);
+static void ProcessANTCBSCRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_);
+
+static enum {
+  MODE_PAIR = 0,
+  MODE_HRM = 1,
+  MODE_CBSC = 2
+}mode;
+/*----------Bicyle ------------------*/
+//local variables
+typedef struct
+{
+   ULONG  ulIntValue;
+   USHORT usFracValue;
+   USHORT usDeltaValue;
+} RawValues;
+
+static ULONG ulBSAccumRevs = 0;                    //initialize at zero
+static ULONG ulBCAccumCadence = 0;                 //initialize at zero
+static RawValues stSpeedData = {0};
+static RawValues stCadenceData = {0};
+
+//local functions
+static void ComputeCadence(CBSCPage0_Data* pstPresent, CBSCPage0_Data* pstPast);
+static void ComputeSpeed(CBSCPage0_Data* pstPresent, CBSCPage0_Data* pstPast);
+
 
 PROCESS(ant_process, "ANT process");
 
@@ -60,7 +89,9 @@ void ant_process_poll()
 
 void ant_init()
 {
+  mode = MODE_CBSC;
   ANTInterface_Init();
+  power_pin(POWER_SMCLK);
 
   process_start(&ant_process, NULL);
 }
@@ -94,8 +125,16 @@ PROCESS_THREAD(ant_process, ev, data)
     if(pucRxBuffer)
     {
       ANTPLUS_EVENT_RETURN stEventStruct;
-      HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
-      ProcessANTHRMRXEvents(&stEventStruct);
+      if (mode == MODE_HRM)
+      {
+        HRMRX_ChannelEvent(pucRxBuffer, &stEventStruct);
+        ProcessANTHRMRXEvents(&stEventStruct);
+      }
+      else if (mode == MODE_CBSC)
+      {
+        CBSCRX_ChannelEvent(pucRxBuffer, &stEventStruct);
+        ProcessANTCBSCRXEvents(&stEventStruct);
+      }
 
       ProcessAntEvents(pucRxBuffer);
       ANTInterface_Complete();                              // Release the serial buffer
@@ -109,6 +148,92 @@ PROCESS_THREAD(ant_process, ev, data)
   PROCESS_END();
 }
 
+
+////////////////////////////////////////////////////////////////////////////
+// ProcessANTCBSCRXEvents
+//
+// CBSC Reciever event processor
+//
+// Processes events recieved from CBSC module.
+//
+// \return: N/A
+///////////////////////////////////////////////////////////////////////////
+void ProcessANTCBSCRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
+{
+   switch (pstEvent_->eEvent)
+   {
+
+      case ANTPLUS_EVENT_CHANNEL_ID:
+      {
+         // Can store this device number for future pairings so that
+         // wild carding is not necessary.
+         printf("Device number is %d\n", pstEvent_->usParam1);
+         printf("Transmission type is %d\n\n", pstEvent_->usParam2);
+         break;
+      }
+      case ANTPLUS_EVENT_PAGE:
+      {
+         // Get data correspinding to the page. Only get the data you
+         // care about.
+         switch(pstEvent_->usParam1)
+         {
+            case CBSCRX_PAGE_0:
+            {
+               CBSCPage0_Data* pstPage0Data = CBSCRX_GetPage0();
+               CBSCPage0_Data* pstPrev0Data = CBSCRX_GetPastPage0();
+
+               printf("Combined Bike Speed and Cadence Page 0\n\n");
+
+               ComputeSpeed(pstPage0Data, pstPrev0Data);
+               ComputeCadence(pstPage0Data, pstPrev0Data);
+
+               //update accumulated values, handles rollovers
+               ulBSAccumRevs += (ULONG)((pstPage0Data->usCumSpeedRevCount - pstPrev0Data->usCumSpeedRevCount) & MAX_USHORT);
+               ulBCAccumCadence += (ULONG)((pstPage0Data->usCumCadenceRevCount - pstPrev0Data->usCumCadenceRevCount) & MAX_USHORT);
+
+               printf("Current speed time: %u", (ULONG)(pstPage0Data->usLastTime1024 / 1024));
+               printf(".%03u s\n", (ULONG)((((pstPage0Data->usLastTime1024 % 1024) * CBSC_PRECISION)+(ULONG)512)/(ULONG)1024));
+               printf("Delta speed time: %u", (ULONG)(stSpeedData.usDeltaValue / 1024));
+               printf(".%03u s\n", (ULONG)((((stSpeedData.usDeltaValue % 1024) * CBSC_PRECISION)+(ULONG)512)/(ULONG)1024));
+               printf("Instantaneous time inverse (x circumference for inst speed): %u", (ULONG)(stSpeedData.ulIntValue));
+               printf(".%03u 1/s\n", stSpeedData.usFracValue);
+               printf("Accumulated revs (x circumference for total distance): 0x%04X", (USHORT)((ulBSAccumRevs >> 16) & MAX_USHORT));
+               printf("%04X\n", (USHORT)(ulBSAccumRevs & MAX_USHORT)); //display limited by 16-bit CPU
+
+               printf("Current cadence time: %u", (ULONG)(pstPage0Data->usLastCadence1024 / 1024));
+               printf(".%03u s\n", (ULONG)((((pstPage0Data->usLastCadence1024 % 1024) * CBSC_PRECISION)+(ULONG)512)/(ULONG)1024));
+               printf("Delta cadence time: %u", (ULONG)(stCadenceData.usDeltaValue / 1024));
+               printf(".%03u s\n", (ULONG)((((stCadenceData.usDeltaValue % 1024) * CBSC_PRECISION)+(ULONG)512)/(ULONG)1024));
+               printf("Instantaneous cadence: %u", (ULONG)(stCadenceData.ulIntValue));
+               printf(".%03u RPM\n", stCadenceData.usFracValue);
+               printf("Accumulated cadence: 0x%04X", (USHORT)((ulBCAccumCadence >> 16) & MAX_USHORT));
+               printf("%04X\n\n\n", (USHORT)(ulBCAccumCadence & MAX_USHORT)); //display limited by 16-bit CPU
+
+               //move current data to the past
+               pstPrev0Data->usCumCadenceRevCount = pstPage0Data->usCumCadenceRevCount;
+               pstPrev0Data->usLastCadence1024    = pstPage0Data->usLastCadence1024;
+               pstPrev0Data->usCumSpeedRevCount   = pstPage0Data->usCumSpeedRevCount;
+               pstPrev0Data->usLastTime1024       = pstPage0Data->usLastTime1024;
+
+               break;
+            }
+            default:
+            {
+               // ASSUME PAGE 0
+               printf("Invalid or undefined page\n\n");
+               break;
+            }
+         }
+         break;
+      }
+      case ANTPLUS_EVENT_UNKNOWN_PAGE:  // Decode unknown page manually
+      case ANTPLUS_EVENT_NONE:
+      default:
+      {
+         break;
+      }
+   }
+}
 
 ////////////////////////////////////////////////////////////////////////////
 // ProcessANTHRMRXEvents
@@ -266,9 +391,16 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
             }
             else if (pucEventBuffer_[3] == MESG_NETWORK_KEY_ID)
             {
-              //Once we get a response to the set network key
-              //command, start opening the HRM channel
-              HRMRX_Open(ANT_CHANNEL_HRMRX, 0, 0);
+              if (mode == MODE_HRM)
+              {
+                //Once we get a response to the set network key
+                //command, start opening the HRM channel
+                HRMRX_Open(ANT_CHANNEL_HRMRX, 0, 0);
+              }
+              else
+              {
+                 CBSCRX_Open(CBSCRX_ANT_CHANNEL,0,0);
+              }
             }
             break;
           }
@@ -312,3 +444,60 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
     }
   }
 }
+
+
+
+static void ComputeCadence(CBSCPage0_Data* pstPresent, CBSCPage0_Data* pstPast)
+{
+   ULONG  ulFinalCadence;
+   USHORT usDeltaTime;
+
+   //rollover protection
+   usDeltaTime = (pstPresent->usLastCadence1024 - pstPast->usLastCadence1024) & MAX_USHORT;
+
+   if (usDeltaTime > 0) //divide by zero
+   {
+      //rollover protection
+      ulFinalCadence = (ULONG)((pstPresent->usCumCadenceRevCount - pstPast->usCumCadenceRevCount) & MAX_USHORT);
+      ulFinalCadence *= (ULONG)(60); //60 s/min for numerator
+
+      stCadenceData.usFracValue = (USHORT)((((ulFinalCadence * 1024) % (ULONG)usDeltaTime) * CBSC_PRECISION) / usDeltaTime);
+      ulFinalCadence = (ULONG)(ulFinalCadence * (ULONG)1024 / usDeltaTime); //1024/((1/1024)s) in the denominator --> RPM
+                                                                            //...split up from s/min due to ULONG size limit
+
+      stCadenceData.ulIntValue   = ulFinalCadence;
+   }
+
+   //maintain old data if time change not detected, but update delta time
+   stCadenceData.usDeltaValue = usDeltaTime;
+
+   return;
+}
+
+static void ComputeSpeed(CBSCPage0_Data* pstPresent, CBSCPage0_Data* pstPast)
+{
+   ULONG ulFinalSpeed;
+   USHORT usDeltaTime;
+
+   //rollover protection
+   usDeltaTime = (pstPresent->usLastTime1024 - pstPast->usLastTime1024) & MAX_USHORT;
+
+   if (usDeltaTime > 0) //divide by zero
+   {
+      //rollover protection
+      ulFinalSpeed = (ULONG)((pstPresent->usCumSpeedRevCount - pstPast->usCumSpeedRevCount) & MAX_USHORT);
+      ulFinalSpeed *= (ULONG)(1024); //circumference for numerator, 1024/((1/1024)s) in the denominator
+
+      stSpeedData.usFracValue = (USHORT)(((ulFinalSpeed % (ULONG)usDeltaTime) * CBSC_PRECISION) / usDeltaTime);
+      ulFinalSpeed /= (ULONG)(usDeltaTime);
+
+      stSpeedData.ulIntValue   = ulFinalSpeed;
+   }
+
+   //maintain old data if time change not detected, but update delta time
+   stSpeedData.usDeltaValue = usDeltaTime;
+
+   return;
+}
+
+
