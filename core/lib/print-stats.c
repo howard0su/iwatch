@@ -56,6 +56,7 @@
 void
 print_stats(void)
 {
+#if 0
   PRINTA("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 clock_seconds(),
@@ -67,19 +68,15 @@ print_stats(void)
 	 rimestats.badsynch, rimestats.badcrc,
 	 rimestats.contentiondrop, rimestats.sendingdrop,
 	 rimestats.lltx, rimestats.llrx);
+#endif
 #if ENERGEST_CONF_ON
-  PRINTA("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
+  PRINTA("E %d.%d clock %lu cpu %lu lpm0 %lu lpm3 %lu irq %lu serial %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 clock_seconds(),
 	 energest_total_time[ENERGEST_TYPE_CPU].current,
-	 energest_total_time[ENERGEST_TYPE_LPM].current,
+	 energest_total_time[ENERGEST_TYPE_LPM0].current,
+     energest_total_time[ENERGEST_TYPE_LPM3].current,
 	 energest_total_time[ENERGEST_TYPE_IRQ].current,
-	 energest_total_time[ENERGEST_TYPE_LED_GREEN].current,
-	 energest_total_time[ENERGEST_TYPE_LED_YELLOW].current,
-	 energest_total_time[ENERGEST_TYPE_LED_RED].current,
-	 energest_total_time[ENERGEST_TYPE_TRANSMIT].current,
-	 energest_total_time[ENERGEST_TYPE_LISTEN].current,
-	 energest_total_time[ENERGEST_TYPE_SENSORS].current,
 	 energest_total_time[ENERGEST_TYPE_SERIAL].current);
 #endif /* ENERGEST_CONF_ON */
 }

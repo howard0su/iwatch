@@ -23,18 +23,30 @@ static signed char PowerPinCounter[3];
 
 void power_sleep()
 {
+  ENERGEST_OFF(ENERGEST_TYPE_CPU);
+
   if (PowerPinCounter[0]
       || (UCA0STAT & UCBUSY)        // BT uart
-      || (UCA1STAT & UCBUSY)        // ANT uart
-      || (UCB0STAT & UCBUSY)        // LCD
-      || (UCA3STAT & UCBUSY))       // debug uart
+        //      || (UCA1STAT & UCBUSY)        // ANT uart
+        || (UCB0STAT & UCBUSY)        // LCD
+          //      || (UCA3STAT & UCBUSY)        // debug uart
+          )
   {
-	_BIS_SR(GIE | CPUOFF);
+    ENERGEST_ON(ENERGEST_TYPE_LPM0);
+    P5OUT |= BIT0;
+    _BIS_SR(GIE | CPUOFF);
+    P5OUT &= ~BIT0;
+    ENERGEST_OFF(ENERGEST_TYPE_LPM0);
   }
   else
   {
+    ENERGEST_ON(ENERGEST_TYPE_LPM3);
+    P5OUT |= BIT1;
 	_BIS_SR(GIE | CPUOFF | SCG0 | SCG1);
+    P5OUT &= ~BIT1;
+    ENERGEST_OFF(ENERGEST_TYPE_LPM3);
   }
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
 }
 
 void power_pin(int clock)

@@ -135,7 +135,7 @@ main(int argc, char **argv)
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
-  P5DIR |= BIT0 + BIT1 + BIT2;
+  P5DIR |= BIT0 + BIT1;
   /*
   * This is the scheduler loop.
   */
@@ -160,8 +160,7 @@ main(int argc, char **argv)
       static unsigned long irq_energest = 0;
 
       /* Re-enable interrupts and go to sleep atomically. */
-      ENERGEST_OFF(ENERGEST_TYPE_CPU);
-      ENERGEST_ON(ENERGEST_TYPE_LPM);
+
       /* We only want to measure the processing done in IRQs when we
       are asleep, so we discard the processing time done when we
       were awake. */
@@ -176,8 +175,6 @@ main(int argc, char **argv)
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
       eint();
       watchdog_start();
-      ENERGEST_OFF(ENERGEST_TYPE_LPM);
-      ENERGEST_ON(ENERGEST_TYPE_CPU);
     }
   }
 }

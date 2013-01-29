@@ -95,4 +95,6 @@ typedef unsigned long off_t;
 
 #define CFS_RAM_CONF_SIZE 4096
 
+#define ENERGEST_CONF_ON 1
+
 #endif /* __PLATFORM_CONF_H__ */

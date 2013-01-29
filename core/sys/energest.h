@@ -50,7 +50,8 @@ typedef struct {
 
 enum energest_type {
   ENERGEST_TYPE_CPU,
-  ENERGEST_TYPE_LPM,
+  ENERGEST_TYPE_LPM0,
+  ENERGEST_TYPE_LPM3,
   ENERGEST_TYPE_IRQ,
   ENERGEST_TYPE_LED_GREEN,
   ENERGEST_TYPE_LED_YELLOW,
@@ -90,7 +91,6 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
                            /*++energest_total_count;*/ \
                            energest_current_time[type] = RTIMER_NOW(); \
 			   energest_current_mode[type] = 1; \
-                           P5OUT |= BV(type); \
                            } while(0)
 #ifdef __AVR__
 /* Handle 16 bit rtimer wraparound */
@@ -112,7 +112,6 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
                            energest_total_time[type].current += (rtimer_clock_t)(RTIMER_NOW() - \
                            energest_current_time[type]); \
 			   energest_current_mode[type] = 0; \
-                           P5OUT &= ~BV(type); \
                            } while(0)
 
 #define ENERGEST_OFF_LEVEL(type,level) do { \
