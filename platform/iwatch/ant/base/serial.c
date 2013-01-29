@@ -154,6 +154,7 @@ static int  Asynchronous_ProcessByte(UCHAR ucByte_);
 
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
 static void Asynchronous_Init(UCHAR ucBaudRate_);
+static void Asynchronous_Shutdown();
 #endif // SERIAL_UART_ASYNC || USE_UART_DEBUG
 
 
@@ -192,6 +193,11 @@ BOOL Serial_Init()
 
 
   return(TRUE);
+}
+
+void Serial_Shutdown()
+{
+  Asynchronous_Shutdown();
 }
 
 #if 0
@@ -748,6 +754,17 @@ void Asynchronous_Init(UCHAR ucBaudRate_)
   SYNC_SEN_IES |= SYNC_SEN_BIT;                // interrupt on high-to-low transition
   SYNC_SEN_IFG &= ~SYNC_SEN_BIT;               // reset the interrupt flag
   SYNC_SEN_IE  |= SYNC_SEN_BIT;                // enable the SEN interrupt to allow wake up from sleep
+}
+
+void Asynchronous_Shutdown()
+{
+  // Disable SEN interrupt
+  SYNC_SEN_IES &= ~SYNC_SEN_BIT;
+
+  UART_ASYNC_UCI_CTL1 |= UCSWRST;               // Disable UART
+
+  ASYNC_SUSPEND_OUT &= ~ASYNC_SUSPEND_BIT;         // Set low to enter sleep
+
 }
 #endif // SERIAL_UART_ASYNC || USE_UART_DEBUG
 

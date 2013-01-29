@@ -1,25 +1,25 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 // THE FOLLOWING EXAMPLE CODE IS INTENDED FOR LIMITED CIRCULATION ONLY.
-// 
+//
 // Please forward all questions regarding this code to ANT Technical Support.
-// 
+//
 // Dynastream Innovations Inc.
 // 228 River Avenue
 // Cochrane, Alberta, Canada
 // T4C 2C1
-// 
+//
 // (P) (403) 932-9292
 // (F) (403) 932-6521
 // (TF) 1-866-932-9292
 // (E) support@thisisant.com
-// 
+//
 // www.thisisant.com
 //
 // Reference Design Disclaimer
 //
-// The references designs and codes provided may be used with ANT devices only and remain the copyrighted property of 
-// Dynastream Innovations Inc. The reference designs and codes are being provided on an "as-is" basis and as an accommodation, 
-// and therefore all warranties, representations, or guarantees of any kind (whether express, implied or statutory) including, 
+// The references designs and codes provided may be used with ANT devices only and remain the copyrighted property of
+// Dynastream Innovations Inc. The reference designs and codes are being provided on an "as-is" basis and as an accommodation,
+// and therefore all warranties, representations, or guarantees of any kind (whether express, implied or statutory) including,
 // without limitation, warranties of merchantability, non-infringement,
 // or fitness for a particular purpose, are specifically disclaimed.
 //
@@ -34,46 +34,49 @@
 
 #include "types.h"
 
-BOOL 
+BOOL
 Serial_Init();
 
-BOOL 
+void
+Serial_Shutdown();
+
+BOOL
 Serial_SyncReset(void);
 
-void 
+void
 Serial_Transaction(void);
 
-UCHAR* 
+UCHAR*
 Serial_Get_Tx_Buffer();
 
-void 
+void
 Serial_Put_Tx_Buffer();
 
-UCHAR* 
+UCHAR*
 Serial_Get_Rx_Buffer();
 
-void 
+void
 Serial_Put_Rx_Buffer();
 
-UCHAR* 
+UCHAR*
 Serial_Read_Rx_Top();
-void 
+void
 Serial_Release_Rx_Top();
 
-UCHAR* 
+UCHAR*
 Serial_Read_Rx_Buffer();
 
-void 
+void
 Serial_Release_Rx_Buffer();
 
-void 
+void
 Serial_Flush_Tx();
 
-void 
+void
 Serial_Flush_Rx();
 
-int 
+int
 Asynchronous_WriteByte(
    int iByte);
-   
+
 #endif

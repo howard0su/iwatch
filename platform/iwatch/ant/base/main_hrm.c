@@ -37,6 +37,8 @@
 #include "hrm_rx.h"
 #include "cbsc_rx.h"
 
+#include "serial.h"
+
 #include "contiki.h"
 #include "power.h"
 
@@ -94,6 +96,11 @@ void ant_init()
   power_pin(POWER_SMCLK);
 
   process_start(&ant_process, NULL);
+}
+
+void ant_shutdown()
+{
+  Serial_Shutdown();
 }
 
 //----------------------------------------------------------------------------
