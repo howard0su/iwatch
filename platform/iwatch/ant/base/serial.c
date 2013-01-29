@@ -37,9 +37,9 @@
 #include <stdio.h>
 
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
-#define BAUD_57600_INDEX   1
-#define BAUD_50000_INDEX   0
-
+//#define BAUD_57600_INDEX   1
+//#define BAUD_50000_INDEX   0
+#define BAUD_9600_INDEX   0
 
 typedef struct
 {
@@ -59,12 +59,12 @@ static const UART_BAUD_CONTROL asBaudControl[] =
   //   { 0xD0, 0x00, 0x00 },                              // 38400 baud using 8 MHz clock
   //   { 0xA0, 0x01, 0x00 },                              // 19200 baud using 8 MHz clock
   //   { 0xA0, 0x00, 0x00 },                              // 50000 baud using 16 MHz clock
-  { 0x40, 0x01, 0x00 },                              // 50000 baud using 16 MHz clock
+  // { 0x40, 0x01, 0x00 },                              // 50000 baud using 16 MHz clock
   //   { 0x1B, 0x00, 0x04 },                              // 1200  baud using 32768 Hz clock
-  //   { 0x03, 0x00, 0x06 },                              // 9600  baud using 32768 Hz clock
+     { 0x03, 0x00, 0x06 },                              // 9600  baud using 32768 Hz clock
   //   { 0x0D, 0x00, 0x0A },                              // 2400  baud using 32768 Hz clock
   //   { 0x8A, 0x00, 0x00 }                               // 57600 baud using 8 MHz clock
-  { 0x15, 0x01, 0x0E }                               // 57600 baud using 16 MHz clock
+  // { 0x15, 0x01, 0x0E }                               // 57600 baud using 16 MHz clock
 };
 #endif
 
@@ -178,7 +178,7 @@ BOOL Serial_Init()
   Synchronous_Init();
 #endif
 #if defined(SERIAL_UART_ASYNC) || defined(USE_UART_DEBUG)
-  Asynchronous_Init(BAUD_57600_INDEX);
+  Asynchronous_Init(BAUD_9600_INDEX);
 #endif
 
   stTheTxQueue.ucHead = 0;                     // Reset TX queue
@@ -732,7 +732,7 @@ void Asynchronous_Init(UCHAR ucBaudRate_)
 
   UART_ASYNC_UCI_CTL1 = UCSWRST;
   UART_ASYNC_UCI_CTL0 = UCMODE_0;                 // COnfigure UART no parity, LSB first, 8-bit, one stop bit
-  UART_ASYNC_UCI_CTL1 |= UCSSEL__SMCLK;             // Disable UART and select SMCLK source
+  UART_ASYNC_UCI_CTL1 |= UCSSEL__ACLK;             // Disable UART and select ACLK source
 
   UART_ASYNC_UCI_BR0 = asBaudControl[ucBaudRate_].ucBR0;    // Baud rate
   UART_ASYNC_UCI_BR1 = asBaudControl[ucBaudRate_].ucBR1;

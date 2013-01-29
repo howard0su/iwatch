@@ -93,7 +93,7 @@ void ant_init()
 {
   mode = MODE_CBSC;
   ANTInterface_Init();
-  power_pin(POWER_SMCLK);
+  power_pin(POWER_ACLK);
 
   process_start(&ant_process, NULL);
 }
