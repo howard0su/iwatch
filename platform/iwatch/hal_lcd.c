@@ -179,9 +179,6 @@ void halLcdInit()
 
   SPIInit();
 
-  // wait spi stable
-  __delay_cycles(100);
-
   // configure TA0.1 for COM switch
   TA0CTL |= TASSEL_1 + ID_3 + MC_1;
   TA0CCTL1 = OUTMOD_7;
@@ -205,7 +202,7 @@ void halLcdClearScreen()
 
   for(i = 0; i < LCD_COL; i++)
   {
-    memset(lines[i].pixels, 0, LCD_ROW/8);
+    memset(lines[i].pixels, 0xff, LCD_ROW/8);
   }
   data.start = 0;
   data.end = LCD_COL - 1;
