@@ -326,3 +326,10 @@ void bluetooth_init()
 
   process_start(&bluetooth_process, NULL);
 }
+
+void bluetooth_shutdown()
+{
+   BT_SHUTDOWN_OUT &=  BT_SHUTDOWN_BIT;  // = 1 - Active low
+
+   process_exit(&bluetooth_process);
+}

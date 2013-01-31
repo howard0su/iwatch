@@ -101,6 +101,8 @@ void ant_init()
 void ant_shutdown()
 {
   Serial_Shutdown();
+
+  process_exit(&ant_process);
 }
 
 //----------------------------------------------------------------------------
