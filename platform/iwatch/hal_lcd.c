@@ -46,7 +46,7 @@ extern void doubleWideAsm(unsigned char c, unsigned char* buff);
 
 PROCESS(lcd_process, "LCD");
 
-static process_event_t refresh_event;
+static process_event_t refresh_event, clear_event;
 
 enum {STATE_NONE, STATE_SENDING};
 static unsigned char state = STATE_NONE;
@@ -62,6 +62,204 @@ static struct _linebuf
   unsigned char linenum;
   unsigned char pixels[LCD_ROW/8];
 }lines[LCD_COL + 1]; // give a dummy
+
+
+static void SPIInit()
+{
+  UCB0CTL1 = UCSWRST;
+
+  UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
+  UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
+  UCB0BR0 = 16; // 16MHZ / 16 = 1Mhz
+  UCB0BR1 = 0;
+
+  //Configure ports.
+  SPIDIR |= _SCLK | _SDATA | _SCS;
+  SPISEL |= _SCLK | _SDATA;
+  SPIOUT &= ~(_SCLK | _SDATA | _SCS);
+
+  UCB0CTL1 &= ~UCSWRST;
+}
+
+static struct RefreshData data;
+static unsigned char suspendUpdate;
+
+void halLcdBeginUpdate()
+{
+  suspendUpdate = 1;
+  data.start = 0xff;
+  data.end = 0;
+}
+
+void halLcdEndUpdate()
+{
+  if (suspendUpdate)
+  {
+    suspendUpdate = 0;
+    process_post_synch(&lcd_process, refresh_event, &data);
+  }
+}
+
+static void halLcdRefresh(int start, int end)
+{
+  if (data.start > start)
+    data.start = start;
+  if (data.end < end)
+    data.end = end;
+
+  if (!suspendUpdate)
+  {
+    process_post_synch(&lcd_process, refresh_event, &data);
+  }
+}
+
+void halLcdBackLightInit()
+{
+}
+
+void halLcdSetBackLight(unsigned char n)
+{
+}
+
+void halLcdInit()
+{
+  unsigned int i;
+  for(i = 0; i < LCD_COL; i++)
+  {
+    lines[i].linenum = i;
+    lines[i].opcode = MLCD_WR;
+  }
+
+  SPIInit();
+
+  // configure TA0.1 for COM switch
+  TA0CTL |= TASSEL_1 + ID_3 + MC_1;
+  TA0CCTL1 = OUTMOD_7;
+  TA0CCR0 = 4096;
+  TA0CCR1 = 1;
+
+  P8SEL |= BIT1;
+  P8DIR |= BIT1; // p8.1 is TA0.1
+
+  // enable disply
+  P8DIR |= BIT2; // p8.2 is display
+  P8OUT |= BIT2; // set 1 to active display
+
+  process_start(&lcd_process, NULL);
+}
+
+void halLcdClearScreen()
+{
+  unsigned int i;
+
+  for(i = 0; i < LCD_COL; i++)
+  {
+    memset(lines[i].pixels, 0xff, LCD_ROW/8);
+  }
+
+  process_post_synch(&lcd_process, clear_event, NULL);
+}
+
+static void SPISend(void* data, unsigned int size)
+{
+  PRINTF("Send Data %d bytes\n", size);
+  state = STATE_SENDING;
+  SPIOUT |= _SCS;
+
+  // USB0 TXIFG trigger
+  DMACTL0 = DMA0TSEL_19;
+  // Source block address
+  __data16_write_addr((unsigned short) &DMA0SA,(unsigned long) data);
+  // Destination single address
+  __data16_write_addr((unsigned short) &DMA0DA,(unsigned long) &UCB0TXBUF);
+  DMA0SZ = size;                                // Block size
+  DMA0CTL &= ~DMAIFG;
+  DMA0CTL = DMASRCINCR_3+DMASBDB+DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
+}
+
+int dma_channel_0()
+{
+  process_poll(&lcd_process);
+
+  return 1;
+}
+
+static unsigned char clear_cmd[2] = {MLCD_CM, 0};
+//static unsigned char static_cmd[2] = {MLCD_SM, 0};
+
+
+PROCESS_THREAD(lcd_process, ev, data)
+{
+  static unsigned char refreshStart = 0xff, refreshStop = 0;
+
+  PROCESS_BEGIN();
+
+  refresh_event = process_alloc_event();
+  clear_event = process_alloc_event();
+
+  while(1)
+  {
+    PROCESS_WAIT_EVENT();
+    if (ev == PROCESS_EVENT_POLL)
+    {
+      SPIOUT &= ~_SCS;
+      state = STATE_NONE;
+
+      if (refreshStart != 0xff)
+      {
+        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
+                * sizeof(struct _linebuf) + 1);
+        refreshStart = 0xff;
+        refreshStop = 0;
+      }
+    }
+    else if (ev == refresh_event)
+    {
+      struct RefreshData* d = (struct RefreshData*)data;
+      if (refreshStart > d->start)
+        refreshStart = d->start;
+      if (refreshStop < d->end)
+        refreshStop = d->end;
+
+      if (state == STATE_NONE)
+      {
+        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
+                * sizeof(struct _linebuf));
+
+        refreshStart = 0xff;
+        refreshStop = 0;
+      }
+    }
+    else if (ev == clear_event)
+    {
+      if (state == STATE_NONE)
+      {
+        SPISend(clear_cmd, 2);
+
+        refreshStart = 0xff;
+        refreshStop = 0;
+      }
+    }
+  }
+
+  PROCESS_END();
+}
+
+void halLcdPixel(int x,  int y, unsigned char GrayScale)
+{
+  if (GrayScale)
+  {
+  }
+  else
+  {
+  }
+}
+
+void halLcdActive()
+{
+  P8OUT |= BIT2; // set 1 to active display
+}
+
 
 // write a string to display, truncated after 12 characters
 // input: text		0-terminated string
@@ -79,7 +277,6 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
   // k = char line
   unsigned char c, b, i, j, k;
   unsigned char *LineBuff;
-  struct RefreshData data;
 
   // rendering happens line-by-line because this display can only be written by line
   k = 0;
@@ -136,149 +333,5 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
     k++;											// next pixel line
   }
 
-  PRINTF("Update from Line %d to Line %d\n", line, line + k - 1);
-
-  data.start = line;
-  data.end = line + k - 1;
-  process_post_synch(&lcd_process, refresh_event, &data);
-}
-
-static void SPIInit()
-{
-  UCB0CTL1 = UCSWRST;
-
-  UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
-  UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCB0BR0 = 16; // 16MHZ / 16 = 1Mhz
-  UCB0BR1 = 0;
-
-  //Configure ports.
-  SPIDIR |= _SCLK | _SDATA | _SCS;
-  SPISEL |= _SCLK | _SDATA;
-  SPIOUT &= ~(_SCLK | _SDATA | _SCS);
-
-  UCB0CTL1 &= ~UCSWRST;
-}
-
-void halLcdBackLightInit()
-{
-}
-
-void halLcdSetBackLight(unsigned char n)
-{
-}
-
-void halLcdInit()
-{
-  unsigned int i;
-  for(i = 0; i < LCD_COL; i++)
-  {
-    lines[i].linenum = i;
-    lines[i].opcode = MLCD_WR;
-  }
-
-  SPIInit();
-
-  // configure TA0.1 for COM switch
-  TA0CTL |= TASSEL_1 + ID_3 + MC_1;
-  TA0CCTL1 = OUTMOD_7;
-  TA0CCR0 = 4096;
-  TA0CCR1 = 1;
-
-  P8SEL |= BIT1;
-  P8DIR |= BIT1; // p8.1 is TA0.1
-
-  // enable disply
-  P8DIR |= BIT2; // p8.2 is display
-  P8OUT |= BIT2; // set 1 to active display
-
-  process_start(&lcd_process, NULL);
-}
-
-void halLcdClearScreen()
-{
-  unsigned int i;
-  struct RefreshData data;
-
-  for(i = 0; i < LCD_COL; i++)
-  {
-    memset(lines[i].pixels, 0xff, LCD_ROW/8);
-  }
-  data.start = 0;
-  data.end = LCD_COL - 1;
-  process_post_synch(&lcd_process, refresh_event, &data);
-}
-
-static void SPISend(void* data, unsigned int size)
-{
-  PRINTF("Send Data %d bytes\n", size);
-  state = STATE_SENDING;
-  SPIOUT |= _SCS;
-
-  // USB0 TXIFG trigger
-  DMACTL0 = DMA0TSEL_19;
-  // Source block address
-  __data16_write_addr((unsigned short) &DMA0SA,(unsigned long) data);
-  // Destination single address
-  __data16_write_addr((unsigned short) &DMA0DA,(unsigned long) &UCB0TXBUF);
-  DMA0SZ = size;                                // Block size
-  DMA0CTL &= ~DMAIFG;
-  DMA0CTL = DMASRCINCR_3+DMASBDB+DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
-}
-
-int dma_channel_0()
-{
-  process_poll(&lcd_process);
-
-  return 1;
-}
-
-PROCESS_THREAD(lcd_process, ev, data)
-{
-  static unsigned char refreshStart = 0xff, refreshStop = 0;
-
-  PROCESS_BEGIN();
-
-  refresh_event = process_alloc_event();
-
-  while(1)
-  {
-    PROCESS_WAIT_EVENT();
-    if (ev == PROCESS_EVENT_POLL)
-    {
-      SPIOUT &= ~_SCS;
-      state = STATE_NONE;
-
-      if (refreshStart != 0xff)
-      {
-        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
-                * sizeof(struct _linebuf) + 1);
-        refreshStart = 0xff;
-        refreshStop = 0;
-      }
-    }
-    else if (ev == refresh_event)
-    {
-      struct RefreshData* d = (struct RefreshData*)data;
-      if (refreshStart > d->start)
-        refreshStart = d->start;
-      if (refreshStop < d->end)
-        refreshStop = d->end;
-
-      if (state == STATE_NONE)
-      {
-        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
-                * sizeof(struct _linebuf));
-
-        refreshStart = 0xff;
-        refreshStop = 0;
-      }
-    }
-  }
-
-  PROCESS_END();
-}
-void halLcdActive()
-{
-  P8OUT |= BIT2; // set 1 to active display
+  halLcdRefresh(line, line + k - 1);
 }
