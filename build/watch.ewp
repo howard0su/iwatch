@@ -105,11 +105,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>300</state>
+          <state>600</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>300</state>
+          <state>600</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -205,7 +205,7 @@
         </option>
         <option>
           <name>CCDiagSuppress</name>
-          <state></state>
+          <state>Pa050</state>
         </option>
         <option>
           <name>CCDiagRemark</name>
@@ -965,7 +965,7 @@
         <option>
           <name>ULPRules</name>
           <version>0</version>
-          <state>1111000011111111111</state>
+          <state>1111000001111111000</state>
         </option>
         <option>
           <name>ULPEnable</name>
@@ -2992,6 +2992,12 @@
   <group>
     <name>app</name>
     <file>
+      <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\menu.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\symbols.c</name>
     </file>
     <file>
@@ -3037,6 +3043,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hci_transport_h4_ehcill_dma.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hfp.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\l2cap.c</name>
@@ -3195,6 +3204,7 @@
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
       <excluded>
+        <configuration>Debug</configuration>
         <configuration>Retail</configuration>
       </excluded>
     </file>
