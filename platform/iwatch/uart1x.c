@@ -50,12 +50,6 @@ static int (*uart1_input_handler)(unsigned char c);
 static volatile uint8_t transmitting;
 
 /*---------------------------------------------------------------------------*/
-uint8_t
-uart1_active(void)
-{
-  return (UCA3STAT & UCBUSY) | transmitting;
-}
-/*---------------------------------------------------------------------------*/
 void
 uart1_set_input(int (*input)(unsigned char c))
 {
@@ -97,11 +91,11 @@ uart1_init(unsigned long ubr)
   UCA3BR0 = 138;  // from family user guide
   UCA3BR1 = 0;
   UCA3MCTL= 7 << 1;  // + 0.875
-  
+
   P10SEL |= BIT4 + BIT5;                  /* P10.4,5 = USCI_A3 TXD/RXD */
   P10DIR &= ~BIT5;                 /* P10.5 = USCI_A3 RXD as input */
   P10DIR |= BIT4;                  /* P10.4 = USCI_A3 TXD as output */
-  
+
 
   UCA3CTL1 &= ~UCSWRST;       /* Initialize USCI state machine */
 
