@@ -32,7 +32,7 @@
 #define BT_SHUTDOWN_SEL	P10SEL
 #define BT_SHUTDOWN_DIR	P10DIR
 #define BT_SHUTDOWN_OUT	P10OUT
-#define BT_SHUTDOWN_BIT BIT7		// P110.7 nShutdown
+#define BT_SHUTDOWN_BIT BIT7		// P10.7 nShutdown
 
 // TXD P3.4
 #define BT_TXD_OUT      P3OUT
