@@ -35,9 +35,7 @@
 
 #define DEVICENAME "iWatch"
 
-PROCESS(hpf_process, "HPF process");
-
-static uint16_t  rfcomm_channel_id;
+static uint16_t  rfcomm_channel_id = 0;
 static uint8_t   spp_service_buffer[110];
 static uint8_t   hpf_service_buffer[90];
 
@@ -85,6 +83,11 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
   }
 }
 
+
+
+#define AT_BRSF "AT+BRSF=14\n"
+
+
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
@@ -95,7 +98,8 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   if (packet_type != HCI_EVENT_PACKET)
   {
     printf("==============================getdata==========================\n");
-	return;
+    
+    return;
   }
 
   switch (packet[0]) {
@@ -195,18 +199,9 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       hci_send_cmd(&hci_pin_code_request_reply, &event_addr, 4, "0000");
       break;
     }
-  }
-}
-
-static void rfcomm_user_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
-{
-  bd_addr_t event_addr;
-  static uint8_t   rfcomm_channel_nr;
-  uint8_t event = packet[0];
-
-  switch (event) {
-  case RFCOMM_EVENT_INCOMING_CONNECTION:
+      case RFCOMM_EVENT_INCOMING_CONNECTION:
     {
+      uint8_t   rfcomm_channel_nr;
       // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
       bt_flip_addr(event_addr, &packet[2]);
       rfcomm_channel_nr = packet[8];
@@ -219,22 +214,37 @@ static void rfcomm_user_handler (void * connection, uint8_t packet_type, uint16_
     {
       // data: event(8), len(8), status (8), address (48), server channel(8), rfcomm_cid(16), max frame size(16)
       if (packet[2]) {
-        printf("RFCOMM channel open failed, status %u\n", packet[2]);
+        printf("[HFP] RFCOMM channel open failed, status %u\n", packet[2]);
       } else {
         rfcomm_channel_id = READ_BT_16(packet, 12);
         uint16_t mtu = READ_BT_16(packet, 14);
-        printf("\nRFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_channel_id, mtu);
-
-        if (rfcomm_channel_id == 2)
-        {
-          process_start(&hpf_process, (void*)rfcomm_channel_id);
-        }
+        printf("[HFP] RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_channel_id, mtu);
+        rfcomm_grant_credits(rfcomm_channel_id, 1);
+      }
+      break;
+    }
+ // case DAEMON_EVENT_HCI_PACKET_SENT:
+  case RFCOMM_EVENT_CREDITS:
+    {
+      // data: event(8), len(8), rfcomm_cid(16), credits(8)
+      if (rfcomm_channel_id == 0)
+        break;
+      
+      uint16_t rfcomm_id = READ_BT_16(packet, 2);
+      uint8_t credits = packet[4];
+      if (rfcomm_id == rfcomm_channel_id)
+      {
+        printf("[HFP] credit: %d\n", credits);        
+        
+        int err = rfcomm_send_internal(rfcomm_channel_id, AT_BRSF, sizeof(AT_BRSF) + 1);
+        printf("[HFP] rfcomm_send_internal() -> err %d\n\r", err);
       }
       break;
     }
   case RFCOMM_DATA_PACKET:
     {
-      printf("got RFCOMM data\n");
+      packet[size] = 0;
+      printf("[HFP] got RFCOMM data: %s\n", packet);
       break;
     }
   case RFCOMM_EVENT_CHANNEL_CLOSED:
@@ -242,19 +252,8 @@ static void rfcomm_user_handler (void * connection, uint8_t packet_type, uint16_
       rfcomm_channel_id = 0;
       break;
     }
+
   }
-}
-
-#define AT_BRSF "AT+BRSF=0"
-
-
-PROCESS_THREAD(hpf_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  rfcomm_send_internal(2, AT_BRSF, sizeof(AT_BRSF));
-
-  PROCESS_END();
 }
 
 static void btstack_setup(){
@@ -278,7 +277,7 @@ static void btstack_setup(){
 
   // init RFCOMM
   rfcomm_init();
-  rfcomm_register_packet_handler(rfcomm_user_handler);
+  rfcomm_register_packet_handler(packet_handler);
   rfcomm_register_service_internal(NULL, 1, 100);  // reserved channel, mtu=100
   rfcomm_register_service_internal(NULL, 6, 100);  // reserved channel, mtu=100
 
@@ -315,16 +314,17 @@ void bluetooth_init()
   btstack_setup();
   splx(x);
 
+  // set BT SHUTDOWN to 1 (active low)
+  BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
+  BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
+  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
+
   // Enable ACLK to provide 32 kHz clock to Bluetooth module
   BT_ACLK_SEL |= BT_ACLK_BIT;
   BT_ACLK_DIR |= BT_ACLK_BIT;
 
-  // set BT SHUTDOWN to 1 (active low)
-  BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
-  BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
-  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low
-
   process_start(&bluetooth_process, NULL);
+  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low
 }
 
 void bluetooth_shutdown()
