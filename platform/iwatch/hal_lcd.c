@@ -245,9 +245,9 @@ PROCESS_THREAD(lcd_process, ev, data)
   PROCESS_END();
 }
 
-void halLcdPixel(int x,  int y, unsigned char GrayScale)
+static void halLcdPixelInternal(int x,  int y, unsigned char GrayScale)
 {
-  if (GrayScale)
+  if (!GrayScale)
   {
     // if 0
     lines[y].pixels[x/8] &= ~(1 << (x & 0x07));
@@ -256,6 +256,11 @@ void halLcdPixel(int x,  int y, unsigned char GrayScale)
   {
     lines[y].pixels[x/8] |= 1 << (x & 0x07);
   }
+}
+
+void halLcdPixel(int x,  int y, unsigned char GrayScale)
+{
+  halLcdPixelInternal(x, y, GrayScale);
   halLcdRefresh(y, y);
 }
 
@@ -363,9 +368,11 @@ void halLcdHLine(int x1, int x2, int y, unsigned char GrayScale)
     x = x1;
     while (x != x2)
     {
-        halLcdPixel(x, y, GrayScale);
+        halLcdPixelInternal(x, y, GrayScale);
         x += x_dir;
     }
+
+    halLcdRefresh(y, y);
 }
 
 /**********************************************************************//**
@@ -392,11 +399,15 @@ void halLcdVLine(int x, int y1, int y2, unsigned char GrayScale)
     y = y1;
     while (y != y2)
     {
-        halLcdPixel(x, y, GrayScale);
+        halLcdPixelInternal(x, y, GrayScale);
         y += y_dir;
     }
-}
 
+    if (y2 > y1)
+      halLcdRefresh(y1, y2);
+    else
+      halLcdRefresh(y2, y1);
+}
 /**********************************************************************//**
  * @brief  Draws a line from (x1,y1) to (x2,y2) of GrayScale level.
  *
@@ -444,7 +455,7 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
                 d = (deltay << 1) - deltax;
                 while (x != x2)
                 {
-                    halLcdPixel(x, y,  GrayScale);
+                    halLcdPixelInternal(x, y,  GrayScale);
                     if (d < 0)
                         d += (deltay << 1);
                     else
@@ -460,7 +471,7 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
                 d = (deltax << 1) - deltay;
                 while (y != y2)
                 {
-                    halLcdPixel(x, y, GrayScale);
+                    halLcdPixelInternal(x, y, GrayScale);
                     if (d < 0)
                         d += (deltax << 1);
                     else
@@ -471,6 +482,10 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
                     y += y_dir;
                 }
             }
+            if (y2 > y1)
+              halLcdRefresh(y1, y2);
+            else
+              halLcdRefresh(y2, y1);
         }
     }
 }
@@ -498,14 +513,14 @@ void halLcdCircle(int x, int y, int Radius, int GrayScale)
 
     xx = 0;
     yy = Radius;
-    halLcdPixel(x + xx, y + yy, GrayScale);
-    halLcdPixel(x + xx, y - yy, GrayScale);
-    halLcdPixel(x - xx, y + yy, GrayScale);
-    halLcdPixel(x - xx, y - yy, GrayScale);
-    halLcdPixel(x + yy, y + xx, GrayScale);
-    halLcdPixel(x + yy, y - xx, GrayScale);
-    halLcdPixel(x - yy, y + xx, GrayScale);
-    halLcdPixel(x - yy, y - xx, GrayScale);
+    halLcdPixelInternal(x + xx, y + yy, GrayScale);
+    halLcdPixelInternal(x + xx, y - yy, GrayScale);
+    halLcdPixelInternal(x - xx, y + yy, GrayScale);
+    halLcdPixelInternal(x - xx, y - yy, GrayScale);
+    halLcdPixelInternal(x + yy, y + xx, GrayScale);
+    halLcdPixelInternal(x + yy, y - xx, GrayScale);
+    halLcdPixelInternal(x - yy, y + xx, GrayScale);
+    halLcdPixelInternal(x - yy, y - xx, GrayScale);
     while (xx < yy)
     {
         if (f >= 0)
@@ -517,13 +532,13 @@ void halLcdCircle(int x, int y, int Radius, int GrayScale)
         xx++;
         ddF_x += 2;
         f += ddF_x + 1;
-        halLcdPixel(x + xx, y + yy, GrayScale);
-        halLcdPixel(x + xx, y - yy, GrayScale);
-        halLcdPixel(x - xx, y + yy, GrayScale);
-        halLcdPixel(x - xx, y - yy, GrayScale);
-        halLcdPixel(x + yy, y + xx, GrayScale);
-        halLcdPixel(x + yy, y - xx, GrayScale);
-        halLcdPixel(x - yy, y + xx, GrayScale);
-        halLcdPixel(x - yy, y - xx, GrayScale);
+        halLcdPixelInternal(x + xx, y + yy, GrayScale);
+        halLcdPixelInternal(x + xx, y - yy, GrayScale);
+        halLcdPixelInternal(x - xx, y + yy, GrayScale);
+        halLcdPixelInternal(x - xx, y - yy, GrayScale);
+        halLcdPixelInternal(x + yy, y + xx, GrayScale);
+        halLcdPixelInternal(x + yy, y - xx, GrayScale);
+        halLcdPixelInternal(x - yy, y + xx, GrayScale);
+        halLcdPixelInternal(x - yy, y - xx, GrayScale);
     }
 }
