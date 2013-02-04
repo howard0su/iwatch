@@ -11,13 +11,24 @@ static const unsigned long dv[] = {
       10000000,     // +2
        1000000,     // +3
         100000,     // +4
-//       65535      // 16 bit unsigned max     
+//       65535      // 16 bit unsigned max
          10000,     // +5
           1000,     // +6
            100,     // +7
             10,     // +8
              1,     // +9
 };
+
+int puts(const char* s)
+{
+  while(*s != '\0')
+  {
+    putchar(*s);
+    s++;
+  }
+
+  return 0;
+}
 
 static void xtoa(unsigned long x, const unsigned long *dp)
 {
@@ -40,24 +51,32 @@ static void puth(unsigned n)
     static const char hex[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
     putchar(hex[n & 15]);
 }
- 
+
 int printf(const char *format, ...)
 {
     char c;
     int i;
     long n;
-    
+
     va_list a;
     va_start(a, format);
     while(c = *format++) {
         if(c == '%') {
+     retry:
             switch(c = *format++) {
+                case '0':
+                    if (*format >= '0' || *format <= '9')
+                    {
+                        format++;
+                        goto retry;
+                    }
                 case 's':                       // String
                     puts(va_arg(a, char*));
                     break;
                 case 'c':                       // Char
                     putchar(va_arg(a, char));
                     break;
+                case 'd':
                 case 'i':                       // 16 bit Integer
                 case 'u':                       // 16 bit Unsigned
                     i = va_arg(a, int);
@@ -65,11 +84,17 @@ int printf(const char *format, ...)
                     xtoa((unsigned)i, dv + 5);
                     break;
                 case 'l':                       // 32 bit Long
+                    if (*format == 'u')
+                    {
+                      format++;
+                      // fallthrough
+                    }
                 case 'n':                       // 32 bit uNsigned loNg
                     n = va_arg(a, long);
                     if(c == 'l' &&  n < 0) n = -n, putchar('-');
                     xtoa((unsigned long)n, dv);
                     break;
+                case 'X':
                 case 'x':                       // 16 bit heXadecimal
                     i = va_arg(a, int);
                     puth(i >> 12);
@@ -84,6 +109,6 @@ int printf(const char *format, ...)
 bad_fmt:    putchar(c);
     }
     va_end(a);
-	
+
 	return 0;
 }
