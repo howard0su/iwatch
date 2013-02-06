@@ -116,11 +116,11 @@ extern void halLcdReverse(void);
 extern void halLcdPixel(int x,  int y, unsigned char GrayScale);
 
 //Draw Line from (x1,y1) to (x2,y2) with GrayScale level
-extern void halLcdLine(int x1,  int y1,  int x2,  int y2, unsigned char GrayScale);
-extern void halLcdHLine(int x1, int x2, int y, unsigned char GrayScale);
-extern void halLcdVLine(int x1, int x2, int y, unsigned char GrayScale);
+extern void halLcdLine(int x1,  int y1,  int x2, int y2, int width, unsigned char GrayScale);
+extern void halLcdHLine(int x1, int x2, int y, int width, unsigned char GrayScale);
+extern void halLcdVLine(int x1, int y1, int y2, int width, unsigned char GrayScale);
 
-extern void halLcdCircle(int x, int y, int Radius, int GrayScale);
+extern void halLcdCircle(int x, int y, int Radius, int fill, unsigned char GrayScale);
 
 extern void halLcdImage(const unsigned int Image[], int Columns, int Rows, int x, int y);
 extern void halLcdClearImage(int Columns, int Rows,  int x, int y);
@@ -147,5 +147,8 @@ extern void halLcdHScroll(int yStart, int yEnd);
 
 //Scroll a line of text
 extern void halLcdScrollLine(int Line);
+
+extern void halLcdBeginUpdate();
+extern void halLcdEndUpdate();
 
 #endif /* HAL_LCD_H */

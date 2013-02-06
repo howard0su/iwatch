@@ -120,7 +120,7 @@ void
 lcd_draw_line(int x0, int y0, int x1, int y1)
 {
   if(WITH_LCD) {
-    halLcdLine(x0, y0, x1, y1, 3);
+    halLcdLine(x0, y0, x1, y1, 1, 3);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -140,7 +140,7 @@ lcd_scroll_x(void)
 {
   if(WITH_LCD) {
     halLcdHScroll(LCD_MAX_Y - SCROLL_AREA, LCD_MAX_Y);
-    halLcdLine(LCD_MAX_X, LCD_MAX_Y - SCROLL_AREA, LCD_MAX_X, LCD_MAX_Y, 0);
+    halLcdLine(LCD_MAX_X, LCD_MAX_Y - SCROLL_AREA, LCD_MAX_X, LCD_MAX_Y, 1, 0);
   }
 }
 /*---------------------------------------------------------------------------*/

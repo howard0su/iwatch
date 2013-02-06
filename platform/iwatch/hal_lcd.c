@@ -357,7 +357,7 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
  *
  * @return none
  *************************************************************************/
-void halLcdHLine(int x1, int x2, int y, unsigned char GrayScale)
+void halLcdHLine(int x1, int x2, int y, int width, unsigned char GrayScale)
 {
     int x_dir, x;
 
@@ -368,11 +368,14 @@ void halLcdHLine(int x1, int x2, int y, unsigned char GrayScale)
     x = x1;
     while (x != x2)
     {
-        halLcdPixelInternal(x, y, GrayScale);
+      for(int i = 0; i < width; i++)
+      {
+        halLcdPixelInternal(x, y + i, GrayScale);
+      }
         x += x_dir;
     }
 
-    halLcdRefresh(y, y);
+    halLcdRefresh(y, y + width - 1);
 }
 
 /**********************************************************************//**
@@ -388,7 +391,7 @@ void halLcdHLine(int x1, int x2, int y, unsigned char GrayScale)
  *
  * @return none
  *************************************************************************/
-void halLcdVLine(int x, int y1, int y2, unsigned char GrayScale)
+void halLcdVLine(int x, int y1, int y2, int width, unsigned char GrayScale)
 {
     int y_dir, y;
 
@@ -399,7 +402,10 @@ void halLcdVLine(int x, int y1, int y2, unsigned char GrayScale)
     y = y1;
     while (y != y2)
     {
-        halLcdPixelInternal(x, y, GrayScale);
+      for(int i = 0; i < width; i++)
+      {
+        halLcdPixelInternal(x + i, y, GrayScale);
+      }
         y += y_dir;
     }
 
@@ -425,17 +431,21 @@ void halLcdVLine(int x, int y1, int y2, unsigned char GrayScale)
  *
  * @return none
  *************************************************************************/
-void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
+void halLcdLine(int x1, int y1, int x2, int y2, int width, unsigned char GrayScale)
 {
     int x, y, deltay, deltax, d;
     int x_dir, y_dir;
 
     if (x1 == x2)
-        halLcdVLine(x1, y1, y2, GrayScale);
+    {
+        halLcdVLine(x1, y1, y2, width, GrayScale);
+    }
     else
     {
         if (y1 == y2)
-            halLcdHLine(x1, x2, y1, GrayScale);
+        {
+          halLcdHLine(x1, x2, y1, width, GrayScale);
+        }
         else                                // a diagonal line
         {
             if (x1 > x2)
@@ -455,7 +465,10 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
                 d = (deltay << 1) - deltax;
                 while (x != x2)
                 {
-                    halLcdPixelInternal(x, y,  GrayScale);
+                  for (int i = 0; i < width; i++)
+                  {
+                      halLcdPixelInternal(x, y + i, GrayScale);
+                  }
                     if (d < 0)
                         d += (deltay << 1);
                     else
@@ -471,7 +484,10 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
                 d = (deltax << 1) - deltay;
                 while (y != y2)
                 {
-                    halLcdPixelInternal(x, y, GrayScale);
+                  for (int i = 0; i < width; i++)
+                  {
+                    halLcdPixelInternal(x + i, y, GrayScale);
+                  }
                     if (d < 0)
                         d += (deltax << 1);
                     else
@@ -483,12 +499,25 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
                 }
             }
             if (y2 > y1)
-              halLcdRefresh(y1, y2);
+              halLcdRefresh(y1, y2 + width);
             else
-              halLcdRefresh(y2, y1);
+              halLcdRefresh(y2, y1 + width);
         }
     }
 }
+
+static inline void _draw_circle_8(int xc, int yc, int x, int y, unsigned char c) {
+    // 参数 c 为颜色值
+    halLcdPixelInternal(xc + x, yc + y, c);
+    halLcdPixelInternal(xc - x, yc + y, c);
+    halLcdPixelInternal(xc + x, yc - y, c);
+    halLcdPixelInternal(xc - x, yc - y, c);
+    halLcdPixelInternal(xc + y, yc + x, c);
+    halLcdPixelInternal(xc - y, yc + x, c);
+    halLcdPixelInternal(xc + y, yc - x, c);
+    halLcdPixelInternal(xc - y, yc - x, c);
+}
+
 
 /**********************************************************************//**
  * @brief  Draw a circle of Radius with center at (x,y) of GrayScale level.
@@ -501,44 +530,45 @@ void halLcdLine(int x1, int y1, int x2, int y2, unsigned char GrayScale)
  *
  * @param  Radius    Radius of the circle
  *
- * @param  GrayScale Grayscale level of the circle
+ * @param  GrayScale Grayscale level of the circle, 0x80 means fill
  *************************************************************************/
-void halLcdCircle(int x, int y, int Radius, int GrayScale)
-{
-    int xx, yy, ddF_x, ddF_y, f;
+//Bresenham's circle algorithm
+void halLcdCircle(int xc, int yc, int r, int fill, unsigned char c) {
+    // (xc, yc) 为圆心，r 为半径
+    // fill 为是否填充
+    // c 为颜色值
 
-    ddF_x = 0;
-    ddF_y = -(2 * Radius);
-    f = 1 - Radius;
+    int x = 0, y = r, yi, d;
+    d = 3 - 2 * r;
 
-    xx = 0;
-    yy = Radius;
-    halLcdPixelInternal(x + xx, y + yy, GrayScale);
-    halLcdPixelInternal(x + xx, y - yy, GrayScale);
-    halLcdPixelInternal(x - xx, y + yy, GrayScale);
-    halLcdPixelInternal(x - xx, y - yy, GrayScale);
-    halLcdPixelInternal(x + yy, y + xx, GrayScale);
-    halLcdPixelInternal(x + yy, y - xx, GrayScale);
-    halLcdPixelInternal(x - yy, y + xx, GrayScale);
-    halLcdPixelInternal(x - yy, y - xx, GrayScale);
-    while (xx < yy)
-    {
-        if (f >= 0)
-        {
-            yy--;
-            ddF_y += 2;
-            f += ddF_y;
+    if (fill) {
+        // 如果填充（画实心圆）
+        while (x <= y) {
+            for (yi = x; yi <= y; yi ++)
+                _draw_circle_8(xc, yc, x, yi, c);
+
+            if (d < 0) {
+                d = d + 4 * x + 6;
+            } else {
+                d = d + 4 * (x - y) + 10;
+                y --;
+            }
+            x++;
         }
-        xx++;
-        ddF_x += 2;
-        f += ddF_x + 1;
-        halLcdPixelInternal(x + xx, y + yy, GrayScale);
-        halLcdPixelInternal(x + xx, y - yy, GrayScale);
-        halLcdPixelInternal(x - xx, y + yy, GrayScale);
-        halLcdPixelInternal(x - xx, y - yy, GrayScale);
-        halLcdPixelInternal(x + yy, y + xx, GrayScale);
-        halLcdPixelInternal(x + yy, y - xx, GrayScale);
-        halLcdPixelInternal(x - yy, y + xx, GrayScale);
-        halLcdPixelInternal(x - yy, y - xx, GrayScale);
+    } else {
+        // 如果不填充（画空心圆）
+        while (x <= y) {
+            _draw_circle_8(xc, yc, x, y, c);
+
+            if (d < 0) {
+                d = d + 4 * x + 6;
+            } else {
+                d = d + 4 * (x - y) + 10;
+                y --;
+            }
+            x ++;
+        }
     }
+
+    halLcdRefresh(yc - r, yc + r);
 }
