@@ -66,9 +66,6 @@
 #define LCD_ROW 144						                // display is 144x168
 #define LCD_COL 168						                // display is 144x168
 
-#define LCD_MEM_Row             0x11
-#define LCD_Row                 0x20
-
 // Grayscale level definitions
 #define PIXEL_OFF               0
 #define PIXEL_LIGHT             1
