@@ -29,6 +29,7 @@ extern void bluetooth_init();
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
 PROCESS(system_process, "System process");
+PROCESS_NAME(digitclock_process);
 AUTOSTART_PROCESSES(&system_process);
 /*---------------------------------------------------------------------------*/
 
@@ -48,17 +49,20 @@ PROCESS_THREAD(system_process, ev, data)
   lcd_init();
   halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);
   // give time to starts
-  etimer_set(&et, CLOCK_SECOND);
-  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   //mpu6050_init();
   ant_init();
   bluetooth_init();
 
-  //etimer_adjust(&et, CLOCK_SECOND * 10);
-  //etimer_restart(&et);
+  etimer_set(&et, CLOCK_SECOND * 1);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+  process_start(&digitclock_process, NULL);
+  print_stats();
+  etimer_restart(&et);
   while(1)
   {
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
+    PROCESS_WAIT_EVENT();
+    if (ev == sensors_event)
     {
       printf("Key Changed %d, %d, %d, %d\n",
              button_sensor.value(0),
@@ -66,6 +70,11 @@ PROCESS_THREAD(system_process, ev, data)
              button_sensor.value(2),
              button_sensor.value(3)
                );
+    }
+    else if (ev == PROCESS_EVENT_TIMER)
+    {
+      print_stats();
+      etimer_restart(&et);
     }
   }
 
