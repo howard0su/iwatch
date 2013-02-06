@@ -234,6 +234,9 @@ const hci_cmd_t hci_remote_name_request_cancel = {
 OPCODE(OGF_LINK_CONTROL, 0x1A), "B"
 // BD_ADDR
 };
+const hci_cmd_t hci_accept_synchronous_connection = {
+OPCODE(OGF_LINK_CONTROL, 0x29), "B442212"
+};
 
 /**
  *  Link Policy Commands 
@@ -672,3 +675,19 @@ const hci_cmd_t rfcomm_persistent_channel_for_service = {
 
 // register rfcomm service: @param channel(8), mtu (16), initial credits (8)
 extern const hci_cmd_t rfcomm_register_service_with_initial_credits;
+
+/*
+ * TI vendor specific code
+ * http://processors.wiki.ti.com/index.php/CC256x_VS_HCI_Commands
+ */
+const hci_cmd_t hci_vs_write_codec_config = {
+  OPCODE(OGF_VENDOR, 0xFD06), "214211122122112212211"
+};
+
+const hci_cmd_t hci_vs_write_codec_config_enhanced = {
+OPCODE(OGF_VENDOR, 0xFD07), "122111114111111411"
+};
+
+const hci_cmd_t hci_vs_le_enable = {
+OPCODE(OGF_VENDOR, 0xFD5B), "11"
+};

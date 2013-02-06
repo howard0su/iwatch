@@ -295,6 +295,7 @@ extern const hci_cmd_t hci_read_num_broadcast_retransmissions;
 extern const hci_cmd_t hci_reject_connection_request;
 extern const hci_cmd_t hci_remote_name_request;
 extern const hci_cmd_t hci_remote_name_request_cancel;
+extern const hci_cmd_t hci_accept_synchronous_connection;
 extern const hci_cmd_t hci_reset;
 extern const hci_cmd_t hci_role_discovery;
 extern const hci_cmd_t hci_set_event_mask;
@@ -344,7 +345,11 @@ extern const hci_cmd_t hci_le_set_scan_response_data;
 extern const hci_cmd_t hci_le_start_encryption;
 extern const hci_cmd_t hci_le_test_end;
 extern const hci_cmd_t hci_le_transmitter_test;
-    
+
+extern const hci_cmd_t hci_vs_write_codec_config;
+extern const hci_cmd_t hci_vs_write_codec_config_enhanced;
+extern const hci_cmd_t hci_vs_le_enable;
+
 extern const hci_cmd_t l2cap_accept_connection;
 extern const hci_cmd_t l2cap_create_channel;
 extern const hci_cmd_t l2cap_create_channel_mtu;
