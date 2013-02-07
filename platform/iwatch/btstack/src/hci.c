@@ -115,10 +115,11 @@ static void hci_connection_timestamp(hci_connection_t *connection){
  *
  * @return connection OR NULL, if no memory left
  */
-static hci_connection_t * create_connection_for_addr(bd_addr_t addr){
+static hci_connection_t * create_connection_for_addr(bd_addr_t addr, uint8_t type){
     hci_connection_t * conn = (hci_connection_t *) btstack_memory_hci_connection_get();
     if (!conn) return NULL;
     BD_ADDR_COPY(conn->address, addr);
+	conn->type = type;
     conn->con_handle = 0xffff;
     conn->authentication_flags = AUTH_FLAGS_NONE;
     linked_item_set_user(&conn->timeout.item, conn);
@@ -136,10 +137,10 @@ static hci_connection_t * create_connection_for_addr(bd_addr_t addr){
  *
  * @return connection OR NULL, if not found
  */
-static hci_connection_t * connection_for_address(bd_addr_t address){
+static hci_connection_t * connection_for_address(bd_addr_t address, uint8_t type){
     linked_item_t *it;
     for (it = (linked_item_t *) hci_stack.connections; it ; it = it->next){
-        if ( ! BD_ADDR_CMP( ((hci_connection_t *) it)->address, address) ){
+        if ( ! BD_ADDR_CMP( ((hci_connection_t *) it)->address, address) && type == ((hci_connection_t *) it)->type){
             return (hci_connection_t *) it;
         }
     }
@@ -161,7 +162,7 @@ inline static void connectionClearAuthenticationFlags(hci_connection_t * conn, h
 static void hci_add_connection_flags_for_flipped_bd_addr(uint8_t *bd_addr, hci_authentication_flags_t flags){
     bd_addr_t addr;
     bt_flip_addr(addr, *(bd_addr_t *) bd_addr);
-    hci_connection_t * conn = connection_for_address(addr);
+    hci_connection_t * conn = connection_for_address(addr, 1); // must be ACL
     if (conn) {
         connectionSetAuthenticationFlags(conn, flags);
         hci_connection_timestamp(conn);
@@ -404,6 +405,7 @@ static void event_handler(uint8_t *packet, int size){
     uint8_t link_type;
     hci_con_handle_t handle;
     hci_connection_t * conn;
+	uint32_t device_type;
     int i;
         
     // printf("HCI:EVENT:%02x\n", packet[0]);
@@ -469,13 +471,13 @@ static void event_handler(uint8_t *packet, int size){
             
         case HCI_EVENT_CONNECTION_REQUEST:
             bt_flip_addr(addr, &packet[2]);
-            // TODO: eval COD 8-10
+			device_type = READ_BT_32(packet, 8) & 0x00ffffff;
             link_type = packet[11];
-            log_info("Connection_incoming: %s, type %u\n", bd_addr_to_str(addr), link_type);
-            if (link_type == 1) { // ACL
-                conn = connection_for_address(addr);
+            log_info("Connection_incoming: %s, type %u device_type:%lu \n", bd_addr_to_str(addr), link_type, device_type);
+            if (link_type == 1 || link_type == 0) { // ACL or SCO
+                conn = connection_for_address(addr, link_type);
                 if (!conn) {
-                    conn = create_connection_for_addr(addr);
+                    conn = create_connection_for_addr(addr, link_type);
                 }
                 if (!conn) {
                     // CONNECTION REJECTED DUE TO LIMITED RESOURCES (0X0D)
@@ -495,8 +497,9 @@ static void event_handler(uint8_t *packet, int size){
         case HCI_EVENT_CONNECTION_COMPLETE:
             // Connection management
             bt_flip_addr(addr, &packet[5]);
-            log_info("Connection_complete (status=%u) %s\n", packet[2], bd_addr_to_str(addr));
-            conn = connection_for_address(addr);
+			link_type = packet[11];
+            log_info("Connection_complete (status=%u, type=%u) %s\n", packet[2], link_type, bd_addr_to_str(addr));
+            conn = connection_for_address(addr, link_type);
             if (conn) {
                 if (!packet[2]){
                     conn->state = OPEN;
@@ -603,7 +606,8 @@ static void event_handler(uint8_t *packet, int size){
                     bt_flip_addr(addr, &packet[8]);
                     log_info("LE Connection_complete (status=%u) %s\n", packet[3], bd_addr_to_str(addr));
                     // LE connections are auto-accepted, so just create a connection if there isn't one already
-                    conn = connection_for_address(addr);
+                    // TODO: if BLE only support ACL? Need confirm
+                    conn = connection_for_address(addr, 1);
                     if (packet[3]){
                         if (conn){
                             // outgoing connection failed, remove entry
@@ -618,7 +622,7 @@ static void event_handler(uint8_t *packet, int size){
                         break;
                     }
                     if (!conn){
-                        conn = create_connection_for_addr(addr);
+                        conn = create_connection_for_addr(addr, 1);
                     }
                     if (!conn){
                         // no memory
@@ -1237,13 +1241,15 @@ void hci_run(){
 int hci_send_cmd_packet(uint8_t *packet, int size){
     bd_addr_t addr;
     hci_connection_t * conn;
+	uint8_t link_type;
     // house-keeping
     
     // create_connection?
     if (IS_COMMAND(packet, hci_create_connection)){
         bt_flip_addr(addr, &packet[3]);
-        log_info("Create_connection to %s\n", bd_addr_to_str(addr));
-        conn = connection_for_address(addr);
+		link_type = packet[9];
+        log_info("Create_connection to %s type=%d \n", bd_addr_to_str(addr), link_type);
+        conn = connection_for_address(addr, link_type);
         if (conn) {
             // if connection exists
             if (conn->state == OPEN) {
@@ -1255,7 +1261,7 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
             
         }
         // create connection struct and register, state = SENT_CREATE_CONNECTION
-        conn = create_connection_for_addr(addr);
+        conn = create_connection_for_addr(addr, link_type);
         if (!conn){
             // notify client that alloc failed
             hci_emit_connection_complete(conn, BTSTACK_MEMORY_ALLOC_FAILED);

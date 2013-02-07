@@ -156,7 +156,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
-        hci_send_cmd(&hci_vs_write_codec_config, 64, 0x00, 100, 0x0000, 0x00, 0x00, 0, 
+        hci_send_cmd(&hci_vs_write_codec_config, 64, 0x00, 100, 0x0000, 0x00, 0x00, 0,
                        0x08, 0x00, 0x00, 0x08, 0x00, 0x00, 0,
                        0x08, 0x00, 0x00, 0x08, 0x00, 0x00, 0
                        );
@@ -244,17 +244,19 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
             {
               rfcomm_accept_connection_internal(rfcomm_id);
               hfp_channel_id = rfcomm_id;
+              break;
             }
         case SPP_CHANNEL:
           {
             rfcomm_accept_connection_internal(rfcomm_id);
             spp_channel_id = rfcomm_id;
+            break;
           }
         default:
           {
             rfcomm_decline_connection_internal(rfcomm_id);
           }
-        } 
+        }
         break;
       }
     case RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE:
@@ -339,7 +341,7 @@ static void btstack_setup(){
   printf("SDP service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   //de_dump_data_element(service_record_item->service_record);
   sdp_register_service_internal(NULL, service_record_item);
-  
+
   hfp_init(HFP_CHANNEL);
 }
 

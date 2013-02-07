@@ -218,7 +218,10 @@ typedef struct {
     
     // remote side
     bd_addr_t address;
-    
+
+	// connection type: 0-sco, 1->acl
+	uint8_t type;
+	
     // module handle
     hci_con_handle_t con_handle;
 
