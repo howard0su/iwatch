@@ -95,36 +95,12 @@ main(int argc, char **argv)
   * Hardware initialization done!
   */
 
-  /* Restore node id if such has been stored in external mem */
-
-  //  node_id_restore();
-#ifdef NODEID
-  node_id = NODEID;
-
-#ifdef BURN_NODEID
-  flash_setup();
-  flash_clear(0x1800);
-  flash_write(0x1800, node_id);
-  flash_done();
-#endif /* BURN_NODEID */
-#endif /* NODE_ID */
-
-  if(node_id == 0) {
-    node_id = *((unsigned short *)0x1800);
-  }
-
   /*
   * Initialize Contiki and our processes.
   */
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
-
-  if(node_id > 0) {
-    PRINTF("Node id %u.\n", node_id);
-  } else {
-    PRINTF("Node id not set.\n");
-  }
 
   process_start(&sensors_process, NULL);
   //SENSORS_ACTIVATE(button_sensor);
