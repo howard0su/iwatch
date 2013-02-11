@@ -104,6 +104,7 @@ void rtc_enablechange(uint8_t changes)
 
 ISR(RTC, RTC_ISR)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   switch(__even_in_range(RTCIV,16))
   {
   case RTC_NONE:                          // No interrupts
@@ -143,4 +144,5 @@ ISR(RTC, RTC_ISR)
   case 16: break;                         // Reserved
   default: break;
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
