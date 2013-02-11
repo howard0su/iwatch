@@ -20,6 +20,7 @@
 #include "button.h"
 #include "lcd.h"
 #include "hal_lcd.h"
+#include "rtc.h"
 
 extern void mpu6050_init();
 extern void ant_init();
@@ -41,9 +42,11 @@ AUTOSTART_PROCESSES(&system_process);
 PROCESS_THREAD(system_process, ev, data)
 {
   static struct etimer et;
+  static struct process* ui_process = &digitclock_process;
 
   PROCESS_BEGIN();
 
+  rtc_init();
   SENSORS_ACTIVATE(button_sensor);
 
   lcd_init();
@@ -53,10 +56,8 @@ PROCESS_THREAD(system_process, ev, data)
   ant_init();
   bluetooth_init();
 
-  etimer_set(&et, CLOCK_SECOND * 1);
-  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-  process_start(&digitclock_process, NULL);
+  etimer_set(&et, CLOCK_SECOND * 5);
+  process_start(ui_process, NULL);
   print_stats();
   etimer_restart(&et);
   while(1)
@@ -75,6 +76,11 @@ PROCESS_THREAD(system_process, ev, data)
     {
       print_stats();
       etimer_restart(&et);
+    }
+    else
+    {
+      // unknow event
+      process_post(ui_process, ev, data);
     }
   }
 

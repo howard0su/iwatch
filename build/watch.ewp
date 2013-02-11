@@ -3197,9 +3197,6 @@
       <name>$PROJ_DIR$\..\platform\iwatch\msp430.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\node-id.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\platform-conf.h</name>
     </file>
     <file>
@@ -3207,6 +3204,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtimer-arch.c</name>
