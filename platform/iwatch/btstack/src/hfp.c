@@ -30,7 +30,7 @@ static uint8_t   hpf_service_buffer[90];
 void hfp_init(int channel)
 {
   rfcomm_register_service_internal(NULL, channel, 100);  // reserved channel, mtu=100
-  
+
   service_record_item_t * service_record_item;
   memset(hpf_service_buffer, 0, sizeof(hpf_service_buffer));
   service_record_item = (service_record_item_t *) hpf_service_buffer;
@@ -47,59 +47,58 @@ void hfp_init(int channel)
 
 #define R_BRSF 1
 #define R_CIND 2
+#define R_CIEV 3
+
+#define HFP_CIND_UNKNOWN	-1
+#define HFP_CIND_NONE		0
+#define HFP_CIND_SERVICE	1
+#define HFP_CIND_CALL		2
+#define HFP_CIND_CALLSETUP	3
+#define HFP_CIND_CALLHELD	4
+#define HFP_CIND_SIGNAL		5
+#define HFP_CIND_ROAM		6
+#define HFP_CIND_BATTCHG	7
 
 static int parse_return(uint8_t* result, int* code)
 {
-  *code = 0;
-
   log_info("parse return: %s\n", result);
-  if (strncmp(result, "\r\n+", 3) == 0)
-  {
-    // skip the cr/lf
-    result+=3;
 
-    if (strncmp(result, "BRSF", 4) == 0)
+  while(*result != '\0')
+  {
+    if (result[0] == '\r' && result[1] == '\n')
+    {
+        result += 2;
+        continue;
+    }
+
+    if (strncmp(result, "+BRSF", 5) == 0)
     {
       *code = R_BRSF;
     }
-    else if (strncmp(result, "CIND", 4) == 0)
+    else if (strncmp(result, "+CIND", 5) == 0)
     {
       *code = R_CIND;
     }
-    else if (strncmp(result, "OK\r\n", 4) == 0)
+    else if (strncmp(result, "+CIEV", 5) == 0)
+    {
+      *code = R_CIEV;
+    }
+    else if (strncmp(result, "OK", 2) == 0)
     {
       return 1;
     }
-
-    while(*result != '\r' && *(result + 1) != '\n' && *result != '\0')
-    {
-      result++;
-    }
-
-    if (*result == '\0')
-      return 2; // need more data
-
-    result+=2;
-  }
-  
-  if (strncmp(result, "\r\n", 2) == 0)
-  {
-    // skip the cr/lf
-    result+=2;
-
-    if (strncmp(result, "ERROR\r\n", 4) == 0)
+    else if (strncmp(result, "ERROR", 5) == 0)
     {
       return 0;
     }
-    else if (strncmp(result, "OK\r\n", 4) == 0)
+
+    while(*result!='\r' && *result!='\n')
     {
-      return 1;
+      if (*result == '\0')
+        return 2;
+      result++;
     }
   }
-  else 
-    return 2;
-
-  return 1;
 }
 
 static uint8_t textbuf[255];
