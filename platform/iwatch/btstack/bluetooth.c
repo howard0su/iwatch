@@ -16,7 +16,6 @@
 
 #include "contiki.h"
 
-#include <stdio.h> /* For printf() */
 #include <string.h>
 
 #include "bt_control_cc256x.h"
@@ -34,6 +33,7 @@
 #include "hfp.h"
 #include "config.h"
 
+#include "debug.h"
 #define DEVICENAME "iWatch"
 
 static uint8_t   spp_service_buffer[110];
@@ -70,7 +70,7 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
 
 // write requests
 static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
-  printf("WRITE Callback, handle %04x\n", handle);
+  log_info("WRITE Callback, handle %04x\n", handle);
   switch(handle){
   case 0x000b:
     buffer[buffer_size]=0;
@@ -96,8 +96,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
   {
-    printf("[HFP] getdata %d\n", packet_type );
-
     return;
   }
 
@@ -114,11 +112,11 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
         bt_flip_addr(event_addr, &packet[6]);
-        printf("BD ADDR: %s\n", bd_addr_to_str(event_addr));
+        log_info("BD ADDR: %s\n", bd_addr_to_str(event_addr));
         break;
       }
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
-        printf("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
+        log_info("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
         hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
         break;
       }
@@ -135,7 +133,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
-        printf("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
+        log_info("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
         hci_send_cmd(&hci_le_read_supported_states);
         break;
       }
@@ -200,7 +198,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   case HCI_EVENT_PIN_CODE_REQUEST:
     {
       // inform about pin code request
-      printf("Pin code request - using '0000'\n");
+      log_info("Pin code request - using '0000'\n");
       bt_flip_addr(event_addr, &packet[2]);
       hci_send_cmd(&hci_pin_code_request_reply, &event_addr, 4, "0000");
       break;
@@ -212,6 +210,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 static uint16_t hfp_channel_id;
 static uint16_t spp_channel_id;
 
+static void spp_handler(uint16_t channel, uint8_t packet_type, uint8_t *packet, uint16_t size)
+{
+}
+
 static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   uint16_t rfcomm_id;
@@ -221,6 +223,10 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
     if (channel == hfp_channel_id)
     {
       hfp_handler(hfp_channel_id, RFCOMM_DATA_PACKET, packet, size);
+    }
+    else if (channel == spp_channel_id)
+    {
+      spp_handler(spp_channel_id, RFCOMM_DATA_PACKET, packet, size);
     }
     return;
   }
@@ -237,7 +243,7 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
         bt_flip_addr(event_addr, &packet[2]);
         rfcomm_channel_nr = packet[8];
         rfcomm_id = READ_BT_16(packet, 9);
-        printf("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
+        log_info("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
         switch(rfcomm_channel_nr)
         {
           case HFP_CHANNEL:
@@ -254,6 +260,7 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
           }
         default:
           {
+            log_info("unknow channel %d\n",  rfcomm_channel_nr);
             rfcomm_decline_connection_internal(rfcomm_id);
           }
         }
@@ -263,11 +270,11 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
       {
         // data: event(8), len(8), status (8), address (48), server channel(8), rfcomm_cid(16), max frame size(16)
         if (packet[2]) {
-          printf("[HFP] RFCOMM channel open failed, status %u\n", packet[2]);
+          log_info("RFCOMM channel open failed, status %u\n", packet[2]);
         } else {
           rfcomm_id = READ_BT_16(packet, 12);
           uint16_t mtu = READ_BT_16(packet, 14);
-          printf("[HFP] RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
+          log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
           if (rfcomm_id == hfp_channel_id)
           {
             hfp_handler(hfp_channel_id, RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE, packet, size);
@@ -338,7 +345,7 @@ static void btstack_setup(){
   memset(spp_service_buffer, 0, sizeof(spp_service_buffer));
   service_record_item = (service_record_item_t *) spp_service_buffer;
   sdp_create_spp_service( (uint8_t*) &service_record_item->service_record, 1, "iWatch Configure");
-  printf("SDP service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
+  log_info("SDP service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   //de_dump_data_element(service_record_item->service_record);
   sdp_register_service_internal(NULL, service_record_item);
 
