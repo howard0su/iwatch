@@ -21,6 +21,7 @@
 #include "lcd.h"
 #include "hal_lcd.h"
 #include "rtc.h"
+#include "window.h"
 
 extern void mpu6050_init();
 extern void ant_init();
@@ -30,9 +31,15 @@ extern void bluetooth_init();
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
 PROCESS(system_process, "System process");
-PROCESS_NAME(digitclock_process);
 AUTOSTART_PROCESSES(&system_process);
 /*---------------------------------------------------------------------------*/
+
+struct process* ui_process = NULL;
+
+void event_init()
+{
+  timechangeevent = process_alloc_event();
+}
 
 /*
 * This process is the startup process.
@@ -42,9 +49,10 @@ AUTOSTART_PROCESSES(&system_process);
 PROCESS_THREAD(system_process, ev, data)
 {
   static struct etimer et;
-  static struct process* ui_process = &digitclock_process;
 
   PROCESS_BEGIN();
+  ui_process = &analogclock_process;
+  event_init();
 
   rtc_init();
   SENSORS_ACTIVATE(button_sensor);
@@ -77,14 +85,8 @@ PROCESS_THREAD(system_process, ev, data)
       print_stats();
       etimer_restart(&et);
     }
-    else
-    {
-      // unknow event
-      process_post(ui_process, ev, data);
-    }
   }
 
   PROCESS_END();
-
 }
 /*---------------------------------------------------------------------------*/

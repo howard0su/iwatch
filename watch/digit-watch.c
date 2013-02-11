@@ -1,5 +1,6 @@
 #include "contiki.h"
 #include "hal_lcd.h"
+#include "window.h"
 #include "rtc.h"
 #include "math.h"
 
@@ -49,13 +50,16 @@ static void drawClock(int day, int h, int m, int s)
   char buf[] = "00";
   halLcdBeginUpdate();
 
-  // sec hand: length = 75
-  angle = s * 6;
-  fangle = (360 - angle) * PI/180;
-  halLcdLine(CENTER_X, CENTER_Y, lastSecX , lastSecY, 1, 1);
-  lastSecX = CENTER_X + SEC_HAND_LEN * sin(fangle);
-  lastSecY = CENTER_Y + SEC_HAND_LEN * cos(fangle);
-  halLcdLine(CENTER_X, CENTER_Y, lastSecX, lastSecY, 1, 0);
+  if (s > 0)
+  {
+    // sec hand: length = 75
+    angle = s * 6;
+    fangle = (360 - angle) * PI/180;
+    halLcdLine(CENTER_X, CENTER_Y, lastSecX , lastSecY, 1, 1);
+    lastSecX = CENTER_X + SEC_HAND_LEN * sin(fangle);
+    lastSecY = CENTER_Y + SEC_HAND_LEN * cos(fangle);
+    halLcdLine(CENTER_X, CENTER_Y, lastSecX, lastSecY, 1, 0);
+  }
 
   // minute hand = length = 70
   angle = m*6+s/10;
@@ -101,18 +105,15 @@ static void drawClock(int day, int h, int m, int s)
   halLcdEndUpdate();
 }
 
-PROCESS(digitclock_process, "Digit Clock");
+PROCESS(analogclock_process, "Analog Clock");
 
-PROCESS_THREAD(digitclock_process, ev, data)
+PROCESS_THREAD(analogclock_process, ev, data)
 {
   PROCESS_BEGIN();
-  {
-    uint8_t day, hour, min, sec;
-    rtc_readdate(NULL, NULL, &day, NULL);
-    rtc_readtime(&hour, &min, &sec);
-    drawBackground();
-    drawClock(day, hour, min, sec);
-  }
+
+  drawBackground();
+  rtc_enablechange(SECOND_CHANGE);
+
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == timechangeevent);

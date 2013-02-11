@@ -2,6 +2,7 @@
 #include "contiki.h"
 #include "isr_compat.h"
 #include "rtc.h"
+#include "window.h"
 
 PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
@@ -12,7 +13,7 @@ void rtc_init()
 {
   timechangeevent = process_alloc_event();
   // Configure RTC_A
-  RTCCTL01 |= RTCTEVIE + RTCHOLD + RTCMODE + RTCRDYIE ;
+  RTCCTL01 |= RTCHOLD + RTCMODE;
   // RTC enable, BCD mode, RTC hold
   // enable RTC time event interrupt
 
@@ -30,7 +31,6 @@ void rtc_init()
   //  RTCAMIN = 0x23;                           // RTC Minute Alarm
 
   process_start(&rtc_process, NULL);
-  RTCCTL01 |= RTCTEV__MIN;
   RTCCTL01 &= ~(RTCHOLD);                   // Start RTC calendar mode
 }
 
@@ -41,7 +41,7 @@ PROCESS_THREAD(rtc_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    process_post(&system_process, timechangeevent, &now);
+    process_post(ui_process, timechangeevent, &now);
   }
   PROCESS_END();
 }
@@ -79,6 +79,27 @@ void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday
   if (month) *month = RTCMON;
   if (day) *day = RTCDAY;
   if (weekday) *weekday = RTCDOW;
+}
+
+void rtc_enablechange(uint8_t changes)
+{
+  if (changes & MINUTE_CHANGE)
+  {
+    RTCCTL01 |= RTCTEV__MIN + RTCTEVIFG + RTCTEVIE;
+  }
+  else
+  {
+    RTCCTL01 &= ~(RTCTEV__MIN + RTCTEVIE);
+  }
+
+  if (changes & SECOND_CHANGE)
+  {
+    RTCCTL01 |= RTCRDYIE + RTCRDYIFG;
+  }
+  else
+  {
+    RTCCTL01 &= ~RTCRDYIE;
+  }
 }
 
 ISR(RTC, RTC_ISR)

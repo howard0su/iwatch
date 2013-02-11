@@ -17,6 +17,9 @@ void rtc_settime(uint8_t hour, uint8_t min, uint8_t sec);
 void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec);
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday);
 
-extern process_event_t timechangeevent;
+#define SECOND_CHANGE BIT0
+#define MINUTE_CHANGE BIT1
+
+void rtc_enablechange(uint8_t changes);
 
 #endif
