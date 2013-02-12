@@ -137,7 +137,7 @@ int hal_uart_dma_set_baud(uint32_t baud){
     break;
 
   case 115200:
-    UCA0BR0 = 138;  // from family user guide
+    UCA0BR0 = 69;  // from family user guide
     UCA0BR1 = 0;
     UCA0MCTL= 7 << 1;  // + 0.875
     break;

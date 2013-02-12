@@ -70,7 +70,7 @@ static void SPIInit()
 
   UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
   UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCB0BR0 = 16; // 16MHZ / 16 = 1Mhz
+  UCB0BR0 = 8; // 16MHZ / 16 = 1Mhz
   UCB0BR1 = 0;
 
   //Configure ports.

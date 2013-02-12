@@ -88,7 +88,7 @@ uart1_init(unsigned long ubr)
   UCA3BR1 = ubr >> 8;
   UCA3MCTL = UCBRS_3;             /* Modulation UCBRSx = 3 */
 #endif
-  UCA3BR0 = 138;  // from family user guide
+  UCA3BR0 = 69;  // from family user guide
   UCA3BR1 = 0;
   UCA3MCTL= 7 << 1;  // + 0.875
 
