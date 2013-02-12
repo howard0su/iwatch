@@ -6,12 +6,11 @@
 
 PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
-process_event_t timechangeevent;
+
 static struct datetime now;
 
 void rtc_init()
 {
-  timechangeevent = process_alloc_event();
   // Configure RTC_A
   RTCCTL01 |= RTCHOLD + RTCMODE;
   // RTC enable, BCD mode, RTC hold
@@ -41,7 +40,7 @@ PROCESS_THREAD(rtc_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    process_post(ui_process, timechangeevent, &now);
+    process_post(ui_process, EVENT_TIME_CHANGED, &now);
   }
   PROCESS_END();
 }

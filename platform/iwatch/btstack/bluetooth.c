@@ -15,6 +15,7 @@
 ****************************************************************/
 
 #include "contiki.h"
+#include "window.h"
 
 #include <string.h>
 
@@ -90,8 +91,8 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
-  static bd_addr_t event_addr;
-  static const uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff };
+  bd_addr_t event_addr;
+  const uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff };
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
@@ -115,54 +116,57 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         log_info("BD ADDR: %s\n", bd_addr_to_str(event_addr));
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
         log_info("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
         hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
         hci_send_cmd(&hci_write_le_host_supported, 1, 1);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
         hci_send_cmd(&hci_le_set_event_mask, 0xffffffff, 0xffffffff);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
         hci_send_cmd(&hci_le_read_buffer_size);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
         log_info("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
         hci_send_cmd(&hci_le_read_supported_states);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
         hci_send_cmd(&hci_le_set_advertising_parameters,  0x0400, 0x0800, 0, 0, 0, &event_addr, 0x07, 0);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
         hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
         hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
         hci_send_cmd(&hci_le_set_advertise_enable, 1);
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
         hci_send_cmd(&hci_vs_write_codec_config, 64, 0x00, 100, 0x0000, 0x00, 0x00, 0,
                        0x08, 0x00, 0x00, 0x08, 0x00, 0x00, 0,
                        0x08, 0x00, 0x00, 0x08, 0x00, 0x00, 0
                        );
         break;
       }
-      if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
         hci_send_cmd(&hci_write_local_name, DEVICENAME);
         break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
       }
       break;
     }
@@ -180,9 +184,9 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
     {
       if (packet[2]) {
-        printf("CONNECTED\n");
+        process_post(ui_process, EVENT_BT_STATUS, (void*)(BIT0 | BIT1));
       } else {
-        printf("NOT CONNECTED\n");
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
       }
       break;
     }
@@ -207,8 +211,8 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 }
 #define SPP_CHANNEL 1
 #define HFP_CHANNEL 6
-static uint16_t hfp_channel_id;
-static uint16_t spp_channel_id;
+static uint16_t hfp_channel_id = 0;
+static uint16_t spp_channel_id = 0;
 
 static void spp_handler(uint16_t channel, uint8_t packet_type, uint8_t *packet, uint16_t size)
 {
@@ -378,4 +382,7 @@ void bluetooth_shutdown()
   BT_SHUTDOWN_OUT &=  BT_SHUTDOWN_BIT;  // = 1 - Active low
 
   process_exit(&bluetooth_process);
+
+  // notify UI that we are shutdown
+  process_post(ui_process, EVENT_BT_STATUS, 0);
 }

@@ -105,7 +105,7 @@ static void drawClock(int day, int h, int m, int s)
   halLcdEndUpdate();
 }
 
-PROCESS(analogclock_process, "Analog Clock");
+PROCESS(analogclock_process, "Analog Clock Window");
 
 PROCESS_THREAD(analogclock_process, ev, data)
 {
@@ -116,10 +116,15 @@ PROCESS_THREAD(analogclock_process, ev, data)
 
   while(1)
   {
-    PROCESS_WAIT_EVENT_UNTIL(ev == timechangeevent);
+    PROCESS_WAIT_EVENT();
 
-    struct datetime* dt = (struct datetime*)data;
-    drawClock(dt->day, dt->hour, dt->minute, dt->second);
+    if (ev == EVENT_TIME_CHANGED)
+    {
+      struct datetime* dt = (struct datetime*)data;
+      drawClock(dt->day, dt->hour, dt->minute, dt->second);
+    }
+    else
+      window_defproc(ev, data);
   }
   PROCESS_END();
 }
