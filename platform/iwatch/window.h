@@ -10,6 +10,12 @@ extern struct process *ui_process;
 #define EVENT_KEY_PRESSED             0x93
 #define EVENT_KEY_LONG_PRESSED        0x94
 
+/* Key name for key event */
+#define KEY_UP          0
+#define KEY_DOWN        1
+#define KEY_ENTER       2
+#define KEY_EXIT        3
+
 #define EVENT_TIME_CHANGED            0x95
 
 #define EVENT_BT_STATUS               0x96 // parameters BIT0:ENABLE, BIT1:CONNECT
@@ -23,6 +29,6 @@ PROCESS_NAME(menu_process);
 
 extern void window_defproc(process_event_t ev, process_data_t data);
 extern void window_init();
-extern void window_showdialog(struct process* dialog);
-extern void window_open(struct process* dialog);
+extern void window_showdialog(struct process* dialog, void* data);
+extern void window_open(struct process* dialog, void* data);
 #endif
