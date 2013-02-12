@@ -62,8 +62,9 @@ void window_open(struct process* dialog, void* data)
 
   process_start(dialog, data);
   ui_process = dialog;
-  process_post(dialog, EVENT_WINDOW_CREATED, NULL);
 }
+
+static uint8_t bt_status;
 
 void window_defproc(process_event_t ev, process_data_t data)
 {
@@ -71,11 +72,18 @@ void window_defproc(process_event_t ev, process_data_t data)
   {
   case EVENT_BT_STATUS:
     {
-      int i = (int)data;
-      if (i & BIT0) halLcdPrintXY("B", 90, 2, 0);
-               else halLcdPrintXY(" ", 90, 2, 0);
-      if (i & BIT1) halLcdPrintXY("=", 98, 2, 0);
-               else halLcdPrintXY(" ", 98, 2, 0);
+      bt_status = (uint8_t)data;
+      if (bt_status & BIT0) halLcdPrintXY("B", 90, 2, 0);
+      else halLcdPrintXY(" ", 90, 2, 0);
+      if (bt_status & BIT1) halLcdPrintXY("=", 98, 2, 0);
+      else halLcdPrintXY(" ", 98, 2, 0);
+      break;
+    }
+  case PROCESS_EVENT_INIT:
+    {
+      process_post(PROCESS_CURRENT(), EVENT_WINDOW_CREATED, data);
+      process_post(PROCESS_CURRENT(), EVENT_BT_STATUS, (void*)bt_status);
+      break;
     }
   }
   return;
@@ -133,7 +141,10 @@ PROCESS_THREAD(system_process, ev, data)
       {
         process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_DOWN);
       }
-
+      if (button_sensor.value(2) == 1)
+      {
+        process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_ENTER);
+      }
     }
     else if (ev == PROCESS_EVENT_TIMER)
     {

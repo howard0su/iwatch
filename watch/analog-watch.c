@@ -1,3 +1,17 @@
+/****************************************************************
+*  Description: Implementation for Analog watch Window
+*    History:
+*      Jun Su          2013/1/2        Created
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
+
 #include "contiki.h"
 #include "hal_lcd.h"
 #include "window.h"
@@ -116,8 +130,6 @@ PROCESS_THREAD(analogclock_process, ev, data)
 
   while(1)
   {
-    PROCESS_WAIT_EVENT();
-
     if (ev == EVENT_TIME_CHANGED)
     {
       struct datetime* dt = (struct datetime*)data;
@@ -125,6 +137,8 @@ PROCESS_THREAD(analogclock_process, ev, data)
     }
     else
       window_defproc(ev, data);
+
+    PROCESS_WAIT_EVENT();
   }
   PROCESS_END();
 }

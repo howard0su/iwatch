@@ -74,7 +74,7 @@ PROCESS_THREAD(menu_process, ev, data)
 
   while(1)
   {
-    if (ev == PROCESS_EVENT_INIT)
+    if (ev == EVENT_WINDOW_CREATED)
     {
       Items = (struct MenuItem*)data;
       if (Items == NULL)
@@ -121,6 +121,13 @@ PROCESS_THREAD(menu_process, ev, data)
             drawCurrent(current - 1 - currentTop);
           }
           drawCurrent(current - currentTop);
+        }
+      }
+      else if ((uint8_t)data == KEY_ENTER)
+      {
+        if (Items[current].handler)
+        {
+          window_open(Items[current].handler, NULL);
         }
       }
     }
