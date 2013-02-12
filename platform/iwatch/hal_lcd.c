@@ -245,22 +245,26 @@ PROCESS_THREAD(lcd_process, ev, data)
   PROCESS_END();
 }
 
-static void halLcdPixelInternal(int x,  int y, unsigned char GrayScale)
+static void halLcdPixelInternal(int x,  int y, unsigned char style)
 {
-  if (!GrayScale)
+  if (style == STYLE_BLACK)
   {
     // if 0
     lines[y].pixels[x/8] &= ~(1 << (x & 0x07));
   }
-  else
+  else if (style == STYLE_WHITE)
   {
     lines[y].pixels[x/8] |= 1 << (x & 0x07);
   }
+  else if (style == STYLE_XOR)
+  {
+    lines[y].pixels[x/8] ^= 1 << (x & 0x07);
+  }
 }
 
-void halLcdPixel(int x,  int y, unsigned char GrayScale)
+void halLcdPixel(int x,  int y, unsigned char style)
 {
-  halLcdPixelInternal(x, y, GrayScale);
+  halLcdPixelInternal(x, y, style);
   halLcdRefresh(y, y);
 }
 
@@ -345,7 +349,7 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
 }
 
 /**********************************************************************//**
- * @brief  Draws a horizontral line from (x1,y) to (x2,y) of GrayScale level
+ * @brief  Draws a horizontral line from (x1,y) to (x2,y) of style
  *
  * @param  x1        x-coordinate of the first point
  *
@@ -353,11 +357,11 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
  *
  * @param  y         y-coordinate of both points
  *
- * @param  GrayScale Grayscale level of the horizontal line
+ * @param  style    Style of the horizontal line
  *
  * @return none
  *************************************************************************/
-void halLcdHLine(int x1, int x2, int y, int width, unsigned char GrayScale)
+void halLcdHLine(int x1, int x2, int y, int width, unsigned char style)
 {
     int x_dir, x;
 
@@ -370,7 +374,7 @@ void halLcdHLine(int x1, int x2, int y, int width, unsigned char GrayScale)
     {
       for(int i = 0; i < width; i++)
       {
-        halLcdPixelInternal(x, y + i, GrayScale);
+        halLcdPixelInternal(x, y + i, style);
       }
         x += x_dir;
     }
@@ -379,7 +383,7 @@ void halLcdHLine(int x1, int x2, int y, int width, unsigned char GrayScale)
 }
 
 /**********************************************************************//**
- * @brief  Draws a vertical line from (x,y1) to (x,y2) of GrayScale level
+ * @brief  Draws a vertical line from (x,y1) to (x,y2) of Style
  *
  * @param  x         x-coordinate of both points
  *
@@ -387,11 +391,11 @@ void halLcdHLine(int x1, int x2, int y, int width, unsigned char GrayScale)
  *
  * @param  y2        y-coordinate of the second point
  *
- * @param  GrayScale GrayScale level of the vertical line
+ * @param  style    Style of the vertical line
  *
  * @return none
  *************************************************************************/
-void halLcdVLine(int x, int y1, int y2, int width, unsigned char GrayScale)
+void halLcdVLine(int x, int y1, int y2, int width, unsigned char style)
 {
     int y_dir, y;
 
@@ -404,7 +408,7 @@ void halLcdVLine(int x, int y1, int y2, int width, unsigned char GrayScale)
     {
       for(int i = 0; i < width; i++)
       {
-        halLcdPixelInternal(x + i, y, GrayScale);
+        halLcdPixelInternal(x + i, y, style);
       }
         y += y_dir;
     }
@@ -415,7 +419,7 @@ void halLcdVLine(int x, int y1, int y2, int width, unsigned char GrayScale)
       halLcdRefresh(y2, y1);
 }
 /**********************************************************************//**
- * @brief  Draws a line from (x1,y1) to (x2,y2) of GrayScale level.
+ * @brief  Draws a line from (x1,y1) to (x2,y2) of style.
  *
  * Uses Bresenham's line algorithm.
  *
@@ -427,24 +431,24 @@ void halLcdVLine(int x, int y1, int y2, int width, unsigned char GrayScale)
  *
  * @param  y2         y-coordinate of the second point
  *
- * @param  GrayScale  Grayscale level of the line
+ * @param  style 	  style of the line
  *
  * @return none
  *************************************************************************/
-void halLcdLine(int x1, int y1, int x2, int y2, int width, unsigned char GrayScale)
+void halLcdLine(int x1, int y1, int x2, int y2, int width, unsigned char style)
 {
     int x, y, deltay, deltax, d;
     int x_dir, y_dir;
 
     if (x1 == x2)
     {
-        halLcdVLine(x1, y1, y2, width, GrayScale);
+        halLcdVLine(x1, y1, y2, width, style);
     }
     else
     {
         if (y1 == y2)
         {
-          halLcdHLine(x1, x2, y1, width, GrayScale);
+          halLcdHLine(x1, x2, y1, width, style);
         }
         else                                // a diagonal line
         {
@@ -467,7 +471,7 @@ void halLcdLine(int x1, int y1, int x2, int y2, int width, unsigned char GraySca
                 {
                   for (int i = 0; i < width; i++)
                   {
-                      halLcdPixelInternal(x, y + i, GrayScale);
+                      halLcdPixelInternal(x, y + i, style);
                   }
                     if (d < 0)
                         d += (deltay << 1);
@@ -486,7 +490,7 @@ void halLcdLine(int x1, int y1, int x2, int y2, int width, unsigned char GraySca
                 {
                   for (int i = 0; i < width; i++)
                   {
-                    halLcdPixelInternal(x + i, y, GrayScale);
+                    halLcdPixelInternal(x + i, y, style);
                   }
                     if (d < 0)
                         d += (deltax << 1);
@@ -530,10 +534,10 @@ static inline void _draw_circle_8(int xc, int yc, int x, int y, unsigned char c)
  *
  * @param  Radius    Radius of the circle
  *
- * @param  GrayScale Grayscale level of the circle, 0x80 means fill
+ * @param  style  style of the circle
  *************************************************************************/
 //Bresenham's circle algorithm
-void halLcdCircle(int xc, int yc, int r, int fill, unsigned char c) {
+void halLcdCircle(int xc, int yc, int r, int fill, unsigned char style) {
     // (xc, yc) 为圆心，r 为半径
     // fill 为是否填充
     // c 为颜色值
@@ -545,7 +549,7 @@ void halLcdCircle(int xc, int yc, int r, int fill, unsigned char c) {
         // 如果填充（画实心圆）
         while (x <= y) {
             for (yi = x; yi <= y; yi ++)
-                _draw_circle_8(xc, yc, x, yi, c);
+                _draw_circle_8(xc, yc, x, yi, style);
 
             if (d < 0) {
                 d = d + 4 * x + 6;
@@ -558,7 +562,7 @@ void halLcdCircle(int xc, int yc, int r, int fill, unsigned char c) {
     } else {
         // 如果不填充（画空心圆）
         while (x <= y) {
-            _draw_circle_8(xc, yc, x, y, c);
+            _draw_circle_8(xc, yc, x, y, style);
 
             if (d < 0) {
                 d = d + 4 * x + 6;

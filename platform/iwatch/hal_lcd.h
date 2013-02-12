@@ -76,6 +76,10 @@
 #define WIDE_TEXT               BIT2
 #define HIGH_TEXT               BIT1
 
+#define STYLE_BLACK				0
+#define STYLE_WHITE				1
+#define STYLE_XOR				2
+
 /*-------------------------------------------------------------
  *                  Function Prototypes
  * ------------------------------------------------------------*/
