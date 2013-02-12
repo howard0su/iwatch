@@ -2992,7 +2992,7 @@
   <group>
     <name>app</name>
     <file>
-      <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
+      <name>$PROJ_DIR$\..\watch\analog-watch.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\menu.c</name>
