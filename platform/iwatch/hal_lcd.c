@@ -70,7 +70,7 @@ static void SPIInit()
 
   UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
   UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCB0BR0 = 8; // 16MHZ / 16 = 1Mhz
+  UCB0BR0 = 8; // 8MHZ / 8 = 1Mhz
   UCB0BR1 = 0;
 
   //Configure ports.
@@ -363,22 +363,44 @@ void halLcdPrintXY(char text[], int col, int line, unsigned char options)
  *************************************************************************/
 void halLcdHLine(int x1, int x2, int y, int width, unsigned char style)
 {
-    int x_dir, x;
+    int x;
 
-    if (x1 < x2)
-        x_dir = 1;
-    else
-        x_dir = -1;
-    x = x1;
-    while (x != x2)
+    if (x1 > x2)
     {
-      for(int i = 0; i < width; i++)
+      int tmp = x2;
+      x2 = x1;
+      x1 = tmp;
+    }
+
+    for(int i = 0; i < width; i++)
+    {
+      // draw the first non-8-align pixels
+      for(x = 0; x <= (x1 & 0x07); x++)
+      {
+        halLcdPixelInternal(x + x1, y + i, style);
+      }
+
+      for (x = (x1 + 7) & 0xF8; x+8 < x2; x+=8)
+      {
+        switch(style)
+        {
+        case 0:
+          lines[y+i].pixels[x>>3] = 0;
+          break;
+        case 1:
+          lines[y+i].pixels[x>>3] = 0xff;
+          break;
+        case 2:
+          lines[y+i].pixels[x>>3] ^= 0xff;
+          break;
+        }
+      }
+
+      for(;x < x2; x++)
       {
         halLcdPixelInternal(x, y + i, style);
       }
-        x += x_dir;
     }
-
     halLcdRefresh(y, y + width - 1);
 }
 
@@ -397,26 +419,27 @@ void halLcdHLine(int x1, int x2, int y, int width, unsigned char style)
  *************************************************************************/
 void halLcdVLine(int x, int y1, int y2, int width, unsigned char style)
 {
-    int y_dir, y;
+  int y;
 
-    if (y1 < y2)
-        y_dir = 1;
-    else
-        y_dir = -1;
-    y = y1;
+  if (y1 > y2)
+  {
+    int tmp = y2;
+    y2 = y1;
+    y1 = tmp;
+  }
+  y = y1;
+  for(int i = 0; i < width; i++)
+  {
     while (y != y2)
     {
-      for(int i = 0; i < width; i++)
-      {
-        halLcdPixelInternal(x + i, y, style);
-      }
-        y += y_dir;
+      halLcdPixelInternal(x + i, y, style);
+      y ++;
     }
-
-    if (y2 > y1)
-      halLcdRefresh(y1, y2);
-    else
-      halLcdRefresh(y2, y1);
+  }
+  if (y2 > y1)
+    halLcdRefresh(y1, y2);
+  else
+    halLcdRefresh(y2, y1);
 }
 /**********************************************************************//**
  * @brief  Draws a line from (x1,y1) to (x2,y2) of style.
