@@ -549,12 +549,14 @@ static unsigned int
 Template_DriverColorTranslate(void *pvDisplayData,
                                         unsigned long ulValue)
 {
-	/* The DPYCOLORTRANSLATE macro should be defined in TemplateDriver.h */
-
-    //
-    // Translate from a 24-bit RGB color to a color accepted by the LCD.
-    //
-    return (ulValue != 0);
+  switch(ulValue)
+  {
+  case 0: return 0;
+  case 1: return 1;
+  case 2: return 2;
+  default:
+    return 1;
+  }
 }
 
 //*****************************************************************************

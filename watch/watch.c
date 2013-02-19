@@ -18,10 +18,11 @@
 #include "sys/clock.h"
 #include "lib/sensors.h"
 #include "button.h"
-#include "lcd.h"
-#include "hal_lcd.h"
 #include "rtc.h"
 #include "window.h"
+
+#include "grlib/grlib.h"
+#include "Template_Driver.h"
 
 extern void mpu6050_init();
 extern void ant_init();
@@ -40,6 +41,8 @@ void window_init()
 {
   return;
 }
+
+static tContext context;
 
 #define MAX_DIALOG_DEPTH 5
 #if 0
@@ -73,10 +76,11 @@ void window_defproc(process_event_t ev, process_data_t data)
   case EVENT_BT_STATUS:
     {
       bt_status = (uint8_t)data;
-      if (bt_status & BIT0) halLcdPrintXY("B", 90, 2, 0);
-      else halLcdPrintXY(" ", 90, 2, 0);
-      if (bt_status & BIT1) halLcdPrintXY("=", 98, 2, 0);
-      else halLcdPrintXY(" ", 98, 2, 0);
+      if (bt_status & BIT0) GrStringDraw(&context, "B", 1, 90, 2, 0);
+      else GrStringDraw(&context, " ", 1, 90, 2, 0);
+      if (bt_status & BIT1) GrStringDraw(&context, "=", 1, 102, 2, 0);
+      else GrStringDraw(&context, " ", 1, 102, 2, 0);
+      GrFlush(&context);
       break;
     }
   case PROCESS_EVENT_INIT:
@@ -96,25 +100,28 @@ void window_defproc(process_event_t ev, process_data_t data)
 */
 PROCESS_THREAD(system_process, ev, data)
 {
-  static struct etimer et;
-
   PROCESS_BEGIN();
   ui_process = &analogclock_process;
 
   rtc_init();
   SENSORS_ACTIVATE(button_sensor);
 
-  lcd_init();
-  halLcdPrintXY("iWatch", 20, 70, WIDE_TEXT | HIGH_TEXT);
+  memlcd_DriverInit();
+  {
+    GrContextInit(&context, &g_memlcd_Driver);
+    GrContextFontSet(&context, &g_sFontCm32);
+    GrClearDisplay(&context);
+    GrStringDraw(&context, "iWatch", -1, 20, 70, 0);
+    GrFlush(&context);
+    GrContextFontSet(&context, &g_sFontCm12);
+  }
   // give time to starts
   //mpu6050_init();
   ant_init();
   bluetooth_init();
 
-  etimer_set(&et, CLOCK_SECOND * 5);
   process_start(ui_process, NULL);
   print_stats();
-  etimer_restart(&et);
   while(1)
   {
     PROCESS_WAIT_EVENT();
@@ -145,11 +152,6 @@ PROCESS_THREAD(system_process, ev, data)
       {
         process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_ENTER);
       }
-    }
-    else if (ev == PROCESS_EVENT_TIMER)
-    {
-      print_stats();
-      etimer_restart(&et);
     }
   }
 

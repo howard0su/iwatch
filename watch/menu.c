@@ -14,7 +14,9 @@
 
 #include "contiki.h"
 #include "window.h"
-#include "hal_lcd.h"
+#include "grlib/grlib.h"
+#include "Template_Driver.h"
+
 /*
  * This implement the menu
  */
@@ -35,7 +37,10 @@ static struct MenuItem
   {NULL}
 };
 
-#define NUM_MENU_A_PAGE 8
+static tContext context;
+
+
+#define NUM_MENU_A_PAGE 5
 
 static void drawMenu(struct MenuItem *item, int startIndex)
 {
@@ -43,6 +48,8 @@ static void drawMenu(struct MenuItem *item, int startIndex)
   {
      // draw some grey area means something in the up
   }
+  GrContextForegroundSet(&context, 0);
+  GrContextBackgroundSet(&context, 1);
 
   item += startIndex;
 
@@ -51,7 +58,7 @@ static void drawMenu(struct MenuItem *item, int startIndex)
     if (item->name == NULL)
       break;
 
-    halLcdPrintXY(item->name,32, 32 + i * 16, 0);
+    GrStringDraw(&context, item->name, -1, 32, 14 + i * 20, 1);
     item++;
   }
 
@@ -59,11 +66,16 @@ static void drawMenu(struct MenuItem *item, int startIndex)
   {
     // there is something more
   }
+
+  GrFlush(&context);
 }
 
-static void drawCurrent(int index)
+static void drawCurrent(struct MenuItem *item, int index, int selected)
 {
-  halLcdHLine(0, LCD_ROW, 28 + index*16, 18, STYLE_XOR);
+  GrContextForegroundSet(&context, selected);
+  GrContextBackgroundSet(&context, !selected);
+  GrStringDraw(&context, item[index].name, -1, 32, 14 + index * 20, 1);
+  GrFlush(&context);
 }
 
 static struct MenuItem *Items;
@@ -71,6 +83,9 @@ static uint8_t currentTop, current;
 PROCESS_THREAD(menu_process, ev, data)
 {
   PROCESS_BEGIN();
+
+  GrContextInit(&context, &g_memlcd_Driver);
+  GrContextFontSet(&context, &g_sFontCm16b);
 
   while(1)
   {
@@ -82,10 +97,10 @@ PROCESS_THREAD(menu_process, ev, data)
         Items = MainMenu;
       }
       current = currentTop = 0;
-      halLcdClearScreen();
+      GrClearDisplay(&context);
 
       drawMenu(Items, currentTop);
-      drawCurrent(current - currentTop);
+      drawCurrent(Items, current - currentTop, 1);
     }
     else if (ev == EVENT_KEY_PRESSED)
     {
@@ -101,9 +116,9 @@ PROCESS_THREAD(menu_process, ev, data)
           }
           else
           {
-            drawCurrent(current + 1 - currentTop);
+            drawCurrent(Items, current + 1 - currentTop, 0);
           }
-          drawCurrent(current - currentTop);
+          drawCurrent(Items, current - currentTop, 1);
         }
       }
       else if ((uint8_t)data == KEY_DOWN)
@@ -118,9 +133,9 @@ PROCESS_THREAD(menu_process, ev, data)
           }
           else
           {
-            drawCurrent(current - 1 - currentTop);
+            drawCurrent(Items, current - 1 - currentTop, 0);
           }
-          drawCurrent(current - currentTop);
+          drawCurrent(Items, current - currentTop, 1);
         }
       }
       else if ((uint8_t)data == KEY_ENTER)

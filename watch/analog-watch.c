@@ -13,10 +13,11 @@
 ****************************************************************/
 
 #include "contiki.h"
-#include "hal_lcd.h"
 #include "window.h"
 #include "rtc.h"
 #include "math.h"
+#include "grlib/grlib.h"
+#include "Template_Driver.h"
 
 /*
  * This implement the digit watch
@@ -38,16 +39,22 @@ static uint16_t lastHourX, lastHourY;
 
 static void drawBackground()
 {
-  halLcdBeginUpdate();
+  tContext context;
+  GrContextInit(&context, &g_memlcd_Driver);
 
-  halLcdClearScreen();
+  GrClearDisplay(&context);
 
-  halLcdVLine(72, 0, 9, 2, 0);
-  halLcdVLine(72, 158, 167, 2, 0);
-  halLcdHLine(0, 9, 84, 2, 0);
-  halLcdHLine(134, 143, 84, 2, 0);
+  const static tRectangle rect1 = {72, 0, 74, 9};
+  const static tRectangle rect2 = {72, 158, 74, 167};
+  const static tRectangle rect3 = {0, 84, 9, 86};
+  const static tRectangle rect4 = {134, 84, 143, 86};
 
-  halLcdEndUpdate();
+  GrRectFill(&context, &rect1);
+  GrRectFill(&context, &rect2);
+  GrRectFill(&context, &rect3);
+  GrRectFill(&context, &rect4);
+
+  GrFlush(&context);
   lastSecX = CENTER_X;
   lastSecY = CENTER_Y;
   lastMinX = CENTER_X;
@@ -62,17 +69,20 @@ static void drawClock(int day, int h, int m, int s)
   int angle;
   uint16_t x, y;
   char buf[] = "00";
-  halLcdBeginUpdate();
+  tContext context;
+  GrContextInit(&context, &g_memlcd_Driver);
 
   if (s > 0)
   {
     // sec hand: length = 75
     angle = s * 6;
     fangle = (360 - angle) * PI/180;
-    halLcdLine(CENTER_X, CENTER_Y, lastSecX , lastSecY, 1, 1);
+    GrContextForegroundSet(&context, 2); // xor
+    GrLineDraw(&context, CENTER_X, CENTER_Y, lastSecX , lastSecY);
     lastSecX = CENTER_X + SEC_HAND_LEN * sin(fangle);
     lastSecY = CENTER_Y + SEC_HAND_LEN * cos(fangle);
-    halLcdLine(CENTER_X, CENTER_Y, lastSecX, lastSecY, 1, 0);
+    GrContextForegroundSet(&context, 0);
+    GrLineDraw(&context, CENTER_X, CENTER_Y, lastSecX , lastSecY);
   }
 
   // minute hand = length = 70
@@ -82,14 +92,20 @@ static void drawClock(int day, int h, int m, int s)
   if (x != lastMinX)
   {
     y = CENTER_Y + MIN_HAND_LEN * cos(fangle);
-    halLcdLine(CENTER_X, CENTER_Y,  lastMinX, lastMinY, 3, 1);
-    halLcdLine(CENTER_X, CENTER_Y,  x, y, 3, 0);
+    GrContextForegroundSet(&context, 2); // xor
+    tRectangle rect1 = {CENTER_X, CENTER_Y,  lastMinX, lastMinY};
+    GrRectFill(&context, &rect1);
+    GrContextForegroundSet(&context, 0);
+    tRectangle rect2 = {CENTER_X, CENTER_Y,  x, y};
+    GrRectFill(&context, &rect2);
     lastMinX = x;
     lastMinY = y;
   }
   else
   {
-    halLcdLine(CENTER_X, CENTER_Y,  lastMinX, lastMinY, 3, 0);
+    tRectangle rect = {CENTER_X, CENTER_Y,  lastMinX, lastMinY};
+    GrContextForegroundSet(&context, 0);
+    GrRectFill(&context, &rect);
   }
 
   // hour hand 45
@@ -99,24 +115,30 @@ static void drawClock(int day, int h, int m, int s)
   if (x != lastHourX)
   {
     y = CENTER_Y + HOUR_HAND_LEN * cos(fangle);
-    halLcdLine(CENTER_X, CENTER_Y, lastHourX, lastHourY, 5, 1);
-    halLcdLine(CENTER_X, CENTER_Y, x, y, 5, 0);
+    GrContextForegroundSet(&context, 2); // xor
+    tRectangle rect1 = {CENTER_X, CENTER_Y,  lastHourX, lastHourY};
+    GrRectFill(&context, &rect1);
+    GrContextForegroundSet(&context, 0);
+    tRectangle rect2 = {CENTER_X, CENTER_Y,  x, y};
+    GrRectFill(&context, &rect2);
     lastHourX = x;
     lastHourY = y;
   }
   else
   {
-    halLcdLine(CENTER_X, CENTER_Y,  lastHourX, lastHourY, 5, 0);
+    tRectangle rect = {CENTER_X, CENTER_Y,  lastHourX, lastHourY};
+    GrRectFill(&context, &rect);
   }
+
+  GrCircleFill(&context, CENTER_X, CENTER_Y, 5);
 
   buf[0] += day >> 4;
   buf[1] += day & 0x0f;
-  halLcdHLine(93, 118, 72, 18, 0);
-  halLcdPrintXY(buf, 98, 77, INVERT_TEXT);
 
-  halLcdCircle(CENTER_X, CENTER_Y, 5, 1, 0);
+  GrContextForegroundSet(&context, 1);
+  GrStringDraw(&context, buf, 2, 98, 77, 1);
 
-  halLcdEndUpdate();
+  GrFlush(&context);
 }
 
 PROCESS(analogclock_process, "Analog Clock Window");
