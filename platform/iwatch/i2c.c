@@ -1,0 +1,114 @@
+#include "contiki.h"
+#include "i2c.h"
+
+void I2C_Init()
+{
+  // initialize i2c UCB1
+  UCB1CTL1 |= UCSWRST;
+
+  UCB1CTL0 = UCMODE_3 + UCMST + UCSYNC; // master, I2c mode, LSB
+  UCB1CTL1 = UCSSEL__SMCLK + UCSWRST; // SMCLK for now
+  UCB1BR0 = 80; // 8MHZ / 80 = 100Khz
+  UCB1BR1 = 0;
+
+  //Configure ports.
+  P3SEL |= BIT7;
+  P5SEL |= BIT4;
+
+  UCB1CTL1 &= ~UCSWRST;
+ // UCB1IE |= UCTXIE + UCRXIE;                // Enable TX and RX interrupt
+}
+
+static void delay(void)
+{
+  unsigned int i,n;
+  for(i=0;i<100;i++)
+    for(n=0;n<0xff;n++);
+}
+
+unsigned char I2C_read(unsigned char reg)
+{
+  unsigned char RX_data;
+
+  while(UCB1CTL1 & UCTXSTP);
+  UCB1CTL1 |= UCTXSTT + UCTR;
+  UCB1TXBUF = reg;
+  while((UCB1IV & UCTXIFG) == 0);
+  UCB1IV &= ~UCTXIFG;
+
+  UCB1CTL1 &= ~UCTR;
+  while(UCB1CTL1 & UCTXSTP);
+
+  UCB1CTL1 |= UCTXSTT;
+  while((UCB1CTL1 & UCTXSTT)==1);
+  while((UCB1IV & UCRXIFG)==0);
+  RX_data = UCB1RXBUF;
+
+  delay();
+  UCB1CTL1 |= UCTXSTP +UCTXNACK;
+  while((UCB1CTL1 & UCTXSTP)==1);
+
+  return RX_data;
+}
+
+void I2C_write(unsigned char reg, unsigned char write_word)
+{
+  while(UCB1CTL1 & UCTXSTP);
+  UCB1CTL1 |= UCTXSTT + UCTR;
+  UCB1TXBUF = reg;
+  while((UCB1IFG & UCTXIFG) == 0);
+  UCB1TXBUF = write_word;
+  while((UCB1IFG & UCTXIFG) == 0);
+  UCB1CTL1 |= UCTXSTP + UCTXNACK;
+  while((UCB1CTL1 & UCTXSTP) == 1);
+}
+
+void  I2C_addr(unsigned char address)
+{
+  UCB1CTL1 |= UCSWRST;
+  UCB1I2CSA = address;
+  UCB1CTL1 &= ~UCSWRST;
+}
+
+#if 0
+
+ISR(USCI_B1, USCI_B1_ISR)
+{
+  switch(__even_in_range(UCB1IV,12))
+  {
+  case  0: break;                           // Vector  0: No interrupts
+  case  2: break;                           // Vector  2: ALIFG
+  case  4: break;                           // Vector  4: NACKIFG
+  case  6: break;   		                // Vector  6: STTIFG
+  case  8: break;                           // Vector  8: STPIFG
+  case 10:                                  // Vector 10: RXIFG
+    RxData = UCB1RXBUF;               // Move RX data to address PRxData
+    process_poll(&mpu6050_process);
+    State=DONE;
+    LPM4_EXIT;
+    break;
+  case 12:                                  // Vector 12: TXIFG
+    if (TxDataLen)                          // Check TX byte counter
+    {
+      UCB1TXBUF = TxData[TxDataPtr];        // Load TX buffer
+      TxDataLen--;                          // Decrement TX byte counter
+      TxDataPtr++;
+    }
+    else
+    {
+      if (RxDataLen)
+      {
+        UCB1CTL1 &= ~UCTR;         			// I2C RX
+        UCB1CTL1 |= UCTXSTT;         		// I2C start condition
+      }
+      else
+      {
+        process_poll(&mpu6050_process);
+        State=DONE;
+        LPM4_EXIT;
+      }
+    }
+  default: break;
+  }
+}
+#endif

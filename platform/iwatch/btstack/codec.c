@@ -1,0 +1,89 @@
+#include <stdint.h>
+#include "i2c.h"
+/*
+ * Codec NAU1080 for BT
+ */
+#define CODEC_ADDRESS 0x34
+
+#define REG_RESET                       (0x00)
+#define REG_POWER_MANAGEMENT1           (0x001)
+#define REG_POWER_MANAGEMENT2	        (0x002)
+#define REG_POWER_MANAGEMENT3           (0x003)
+#define REG_AUDIO_INTERFACE	        (0x004)
+#define REG_COMPANDING_CTRL             (0x005)
+#define REG_CLK_GEN_CTRL	        (0x006)
+#define REG_ADDITIONAL_CTRL	        (0x007)
+#define REG_GPIO 	                (0x008)
+#define REG_JACK_DETECT_CTRL1           (0x009)
+#define REG_DAC_CTRL		        (0x00A)
+#define REG_LEFT_DAC_DIGITAL_VOL        (0x00B)
+#define REG_RIGHT_DAC_DIGITAL_VOL       (0x00C)
+#define REG_JACK_DETECT_CTRL2  	        (0x00D)
+#define REG_ADC_CTRL		  	(0x00E)
+#define REG_LEFT_ADC_DIGITAL_VOL        (0x00F)
+#define REG_RIGHT_ADC_DIGITAL_VOL       (0x010)
+#define REG_EQ1_SHELF_LOW   	        (0x012)
+#define REG_EQ2_PEAK1 			(0x013)
+#define REG_EQ3_PEAK2 			(0x014)
+#define REG_EQ4_PEAK3			(0x015)
+#define REG_EQ5_HIGH_SHELF		(0x016)
+#define REG_DAC_LIMITER1		(0x018)
+#define REG_DAC_LIMITER2 		(0x019)
+#define REG_NOTCH_FILTER1		(0x01B)
+#define REG_NOTCH_FILTER2 		(0x01C)
+#define REG_NOTCH_FILTER3 		(0x01D)
+#define REG_NOTCH_FILTER4               (0x01E)
+#define REG_ALC_CTRL1			(0x020)
+#define REG_ALC_CTRL2 			(0x021)
+#define REG_ALC_CTRL3 			(0x022)
+#define REG_NOISE_GATE 	                (0x023)
+#define REG_PLLN		        (0x024)
+#define REG_PLL_K1		        (0x025)
+#define REG_PLL_K2 		        (0x026)
+#define REG_PLL_K3 		        (0x027)
+#define REG_ATTENUATION_CTRL	        (0x028)
+#define REG_3D_CONTROL                  (0x029)
+#define REG_BEEP_CONTROL                (0x02B)
+#define REG_INPUT_CTRL                  (0x02C)
+#define REG_LEFT_INP_PGA_GAIN_CTRL      (0x02D)
+#define REG_RIGHT_INP_PGA_GAIN_CTRL     (0x02E)
+#define REG_LEFT_ADC_BOOST_CTRL         (0x02F)
+#define REG_RIGHT_ADC_BOOST_CTRL 	(0x030)
+#define REG_OUTPUT_CTRL			(0x031)
+#define REG_LEFT_MIXER_CTRL		(0x032)
+#define REG_RIGHT_MIXER_CTRL 		(0x033)
+//LOUT1 --> HP-,ROUT1 --> HP+,LOUT2 --> SPKOUT-,ROUT2 --> SPKOUT+,OUT3 --> AUXOUT2,OUT4 --> AUXOUT1
+#define REG_LOUT1_HP_VOLUME_CTRL	(0x034)
+#define REG_ROUT1_HP_VOLUME_CTRL 	(0x035)
+#define REG_LOUT2_SPKR_VOLUME_CTRL	(0x036)
+#define REG_ROUT2_SPKR_VOLUME_CTRL 	(0x037)
+#define REG_OUT3_MIXER_CTRL             (0x038)
+#define REG_OUT4_MIXER_CTRL             (0x039)
+
+static void codec_write(uint8_t reg, uint16_t data)
+{
+  I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
+}
+
+void codec_init()
+{
+  I2C_Init();
+  I2C_addr(CODEC_ADDRESS>>1);
+  // write some configure data for codec
+  //codec_write(REG_RESET, 0);
+
+  codec_write(REG_POWER_MANAGEMENT1, 0x1F);
+  codec_write(REG_POWER_MANAGEMENT2, 0x1bf);
+  codec_write(REG_POWER_MANAGEMENT3, 0x7f);
+  codec_write(REG_AUDIO_INTERFACE, 0x10);
+  codec_write(REG_COMPANDING_CTRL, 0);
+  codec_write(REG_CLK_GEN_CTRL, 0);
+  codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff);
+  codec_write(REG_DAC_CTRL, 0x08);
+  codec_write(REG_BEEP_CONTROL, 0x10);
+  codec_write(REG_LEFT_INP_PGA_GAIN_CTRL, 0x139);
+  codec_write(REG_LEFT_MIXER_CTRL, 0x01);
+  codec_write(REG_OUTPUT_CTRL, 0x02);
+  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, 0x139);
+  codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff);
+}

@@ -3034,6 +3034,18 @@
     <group>
       <name>core</name>
       <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avctp.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avctp.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avrcp.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avrcp.h</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\btstack_memory.c</name>
       </file>
       <file>
@@ -3081,6 +3093,9 @@
     </group>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\bluetooth.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\codec.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\config.h</name>
@@ -3159,6 +3174,45 @@
     </group>
   </group>
   <group>
+    <name>grlib</name>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\circle.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\context.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\fontcm12.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\fontcm16b.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\fontcm32.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\grlib.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\image.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\line.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\rectangle.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\grlib\string.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\Template_Driver.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\Template_Driver.h</name>
+    </file>
+  </group>
+  <group>
     <name>platform</name>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\button-sensor.c</name>
@@ -3173,25 +3227,16 @@
       <name>$PROJ_DIR$\..\platform\iwatch\flash.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\hal_lcd.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\i2c.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\isr.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\lcd.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\lcd.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\lcd_helper.asm</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\Makefile.iwatch</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\mpu6050.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\msp430.c</name>
