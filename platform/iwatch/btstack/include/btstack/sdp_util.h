@@ -134,6 +134,7 @@ int       sdp_filter_attributes_in_attributeIDList(uint8_t *record, uint8_t *att
 
 void      sdp_create_spp_service(uint8_t *service, int service_id, const char *name);
 void 	  sdp_create_hfp_service(uint8_t *service, int service_id, const char *name);
+void      sdp_create_avrcp_service(uint8_t *service, const char *name);
 #if defined __cplusplus
 }
 #endif
