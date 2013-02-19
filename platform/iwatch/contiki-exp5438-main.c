@@ -46,7 +46,6 @@
 #include "sys/profile.h"
 #include "sys/ctimer.h"
 
-#include "lcd.h"
 #include "node-id.h"
 #include "power.h"
 
@@ -143,7 +142,7 @@ main(int argc, char **argv)
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
 
-	  power_sleep();
+      power_sleep();
 
       /* We get the current processing time for interrupts that was
       done during the LPM and store it for next time around.  */
