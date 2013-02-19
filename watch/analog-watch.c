@@ -93,19 +93,16 @@ static void drawClock(int day, int h, int m, int s)
   {
     y = CENTER_Y + MIN_HAND_LEN * cos(fangle);
     GrContextForegroundSet(&context, 2); // xor
-    tRectangle rect1 = {CENTER_X, CENTER_Y,  lastMinX, lastMinY};
-    GrRectFill(&context, &rect1);
+    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastMinX, lastMinY);
     GrContextForegroundSet(&context, 0);
-    tRectangle rect2 = {CENTER_X, CENTER_Y,  x, y};
-    GrRectFill(&context, &rect2);
+    GrLineDraw(&context, CENTER_X, CENTER_Y,  x, y);
     lastMinX = x;
     lastMinY = y;
   }
   else
   {
-    tRectangle rect = {CENTER_X, CENTER_Y,  lastMinX, lastMinY};
     GrContextForegroundSet(&context, 0);
-    GrRectFill(&context, &rect);
+    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastMinX, lastMinY);
   }
 
   // hour hand 45
@@ -116,18 +113,16 @@ static void drawClock(int day, int h, int m, int s)
   {
     y = CENTER_Y + HOUR_HAND_LEN * cos(fangle);
     GrContextForegroundSet(&context, 2); // xor
-    tRectangle rect1 = {CENTER_X, CENTER_Y,  lastHourX, lastHourY};
-    GrRectFill(&context, &rect1);
+    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastHourX, lastHourY);
     GrContextForegroundSet(&context, 0);
-    tRectangle rect2 = {CENTER_X, CENTER_Y,  x, y};
-    GrRectFill(&context, &rect2);
+    GrLineDraw(&context, CENTER_X, CENTER_Y,  x, y);
     lastHourX = x;
     lastHourY = y;
   }
   else
   {
-    tRectangle rect = {CENTER_X, CENTER_Y,  lastHourX, lastHourY};
-    GrRectFill(&context, &rect);
+    GrContextForegroundSet(&context, 0);
+    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastHourX, lastHourY);
   }
 
   GrCircleFill(&context, CENTER_X, CENTER_Y, 5);
