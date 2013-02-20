@@ -33,11 +33,13 @@
 #include "sdp.h"
 #include "hfp.h"
 #include "config.h"
+#include "avctp.h"
+#include "avrcp.h"
 
 #include "debug.h"
 #define DEVICENAME "iWatch"
 
-static uint8_t   spp_service_buffer[110];
+static uint16_t   spp_service_buffer[55];
 
 #include "att.h"
 
@@ -188,6 +190,11 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       } else {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
       }
+      break;
+    }
+  case HCI_EVENT_CONNECTION_REQUEST:
+    {
+      log_info("connection request\n");
       break;
     }
   case HCI_EVENT_DISCONNECTION_COMPLETE:
@@ -354,6 +361,9 @@ static void btstack_setup(){
   sdp_register_service_internal(NULL, service_record_item);
 
   hfp_init(HFP_CHANNEL);
+
+  avctp_init();
+  avrcp_init();
 }
 
 PROCESS_NAME(bluetooth_process);
@@ -372,6 +382,8 @@ void bluetooth_init()
   // Enable ACLK to provide 32 kHz clock to Bluetooth module
   BT_ACLK_SEL |= BT_ACLK_BIT;
   BT_ACLK_DIR |= BT_ACLK_BIT;
+
+  codec_init();
 
   process_start(&bluetooth_process, NULL);
   BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low

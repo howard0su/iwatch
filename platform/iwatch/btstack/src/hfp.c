@@ -20,7 +20,7 @@ static enum
   IDLE,
   WAIT_RESP,
   ERROR
-}state = INITIALIZING;
+}state;
 
 static uint16_t hfp_response_size;
 static void*    hfp_response_buffer;
@@ -39,7 +39,7 @@ static void hfp_try_respond(uint16_t rfcomm_channel_id){
     }
 }
 
-static uint8_t   hpf_service_buffer[90];
+static uint16_t   hpf_service_buffer[50];
 void hfp_init(int channel)
 {
   rfcomm_register_service_internal(NULL, channel, 100);  // reserved channel, mtu=100
@@ -51,6 +51,8 @@ void hfp_init(int channel)
   printf("HPF service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
   //de_dump_data_element(service_record_item->service_record);
   sdp_register_service_internal(NULL, service_record_item);
+
+  state = INITIALIZING;
 }
 
 #define AT_BRSF  "AT+BRSF=4\r"

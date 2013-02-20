@@ -5,7 +5,7 @@
 #include "avctp.h"
 #include "btstack/sdp_util.h"
 
-static uint8_t   avrcp_service_buffer[100];
+static uint16_t   avrcp_service_buffer[50];
 
 void avrcp_init()
 {
