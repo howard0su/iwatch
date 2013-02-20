@@ -504,12 +504,13 @@ static void event_handler(uint8_t *packet, int size){
                 if (!packet[2]){
                     conn->state = OPEN;
                     conn->con_handle = READ_BT_16(packet, 3);
-
-                    // restart timer
-                    run_loop_set_timer(&conn->timeout, HCI_CONNECTION_TIMEOUT_MS);
-                    run_loop_add_timer(&conn->timeout);
-
-                    log_info("New connection: handle %u, %s\n", conn->con_handle, bd_addr_to_str(conn->address));
+                    if (conn->type == 1)
+                    {
+                      // restart timer
+                      run_loop_set_timer(&conn->timeout, HCI_CONNECTION_TIMEOUT_MS);
+                      run_loop_add_timer(&conn->timeout);
+                    }
+                    log_info("New connection: handle %u, %s type=%d\n", conn->con_handle, bd_addr_to_str(conn->address), conn->type);
 
                     hci_emit_nr_connections_changed();
                 } else {
