@@ -30,7 +30,7 @@
  */
 
 /*
- * Implementation of the Service Discovery Protocol Server 
+ * Implementation of the Service Discovery Protocol Server
  */
 
 #include "sdp.h"
@@ -85,7 +85,7 @@ uint32_t sdp_get_service_record_handle(uint8_t * record){
     if (!serviceRecordHandleAttribute) return 0;
     if (de_get_element_type(serviceRecordHandleAttribute) != DE_UINT) return 0;
     if (de_get_size_type(serviceRecordHandleAttribute) != DE_SIZE_32) return 0;
-    return READ_NET_32(serviceRecordHandleAttribute, 1); 
+    return READ_NET_32(serviceRecordHandleAttribute, 1);
 }
 
 // data: event(8), len(8), status(8), service_record_handle(32)
@@ -129,28 +129,36 @@ uint32_t sdp_create_service_record_handle(void){
 // pre: record
 // @returns ServiceRecordHandle or 0 if registration failed
 uint32_t sdp_register_service_internal(void *connection, service_record_item_t * record_item){
-    // get user record handle
+
+  //printf("Register service record\n");
+  //de_dump_data_element(record_item->service_record);
+
+  // get user record handle
     uint32_t record_handle = record_item->service_record_handle;
     // get actual record
     uint8_t *record = record_item->service_record;
-    
+
     // check for ServiceRecordHandle attribute, returns pointer or null
     uint8_t * req_record_handle = sdp_get_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle);
     if (!req_record_handle) {
         log_error("SDP Error - record does not contain ServiceRecordHandle attribute\n");
         return 0;
     }
-    
+    else
+    {
+      record_handle = READ_NET_32(req_record_handle, de_get_header_size(req_record_handle));
+    }
+
     // validate service record handle is not in reserved range
     if (record_handle <= maxReservedServiceRecordHandle) record_handle = 0;
-    
+
     // check if already in use
     if (record_handle) {
         if (sdp_get_record_for_handle(record_handle)) {
             record_handle = 0;
         }
     }
-    
+
     // create new handle if needed
     if (!record_handle){
         record_handle = sdp_create_service_record_handle();
@@ -158,12 +166,12 @@ uint32_t sdp_register_service_internal(void *connection, service_record_item_t *
         record_item->service_record_handle = record_handle;
         sdp_set_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle, record_handle);
     }
-    
+
     // add to linked list
     linked_list_add(&sdp_service_records, (linked_item_t *) record_item);
-    
+
     sdp_emit_service_registered(connection, 0, record_item->service_record_handle);
-    
+
     return record_handle;
 }
 
@@ -180,29 +188,29 @@ uint32_t sdp_register_service_internal(void *connection, uint8_t * record){
     // dump for now
     // printf("Register service record\n");
     // de_dump_data_element(record);
-    
+
     // get user record handle
     uint32_t record_handle = sdp_get_service_record_handle(record);
 
     // validate service record handle is not in reserved range
     if (record_handle <= maxReservedServiceRecordHandle) record_handle = 0;
-    
+
     // check if already in use
     if (record_handle) {
         if (sdp_get_record_for_handle(record_handle)) {
             record_handle = 0;
         }
     }
-    
+
     // create new handle if needed
     if (!record_handle){
         record_handle = sdp_create_service_record_handle();
     }
-    
-    // calculate size of new service record: DES (2 byte len) 
+
+    // calculate size of new service record: DES (2 byte len)
     // + ServiceRecordHandle attribute (UINT16 UINT32) + size of existing attributes
     uint16_t recordSize =  3 + (3 + 5) + de_get_data_size(record);
-        
+
     // alloc memory for new service_record_item
     service_record_item_t * newRecordItem = (service_record_item_t *) malloc(recordSize + sizeof(service_record_item_t));
     if (!newRecordItem) {
@@ -211,30 +219,30 @@ uint32_t sdp_register_service_internal(void *connection, uint8_t * record){
     }
     // link new service item to client connection
     newRecordItem->connection = connection;
-    
+
     // set new handle
     newRecordItem->service_record_handle = record_handle;
 
     // create updated service record
     uint8_t * newRecord = (uint8_t *) &(newRecordItem->service_record);
-    
+
     // create DES for new record
     de_create_sequence(newRecord);
-    
+
     // set service record handle
     de_add_number(newRecord, DE_UINT, DE_SIZE_16, 0);
     de_add_number(newRecord, DE_UINT, DE_SIZE_32, record_handle);
-    
+
     // add other attributes
     sdp_append_attributes_in_attributeIDList(record, (uint8_t *) removeServiceRecordHandleAttributeIDList, 0, recordSize, newRecord);
-    
+
     // dump for now
     // de_dump_data_element(newRecord);
     // printf("reserved size %u, actual size %u\n", recordSize, de_get_len(newRecord));
-    
+
     // add to linked list
     linked_list_add(&sdp_service_records, (linked_item_t *) newRecordItem);
-    
+
     sdp_emit_service_registered(connection, 0, newRecordItem->service_record_handle);
 
     return record_handle;
@@ -243,7 +251,7 @@ uint32_t sdp_register_service_internal(void *connection, uint8_t * record){
 #endif
 
 // unregister service record internally
-// 
+//
 // makes sure one client cannot remove service records of other clients
 //
 void sdp_unregister_service_internal(void *connection, uint32_t service_record_handle){
@@ -281,7 +289,7 @@ int sdp_create_error_response(uint16_t transaction_id, uint16_t error_code){
 }
 
 int sdp_handle_service_search_request(uint8_t * packet, uint16_t remote_mtu){
-    
+
     // get request details
     uint16_t  transaction_id = READ_NET_16(packet, 1);
     // not used yet - uint16_t  param_len = READ_NET_16(packet, 3);
@@ -289,17 +297,17 @@ int sdp_handle_service_search_request(uint8_t * packet, uint16_t remote_mtu){
     uint16_t  serviceSearchPatternLen = de_get_len(serviceSearchPattern);
     uint16_t  maximumServiceRecordCount = READ_NET_16(packet, 5 + serviceSearchPatternLen);
     uint8_t * continuationState = &packet[5+serviceSearchPatternLen+2];
-    
+
     // calc maxumumServiceRecordCount based on remote MTU
     uint16_t maxNrServiceRecordsPerResponse = (remote_mtu - (9+3))/4;
-    
+
     // continuation state contains index of next service record to examine
     int      continuation = 0;
     uint16_t continuation_index = 0;
     if (continuationState[0] == 2){
         continuation_index = READ_NET_16(continuationState, 1);
     }
-    
+
     // get and limit total count
     linked_item_t *it;
     uint16_t total_service_count   = 0;
@@ -311,7 +319,7 @@ int sdp_handle_service_search_request(uint8_t * packet, uint16_t remote_mtu){
     if (total_service_count > maximumServiceRecordCount){
         total_service_count = maximumServiceRecordCount;
     }
-    
+
     // ServiceRecordHandleList at 9
     uint16_t pos = 9;
     uint16_t current_service_count  = 0;
@@ -322,13 +330,13 @@ int sdp_handle_service_search_request(uint8_t * packet, uint16_t remote_mtu){
 
         if (!sdp_record_matches_service_search_pattern(item->service_record, serviceSearchPattern)) continue;
         matching_service_count++;
-        
+
         if (current_service_index < continuation_index) continue;
 
         net_store_32(sdp_response_buffer, pos, item->service_record_handle);
         pos += 4;
         current_service_count++;
-        
+
         if (matching_service_count >= total_service_count) break;
 
         if (current_service_count >= maxNrServiceRecordsPerResponse){
@@ -337,7 +345,7 @@ int sdp_handle_service_search_request(uint8_t * packet, uint16_t remote_mtu){
             break;
         }
     }
-    
+
     // Store continuation state
     if (continuation) {
         sdp_response_buffer[pos++] = 2;
@@ -353,12 +361,12 @@ int sdp_handle_service_search_request(uint8_t * packet, uint16_t remote_mtu){
     net_store_16(sdp_response_buffer, 3, pos - 5); // size of variable payload
     net_store_16(sdp_response_buffer, 5, total_service_count);
     net_store_16(sdp_response_buffer, 7, current_service_count);
-    
+
     return pos;
 }
 
 int sdp_handle_service_attribute_request(uint8_t * packet, uint16_t remote_mtu){
-    
+
     // get request details
     uint16_t  transaction_id = READ_NET_16(packet, 1);
     // not used yet - uint16_t  param_len = READ_NET_16(packet, 3);
@@ -367,35 +375,35 @@ int sdp_handle_service_attribute_request(uint8_t * packet, uint16_t remote_mtu){
     uint8_t * attributeIDList = &packet[11];
     uint16_t  attributeIDListLen = de_get_len(attributeIDList);
     uint8_t * continuationState = &packet[11+attributeIDListLen];
-    
+
     // calc maximumAttributeByteCount based on remote MTU
     uint16_t maximumAttributeByteCount2 = remote_mtu - (7+3);
     if (maximumAttributeByteCount2 < maximumAttributeByteCount) {
         maximumAttributeByteCount = maximumAttributeByteCount2;
     }
-    
+
     // continuation state contains the offset into the complete response
     uint16_t continuation_offset = 0;
     if (continuationState[0] == 2){
         continuation_offset = READ_NET_16(continuationState, 1);
     }
-    
+
     // get service record
     service_record_item_t * item = sdp_get_record_for_handle(serviceRecordHandle);
     if (!item){
         // service record handle doesn't exist
         return sdp_create_error_response(transaction_id, 0x0002); /// invalid Service Record Handle
     }
-    
-    
+
+
     // AttributeList - starts at offset 7
     uint16_t pos = 7;
-    
+
     if (continuation_offset == 0){
-        
+
         // get size of this record
         uint16_t filtered_attributes_size = spd_get_filtered_size(item->service_record, attributeIDList);
-        
+
         // store DES
         de_store_descriptor_with_len(&sdp_response_buffer[pos], DE_DES, DE_SIZE_VAR_16, filtered_attributes_size);
         maximumAttributeByteCount -= 3;
@@ -406,7 +414,7 @@ int sdp_handle_service_attribute_request(uint8_t * packet, uint16_t remote_mtu){
     uint16_t bytes_used;
     int complete = sdp_filter_attributes_in_attributeIDList(item->service_record, attributeIDList, continuation_offset, maximumAttributeByteCount, &bytes_used, &sdp_response_buffer[pos]);
     pos += bytes_used;
-    
+
     uint16_t attributeListByteCount = pos - 7;
 
     if (complete) {
@@ -422,8 +430,8 @@ int sdp_handle_service_attribute_request(uint8_t * packet, uint16_t remote_mtu){
     sdp_response_buffer[0] = SDP_ServiceAttributeResponse;
     net_store_16(sdp_response_buffer, 1, transaction_id);
     net_store_16(sdp_response_buffer, 3, pos - 5);  // size of variable payload
-    net_store_16(sdp_response_buffer, 5, attributeListByteCount); 
-    
+    net_store_16(sdp_response_buffer, 5, attributeListByteCount);
+
     return pos;
 }
 
@@ -432,9 +440,9 @@ static uint16_t sdp_get_size_for_service_search_attribute_response(uint8_t * ser
     linked_item_t *it;
     for (it = (linked_item_t *) sdp_service_records; it ; it = it->next){
         service_record_item_t * item = (service_record_item_t *) it;
-        
+
         if (!sdp_record_matches_service_search_pattern(item->service_record, serviceSearchPattern)) continue;
-        
+
         // for all service records that match
         total_response_size += 3 + spd_get_filtered_size(item->service_record, attributeIDList);
     }
@@ -442,10 +450,10 @@ static uint16_t sdp_get_size_for_service_search_attribute_response(uint8_t * ser
 }
 
 int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remote_mtu){
-    
+
     // SDP header before attribute sevice list: 7
     // Continuation, worst case: 5
-    
+
     // get request details
     uint16_t  transaction_id = READ_NET_16(packet, 1);
     // not used yet - uint16_t  param_len = READ_NET_16(packet, 3);
@@ -455,13 +463,13 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
     uint8_t * attributeIDList = &packet[5+serviceSearchPatternLen+2];
     uint16_t  attributeIDListLen = de_get_len(attributeIDList);
     uint8_t * continuationState = &packet[5+serviceSearchPatternLen+2+attributeIDListLen];
-    
+
     // calc maximumAttributeByteCount based on remote MTU, SDP header and reserved Continuation block
     uint16_t maximumAttributeByteCount2 = remote_mtu - 12;
     if (maximumAttributeByteCount2 < maximumAttributeByteCount) {
         maximumAttributeByteCount = maximumAttributeByteCount2;
     }
-    
+
     // continuation state contains: index of next service record to examine
     // continuation state contains: byte offset into this service record
     uint16_t continuation_service_index = 0;
@@ -472,10 +480,10 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
     }
 
     // printf("--> sdp_handle_service_search_attribute_request, cont %u/%u, max %u\n", continuation_service_index, continuation_offset, maximumAttributeByteCount);
-    
+
     // AttributeLists - starts at offset 7
     uint16_t pos = 7;
-    
+
     // add DES with total size for first request
     if (continuation_service_index == 0 && continuation_offset == 0){
         uint16_t total_response_size = sdp_get_size_for_service_search_attribute_response(serviceSearchPattern, attributeIDList);
@@ -484,7 +492,7 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
         pos += 3;
         maximumAttributeByteCount -= 3;
     }
-    
+
     // create attribute list
     int      first_answer = 1;
     int      continuation = 0;
@@ -492,47 +500,47 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
     linked_item_t *it = (linked_item_t *) sdp_service_records;
     for ( ; it ; it = it->next, ++current_service_index){
         service_record_item_t * item = (service_record_item_t *) it;
-        
+
         if (current_service_index < continuation_service_index ) continue;
         if (!sdp_record_matches_service_search_pattern(item->service_record, serviceSearchPattern)) continue;
 
         if (continuation_offset == 0){
-            
+
             // get size of this record
             uint16_t filtered_attributes_size = spd_get_filtered_size(item->service_record, attributeIDList);
-            
+
             // stop if complete record doesn't fits into response but we already have a partial response
             if ((filtered_attributes_size + 3 > maximumAttributeByteCount) && !first_answer) {
                 continuation = 1;
                 break;
             }
-            
+
             // store DES
             de_store_descriptor_with_len(&sdp_response_buffer[pos], DE_DES, DE_SIZE_VAR_16, filtered_attributes_size);
             pos += 3;
             maximumAttributeByteCount -= 3;
         }
-        
+
         first_answer = 0;
-    
+
         // copy maximumAttributeByteCount from record
         uint16_t bytes_used;
         int complete = sdp_filter_attributes_in_attributeIDList(item->service_record, attributeIDList, continuation_offset, maximumAttributeByteCount, &bytes_used, &sdp_response_buffer[pos]);
         pos += bytes_used;
         maximumAttributeByteCount -= bytes_used;
-        
+
         if (complete) {
             continuation_offset = 0;
             continue;
         }
-        
+
         continuation = 1;
         continuation_offset += bytes_used;
         break;
     }
-    
+
     uint16_t attributeListsByteCount = pos - 7;
-    
+
     // Continuation State
     if (continuation){
         sdp_response_buffer[pos++] = 4;
@@ -544,13 +552,13 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
         // complete
         sdp_response_buffer[pos++] = 0;
     }
-        
+
     // create SDP header
     sdp_response_buffer[0] = SDP_ServiceSearchAttributeResponse;
     net_store_16(sdp_response_buffer, 1, transaction_id);
     net_store_16(sdp_response_buffer, 3, pos - 5);  // size of variable payload
     net_store_16(sdp_response_buffer, 5, attributeListsByteCount);
-    
+
     return pos;
 }
 
@@ -558,7 +566,7 @@ static void sdp_try_respond(void){
     if (!sdp_response_size ) return;
     if (!l2cap_cid) return;
     if (!l2cap_can_send_packet_now(l2cap_cid)) return;
-    
+
     // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
     uint16_t size = sdp_response_size;
     sdp_response_size = 0;
@@ -571,9 +579,9 @@ static void sdp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
     SDP_PDU_ID_t pdu_id;
     uint16_t remote_mtu;
     // uint16_t param_len;
-    
+
 	switch (packet_type) {
-			
+
 		case L2CAP_DATA_PACKET:
             pdu_id = (SDP_PDU_ID_t) packet[0];
             transaction_id = READ_NET_16(packet, 1);
@@ -583,38 +591,38 @@ static void sdp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
             if (remote_mtu > SDP_RESPONSE_BUFFER_SIZE){
                 remote_mtu = SDP_RESPONSE_BUFFER_SIZE;
             }
-            
+
             // printf("SDP Request: type %u, transaction id %u, len %u, mtu %u\n", pdu_id, transaction_id, param_len, remote_mtu);
             switch (pdu_id){
-                    
+
                 case SDP_ServiceSearchRequest:
                     sdp_response_size = sdp_handle_service_search_request(packet, remote_mtu);
                     break;
-                                        
+
                 case SDP_ServiceAttributeRequest:
                     sdp_response_size = sdp_handle_service_attribute_request(packet, remote_mtu);
                     break;
-                    
+
                 case SDP_ServiceSearchAttributeRequest:
                     sdp_response_size = sdp_handle_service_search_attribute_request(packet, remote_mtu);
                     break;
-                    
+
                 default:
                     sdp_response_size = sdp_create_error_response(transaction_id, 0x0003); // invalid syntax
                     break;
             }
-            
+
             sdp_try_respond();
-            
+
 			break;
-			
+
 		case HCI_EVENT_PACKET:
-			
+
 			switch (packet[0]) {
 
 				case L2CAP_EVENT_INCOMING_CONNECTION:
                     if (l2cap_cid) {
-                        // CONNECTION REJECTED DUE TO LIMITED RESOURCES 
+                        // CONNECTION REJECTED DUE TO LIMITED RESOURCES
                         l2cap_decline_connection_internal(channel, 0x0d);
                         break;
                     }
@@ -623,7 +631,7 @@ static void sdp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
                     sdp_response_size = 0;
                     l2cap_accept_connection_internal(channel);
 					break;
-                    
+
                 case L2CAP_EVENT_CHANNEL_OPENED:
                     if (packet[2]) {
                         // open failed -> reset
@@ -635,20 +643,20 @@ static void sdp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
                 case DAEMON_EVENT_HCI_PACKET_SENT:
                     sdp_try_respond();
                     break;
-                
+
                 case L2CAP_EVENT_CHANNEL_CLOSED:
                     if (channel == l2cap_cid){
                         // reset
                         l2cap_cid = 0;
                     }
                     break;
-					                    
+
 				default:
 					// other event
 					break;
 			}
 			break;
-			
+
 		default:
 			// other packet type
 			break;
