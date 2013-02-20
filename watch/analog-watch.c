@@ -142,18 +142,26 @@ PROCESS_THREAD(analogclock_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  drawBackground();
   rtc_enablechange(SECOND_CHANGE);
+  PROCESS_WAIT_EVENT_UNTIL(ev == EVENT_TIME_CHANGED);
+  {
+    struct datetime* dt = (struct datetime*)data;
+    drawBackground();
+    drawClock(dt->day, dt->hour, dt->minute, -1);
+  }
+  rtc_enablechange(MINUTE_CHANGE);
 
   while(1)
   {
     if (ev == EVENT_TIME_CHANGED)
     {
       struct datetime* dt = (struct datetime*)data;
-      drawClock(dt->day, dt->hour, dt->minute, dt->second);
+      drawClock(dt->day, dt->hour, dt->minute, -1);
     }
     else
+    {
       window_defproc(ev, data);
+    }
 
     PROCESS_WAIT_EVENT();
   }
