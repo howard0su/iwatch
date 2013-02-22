@@ -89,7 +89,7 @@ main(int argc, char **argv)
 
   /* xmem_init(); */
 
-  PRINTF(CONTIKI_VERSION_STRING "\n");
+  PRINTF("iWatch 0.10 build at " __TIME__ " " __DATE__ "\n");
   /*
   * Hardware initialization done!
   */
@@ -110,12 +110,11 @@ main(int argc, char **argv)
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
-  P5DIR |= BIT0 + BIT1;
   /*
   * This is the scheduler loop.
   */
   watchdog_start();
-  watchdog_stop(); /* Stop the wdt... */
+  watchdog_stop(); /* Stop the wdt for debug*/
   while(1) {
     int r;
     do {
