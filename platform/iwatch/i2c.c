@@ -8,7 +8,7 @@ void I2C_Init()
 
   UCB1CTL0 = UCMODE_3 + UCMST + UCSYNC; // master, I2c mode, LSB
   UCB1CTL1 = UCSSEL__SMCLK + UCSWRST; // SMCLK for now
-  UCB1BR0 = 80; // 8MHZ / 80 = 100Khz
+  UCB1BR0 = 20; // 8MHZ / 20 = 400Khz
   UCB1BR1 = 0;
 
   //Configure ports.
@@ -69,46 +69,3 @@ void  I2C_addr(unsigned char address)
   UCB1I2CSA = address;
   UCB1CTL1 &= ~UCSWRST;
 }
-
-#if 0
-
-ISR(USCI_B1, USCI_B1_ISR)
-{
-  switch(__even_in_range(UCB1IV,12))
-  {
-  case  0: break;                           // Vector  0: No interrupts
-  case  2: break;                           // Vector  2: ALIFG
-  case  4: break;                           // Vector  4: NACKIFG
-  case  6: break;   		                // Vector  6: STTIFG
-  case  8: break;                           // Vector  8: STPIFG
-  case 10:                                  // Vector 10: RXIFG
-    RxData = UCB1RXBUF;               // Move RX data to address PRxData
-    process_poll(&mpu6050_process);
-    State=DONE;
-    LPM4_EXIT;
-    break;
-  case 12:                                  // Vector 12: TXIFG
-    if (TxDataLen)                          // Check TX byte counter
-    {
-      UCB1TXBUF = TxData[TxDataPtr];        // Load TX buffer
-      TxDataLen--;                          // Decrement TX byte counter
-      TxDataPtr++;
-    }
-    else
-    {
-      if (RxDataLen)
-      {
-        UCB1CTL1 &= ~UCTR;         			// I2C RX
-        UCB1CTL1 |= UCTXSTT;         		// I2C start condition
-      }
-      else
-      {
-        process_poll(&mpu6050_process);
-        State=DONE;
-        LPM4_EXIT;
-      }
-    }
-  default: break;
-  }
-}
-#endif

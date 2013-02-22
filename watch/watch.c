@@ -116,9 +116,11 @@ PROCESS_THREAD(system_process, ev, data)
     GrContextFontSet(&context, &g_sFontCm12);
   }
   // give time to starts
-  //mpu6050_init();
+  I2C_Init();
+
   ant_init();
   bluetooth_init();
+  mpu6050_init();
 
   process_start(ui_process, NULL);
   print_stats();

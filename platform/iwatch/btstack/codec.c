@@ -3,7 +3,7 @@
 /*
  * Codec NAU1080 for BT
  */
-#define CODEC_ADDRESS 0x34
+#define CODEC_ADDRESS 0x1A
 
 #define REG_RESET                       (0x00)
 #define REG_POWER_MANAGEMENT1           (0x001)
@@ -67,8 +67,7 @@ static void codec_write(uint8_t reg, uint16_t data)
 
 void codec_init()
 {
-  I2C_Init();
-  I2C_addr(CODEC_ADDRESS>>1);
+  I2C_addr(CODEC_ADDRESS);
   // write some configure data for codec
   //codec_write(REG_RESET, 0);
 
