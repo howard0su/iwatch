@@ -1,25 +1,25 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 // THE FOLLOWING EXAMPLE CODE IS INTENDED FOR LIMITED CIRCULATION ONLY.
-// 
+//
 // Please forward all questions regarding this code to ANT Technical Support.
-// 
+//
 // Dynastream Innovations Inc.
 // 228 River Avenue
 // Cochrane, Alberta, Canada
 // T4C 2C1
-// 
+//
 // (P) (403) 932-9292
 // (F) (403) 932-6521
 // (TF) 1-866-932-9292
 // (E) support@thisisant.com
-// 
+//
 // www.thisisant.com
 //
 // Reference Design Disclaimer
 //
-// The references designs and codes provided may be used with ANT devices only and remain the copyrighted property of 
-// Dynastream Innovations Inc. The reference designs and codes are being provided on an "as-is" basis and as an accommodation, 
-// and therefore all warranties, representations, or guarantees of any kind (whether express, implied or statutory) including, 
+// The references designs and codes provided may be used with ANT devices only and remain the copyrighted property of
+// Dynastream Innovations Inc. The reference designs and codes are being provided on an "as-is" basis and as an accommodation,
+// and therefore all warranties, representations, or guarantees of any kind (whether express, implied or statutory) including,
 // without limitation, warranties of merchantability, non-infringement,
 // or fitness for a particular purpose, are specifically disclaimed.
 //
@@ -55,16 +55,16 @@
 #include "msp430.h"
 
 // UCI Registers fro asynchronous.
-#define UART_ASYNC_UCI_RXBUF                 UCA1RXBUF      // UCI Recieve Buffer Register
-#define UART_ASYNC_UCI_TXBUF                 UCA1TXBUF      // UCI Transmit Buffer Register
-#define UART_ASYNC_UCI_CTL0                  UCA1CTL0       // UCI Control Register 0 
-#define UART_ASYNC_UCI_CTL1                  UCA1CTL1       // UCI Control Register 1
-#define UART_ASYNC_UCI_BR0                   UCA1BR0        // UCI Baud Rate Register 0
-#define UART_ASYNC_UCI_BR1                   UCA1BR1        // UCI Baud Rate Register 1
-#define UART_ASYNC_UCI_MCTL                  UCA1MCTL       // UCI Modulation Control Register
+#define UART_ASYNC_UCI_RXBUF                 UCA2RXBUF      // UCI Recieve Buffer Register
+#define UART_ASYNC_UCI_TXBUF                 UCA2TXBUF      // UCI Transmit Buffer Register
+#define UART_ASYNC_UCI_CTL0                  UCA2CTL0       // UCI Control Register 0
+#define UART_ASYNC_UCI_CTL1                  UCA2CTL1       // UCI Control Register 1
+#define UART_ASYNC_UCI_BR0                   UCA2BR0        // UCI Baud Rate Register 0
+#define UART_ASYNC_UCI_BR1                   UCA2BR1        // UCI Baud Rate Register 1
+#define UART_ASYNC_UCI_MCTL                  UCA2MCTL       // UCI Modulation Control Register
 
-#define UART_ASYNC_UCI_IER                   UCA1IE         // Interrupt enable register
-#define UART_ASYNC_UCI_IFR                   UCA1IFG        // Interrupt flag register
+#define UART_ASYNC_UCI_IER                   UCA2IE         // Interrupt enable register
+#define UART_ASYNC_UCI_IFR                   UCA2IFG        // Interrupt flag register
 
 #define UART_ASYNC_RX_INT                    UCRXIE         // Recieve interrupt bit
 #define UART_ASYNC_TX_INT                    UCTXIE         // Transmit interrupt bit
@@ -91,19 +91,19 @@
 #define SERIAL_IOSEL_SEL                     P2SEL          // Interrupt Flag
 #define SERIAL_IOSEL_DIR                     P2DIR
 #define SERIAL_IOSEL_OUT                     P2OUT
-#define SERIAL_IOSEL_BIT                     BIT1            // P2.1 
+#define SERIAL_IOSEL_BIT                     BIT1            // P2.1
 #endif
 
 // Asynchronous
-#define ASYNC_RX_DIR                         P5DIR
-#define ASYNC_RX_SEL                         P5SEL
-#define ASYNC_RX_BIT                         BIT7           // P5.7 
-#define ASYNC_RX_IN                          P5IN           // TX on ANT
+#define ASYNC_RX_DIR                         P9DIR
+#define ASYNC_RX_SEL                         P9SEL
+#define ASYNC_RX_BIT                         BIT5           // P9.5
+#define ASYNC_RX_IN                          P9IN           // TX on ANT
 
-#define ASYNC_TX_DIR                         P5DIR
-#define ASYNC_TX_SEL                         P5SEL
-#define ASYNC_TX_BIT                         BIT6           // P5.6
-#define ASYNC_TX_OUT                         P5OUT          // RX on ANT
+#define ASYNC_TX_DIR                         P9DIR
+#define ASYNC_TX_SEL                         P9SEL
+#define ASYNC_TX_BIT                         BIT4           // P9.4
+#define ASYNC_TX_OUT                         P9OUT          // RX on ANT
 
 #define ASYNC_RTS_DIR                        P1DIR
 #define ASYNC_RTS_SEL                        P1SEL
@@ -127,9 +127,9 @@
 #define SYSTEM_RST_BIT                       BIT6           // P4.6
 #define SYSTEM_RST_OUT                       P4OUT
 
-#define SYNC_SEN_IFG						 P1IFG
-#define SYNC_SEN_BIT						 BIT5			//P1.5
+#define SYNC_SEN_IFG		             P1IFG
+#define SYNC_SEN_BIT			     BIT5			//P1.5
 #define SYNC_SEN_IES                         P1IES
 #define SYNC_SEN_IE                          P1IE
 
-#endif 
+#endif

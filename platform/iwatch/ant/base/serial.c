@@ -984,9 +984,9 @@ int port1_pin5()
 // SPI RX - Recieve interrupt for SPI byte synchronous mode.
 //
 ////////////////////////////////////////////////////////////////////////////
-ISR(USCI_A1, USCI_A1_ISR)
+ISR(USCI_A2, USCI_A2_ISR)
 {
-  switch (__even_in_range(UCA1IV, 16)){
+  switch (__even_in_range(UCA2IV, 16)){
   case 2: // RXIFG
 	if (Asynchronous_ProcessByte(UART_ASYNC_UCI_RXBUF))
 	{
