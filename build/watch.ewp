@@ -3239,6 +3239,9 @@
       <name>$PROJ_DIR$\..\platform\iwatch\Makefile.iwatch</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\mpu6050.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\msp430.c</name>
     </file>
     <file>
@@ -3249,6 +3252,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>
