@@ -21,7 +21,7 @@ extern int dma_channel_1();
 ISR(DMA, DMA0ISR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  
+
   switch(__even_in_range(DMAIV,16))
   {
   case 0: break;
@@ -45,19 +45,20 @@ ISR(DMA, DMA0ISR)
   case 16: break;                         // DMA7IFG = DMA Channel 7
   default: break;
   }
-  
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
 extern int port1_pin3();
 extern int port1_pin5();
+extern int port1_pin6();
 
 ISR(PORT1, PORT1ISR) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  
+
   switch(__even_in_range(P1IV, 16))
   {
-  case 0: break;                          
+  case 0: break;
   case 2: break;                          // Pin0
   case 4: break;                          // Pin1
   case 6: break;                          // Pin2
@@ -74,11 +75,16 @@ ISR(PORT1, PORT1ISR) {
         LPM4_EXIT;
       break;
     }
-  case 14: break;                          // Pin6
+  case 14:                                 // Pin6
+    {
+      if (port1_pin6())
+        LPM4_EXIT;
+      break;
+    }
   case 16: break;                          // Pin7
   default: break;
   }
-  
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
@@ -93,35 +99,35 @@ ISR(PORT2, PORT2ISR)
   switch(__even_in_range(P2IV, 16))
   {
   case 0: break;
-  case 2: 
+  case 2:
     {
       if (port2_pin0())
         LPM4_EXIT;
-      
+
       break;                          // Pin0
     }
-  case 4:     
+  case 4:
     {
       if (port2_pin1())
         LPM4_EXIT;
-      
+
       break;                          // Pin1
     }
-  case 6: 
+  case 6:
     {
       if (port2_pin2())
         LPM4_EXIT;
-      
+
       break;                          // Pin2
     }
   case 8: break;                          // Pin3
   case 10: break;                          // Pin4
   case 12: break;                          // Pin5
-  case 14:     
+  case 14:
     {
       if (port2_pin6())
         LPM4_EXIT;
-      
+
       break;                          // Pin6
     }
   case 16: break;                          // Pin7
