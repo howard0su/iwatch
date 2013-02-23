@@ -60,7 +60,7 @@
 #define REG_OUT3_MIXER_CTRL             (0x038)
 #define REG_OUT4_MIXER_CTRL             (0x039)
 
-static void codec_write(uint8_t reg, uint16_t data)
+static void inline codec_write(uint8_t reg, uint16_t data)
 {
   I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
 }
