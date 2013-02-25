@@ -1,11 +1,22 @@
 #include "contiki.h"
 #include "i2c.h"
 #include "isr_compat.h"
+#include "sys/rtimer.h"
 
 static uint8_t *rxdata;
 static uint8_t rxlen;
 static uint8_t *txdata;
 static uint8_t txlen;
+
+#define BUSYWAIT_UNTIL(cond, max_time)                                  \
+  do {                                                                  \
+    rtimer_clock_t t0;                                                  \
+    t0 = RTIMER_NOW();                                                  \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {  \
+      __bis_SR_register(LPM0_bits + GIE);                               \
+      __no_operation();                                                 \
+    }                                                                   \
+  } while(0)
 
 enum { STATE_IDL, STATE_RUNNING, STATE_DONE, STATE_ERROR} state;
 
@@ -40,11 +51,8 @@ void I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  while(state == STATE_RUNNING)
-  {
-    __bis_SR_register(LPM0_bits + GIE);     // Enter LPM0, enable interrupts
-    __no_operation();                       // Remain in LPM0 until all data
-  }
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
+
   UCB1IE &= ~(UCTXIE + UCRXIE);
   return;
 }
@@ -56,6 +64,7 @@ void I2C_write(unsigned char reg, unsigned char write_word)
   data[1] = write_word;
   txdata = data;
   txlen = 2;
+  rxlen = 0;
 
   state = STATE_RUNNING;
   UCB1IE |= UCTXIE;                         // Enable TX interrupt
@@ -63,11 +72,8 @@ void I2C_write(unsigned char reg, unsigned char write_word)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  while(state == STATE_RUNNING)
-  {
-    __bis_SR_register(LPM0_bits + GIE);     // Enter LPM0, enable interrupts
-    __no_operation();                       // Remain in LPM0 until all data
-  }
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
+
   UCB1IE &= ~UCTXIE;
 }
 
@@ -98,21 +104,20 @@ ISR(USCI_B1, USCI_B1_ISR)
       rxlen--;
       if (rxlen)
       {
-        *rxdata = UCB1RXBUF;
-        rxdata++;
         if (rxlen == 1)
         {
-          UCB1CTL1 |= UCTXNACK;
+          UCB1CTL1 |= UCTXSTP;
         }
       }
       else
       {
-        *rxdata = UCB1RXBUF;
-        UCB1CTL1 |= UCTXSTP;                // Generate I2C stop condition
         UCB1IFG &= ~UCRXIFG;
         state = STATE_DONE;
-        __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0
+        __bic_SR_register_on_exit(LPM4_bits); // Exit LPM0
       }
+
+      // read data to release SCL
+      *rxdata++ = UCB1RXBUF;
       break;
     }
   case 12:                                  // Vector 12: TXIFG
@@ -123,13 +128,13 @@ ISR(USCI_B1, USCI_B1_ISR)
     }
     else
     {
+      UCB1IFG &= ~UCTXIFG;                  // Clear USCI_B0 TX int flag
       // done, give stop flag
       if (rxlen == 0) // only do TX
       {
         UCB1CTL1 |= UCTXSTP;                  // I2C stop condition
-        UCB1IFG &= ~UCTXIFG;                  // Clear USCI_B0 TX int flag
         state = STATE_DONE;
-        __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0
+        __bic_SR_register_on_exit(LPM4_bits); // Exit LPM0
       }
       else
       {
@@ -137,7 +142,10 @@ ISR(USCI_B1, USCI_B1_ISR)
         UCB1CTL1 |= UCTXSTT;         		// I2C start condition
         if (rxlen == 1)
         {
-          UCB1CTL1 |= UCTXNACK;
+          // wait Start signal send out
+          while(UCB1CTL1 & UCTXSTT);
+          // then send NACK and stop
+          UCB1CTL1 |= UCTXSTP;
         }
       }
     }
