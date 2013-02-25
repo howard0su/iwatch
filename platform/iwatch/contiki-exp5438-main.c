@@ -114,7 +114,7 @@ main(int argc, char **argv)
   * This is the scheduler loop.
   */
   watchdog_start();
-  watchdog_stop(); /* Stop the wdt for debug*/
+
   while(1) {
     int r;
     do {
