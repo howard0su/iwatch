@@ -5,7 +5,9 @@
 
 static uint8_t *rxdata;
 static uint8_t rxlen;
-static uint8_t *txdata;
+static const uint8_t *payload;
+static uint8_t payloadlen;
+static const uint8_t *txdata;
 static uint8_t txlen;
 
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
@@ -37,7 +39,7 @@ void I2C_Init()
   UCB1CTL1 &= ~UCSWRST;
 }
 
-void I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
+int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
 {
   txdata = &reg;
   txlen = 1;
@@ -54,16 +56,18 @@ void I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
   BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
 
   UCB1IE &= ~(UCTXIE + UCRXIE);
-  return;
+
+  return state != STATE_DONE;
 }
 
-void I2C_write(unsigned char reg, unsigned char write_word)
+int I2C_writebytes(unsigned char reg, const unsigned char *data, uint8_t len)
 {
-  uint8_t data[2];
-  data[0] = reg;
-  data[1] = write_word;
-  txdata = data;
-  txlen = 2;
+  txdata = &reg;
+  txlen = 1;
+
+  payload = data;
+  payloadlen = len;
+
   rxlen = 0;
 
   state = STATE_RUNNING;
@@ -75,6 +79,31 @@ void I2C_write(unsigned char reg, unsigned char write_word)
   BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
 
   UCB1IE &= ~UCTXIE;
+
+  return state != STATE_DONE;
+}
+
+int I2C_write(unsigned char reg, unsigned char data)
+{
+  txdata = &reg;
+  txlen = 1;
+
+  payload = &data;
+  payloadlen = 1;
+
+  rxlen = 0;
+
+  state = STATE_RUNNING;
+  UCB1IE |= UCTXIE;                         // Enable TX interrupt
+
+  while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
+  UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
+
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
+
+  UCB1IE &= ~UCTXIE;
+
+  return state != STATE_DONE;
 }
 
 void  I2C_addr(unsigned char address)
@@ -125,6 +154,13 @@ ISR(USCI_B1, USCI_B1_ISR)
     {
       UCB1TXBUF = *txdata++;               // Load TX buffer
       txlen--;                          // Decrement TX byte counter
+
+      if (txlen == 0 && payloadlen)
+      {
+        txlen = payloadlen;
+        txdata = payload;
+        payloadlen = 0;
+      }
     }
     else
     {
