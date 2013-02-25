@@ -11,7 +11,7 @@ struct _button_def
 {
   unsigned char bitmask;
   struct timer debouncetimer;
-}buttons[] = 
+}buttons[] =
 {
   {BIT0},{BIT1}, {BIT2}, {BIT6}
 };
@@ -43,9 +43,9 @@ configure(int type, int c)
         //P2SEL &= ~(buttons[i].bitmask);
 
         // ENABLE INT
-        P2IES |= buttons[i].bitmask;
         P2IFG &= ~(buttons[i].bitmask);
-        
+        P2IES |= buttons[i].bitmask;
+
         // pulldown in dev board
 #warning change in release board
         P2REN |= buttons[i].bitmask;
@@ -63,7 +63,7 @@ configure(int type, int c)
       }
     } else {
       for(i = 0; i < 4; i++)
-        P2IE &= ~(buttons[i].bitmask);      
+        P2IE &= ~(buttons[i].bitmask);
     }
     return 1;
   }
@@ -86,7 +86,7 @@ static int port2_button(int i)
   timer_set(&buttons[i].debouncetimer, CLOCK_SECOND/4);
   P2IFG &= ~(buttons[i].bitmask);
   sensors_changed(&button_sensor);
-  
+
   return 1;
 }
 
