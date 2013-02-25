@@ -34,68 +34,33 @@
 #include "contiki-conf.h"
 #include "dev/watchdog.h"
 #include "isr_compat.h"
+#include <stdio.h>
 
 static int counter = 0;
 
-#define PRINT_STACK_ON_REBOOT 0
+#define PRINT_STACK_ON_REBOOT 1
 
-/*---------------------------------------------------------------------------*/
-#if PRINT_STACK_ON_REBOOT
-#ifdef CONTIKI_TARGET_SKY
-static void
-printchar(char c)
-{
-  /* Transmit the data. */
-  TXBUF1 = c;
-
-  /* Loop until the transmission buffer is available. */
-  while((SFRIFG2 & UTXIFG1) == 0);
-
-}
-/*---------------------------------------------------------------------------*/
-static void
-hexprint(uint8_t v)
-{
-  const char hexconv[] = "0123456789abcdef";
-  printchar(hexconv[v >> 4]);
-  printchar(hexconv[v & 0x0f]);
-}
-/*---------------------------------------------------------------------------*/
-static void
-printstring(char *s)
-{
-  while(*s) {
-    printchar(*s++);
-  }
-}
-#endif /* CONTIKI_TARGET_SKY */
-#endif /* PRINT_STACK_ON_REBOOT */
 /*---------------------------------------------------------------------------*/
 ISR(WDT, watchdog_interrupt)
 {
-#ifdef CONTIKI_TARGET_SKY
 #if PRINT_STACK_ON_REBOOT
-  uint8_t dummy;
-  static uint8_t *ptr;
+  uint16_t dummy;
+  static uint16_t *ptr;
   static int i;
 
   ptr = &dummy;
-  printstring("Watchdog reset");
-  printstring("\nStack at $");
-  hexprint(((int)ptr) >> 8);
-  hexprint(((int)ptr) & 0xff);
-  printstring(":\n");
+  printf("Watchdog reset");
+  printf("\nStack at 0x%lx:\n", ptr);
 
-  for(i = 0; i < 64; ++i) {
-    hexprint(ptr[i]);
-    printchar(' ');
+  for(i = 0; i < 32; ++i) {
+    printf("%x", ptr[i]);
+    putchar(' ');
     if((i & 0x0f) == 0x0f) {
-      printchar('\n');
+      putchar('\n');
     }
   }
-  printchar('\n');
+  putchar('\n');
 #endif /* PRINT_STACK_ON_REBOOT */
-#endif /* CONTIKI_TARGET_SKY */
 
   watchdog_reboot();
 }
