@@ -22,7 +22,7 @@
 PROCESS(mpu6050_process, "MPU6050 Driver");
 
 /* Starting sampling rate. */
-#define DEFAULT_MPU_HZ  (100)
+#define DEFAULT_MPU_HZ  (20)
 
 static void tap_cb(unsigned char direction, unsigned char count)
 {
@@ -118,13 +118,13 @@ void mpu6050_init()
 
   /* Get/set hardware configuration. Start gyro. */
   /* Wake up all sensors. */
-  mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL);
+  mpu_set_sensors(INV_XYZ_ACCEL); //INV_XYZ_GYRO
   /* Push both gyro and accel data into the FIFO. */
-  mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);
+  mpu_configure_fifo(INV_XYZ_ACCEL);
   mpu_set_sample_rate(DEFAULT_MPU_HZ);
   /* Read back configuration in case it was set improperly. */
   mpu_get_sample_rate(&gyro_rate);
-  mpu_get_gyro_fsr(&gyro_fsr);
+  //mpu_get_gyro_fsr(&gyro_fsr);
   mpu_get_accel_fsr(&accel_fsr);
 
   /* To initialize the DMP:
@@ -162,9 +162,7 @@ void mpu6050_init()
                       inv_orientation_matrix_to_scalar(gyro_orientation));
   dmp_register_tap_cb(tap_cb);
   dmp_register_android_orient_cb(android_orient_cb);
-  uint8_t dmp_features = DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
-    DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO |
-      DMP_FEATURE_GYRO_CAL;
+  uint8_t dmp_features = DMP_FEATURE_SEND_RAW_ACCEL;
   dmp_enable_feature(dmp_features);
   dmp_set_fifo_rate(DEFAULT_MPU_HZ);
   mpu_set_dmp_state(1);
