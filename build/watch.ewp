@@ -791,7 +791,7 @@
         </option>
         <option>
           <name>IncludeSuppressed</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ModuleSummary</name>
@@ -3213,6 +3213,18 @@
     </file>
   </group>
   <group>
+    <name>mpl</name>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu_dmp_motion_driver.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\mpl\mpu6050.c</name>
+    </file>
+  </group>
+  <group>
     <name>platform</name>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\button-sensor.c</name>
@@ -3233,15 +3245,6 @@
       <name>$PROJ_DIR$\..\platform\iwatch\isr.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\lcd_helper.asm</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\Makefile.iwatch</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\mpu6050.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\msp430.c</name>
     </file>
     <file>
@@ -3252,9 +3255,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
-      <excluded>
-        <configuration>Debug</configuration>
-      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>
