@@ -147,7 +147,7 @@ static struct _linebuf
   unsigned char opcode;
   unsigned char linenum;
   unsigned char pixels[LCD_X_SIZE/8];
-}lines[LCD_Y_SIZE + 1]; // give a dummy
+}lines[LCD_Y_SIZE]; // give a dummy
 
 PROCESS(lcd_process, "LCD");
 
