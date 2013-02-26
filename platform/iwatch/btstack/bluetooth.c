@@ -157,13 +157,17 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
-        hci_send_cmd(&hci_vs_write_codec_config, 64, 0x00, 100, 0x0000, 0x00, 0x00, 0,
-                       0x08, 0x00, 0x00, 0x08, 0x00, 0x00, 0,
-                       0x08, 0x00, 0x00, 0x08, 0x00, 0x00, 0
+        hci_send_cmd(&hci_vs_write_codec_config, 64, 0x00, 1638, 0x0000, 0x00, 0x00, 0,
+                       16, 0x00, 0x00, 0x08, 0x00, 0x00, 0,
+                       16, 0x00, 0x00, 0x08, 0x00, 0x00, 0
                        );
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
+        hci_send_cmd(&hci_write_voice_setting, 0xE1);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_voice_setting)){
         hci_send_cmd(&hci_write_local_name, DEVICENAME);
         break;
       }

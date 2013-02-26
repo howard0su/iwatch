@@ -42,7 +42,7 @@
 #if defined __cplusplus
 extern "C" {
 #endif
-	
+
 /**
  * packet types - used in BTstack and over the H4 UART interface
  */
@@ -53,7 +53,7 @@ extern "C" {
 
 // extension for client/server communication
 #define DAEMON_EVENT_PACKET     0x05
-    
+
 // L2CAP data
 #define L2CAP_DATA_PACKET       0x06
 
@@ -65,11 +65,11 @@ extern "C" {
 
 // Security Manager protocol data
 #define SM_DATA_PACKET          0x09
-    
+
 // debug log messages
 #define LOG_MESSAGE_PACKET      0xfc
 
-    
+
 // Fixed PSM numbers
 #define PSM_SDP    0x01
 #define PSM_RFCOMM 0x03
@@ -115,7 +115,7 @@ extern "C" {
 #define HCI_SUBEVENT_LE_CONNECTION_UPDATE_COMPLETE         0x03
 #define HCI_SUBEVENT_LE_READ_REMOTE_USED_FEATURES_COMPLETE 0x04
 #define HCI_SUBEVENT_LE_LONG_TERM_KEY_REQUEST              0x05
-    
+
 // last used HCI_EVENT in 2.1 is 0x3d
 
 // events 0x50-0x5f are used internally
@@ -144,14 +144,14 @@ extern "C" {
 #define BTSTACK_EVENT_DISCOVERABLE_ENABLED			       0x66
 
 // L2CAP EVENTS
-	
-// data: event (8), len(8), status (8), address(48), handle (16), psm (16), local_cid(16), remote_cid (16), local_mtu(16), remote_mtu(16) 
+
+// data: event (8), len(8), status (8), address(48), handle (16), psm (16), local_cid(16), remote_cid (16), local_mtu(16), remote_mtu(16)
 #define L2CAP_EVENT_CHANNEL_OPENED                         0x70
 
 // data: event (8), len(8), channel (16)
 #define L2CAP_EVENT_CHANNEL_CLOSED                         0x71
 
-// data: event (8), len(8), address(48), handle (16), psm (16), local_cid(16), remote_cid (16) 
+// data: event (8), len(8), address(48), handle (16), psm (16), local_cid(16), remote_cid (16)
 #define L2CAP_EVENT_INCOMING_CONNECTION					   0x72
 
 // data: event(8), len(8), handle(16)
@@ -165,33 +165,33 @@ extern "C" {
 
 
 // RFCOMM EVENTS
-	
+
 // data: event(8), len(8), status (8), address (48), handle (16), server channel(8), rfcomm_cid(16), max frame size(16)
 #define RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE                 0x80
-	
+
 // data: event(8), len(8), rfcomm_cid(16)
 #define RFCOMM_EVENT_CHANNEL_CLOSED                        0x81
-	
+
 // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
 #define RFCOMM_EVENT_INCOMING_CONNECTION                   0x82
-	
+
 // data: event (8), len(8), rfcommid (16), ...
 #define RFCOMM_EVENT_REMOTE_LINE_STATUS                    0x83
-	
+
 // data: event(8), len(8), rfcomm_cid(16), credits(8)
 #define RFCOMM_EVENT_CREDITS			                   0x84
-	
-// data: event(8), len(8), status (8), rfcomm server channel id (8) 
+
+// data: event(8), len(8), status (8), rfcomm server channel id (8)
 #define RFCOMM_EVENT_SERVICE_REGISTERED                    0x85
-    
-// data: event(8), len(8), status (8), rfcomm server channel id (8) 
+
+// data: event(8), len(8), status (8), rfcomm server channel id (8)
 #define RFCOMM_EVENT_PERSISTENT_CHANNEL                    0x86
-    
-    
+
+
 // data: event(8), len(8), status(8), service_record_handle(32)
 #define SDP_SERVICE_REGISTERED                             0x90
 
-	
+
 // last error code in 2.1 is 0x38 - we start with 0x50 for BTstack errors
 
 #define BTSTACK_CONNECTION_TO_BTDAEMON_FAILED              0x50
@@ -219,19 +219,19 @@ extern "C" {
 #define L2CAP_CONFIG_RESPONSE_RESULT_REJECTED              0x68
 #define L2CAP_CONFIG_RESPONSE_RESULT_UNKNOWN_OPTIONS       0x69
 #define L2CAP_SERVICE_ALREADY_REGISTERED                   0x6a
-    
+
 #define RFCOMM_MULTIPLEXER_STOPPED                         0x70
 #define RFCOMM_CHANNEL_ALREADY_REGISTERED                  0x71
 #define RFCOMM_NO_OUTGOING_CREDITS                         0x72
 
 #define SDP_HANDLE_ALREADY_REGISTERED                      0x80
- 
+
 /**
  * Default INQ Mode
  */
 #define HCI_INQUIRY_LAP 0x9E8B33L  // 0x9E8B33: General/Unlimited Inquiry Access Code (GIAC)
 /**
- *  Hardware state of Bluetooth controller 
+ *  Hardware state of Bluetooth controller
  */
 typedef enum {
     HCI_POWER_OFF = 0,
@@ -240,7 +240,7 @@ typedef enum {
 } HCI_POWER_MODE;
 
 /**
- * State of BTstack 
+ * State of BTstack
  */
 typedef enum {
     HCI_STATE_OFF = 0,
@@ -251,7 +251,7 @@ typedef enum {
 	HCI_STATE_FALLING_ASLEEP
 } HCI_STATE;
 
-/** 
+/**
  * compact HCI Command packet description
  */
  typedef struct {
@@ -269,7 +269,7 @@ extern const hci_cmd_t btstack_get_system_bluetooth_enabled;
 extern const hci_cmd_t btstack_set_system_bluetooth_enabled;
 extern const hci_cmd_t btstack_set_discoverable;
 extern const hci_cmd_t btstack_set_bluetooth_enabled;    // only used by btstack config
-	
+
 extern const hci_cmd_t hci_accept_connection_request;
 extern const hci_cmd_t hci_authentication_requested;
 extern const hci_cmd_t hci_change_connection_link_key;
@@ -304,6 +304,7 @@ extern const hci_cmd_t hci_sniff_mode;
 extern const hci_cmd_t hci_switch_role_command;
 extern const hci_cmd_t hci_write_authentication_enable;
 extern const hci_cmd_t hci_write_class_of_device;
+extern const hci_cmd_t hci_write_voice_setting;
 extern const hci_cmd_t hci_write_extended_inquiry_response;
 extern const hci_cmd_t hci_write_inquiry_mode;
 extern const hci_cmd_t hci_write_le_host_supported;
@@ -377,9 +378,9 @@ extern const hci_cmd_t rfcomm_register_service;
 extern const hci_cmd_t rfcomm_register_service_with_initial_credits;
 // unregister rfcomm service, @param service_channel(16)
 extern const hci_cmd_t rfcomm_unregister_service;
-// request persisten rfcomm channel for service name: serive name (char*) 
+// request persisten rfcomm channel for service name: serive name (char*)
 extern const hci_cmd_t rfcomm_persistent_channel_for_service;
-    
+
 #if defined __cplusplus
 }
 #endif

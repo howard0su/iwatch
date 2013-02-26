@@ -474,7 +474,7 @@ static void event_handler(uint8_t *packet, int size){
 			device_type = READ_BT_32(packet, 8) & 0x00ffffff;
             link_type = packet[11];
             log_info("Connection_incoming: %s, type %u device_type:%lu \n", bd_addr_to_str(addr), link_type, device_type);
-            if (link_type == 1 || link_type == 0) { // ACL or SCO
+            if (link_type < 3) { // ACL or SCO or eSCO
                 conn = connection_for_address(addr, link_type);
                 if (!conn) {
                     conn = create_connection_for_addr(addr, link_type);
@@ -1051,17 +1051,18 @@ void hci_run(){
         connection = (hci_connection_t *) it;
 
         if (connection->state == RECEIVED_CONNECTION_REQUEST){
-			if (connection->type == 0 || connection->type == 1)
-			{
-            	log_info("sending hci_accept_connection_request\n");
-            	hci_send_cmd(&hci_accept_connection_request, connection->address, 1);
-			}
-			else if (connection->type == 2)
-			{
-            	log_info("hci_accept_synchronous_connection\n");
-				hci_send_cmd(&hci_accept_synchronous_connection, connection->address, 1);
-			}
-            connection->state = ACCEPTED_CONNECTION_REQUEST;
+          if (connection->type == 0 || connection->type == 1)
+          {
+            log_info("sending hci_accept_connection_request\n");
+            hci_send_cmd(&hci_accept_connection_request, connection->address, 1);
+          }
+          else if (connection->type == 2)
+          {
+            log_info("hci_accept_synchronous_connection\n");
+            hci_send_cmd(&hci_accept_synchronous_connection, connection->address, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF,
+                         0xE1, 0x01, 0xFFFF);
+          }
+          connection->state = ACCEPTED_CONNECTION_REQUEST;
         }
 
         if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;

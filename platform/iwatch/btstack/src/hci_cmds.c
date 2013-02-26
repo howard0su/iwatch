@@ -59,11 +59,11 @@
  *   S: Service Record (Data Element Sequence)
  */
 uint16_t hci_create_cmd_internal(uint8_t *hci_cmd_buffer, const hci_cmd_t *cmd, va_list argptr){
-    
+
     hci_cmd_buffer[0] = cmd->opcode & 0xff;
     hci_cmd_buffer[1] = cmd->opcode >> 8;
     int pos = 3;
-    
+
     const char *format = cmd->format;
     uint16_t word;
     uint32_t longword;
@@ -81,7 +81,7 @@ uint16_t hci_create_cmd_internal(uint8_t *hci_cmd_buffer, const hci_cmd_t *cmd, 
                     // TODO implement opaque client connection handles
                     //      pass module handle for now
                     hci_cmd_buffer[pos++] = word >> 8;
-                } 
+                }
                 break;
             case '3':
             case '4':
@@ -167,7 +167,7 @@ uint16_t hci_create_cmd(uint8_t *hci_cmd_buffer, hci_cmd_t *cmd, ...){
 
 
 /**
- *  Link Control Commands 
+ *  Link Control Commands
  */
 const hci_cmd_t hci_inquiry = {
 OPCODE(OGF_LINK_CONTROL, 0x01), "311"
@@ -239,7 +239,7 @@ OPCODE(OGF_LINK_CONTROL, 0x29), "B442212"
 };
 
 /**
- *  Link Policy Commands 
+ *  Link Policy Commands
  */
 const hci_cmd_t hci_sniff_mode = {
 OPCODE(OGF_LINK_POLICY, 0x03), "H2222"
@@ -260,7 +260,7 @@ OPCODE(OGF_LINK_POLICY, 0x0b), "B1"
 };
 const hci_cmd_t hci_read_link_policy_settings = {
 OPCODE(OGF_LINK_POLICY, 0x0c), "H"
-// handle 
+// handle
 };
 const hci_cmd_t hci_write_link_policy_settings = {
 OPCODE(OGF_LINK_POLICY, 0x0d), "H2"
@@ -268,7 +268,7 @@ OPCODE(OGF_LINK_POLICY, 0x0d), "H2"
 };
 
 /**
- *  Controller & Baseband Commands 
+ *  Controller & Baseband Commands
  */
 const hci_cmd_t hci_set_event_mask = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x01), "44"
@@ -300,6 +300,10 @@ OPCODE(OGF_CONTROLLER_BASEBAND, 0x20), "1"
 };
 const hci_cmd_t hci_write_class_of_device = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x24), "3"
+// Class of Device
+};
+const hci_cmd_t hci_write_voice_setting = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x26), "2"
 // Class of Device
 };
 const hci_cmd_t hci_read_num_broadcast_retransmissions = {
@@ -504,7 +508,7 @@ OPCODE(OGF_LE_CONTROLLER, 0x16), "H"
 const hci_cmd_t hci_le_encrypt = {
 OPCODE(OGF_LE_CONTROLLER, 0x17), "PP"
 // param: key (128) for AES-128
-// param: plain text (128) 
+// param: plain text (128)
 // return: status, encrypted data (128)
 };
 const hci_cmd_t hci_le_rand = {
@@ -559,7 +563,7 @@ const hci_cmd_t hci_le_test_end = {
 // BTstack commands
 const hci_cmd_t btstack_get_state = {
 OPCODE(OGF_BTSTACK, BTSTACK_GET_STATE), ""
-// no params -> 
+// no params ->
 };
 
 const hci_cmd_t btstack_set_power_mode = {
