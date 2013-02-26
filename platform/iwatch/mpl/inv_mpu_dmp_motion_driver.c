@@ -1153,11 +1153,9 @@ static int decode_gesture(unsigned char *gesture)
 {
     unsigned char tap, android_orient;
 
-    android_orient = gesture[3] & 0xC0;
-    tap = 0x3F & gesture[3];
-
     if (gesture[1] & INT_SRC_TAP) {
         unsigned char direction, count;
+        tap = 0x3F & gesture[3];
         direction = tap >> 3;
         count = (tap % 8) + 1;
         if (dmp.tap_cb)
@@ -1165,6 +1163,7 @@ static int decode_gesture(unsigned char *gesture)
     }
 
     if (gesture[1] & INT_SRC_ANDROID_ORIENT) {
+        android_orient = gesture[3] & 0xC0;
         if (dmp.android_orient_cb)
             dmp.android_orient_cb(android_orient >> 6);
     }
