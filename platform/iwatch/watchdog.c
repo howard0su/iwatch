@@ -50,7 +50,7 @@ ISR(WDT, watchdog_interrupt)
 
   ptr = &dummy;
   printf("Watchdog reset");
-  printf("\nStack at 0x%lx:\n", ptr);
+  printf("\nStack at 0x%x:\n", ptr);
 
   for(i = 0; i < 32; ++i) {
     printf("%x", ptr[i]);
