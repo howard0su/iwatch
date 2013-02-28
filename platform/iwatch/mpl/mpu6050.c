@@ -4,7 +4,7 @@
 #include "contiki.h"
 #include "i2c.h"
 #include "sys/etimer.h"
-
+#include "dev/watchdog.h"
 #include <stdio.h>
 
 #include "inv_mpu.h"
@@ -22,16 +22,20 @@
 PROCESS(mpu6050_process, "MPU6050 Driver");
 
 /* Starting sampling rate. */
-#define DEFAULT_MPU_HZ  (20)
+#define DEFAULT_MPU_HZ  (10)
+
+static struct etimer timer;
 
 static void tap_cb(unsigned char direction, unsigned char count)
 {
   printf("tab detected dir=%d, count=%d\n", direction, count);
+  etimer_restart(&timer);
 }
 
 static void android_orient_cb(unsigned char orientation)
 {
   printf("orient changed %d\n", orientation);
+  etimer_restart(&timer);
 }
 
 /* The sensors can be mounted onto the board in any orientation. The mounting
@@ -120,11 +124,11 @@ void mpu6050_init()
   /* Wake up all sensors. */
   mpu_set_sensors(INV_XYZ_ACCEL); //INV_XYZ_GYRO
   /* Push both gyro and accel data into the FIFO. */
-  mpu_configure_fifo(INV_XYZ_ACCEL);
+  mpu_configure_fifo(INV_XYZ_ACCEL); //INV_XYZ_GYRO
   mpu_set_sample_rate(DEFAULT_MPU_HZ);
   /* Read back configuration in case it was set improperly. */
   mpu_get_sample_rate(&gyro_rate);
-  //mpu_get_gyro_fsr(&gyro_fsr);
+  mpu_get_gyro_fsr(&gyro_fsr);
   mpu_get_accel_fsr(&accel_fsr);
 
   /* To initialize the DMP:
@@ -162,7 +166,7 @@ void mpu6050_init()
                       inv_orientation_matrix_to_scalar(gyro_orientation));
   dmp_register_tap_cb(tap_cb);
   dmp_register_android_orient_cb(android_orient_cb);
-  uint8_t dmp_features = DMP_FEATURE_SEND_RAW_ACCEL;
+  uint8_t dmp_features = DMP_FEATURE_TAP | DMP_FEATURE_ANDROID_ORIENT;
   dmp_enable_feature(dmp_features);
   dmp_set_fifo_rate(DEFAULT_MPU_HZ);
   mpu_set_dmp_state(1);
@@ -204,19 +208,30 @@ int port1_pin6()
   return 1;
 }
 
+static enum {STATE_RUNNING, STATE_SLEEP} state = STATE_RUNNING;
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
   PROCESS_BEGIN();
+  etimer_set(&timer, CLOCK_SECOND * 10);
   printf("mpu driver starts...\n");
   while(1)
   {
     PROCESS_WAIT_EVENT();
+    // initialize I2C bus
+    I2C_addr(MPU6050_ADDR);
     if (ev == PROCESS_EVENT_POLL)
     {
       short gyro[3], accel[3], sensors;
       unsigned char more;
       unsigned long sensor_timestamp;
       long quat[4];
+
+      if (state == STATE_SLEEP)
+      {
+        //mpu_lp_motion_interrupt(0, 0, 0);
+        state = STATE_RUNNING;
+      }
+
       /* This function gets new data from the FIFO when the DMP is in
       * use. The FIFO can contain any combination of gyro, accel,
       * quaternion, and gesture data. The sensors parameter tells the
@@ -229,13 +244,20 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       * registered). The more parameter is non-zero if there are
       * leftover packets in the FIFO.
       */
-      more = 1;
-      while(more)
+      do
       {
         dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
                       &more);
         //printf("read one data\n");
-      }
+      }while(more);
+    }
+    else if (ev == PROCESS_EVENT_TIMER)
+    {
+      printf("enter sleep mode\n");
+      state = STATE_SLEEP;
+      watchdog_stop();
+      //mpu_lp_motion_interrupt(500, 1, 5);
+      watchdog_start();
     }
   }
 
