@@ -101,9 +101,6 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
-  process_start(&sensors_process, NULL);
-  //SENSORS_ACTIVATE(button_sensor);
-
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 

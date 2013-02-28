@@ -159,8 +159,8 @@ struct hfp_cind {
 	int roam;	/*!< roaming indicator */
 	int battchg;	/*!< battery charge indicator */
 }cind_map;
-uint8_t cind_index[16];
-uint8_t cind_state[16];
+static uint8_t cind_index[16];
+static uint8_t cind_state[16];
 
 static void handle_CIND0(char* buf)
 {
