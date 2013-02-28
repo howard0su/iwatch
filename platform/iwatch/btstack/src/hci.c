@@ -272,6 +272,8 @@ static void acl_handler(uint8_t *packet, int size){
     uint8_t  acl_flags          = READ_ACL_FLAGS(packet);
     uint16_t acl_length         = READ_ACL_LENGTH(packet);
 
+    hci_dump_packet( HCI_ACL_DATA_PACKET, 0, packet, size);
+
     // ignore non-registered handle
     if (!conn){
         log_error( "hci.c: acl_handler called with non-registered handle %u!\n" , con_handle);
@@ -296,8 +298,8 @@ static void acl_handler(uint8_t *packet, int size){
             memcpy(&conn->acl_recombination_buffer[conn->acl_recombination_pos], &packet[4], acl_length );
             conn->acl_recombination_pos += acl_length;
 
-            // log_error( "ACL Cont Fragment: acl_len %u, combined_len %u, l2cap_len %u\n", acl_length,
-            //        conn->acl_recombination_pos, conn->acl_recombination_length);
+            log_error( "ACL Cont Fragment: acl_len %u, combined_len %u, l2cap_len %u\n", acl_length,
+                    conn->acl_recombination_pos, conn->acl_recombination_length);
 
             // forward complete L2CAP packet if complete.
             if (conn->acl_recombination_pos >= conn->acl_recombination_length + 4 + 4){ // pos already incl. ACL header
@@ -320,7 +322,7 @@ static void acl_handler(uint8_t *packet, int size){
             // peek into L2CAP packet!
             uint16_t l2cap_length = READ_L2CAP_LENGTH( packet );
 
-            // log_error( "ACL First Fragment: acl_len %u, l2cap_len %u\n", acl_length, l2cap_length);
+            log_error( "ACL First Fragment: acl_len %u, l2cap_len %u\n", acl_length, l2cap_length);
 
             // compare fragment size to L2CAP packet size
             if (acl_length >= l2cap_length + 4){
@@ -409,6 +411,8 @@ static void event_handler(uint8_t *packet, int size){
     int i;
 
     // printf("HCI:EVENT:%02x\n", packet[0]);
+    hci_dump_packet( HCI_EVENT_PACKET, 0, packet, size);
+
 
     switch (packet[0]) {
 
@@ -474,7 +478,7 @@ static void event_handler(uint8_t *packet, int size){
 			device_type = READ_BT_32(packet, 8) & 0x00ffffff;
             link_type = packet[11];
             log_info("Connection_incoming: %s, type %u device_type:%lu \n", bd_addr_to_str(addr), link_type, device_type);
-            if (link_type < 3) { // ACL or SCO or eSCO
+            if (link_type == 0 || link_type == 1) { // ACL or SCO
                 conn = connection_for_address(addr, link_type);
                 if (!conn) {
                     conn = create_connection_for_addr(addr, link_type);
@@ -493,11 +497,11 @@ static void event_handler(uint8_t *packet, int size){
                 BD_ADDR_COPY(hci_stack.decline_addr, addr);
             }
             break;
-
+        case HCI_EVENT_SYNCHRONOUS_CONNECTION_COMPLETE:
         case HCI_EVENT_CONNECTION_COMPLETE:
             // Connection management
             bt_flip_addr(addr, &packet[5]);
-			link_type = packet[11];
+            link_type = packet[11];
             log_info("Connection_complete (status=%u, type=%u) %s\n", packet[2], link_type, bd_addr_to_str(addr));
             conn = connection_for_address(addr, link_type);
             if (conn) {
@@ -682,7 +686,7 @@ static void event_handler(uint8_t *packet, int size){
 	hci_run();
 }
 
-void packet_handler(uint8_t packet_type, uint8_t *packet, uint16_t size){
+static void packet_handler(uint8_t packet_type, uint8_t *packet, uint16_t size){
     switch (packet_type) {
         case HCI_EVENT_PACKET:
             event_handler(packet, size);
@@ -1051,12 +1055,12 @@ void hci_run(){
         connection = (hci_connection_t *) it;
 
         if (connection->state == RECEIVED_CONNECTION_REQUEST){
-          if (connection->type == 0 || connection->type == 1)
+          if (connection->type == 1 || connection->type == 0)
           {
             log_info("sending hci_accept_connection_request\n");
             hci_send_cmd(&hci_accept_connection_request, connection->address, 1);
           }
-          else if (connection->type == 2)
+          else if (connection->type == 2) // SCO or eSCO
           {
             log_info("hci_accept_synchronous_connection\n");
             hci_send_cmd(&hci_accept_synchronous_connection, connection->address, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF,
@@ -1253,6 +1257,7 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
     hci_connection_t * conn;
 	uint8_t link_type;
     // house-keeping
+    hci_dump_packet( HCI_COMMAND_DATA_PACKET, 0, packet, size);
 
     // create_connection?
     if (IS_COMMAND(packet, hci_create_connection)){

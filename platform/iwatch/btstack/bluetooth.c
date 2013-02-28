@@ -164,7 +164,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
-        hci_send_cmd(&hci_write_voice_setting, 0xE1);
+        hci_send_cmd(&hci_write_voice_setting, 0x0060);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_voice_setting)){
@@ -172,6 +172,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
+        hci_send_cmd(&hci_write_class_of_device, 0x7C0704);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
       }
       break;

@@ -51,13 +51,15 @@
 #ifndef EMBEDDED
 #include <fcntl.h>        // open
 #include <arpa/inet.h>    // hton..
-#include <unistd.h>       // write 
+#include <unistd.h>       // write
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>     // for timestamps
 #include <sys/stat.h>     // for mode flags
 #include <stdarg.h>       // for va_list
 #endif
+
+#define DUMP 1
 
 // BLUEZ hcidump
 typedef struct {
@@ -70,7 +72,7 @@ typedef struct {
 }
 #ifdef __GNUC__
 __attribute__ ((packed))
-#endif 
+#endif
 hcidump_hdr;
 
 // APPLE PacketLogger
@@ -87,7 +89,6 @@ pktlog_hdr;
 
 #ifndef EMBEDDED
 static int dump_file = -1;
-static int dump_format;
 static hcidump_hdr header_bluez;
 static pktlog_hdr  header_packetlogger;
 static char time_string[40];
@@ -95,6 +96,7 @@ static int  max_nr_packets = -1;
 static int  nr_packets = 0;
 static char log_message_buffer[256];
 #endif
+static int dump_format = HCI_DUMP_STDOUT;
 
 void hci_dump_open(char *filename, hci_dump_format_t format){
 #ifndef EMBEDDED
@@ -113,6 +115,7 @@ void hci_dump_set_max_packets(int packets){
 }
 #endif
 
+#if DUMP
 void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t len) {
 #ifndef EMBEDDED
 
@@ -127,14 +130,16 @@ void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t 
         }
         nr_packets++;
     }
-    
+
     // get time
     struct timeval curr_time;
     struct tm* ptm;
     gettimeofday(&curr_time, NULL);
-    
+#endif
+
     switch (dump_format){
         case HCI_DUMP_STDOUT: {
+#ifndef EMBEDDED
             /* Obtain the time of day, and convert it to a tm struct. */
             ptm = localtime (&curr_time.tv_sec);
             /* Format the date and time, down to a single second. */
@@ -144,6 +149,7 @@ void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t 
             /* Print the formatted time, in seconds, followed by a decimal point
              and the milliseconds. */
             printf ("%s.%03u] ", time_string, milliseconds);
+#endif
             switch (packet_type){
                 case HCI_COMMAND_DATA_PACKET:
                     printf("CMD => ");
@@ -169,7 +175,7 @@ void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t 
             hexdump(packet, len);
             break;
         }
-            
+#ifndef EMBEDDED
         case HCI_DUMP_BLUEZ:
             bt_store_16( (uint8_t *) &header_bluez.len, 0, 1 + len);
             header_bluez.in  = in;
@@ -180,7 +186,7 @@ void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t 
             write (dump_file, &header_bluez, sizeof(hcidump_hdr) );
             write (dump_file, packet, len );
             break;
-            
+
         case HCI_DUMP_PACKETLOGGER:
             header_packetlogger.len = htonl( sizeof(pktlog_hdr) - 4 + len);
             header_packetlogger.ts_sec =  htonl(curr_time.tv_sec);
@@ -208,13 +214,15 @@ void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t 
             write (dump_file, &header_packetlogger, sizeof(pktlog_hdr) );
             write (dump_file, packet, len );
             break;
-            
+#endif
         default:
             break;
     }
-#endif
 }
-
+#else
+void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t len) {
+}
+#endif
 void hci_dump_log(const char * format, ...){
 #ifndef EMBEDDED
     va_list argptr;
@@ -222,7 +230,7 @@ void hci_dump_log(const char * format, ...){
     int len = vsnprintf(log_message_buffer, sizeof(log_message_buffer), format, argptr);
     hci_dump_packet(LOG_MESSAGE_PACKET, 0, (uint8_t*) log_message_buffer, len);
     va_end(argptr);
-#endif    
+#endif
 }
 
 void hci_dump_close(){

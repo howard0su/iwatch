@@ -46,7 +46,7 @@ extern "C" {
 /**
  * packet types - used in BTstack and over the H4 UART interface
  */
-#define HCI_COMMAND_DATA_PACKET	0x01
+#define HCI_COMMAND_DATA_PACKET	    0x01
 #define HCI_ACL_DATA_PACKET	    0x02
 #define HCI_SCO_DATA_PACKET	    0x03
 #define HCI_EVENT_PACKET	    0x04
@@ -106,6 +106,7 @@ extern "C" {
 #define HCI_EVENT_READ_CLOCK_OFFSET_COMPLETE               0x1C
 #define HCI_EVENT_PACKET_TYPE_CHANGED                      0x1D
 #define HCI_EVENT_INQUIRY_RESULT_WITH_RSSI		      	   0x22
+#define HCI_EVENT_SYNCHRONOUS_CONNECTION_COMPLETE               0x2c
 #define HCI_EVENT_EXTENDED_INQUIRY_RESPONSE                0x2F
 #define HCI_EVENT_LE_META                                  0x3E
 #define HCI_EVENT_VENDOR_SPECIFIC				           0xFF

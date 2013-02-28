@@ -92,7 +92,7 @@ typedef struct hci_transport_h4 {
 
 // prototypes
 static int  h4_process(struct data_source *ds);
-static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size); 
+static void dummy_handler(uint8_t packet_type, uint8_t *packet, uint16_t size);
 static void h4_block_received(void);
 static void h4_block_sent(void);
 static int  h4_open(void *transport_config);
@@ -111,7 +111,7 @@ static void ehcill_cts_irq_handler();
 // eCHILL: state machine
 static EHCILL_STATE ehcill_state = EHCILL_STATE_AWAKE;
 static uint8_t *    ehcill_defer_rx_buffer;
-static uint16_t     ehcill_defer_rx_size = 0; 
+static uint16_t     ehcill_defer_rx_size = 0;
 static uint8_t      ehcill_command_to_send;
 
 // H4: packet reader state machine
@@ -153,7 +153,7 @@ static const char * h4_get_transport_name(){
 }
 
 // get h4 singleton
-hci_transport_t * hci_transport_h4_dma_instance() { 
+hci_transport_t * hci_transport_h4_dma_instance() {
     return (hci_transport_t *) &hci_transport_h4_ehcill_dma;
 }
 
@@ -175,10 +175,10 @@ static int h4_open(void *transport_config){
     hal_uart_dma_set_block_received(h4_block_received);
     hal_uart_dma_set_block_sent(h4_block_sent);
     hal_uart_dma_set_csr_irq_handler(ehcill_cts_irq_handler);
-    
+
 	// set up data_source
     run_loop_add_data_source(&hci_transport_h4_dma_ds);
-    
+
     // init state machiens
     h4_rx_init_sm();
     tx_state = TX_IDLE;
@@ -194,19 +194,19 @@ static int h4_set_baudrate(uint32_t baudrate){
 static int h4_close(){
     // first remove run loop handler
 	run_loop_remove_data_source(&hci_transport_h4_dma_ds);
-    
+
     // stop IRQ
     hal_uart_dma_set_csr_irq_handler(NULL);
-    
-    // close device 
+
+    // close device
     // ...
     return 0;
 }
 
 static void h4_block_received(void){
-    
+
     read_pos += bytes_to_read;
-    
+
     // act
     switch (h4_state) {
         case H4_W4_PACKET_TYPE:
@@ -234,39 +234,39 @@ static void h4_block_received(void){
                     break;
             }
             break;
-            
+
         case H4_W4_EVENT_HEADER:
             bytes_to_read = hci_packet[2];
             if (bytes_to_read) {
                 h4_state = H4_W4_PAYLOAD;
                 break;
             }
-            h4_state = H4_PACKET_RECEIVED; 
+            h4_state = H4_PACKET_RECEIVED;
             break;
-            
+
         case H4_W4_ACL_HEADER:
             bytes_to_read = READ_BT_16( hci_packet, 3);
             if (bytes_to_read) {
                 h4_state = H4_W4_PAYLOAD;
                 break;
             }
-            h4_state = H4_PACKET_RECEIVED; 
+            h4_state = H4_PACKET_RECEIVED;
             break;
-            
+
         case H4_W4_PAYLOAD:
             h4_state = H4_PACKET_RECEIVED;
             bytes_to_read = 0;
-            
+
             // trigger run loop - necessary for use in low power modes
             embedded_trigger();
             break;
-            
+
         default:
             bytes_to_read = 0;
             break;
     }
 
-    
+
     // read next block
     if (bytes_to_read) {
         ehcill_uart_dma_receive_block(&hci_packet[read_pos], bytes_to_read);
@@ -275,7 +275,7 @@ static void h4_block_received(void){
 
 static int h4_can_send_packet_now(uint8_t packet_type){
     return tx_state == TX_IDLE;
-    
+
 }
 
 static void h4_block_sent(void){
@@ -323,7 +323,7 @@ static void dump(uint8_t *data, uint16_t len){
 #endif
 
 static int h4_process(struct data_source *ds) {
-    
+
     // notify about packet sent
     if (tx_state == TX_DONE){
         // reset state
@@ -333,17 +333,17 @@ static int h4_process(struct data_source *ds) {
     }
 
     if (h4_state != H4_PACKET_RECEIVED) return 0;
-        
+
     // log packet
 #ifdef DUMP
     printf("RX: ");
     dump(hci_packet, read_pos);
 #endif
-    
+
     packet_handler(hci_packet[0], &hci_packet[1], read_pos-1);
 
     h4_rx_init_sm();
-                                
+
     return 0;
 }
 
@@ -374,67 +374,67 @@ static void ehcill_schedule_ecill_command(uint8_t command){
 
 static void ehcill_handle(uint8_t action){
     int size;
-    
+
     // printf("ehcill_handle: %x, state %u, defer_rx %u \n\r", action, ehcill_state, ehcill_defer_rx_size);
     switch(ehcill_state){
         case EHCILL_STATE_AWAKE:
             switch(action){
                 case EHCILL_GO_TO_SLEEP_IND:
-                    
+
                     // 1. set RTS high - already done by BT RX ISR
                     // 2. enable CTS   - CTS always enabled
-                    
+
                     ehcill_state = EHCILL_STATE_SLEEP;
-                    log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
+                    //log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
                     ehcill_schedule_ecill_command(EHCILL_GO_TO_SLEEP_ACK);
                     break;
-                    
+
                 default:
                     break;
             }
             break;
-            
+
         case EHCILL_STATE_SLEEP:
             switch(action){
                 case EHCILL_CTS_SIGNAL:
-                    
+
                     // re-activate rx (also clears RTS)
                     if (!ehcill_defer_rx_size) break;
-                    
+
                     // UART needed again
                     hal_uart_dma_set_sleep(0);
 
-                    log_info ("Re-activate rx\n");
+                    //log_info ("Re-activate rx\n");
                     size = ehcill_defer_rx_size;
                     ehcill_defer_rx_size = 0;
                     hal_uart_dma_receive_block(ehcill_defer_rx_buffer, size);
                     break;
-                    
+
                 case EHCILL_WAKE_UP_IND:
-                    
+
                     ehcill_state = EHCILL_STATE_AWAKE;
-                    log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
+                    //log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
                     ehcill_schedule_ecill_command(EHCILL_WAKE_UP_ACK);
                     break;
-                    
+
                 default:
                     break;
             }
             break;
-            
+
         case EHCILL_STATE_W4_ACK:
             switch(action){
                 case EHCILL_WAKE_UP_IND:
                 case EHCILL_WAKE_UP_ACK:
-                    
+
                     log_info("RX: EHCILL_WAKE_UP_IND or ACK\n");
 
                     tx_state = TX_W4_HEADER_SENT;
                     hal_uart_dma_send_block(&tx_packet_type, 1);
                     ehcill_state = EHCILL_STATE_AWAKE;
-                    
+
                     break;
-                    
+
                 default:
                     break;
             }
@@ -443,46 +443,46 @@ static void ehcill_handle(uint8_t action){
 }
 
 static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
-    
+
     // write in progress
     if (tx_state != TX_IDLE) {
         log_error("h4_send_packet with tx_state = %u, type %u, data %02x %02x %02x\n", tx_state, packet_type, packet[0], packet[1], packet[2]);
         return -1;
     }
-    
+
 #ifdef DUMP
     printf("TX: %02x ", packet_type);
     dump(packet, size);
 #endif
-    
+
     tx_packet_type = packet_type;
     tx_data = packet;
     tx_len  = size;
-    
+
     if (!ehcill_sleep_mode_active()){
         tx_state = TX_W4_HEADER_SENT;
         hal_uart_dma_send_block(&packet_type, 1);
         return 0;
     }
-    
+
     // UART needed again
     hal_uart_dma_set_sleep(0);
 
     // update state
     tx_state     = TX_W4_WAKEUP;
     ehcill_state = EHCILL_STATE_W4_ACK;
-    
+
     // wake up
     log_info("RX: SLEEP\n");
     log_info("TX: EHCILL_WAKE_UP_IND\n");
     ehcill_command_to_send = EHCILL_WAKE_UP_IND;
     hal_uart_dma_send_block(&ehcill_command_to_send, 1);
-    
+
     if (!ehcill_defer_rx_size){
         log_error("ERROR: NO RX REQUEST PENDING\n");
         return 0;
     }
-    
+
     // receive request, clears RTS
     int rx_size = ehcill_defer_rx_size;
     ehcill_defer_rx_size = 0;
@@ -496,7 +496,7 @@ void ehcill_uart_dma_receive_block(uint8_t *buffer, uint16_t size){
         hal_uart_dma_receive_block(buffer, size);
         return;
     }
-    
+
     // store receive request for later
     ehcill_defer_rx_buffer = buffer;
     ehcill_defer_rx_size   = size;
