@@ -3,91 +3,114 @@
 #include "lib/sensors.h"
 #include "isr_compat.h"
 #include "button.h"
+#include "window.h"
+
+#define DEBOUNCE_PERIOD CLOCK_SECOND/4
+#define LONGPRESS_PERIOD CLOCK_SECOND
 
 const struct sensors_sensor button_sensor;
 static int status(int type);
 
 struct _button_def
 {
-  unsigned char bitmask;
+  uint8_t bitmask;
+  uint8_t released;
   struct timer debouncetimer;
+  struct timer longpresstimer;
 }buttons[] =
 {
   {BIT0},{BIT1}, {BIT2}, {BIT6}
 };
 
-static int
-value(int type)
+PROCESS(button_process, "Button Driver");
+
+void button_init()
 {
-  if (type >= 0 && type <4)
+  process_start(&button_process, NULL);
+
+  uint8_t x = splhigh();
+  uint8_t i;
+  for(i = 0; i < 4; i++)
   {
-    return (P2IN & buttons[type].bitmask) || !timer_expired(&buttons[type].debouncetimer);
+    // INPUT
+    P2DIR &= ~(buttons[i].bitmask);
+    P2SEL &= ~(buttons[i].bitmask);
+
+    // ENABLE INT
+    P2IES |= buttons[i].bitmask;
+
+    // pullup in dev board
+    P2REN |= buttons[i].bitmask;
+    P2OUT |= buttons[i].bitmask;
+    P2IFG &= ~(buttons[i].bitmask);
+
+    P2IE |= buttons[i].bitmask;
   }
-  else
-  {
-    return 0;
-  }
+
+  splx(x);
 }
 
-static int
-configure(int type, int c)
+static void inline poll_button()
 {
-  int i;
-  switch (type) {
-  case SENSORS_HW_INIT:
+  process_poll(&button_process);
+}
+
+PROCESS_THREAD(button_process, ev, data)
+{
+  PROCESS_BEGIN();
+  while(1)
+  {
+    PROCESS_WAIT_EVENT();
+    if (ev == PROCESS_EVENT_POLL)
     {
+      uint8_t i;
       for(i = 0; i < 4; i++)
       {
-        // INPUT
-        //P2DIR &= ~(buttons[i].bitmask);
-        //P2SEL &= ~(buttons[i].bitmask);
-
-        // ENABLE INT
-        P2IFG &= ~(buttons[i].bitmask);
-        P2IES |= buttons[i].bitmask;
-
-        // pulldown in dev board
-#warning change in release board
-        P2REN |= buttons[i].bitmask;
-        P2OUT &= ~(buttons[i].bitmask);
+        if (P2IFG & buttons[i].bitmask)
+        {
+          // key is released
+          P2IFG &= ~buttons[i].bitmask;
+          P2IE |= ~(buttons[i].bitmask);
+          if (timer_expired(&buttons[i].longpresstimer))
+          {
+            process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
+          }
+          else
+          {
+            process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+          }
+        }
       }
-      break;
     }
-  case SENSORS_ACTIVE:
-    if (c) {
-      if(!status(SENSORS_ACTIVE)) {
-        int s = splhigh();
-        for(i = 0; i < 4; i++)
-          P2IE |= buttons[i].bitmask;
-        splx(s);
-      }
-    } else {
-      for(i = 0; i < 4; i++)
-        P2IE &= ~(buttons[i].bitmask);
-    }
-    return 1;
   }
-  return 0;
-}
-
-static int
-status(int type)
-{
-  switch (type) {
-  case SENSORS_ACTIVE:
-  case SENSORS_READY:
-    return P2IE & buttons[1].bitmask;
-  }
-  return 0;
+  PROCESS_END();
 }
 
 static int port2_button(int i)
 {
-  timer_set(&buttons[i].debouncetimer, CLOCK_SECOND/4);
-  P2IFG &= ~(buttons[i].bitmask);
-  sensors_changed(&button_sensor);
+  if (P2IES & buttons[i].bitmask)
+  {
+    timer_set(&buttons[i].debouncetimer, DEBOUNCE_PERIOD);
+    timer_set(&buttons[i].longpresstimer, LONGPRESS_PERIOD);
+    P2IES ^= buttons[i].bitmask;
+    P2IFG &= ~(buttons[i].bitmask);
+  }
+  else
+  {
+    P2IES ^= buttons[i].bitmask;
+    if (timer_expired(&buttons[i].debouncetimer))
+    {
+      P2IE &= ~(buttons[i].bitmask);
+      poll_button();
+      return 1;
+    }
+    else
+    {
+      P2IFG &= ~buttons[i].bitmask;
+    }
+  }
 
-  return 1;
+  return 0;
 }
 
 int port2_pin0()
@@ -109,6 +132,3 @@ int port2_pin6()
 {
   return port2_button(3);
 }
-
-SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
-	       value, configure, status);

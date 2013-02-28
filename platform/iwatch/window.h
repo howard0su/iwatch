@@ -8,7 +8,7 @@ extern struct process *ui_process;
 #define EVENT_WINDOW_CLOSING          0x91
 #define EVENT_WINDOW_CLOSED           0x92
 #define EVENT_KEY_PRESSED             0x93
-#define EVENT_KEY_LONG_PRESSED        0x94
+#define EVENT_KEY_LONGPRESSED         0x94
 
 /* Key name for key event */
 #define KEY_UP          0

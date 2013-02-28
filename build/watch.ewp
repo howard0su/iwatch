@@ -2692,7 +2692,7 @@
         </option>
         <option>
           <name>DoCrc</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CrcSize</name>
@@ -2879,7 +2879,7 @@
         <option>
           <name>CrcUnitSize</name>
           <version>0</version>
-          <state>0</state>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -3125,9 +3125,6 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\core\lib\print-stats.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\core\lib\sensors.c</name>
       </file>
     </group>
     <group>

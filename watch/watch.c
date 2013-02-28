@@ -89,6 +89,16 @@ void window_defproc(process_event_t ev, process_data_t data)
       process_post(PROCESS_CURRENT(), EVENT_BT_STATUS, (void*)bt_status);
       break;
     }
+  case EVENT_KEY_LONGPRESSED:
+    {
+      printf("Key Long Pressed: %d\n", (uint8_t)data);
+      break;
+    }
+  case EVENT_KEY_PRESSED:
+    {
+      printf("Key Pressed: %d\n", (uint8_t)data);
+      break;
+    }
   }
   return;
 }
@@ -103,8 +113,8 @@ PROCESS_THREAD(system_process, ev, data)
   PROCESS_BEGIN();
   ui_process = &analogclock_process;
 
+  button_init();
   rtc_init();
-  SENSORS_ACTIVATE(button_sensor);
 
   memlcd_DriverInit();
   {
@@ -123,39 +133,6 @@ PROCESS_THREAD(system_process, ev, data)
   mpu6050_init();
 
   process_start(ui_process, NULL);
-  print_stats();
-  while(1)
-  {
-    PROCESS_WAIT_EVENT();
-    if (ev == sensors_event)
-    {
-      printf("Key Changed %d, %d, %d, %d\n",
-             button_sensor.value(0),
-             button_sensor.value(1),
-             button_sensor.value(2),
-             button_sensor.value(3)
-               );
-      if (button_sensor.value(0) == 1)
-      {
-        if (ui_process != &menu_process)
-        {
-          window_open(&menu_process, NULL);
-        }
-        else
-        {
-          process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_UP);
-        }
-      }
-      if (button_sensor.value(1) == 1)
-      {
-        process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_DOWN);
-      }
-      if (button_sensor.value(2) == 1)
-      {
-        process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_ENTER);
-      }
-    }
-  }
 
   PROCESS_END();
 }
