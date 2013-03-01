@@ -59,7 +59,7 @@
 #include <stdarg.h>       // for va_list
 #endif
 
-#define DUMP 1
+//#define DUMP
 
 // BLUEZ hcidump
 typedef struct {
@@ -115,7 +115,7 @@ void hci_dump_set_max_packets(int packets){
 }
 #endif
 
-#if DUMP
+#ifdef DUMP
 void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t len) {
 #ifndef EMBEDDED
 
