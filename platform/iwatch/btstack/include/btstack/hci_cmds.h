@@ -117,7 +117,7 @@ extern "C" {
 #define HCI_SUBEVENT_LE_READ_REMOTE_USED_FEATURES_COMPLETE 0x04
 #define HCI_SUBEVENT_LE_LONG_TERM_KEY_REQUEST              0x05
 
-// last used HCI_EVENT in 2.1 is 0x3d
+// last used HCI_EVENT in 4.0 is 0x4b
 
 // events 0x50-0x5f are used internally
 
@@ -193,7 +193,7 @@ extern "C" {
 #define SDP_SERVICE_REGISTERED                             0x90
 
 
-// last error code in 2.1 is 0x38 - we start with 0x50 for BTstack errors
+// last error code in 4.0 is 0x3F - we start with 0x50 for BTstack errors
 
 #define BTSTACK_CONNECTION_TO_BTDAEMON_FAILED              0x50
 #define BTSTACK_ACTIVATION_FAILED_SYSTEM_BLUETOOTH		   0x51
