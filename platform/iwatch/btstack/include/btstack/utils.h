@@ -61,15 +61,15 @@ typedef uint8_t bd_addr_t[BD_ADDR_LEN];
  * @brief The link key type
  */
 #define LINK_KEY_LEN 16
-typedef uint8_t link_key_t[LINK_KEY_LEN]; 
+typedef uint8_t link_key_t[LINK_KEY_LEN];
 
 /**
  * @brief The device name type
  */
-#define DEVICE_NAME_LEN 248
-typedef uint8_t device_name_t[DEVICE_NAME_LEN+1]; 
-	
-	
+#define DEVICE_NAME_LEN 32
+typedef uint8_t device_name_t[DEVICE_NAME_LEN+1];
+
+
 // helper for BT little endian format
 #define READ_BT_16( buffer, pos) ( ((uint16_t) buffer[pos]) | (((uint16_t)buffer[pos+1]) << 8))
 #define READ_BT_24( buffer, pos) ( ((uint32_t) buffer[pos]) | (((uint32_t)buffer[pos+1]) << 8) | (((uint32_t)buffer[pos+2]) << 16))
@@ -114,7 +114,7 @@ void print_bd_addr( bd_addr_t addr);
 char * bd_addr_to_str(bd_addr_t addr);
 
 int sscan_bd_addr(uint8_t * addr_string, bd_addr_t addr);
-    
+
 uint8_t crc8_check(uint8_t *data, uint16_t len, uint8_t check_sum);
 uint8_t crc8_calc(uint8_t *data, uint16_t len);
 
@@ -124,4 +124,4 @@ uint8_t crc8_calc(uint8_t *data, uint16_t len);
 #if defined __cplusplus
 }
 #endif
-		
+
