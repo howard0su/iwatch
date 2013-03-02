@@ -5,17 +5,16 @@
 #include "button.h"
 #include "window.h"
 
-#define DEBOUNCE_PERIOD CLOCK_SECOND/4
-#define LONGPRESS_PERIOD CLOCK_SECOND
+#define DEBOUNCE_PERIOD CLOCK_SECOND/40
+#define LONGPRESS_PERIOD CLOCK_SECOND/2
 
 const struct sensors_sensor button_sensor;
-static int status(int type);
 
 struct _button_def
 {
   uint8_t bitmask;
-  uint8_t released;
-  struct timer debouncetimer;
+  uint8_t interrupted;
+  struct etimer debouncetimer;
   struct timer longpresstimer;
 }buttons[] =
 {
@@ -63,22 +62,51 @@ PROCESS_THREAD(button_process, ev, data)
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_POLL)
     {
-      uint8_t i;
-      for(i = 0; i < 4; i++)
+      // wait for debounce time
+      for(uint8_t i = 0; i < 4; i++)
       {
-        if (P2IFG & buttons[i].bitmask)
+        if (buttons[i].interrupted)
         {
-          // key is released
-          P2IFG &= ~buttons[i].bitmask;
-          P2IE |= ~(buttons[i].bitmask);
-          if (timer_expired(&buttons[i].longpresstimer))
+          etimer_set(&buttons[i].debouncetimer, DEBOUNCE_PERIOD);
+          buttons[i].interrupted = 0;
+        }
+      }
+    }
+    else if (ev == PROCESS_EVENT_TIMER)
+    {
+      for(uint8_t i = 0; i < 4; i++)
+      {
+        if (data == &buttons[i].debouncetimer)
+        {
+          // check if P2IES & P2IN is in sync
+          if ((P2IES & buttons[i].bitmask) ==
+              (P2IN & buttons[i].bitmask)
+                )
           {
-            process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
+            // not in sync
+            // sync with P2IN
+            P2IES |= (P2IN & buttons[i].bitmask);
+            P2IE |= buttons[i].bitmask;
+            continue;
+          }
+
+          if (P2IN & buttons[i].bitmask)
+          {
+            // key is released
+            if (timer_expired(&buttons[i].longpresstimer))
+            {
+              process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
+            }
+            else
+            {
+              process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+            }
           }
           else
-          {
-            process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
-          }
+            timer_set(&buttons[i].longpresstimer, CLOCK_SECOND);
+
+          P2IES ^= buttons[i].bitmask;
+          P2IE |= buttons[i].bitmask;
         }
       }
     }
@@ -88,29 +116,10 @@ PROCESS_THREAD(button_process, ev, data)
 
 static int port2_button(int i)
 {
-  if (P2IES & buttons[i].bitmask)
-  {
-    timer_set(&buttons[i].debouncetimer, DEBOUNCE_PERIOD);
-    timer_set(&buttons[i].longpresstimer, LONGPRESS_PERIOD);
-    P2IES ^= buttons[i].bitmask;
-    P2IFG &= ~(buttons[i].bitmask);
-  }
-  else
-  {
-    P2IES ^= buttons[i].bitmask;
-    if (timer_expired(&buttons[i].debouncetimer))
-    {
-      P2IE &= ~(buttons[i].bitmask);
-      poll_button();
-      return 1;
-    }
-    else
-    {
-      P2IFG &= ~buttons[i].bitmask;
-    }
-  }
-
-  return 0;
+  P2IE &= ~(buttons[i].bitmask);
+  buttons[i].interrupted = 1;
+  poll_button();
+  return 1;
 }
 
 int port2_pin0()
