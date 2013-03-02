@@ -41,7 +41,6 @@
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
-#include "lib/sensors.h"
 #include "sys/autostart.h"
 #include "sys/profile.h"
 #include "sys/ctimer.h"
@@ -50,10 +49,6 @@
 #include "power.h"
 
 /*--------------------------------------------------------------------------*/
-
-#include "dev/button-sensor.h"
-SENSORS(&button_sensor);
-
 #define DEBUG 1
 #if DEBUG
 #include <stdio.h>
