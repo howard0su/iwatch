@@ -46,10 +46,14 @@ static void xtoa(unsigned long x, const unsigned long *dp)
         putchar('0');
 }
 
-static void puth(unsigned n)
+static void puth(unsigned n, unsigned char format)
 {
+    static const char hexl[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
     static const char hex[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-    putchar(hex[n & 15]);
+    if (format == 'x')
+      putchar(hexl[n & 15]);
+    else
+      putchar(hex[n & 15]);
 }
 
 int printf(const char *format, ...)
@@ -57,16 +61,19 @@ int printf(const char *format, ...)
     char c;
     int i;
     long n;
+    int len;
 
     va_list a;
     va_start(a, format);
     while(c = *format++) {
+        len = 0;
         if(c == '%') {
      retry:
             switch(c = *format++) {
                 case '0':
                     if (*format >= '0' || *format <= '9')
                     {
+                        len = *format - '0';
                         format++;
                         goto retry;
                     }
@@ -97,10 +104,13 @@ int printf(const char *format, ...)
                 case 'X':
                 case 'x':                       // 16 bit heXadecimal
                     i = va_arg(a, int);
-                    puth(i >> 12);
-                    puth(i >> 8);
-                    puth(i >> 4);
-                    puth(i);
+                    if (len == 4 || len == 0)
+                    {
+                      puth(i >> 12, *format);
+                      puth(i >> 8, *format);
+                    }
+                    puth(i >> 4, *format);
+                    puth(i, *format);
                     break;
                 case 0: return 0;
                 default: goto bad_fmt;
