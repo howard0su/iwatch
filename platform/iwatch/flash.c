@@ -84,14 +84,14 @@ flash_done(void)
 static void
 unlock_infomem(void)
 {
-  FCTL4 = 0xa500;
+  FCTL4 = FWKEY;
   FCTL3 = 0xa540;
 }
 /*---------------------------------------------------------------------------*/
 static void
 lock_infomem(void)
 {
-  FCTL3 = 0xa540;
+  FCTL3 = FWKEY;
   FCTL4 = 0xa580;
 }
 /*---------------------------------------------------------------------------*/
@@ -105,7 +105,7 @@ flash_clear(unsigned short *ptr)
     unlock_infomem();
   }
 
-  FCTL3 = 0xa500;               /* Lock = 0 */
+  FCTL3 = FWKEY;               /* Lock = 0 */
   while(FCTL3 & 0x0001) {
     r++;  /* Wait for BUSY = 0, not needed
 	     unless run from RAM */
@@ -130,18 +130,43 @@ flash_write(unsigned short *ptr, unsigned short word)
     unlock_infomem();
   }
 
-  FCTL3 = 0xa500;              /* Lock = 0 */
-  while(FCTL3 & 0x0001) {
-    r++; /* Wait for BUSY = 0, not needed unless
-	    run from RAM */
-  }
-  FCTL1 = 0xa540;              /* WRT = 1 */
+  FCTL3 = FWKEY;              /* Lock = 0 */
+  FCTL1 = FWKEY + WRT;        /* WRT = 1 */
   *ptr  = word;                /* program Flash word */
-  FCTL1 = 0xa500;              /* WRT = 0 */
-  FCTL3 = 0xa510;              /* Lock = 1 */
+  FCTL1 = FWKEY;              /* WRT = 0 */
+  FCTL3 = FWKEY + LOCK;              /* Lock = 1 */
 
   if(ptr >= INFOMEM_LO && ptr <= INFOMEM_HI) {
     lock_infomem();
   }
 }
 /*---------------------------------------------------------------------------*/
+
+void
+flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size)
+{
+    uint8_t r;
+
+    /* If ptr is in infomem, we need to unlock it first. */
+  if(addr >= INFOMEM_LO && addr <= INFOMEM_HI) {
+    unlock_infomem();
+  }
+
+  FCTL3 = FWKEY;              /* Lock = 0 */
+  FCTL1 = FWKEY + BLKWRT;              /* WRT = 1 */
+  for(uint8_t r = 0; r < size / 2; r++)
+  {
+    *addr++ = *data++;
+    if ((r & 0x03) == 0)
+    {
+      while(FCTL1 & BUSY); // wait after 4bytes
+    }
+  }
+
+  FCTL1 = 0xa500;              /* WRT = 0 */
+  FCTL3 = 0xa510;              /* Lock = 1 */
+
+  if(addr >= INFOMEM_LO && addr <= INFOMEM_HI) {
+    lock_infomem();
+  }
+}

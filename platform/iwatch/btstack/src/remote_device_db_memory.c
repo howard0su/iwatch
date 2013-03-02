@@ -39,144 +39,115 @@
 #include <btstack/utils.h>
 #include <btstack/linked_list.h>
 
-// This lists should be only accessed by tests.
-linked_list_t db_mem_link_keys = NULL;
-linked_list_t db_mem_names = NULL;
-static linked_list_t db_mem_services = NULL;
+#include "dev/flash.h"
+
+#pragma constseg = INFOB
+static const struct _configdata
+{
+  bd_addr_t bd_addr;
+  link_key_t link_key;
+  device_name_t device_name;
+}config_data = {0};
+#pragma constseg = default
 
 // Device info
 static void db_open(void){
 }
 
-static void db_close(void){ 
-}
-
-static db_mem_device_t * get_item(linked_list_t list, bd_addr_t *bd_addr) {
-    linked_item_t *it;
-    for (it = (linked_item_t *) list; it ; it = it->next){
-        db_mem_device_t * item = (db_mem_device_t *) it;
-        if (BD_ADDR_CMP(item->bd_addr, *bd_addr) == 0) {
-            return item;
-        }
-    }
-    return NULL;
+static void db_close(void){
 }
 
 static int get_name(bd_addr_t *bd_addr, device_name_t *device_name) {
-    db_mem_device_name_t * item = (db_mem_device_name_t *) get_item(db_mem_names, bd_addr);
-    
-    if (!item) return 0;
-    
-    strncpy((char*)device_name, item->device_name, MAX_NAME_LEN);
-    
-	linked_list_remove(&db_mem_names, (linked_item_t *) item);
-    linked_list_add(&db_mem_names, (linked_item_t *) item);
-	
-	return 1;
+
+  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
+  {
+    return 0;
+  }
+
+  memcpy(device_name, config_data.device_name, DEVICE_NAME_LEN);
+
+  return 1;
 }
 
 static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key) {
-    db_mem_device_link_key_t * item = (db_mem_device_link_key_t *) get_item(db_mem_link_keys, bd_addr);
-    
-    if (!item) return 0;
-    
-    memcpy(link_key, item->link_key, LINK_KEY_LEN);
-    
-	linked_list_remove(&db_mem_link_keys, (linked_item_t *) item);
-    linked_list_add(&db_mem_link_keys, (linked_item_t *) item);
 
-	return 1;
+  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
+  {
+    return 0;
+  }
+
+  memcpy(link_key, config_data.link_key, LINK_KEY_LEN);
+
+  return 1;
 }
 
 static void delete_link_key(bd_addr_t *bd_addr){
-    db_mem_device_t * item = get_item(db_mem_link_keys, bd_addr);
-    
-    if (!item) return;
-    
-    linked_list_remove(&db_mem_link_keys, (linked_item_t *) item);
-    btstack_memory_db_mem_device_link_key_free(item);
+  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
+  {
+    return;
+  }
+  struct _configdata newdata;
+  memcpy(&newdata, &config_data, sizeof(config_data));
+  memset(newdata.link_key, 0, LINK_KEY_LEN);
+
+  // write to flash
+  flash_setup();
+  flash_clear((uint16_t*)&config_data);
+  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
+  flash_done();
 }
 
 
 static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key){
-    db_mem_device_link_key_t * existingRecord = (db_mem_device_link_key_t *) get_item(db_mem_link_keys, bd_addr);
-    
-    if (existingRecord){
-        memcpy(existingRecord->link_key, link_key, LINK_KEY_LEN);
-        return;
-    }
-    
-    // Record not found, create new one for this device
-    db_mem_device_link_key_t * newItem = (db_mem_device_link_key_t*) btstack_memory_db_mem_device_link_key_get();
-    if (!newItem){
-        newItem = (db_mem_device_link_key_t*)linked_list_get_last_item(&db_mem_link_keys);
-    }
-    
-    if (!newItem) return;
-    
-    memcpy(newItem->device.bd_addr, bd_addr, sizeof(bd_addr_t));
-    memcpy(newItem->link_key, link_key, LINK_KEY_LEN);
-    linked_list_add(&db_mem_link_keys, (linked_item_t *) newItem);
+  struct _configdata newdata;
+  memcpy(&newdata, &config_data, sizeof(config_data));
+
+  memcpy(newdata.bd_addr, bd_addr, BD_ADDR_LEN);
+  memcpy(newdata.link_key, link_key, LINK_KEY_LEN);
+
+  // write to flash
+  flash_setup();
+  flash_clear((uint16_t*)&config_data);
+  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
+  flash_done();
 }
 
 static void delete_name(bd_addr_t *bd_addr){
-    db_mem_device_t * item = get_item(db_mem_names, bd_addr);
-    
-    if (!item) return;
-    
-    linked_list_remove(&db_mem_names, (linked_item_t *) item);
-    btstack_memory_db_mem_device_name_free(item);    
+  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
+  {
+    return;
+  }
+  struct _configdata newdata;
+  memcpy(&newdata, &config_data, sizeof(config_data));
+  memset(newdata.device_name, 0, DEVICE_NAME_LEN);
+
+  // write to flash
+  flash_setup();
+  flash_clear((uint16_t*)&config_data);
+  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
+  flash_done();
 }
 
 static void put_name(bd_addr_t *bd_addr, device_name_t *device_name){
-    db_mem_device_name_t * existingRecord = (db_mem_device_name_t *) get_item(db_mem_names, bd_addr);
-    
-    if (existingRecord){
-        strncpy(existingRecord->device_name, (const char*) device_name, MAX_NAME_LEN);
-        return;
-    }
-    
-    // Record not found, create a new one for this device
-    db_mem_device_name_t * newItem = (db_mem_device_name_t *) btstack_memory_db_mem_device_name_get();
-    if (!newItem) {
-        newItem = (db_mem_device_name_t*)linked_list_get_last_item(&db_mem_names);
-    };
+  struct _configdata newdata;
+  memcpy(&newdata, &config_data, sizeof(config_data));
 
-    if (!newItem) return;
-    
-    memcpy(newItem->device.bd_addr, bd_addr, sizeof(bd_addr_t));
-    strncpy(newItem->device_name, (const char*) device_name, MAX_NAME_LEN);
-    linked_list_add(&db_mem_names, (linked_item_t *) newItem);
+  memcpy(newdata.bd_addr, bd_addr, BD_ADDR_LEN);
+  memcpy(newdata.device_name, device_name, MAX_NAME_LEN);
+
+  // write to flash
+  flash_setup();
+  flash_clear((uint16_t*)&config_data);
+  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
+  flash_done();
 }
 
 
 // MARK: PERSISTENT RFCOMM CHANNEL ALLOCATION
 
 static uint8_t persistent_rfcomm_channel(char *serviceName){
-    linked_item_t *it;
-    db_mem_service_t * item;
-    uint8_t max_channel = 1;
 
-    for (it = (linked_item_t *) db_mem_services; it ; it = it->next){
-        item = (db_mem_service_t *) it;
-        if (strncmp(item->service_name, serviceName, MAX_NAME_LEN) == 0) {
-            // Match found
-            return item->channel;
-        }
-
-        // TODO prevent overflow
-        if (item->channel >= max_channel) max_channel = item->channel + 1;
-    }
-
-    // Allocate new persistant channel
-    db_mem_service_t * newItem = (db_mem_service_t *) btstack_memory_db_mem_service_get();
-
-    if (!newItem) return 0;
-    
-    strncpy(newItem->service_name, serviceName, MAX_NAME_LEN);
-    newItem->channel = max_channel;
-    linked_list_add(&db_mem_services, (linked_item_t *) newItem);
-    return max_channel;
+  return 1;
 }
 
 
