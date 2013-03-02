@@ -85,4 +85,5 @@ void codec_init()
   codec_write(REG_OUTPUT_CTRL, 0x02);
   codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, 0x139);
   codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff);
+  I2C_done();
 }

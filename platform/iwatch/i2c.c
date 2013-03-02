@@ -113,6 +113,10 @@ void  I2C_addr(unsigned char address)
   UCB1CTL1 &= ~UCSWRST;
 }
 
+void I2C_done()
+{
+}
+
 ISR(USCI_B1, USCI_B1_ISR)
 {
   switch(__even_in_range(UCB1IV,12))

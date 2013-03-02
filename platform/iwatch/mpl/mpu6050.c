@@ -171,6 +171,7 @@ void mpu6050_init()
   dmp_set_fifo_rate(DEFAULT_MPU_HZ);
   mpu_set_dmp_state(1);
 
+  I2C_done();
   process_start(&mpu6050_process, NULL);
 }
 
@@ -218,7 +219,6 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   {
     PROCESS_WAIT_EVENT();
     // initialize I2C bus
-    I2C_addr(MPU6050_ADDR);
     if (ev == PROCESS_EVENT_POLL)
     {
       short gyro[3], accel[3], sensors;
@@ -244,12 +244,14 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       * registered). The more parameter is non-zero if there are
       * leftover packets in the FIFO.
       */
+      I2C_addr(MPU6050_ADDR);
       do
       {
         dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
                       &more);
         //printf("read one data\n");
       }while(more);
+      I2C_done();
     }
     else if (ev == PROCESS_EVENT_TIMER)
     {
