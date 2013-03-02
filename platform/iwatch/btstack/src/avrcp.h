@@ -56,4 +56,6 @@
 
 extern void avrcp_init();
 
+extern void avrcp_set_volume(uint8_t volume);
+
 #endif
