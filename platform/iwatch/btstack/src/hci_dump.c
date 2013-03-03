@@ -47,12 +47,12 @@
 #include "hci.h"
 #include "hci_transport.h"
 #include <btstack/hci_cmds.h>
+#include <stdio.h>
 
 #ifndef EMBEDDED
 #include <fcntl.h>        // open
 #include <arpa/inet.h>    // hton..
 #include <unistd.h>       // write
-#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>     // for timestamps
 #include <sys/stat.h>     // for mode flags
@@ -155,6 +155,8 @@ void hci_dump_packet(uint8_t packet_type, uint8_t in, uint8_t *packet, uint16_t 
                     printf("CMD => ");
                     break;
                 case HCI_EVENT_PACKET:
+                    if (packet[0] > 0x50)
+                      return; // skip all the bt events
                     printf("EVT <= ");
                     break;
                 case HCI_ACL_DATA_PACKET:
