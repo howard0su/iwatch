@@ -33,13 +33,13 @@ void power_sleep()
           )
   {
     ENERGEST_ON(ENERGEST_TYPE_LPM0);
-    _BIS_SR(GIE | CPUOFF);
+    __bis_SR_register(GIE | CPUOFF);
     ENERGEST_OFF(ENERGEST_TYPE_LPM0);
   }
   else
   {
     ENERGEST_ON(ENERGEST_TYPE_LPM3);
-    _BIS_SR(GIE | CPUOFF | SCG0 | SCG1);
+    __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
     ENERGEST_OFF(ENERGEST_TYPE_LPM3);
   }
   ENERGEST_ON(ENERGEST_TYPE_CPU);
