@@ -96,7 +96,7 @@ void hfp_init(int channel)
 static char* parse_return(char* result, int* code)
 {
   char* ret;
-  log_info("parse return: %s\n", result);
+  //log_info("parse return: %s\n", result);
 
   if (result[0] == '\r' && result[1] == '\n')
   {
