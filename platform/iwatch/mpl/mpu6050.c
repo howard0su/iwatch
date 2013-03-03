@@ -221,10 +221,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
     // initialize I2C bus
     if (ev == PROCESS_EVENT_POLL)
     {
-      short gyro[3], accel[3], sensors;
-      unsigned char more;
-      unsigned long sensor_timestamp;
-      long quat[4];
+      static unsigned char more;
 
       if (state == STATE_SLEEP)
       {
@@ -247,9 +244,14 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       I2C_addr(MPU6050_ADDR);
       do
       {
+        short gyro[3], accel[3], sensors;
+        unsigned long sensor_timestamp;
+        long quat[4];
+
         dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
                       &more);
         //printf("read one data\n");
+        PROCESS_YIELD();
       }while(more);
       I2C_done();
     }
