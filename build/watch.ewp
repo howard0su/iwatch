@@ -2995,6 +2995,9 @@
       <name>$PROJ_DIR$\..\watch\analog-watch.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\controller.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>

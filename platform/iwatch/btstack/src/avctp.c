@@ -18,6 +18,8 @@
 #define AVCTP_PACKET_CONTINUE	2
 #define AVCTP_PACKET_END	3
 
+#define htons(x) __swap_bytes(x)
+
 #pragma pack(1)
 struct avctp_header {
 	uint8_t ipid:1;
@@ -72,6 +74,8 @@ static void avctp_try_respond(void){
 
     avctp->transaction = id++;
     operands[0] |= 0x80;
+
+    avctp_try_respond();
   }
 }
 
@@ -94,6 +98,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
     switch (packet[0]) {
     case L2CAP_EVENT_INCOMING_CONNECTION:
       {
+        log_info("incoming connection for avctp\n");
         if (l2cap_cid)
         {
           l2cap_decline_connection_internal(channel, 0x0d);
@@ -106,15 +111,25 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         }
         break;
       }
+    case L2CAP_EVENT_CHANNEL_OPENED:
+      if (packet[2]) {
+        // open failed -> reset
+        l2cap_cid = 0;
+      }
+      break;
     case L2CAP_EVENT_CREDITS:
     case DAEMON_EVENT_HCI_PACKET_SENT:
       avctp_try_respond();
       break;
     case L2CAP_EVENT_CHANNEL_CLOSED:
+      if (channel == l2cap_cid){
+        // reset
+        l2cap_cid = 0;
+      }
       break;
     }
   }
-}
+ }
 
 int avctp_send_passthrough(uint8_t op)
 {
@@ -123,7 +138,6 @@ int avctp_send_passthrough(uint8_t op)
   struct avctp_header *avctp = (void *) avctp_buf;
   struct avc_header *avc = (void *) &avctp_buf[AVCTP_HEADER_LENGTH];
   uint8_t *operands = &avctp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH];
-  int sk;
 
   memset(avctp_buf, 0, AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + 2);
 
@@ -144,12 +158,13 @@ int avctp_send_passthrough(uint8_t op)
   avctp_response_size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + 2;
   avctp_response_buffer = avctp_buf;
 
+  avctp_try_respond();
   return 0;
 }
 
 static int avctp_send(uint8_t transaction, uint8_t cr,
 				uint8_t code, uint8_t subunit, uint8_t opcode,
-				uint8_t *operands, size_t operand_count)
+				uint8_t *operands, uint8_t operand_count)
 {
   uint8_t *buf;
   struct avctp_header *avctp;
@@ -188,11 +203,10 @@ static int avctp_send(uint8_t transaction, uint8_t cr,
   return 0;
 }
 
-int avctp_send_vendordep(uint8_t transaction,
-				uint8_t code, uint8_t subunit,
-				uint8_t *operands, size_t operand_count)
+int avctp_send_vendordep_resp(uint8_t code, uint8_t subunit,
+				uint8_t *operands, uint8_t operand_count)
 {
-	return avctp_send(transaction, AVCTP_RESPONSE, code, subunit,
+	return avctp_send(id++, AVCTP_RESPONSE, code, subunit,
 					AVC_OP_VENDORDEP, operands, operand_count);
 }
 

@@ -25,7 +25,7 @@ extern struct process *ui_process;
 PROCESS_NAME(analogclock_process);
 PROCESS_NAME(digitclock_process);
 PROCESS_NAME(menu_process);
-
+PROCESS_NAME(control_process);
 
 extern void window_defproc(process_event_t ev, process_data_t data);
 extern void window_init();
