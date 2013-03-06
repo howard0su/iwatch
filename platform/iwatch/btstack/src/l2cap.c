@@ -265,8 +265,8 @@ int l2cap_send_prepared(uint16_t local_cid, uint16_t len){
 
     --channel->packets_granted;
 
-    log_debug("l2cap_send_internal cid %u, handle %u, 1 credit used, credits left %u;\n",
-                  local_cid, channel->handle, channel->packets_granted);
+    //log_debug("l2cap_send_internal cid %u, handle %u, 1 credit used, credits left %u;\n",
+    //           local_cid, channel->handle, channel->packets_granted);
 
     uint8_t *acl_buffer = hci_get_outgoing_acl_packet_buffer();
 

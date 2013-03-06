@@ -323,7 +323,7 @@ static void acl_handler(uint8_t *packet, int size){
             // peek into L2CAP packet!
             uint16_t l2cap_length = READ_L2CAP_LENGTH( packet );
 
-            log_error( "ACL First Fragment: acl_len %u, l2cap_len %u\n", acl_length, l2cap_length);
+            //log_error( "ACL First Fragment: acl_len %u, l2cap_len %u\n", acl_length, l2cap_length);
 
             // compare fragment size to L2CAP packet size
             if (acl_length >= l2cap_length + 4){
