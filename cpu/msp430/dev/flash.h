@@ -62,7 +62,7 @@ void flash_done(void);
  *
  * \param word The 16-bit word that is to be written.
  */
-void flash_write(unsigned short *addr, unsigned short word);
+void flash_write(uint16_t *addr, unsigned short word);
 
 /**
  * Clear a 16-bit word in flash ROM.
@@ -73,7 +73,7 @@ void flash_write(unsigned short *addr, unsigned short word);
  * \param addr A pointer to the address in flash ROM which is to be
  * cleared.
  */
-void flash_clear(unsigned short *addr);
+void flash_clear(uint16_t *addr);
 
 void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size);
 

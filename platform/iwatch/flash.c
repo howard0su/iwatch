@@ -44,8 +44,8 @@
 #define FLASH_TIMEOUT 30
 #define FLASH_REQ_TIMEOUT 150
 
-#define INFOMEM_LO (unsigned short *)0x1800
-#define INFOMEM_HI (unsigned short *)0x1a00
+#define INFOMEM_LO (uint16_t*)0x1800
+#define INFOMEM_HI (uint16_t*)0x1a00
 
 static uint16_t sfrie;
 
@@ -96,7 +96,7 @@ lock_infomem(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-flash_clear(unsigned short *ptr)
+flash_clear(uint16_t *ptr)
 {
   uint8_t r;
 
@@ -121,10 +121,8 @@ flash_clear(unsigned short *ptr)
 }
 /*---------------------------------------------------------------------------*/
 void
-flash_write(unsigned short *ptr, unsigned short word)
+flash_write(uint16_t *ptr, unsigned short word)
 {
-  uint8_t r;
-
   /* If ptr is in infomem, we need to unlock it first. */
   if(ptr >= INFOMEM_LO && ptr <= INFOMEM_HI) {
     unlock_infomem();
@@ -145,9 +143,7 @@ flash_write(unsigned short *ptr, unsigned short word)
 void
 flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size)
 {
-    uint8_t r;
-
-    /* If ptr is in infomem, we need to unlock it first. */
+  /* If ptr is in infomem, we need to unlock it first. */
   if(addr >= INFOMEM_LO && addr <= INFOMEM_HI) {
     unlock_infomem();
   }
