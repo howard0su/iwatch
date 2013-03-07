@@ -65,7 +65,16 @@ enum battery_status {
   BATTERY_STATUS_FULL_CHARGE =	4,
 };
 
-static uint16_t   avrcp_service_buffer[50];
+static service_record_item_t avrcp_service_record;
+static const uint8_t   avrcp_service_buffer[87] =
+{
+  0x36,0x00,0x54,0x09,0x00,0x00,0x0A,0x00,0x01,0x00,0x03,0x09,0x00,0x01,0x36,
+  0x00,0x06,0x19,0x11,0x0E,0x19,0x11,0x0F,0x09,0x00,0x04,0x36,0x00,0x12,0x36,
+  0x00,0x06,0x19,0x01,0x00,0x09,0x00,0x17,0x36,0x00,0x06,0x19,0x00,0x17,0x09,
+  0x01,0x04,0x09,0x00,0x05,0x36,0x00,0x03,0x19,0x10,0x02,0x09,0x00,0x09,0x36,
+  0x00,0x09,0x36,0x00,0x06,0x19,0x11,0x0E,0x09,0x01,0x05,0x09,0x01,0x00,0x25,
+  0x05,0x41,0x56,0x52,0x43,0x50,0x09,0x03,0x11,0x09,0x00,0x01
+};
 
 #pragma pack(1)
 struct avrcp_header {
@@ -143,13 +152,15 @@ static void handle_pdu(uint8_t *data, uint16_t size)
 
 void avrcp_init()
 {
-  service_record_item_t * service_record_item;
-  memset(avrcp_service_buffer, 0, sizeof(avrcp_service_buffer));
-  service_record_item = (service_record_item_t *) avrcp_service_buffer;
-  sdp_create_avrcp_service( (uint8_t*) &service_record_item->service_record, "AVRCP");
-  printf("AVRCP service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
+  memset(&avrcp_service_record, 0, sizeof(avrcp_service_record));
+  avrcp_service_record.service_record = (uint8_t*)&avrcp_service_buffer[0];
+#if 0
+  sdp_create_avrcp_service(avrcp_service_record.service_record, "AVRCP");
+  log_info("SDP service buffer size: %u\n", de_get_len(avrcp_service_record.service_record));
+  hexdump((void*)avrcp_service_buffer, de_get_len(avrcp_service_record.service_record));
   //de_dump_data_element(service_record_item->service_record);
-  sdp_register_service_internal(NULL, service_record_item);
+#endif
+  sdp_register_service_internal(NULL, &avrcp_service_record);
 
   avctp_register_pid(0x110E, handle_pdu);
 }

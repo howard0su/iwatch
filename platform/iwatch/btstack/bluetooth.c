@@ -39,7 +39,16 @@
 #include "debug.h"
 #define DEVICENAME "iWatch"
 
-static uint16_t   spp_service_buffer[55];
+static service_record_item_t spp_service_record;
+static const uint8_t   spp_service_buffer[100] = {
+  0x36,0x00,0x61,0x09,0x00,0x00,0x0A,0x00,0x01,0x00,0x01,0x09,0x00,0x01,0x36,
+  0x00,0x03,0x19,0x11,0x01,0x09,0x00,0x04,0x36,0x00,0x0E,0x36,0x00,0x03,0x19,
+  0x01,0x00,0x36,0x00,0x05,0x19,0x00,0x03,0x08,0x01,0x09,0x00,0x05,0x36,0x00,
+  0x03,0x19,0x10,0x02,0x09,0x00,0x06,0x36,0x00,0x09,0x09,0x65,0x6E,0x09,0x00,
+  0x6A,0x09,0x01,0x00,0x09,0x00,0x09,0x36,0x00,0x09,0x36,0x00,0x06,0x19,0x11,
+  0x01,0x09,0x01,0x00,0x09,0x01,0x00,0x25,0x10,0x69,0x57,0x61,0x74,0x63,0x68,
+  0x20,0x43,0x6F,0x6E,0x66,0x69,0x67,0x75,0x72,0x65
+};
 
 #include "att.h"
 
@@ -360,18 +369,20 @@ static void btstack_setup(){
   // init SDP, create record for SPP and register with SDP
   sdp_init();
 
-  service_record_item_t * service_record_item;
-  memset(spp_service_buffer, 0, sizeof(spp_service_buffer));
-  service_record_item = (service_record_item_t *) spp_service_buffer;
-  sdp_create_spp_service( (uint8_t*) &service_record_item->service_record, 1, "iWatch Configure");
-  log_info("SDP service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
+  memset(&spp_service_record, 0, sizeof(spp_service_record));
+  spp_service_record.service_record = (uint8_t*)&spp_service_buffer[0];
+#if 0
+  sdp_create_spp_service( spp_service_record.service_record, 1, "iWatch Configure");
+  log_info("SDP service buffer size: %u\n", de_get_len(spp_service_record.service_record));
+  hexdump((void*)spp_service_buffer, de_get_len(spp_service_record.service_record));
   //de_dump_data_element(service_record_item->service_record);
-  sdp_register_service_internal(NULL, service_record_item);
+#endif
+  sdp_register_service_internal(NULL, &spp_service_record);
 
   hfp_init(HFP_CHANNEL);
 
-  avctp_init();
-  avrcp_init();
+  //avctp_init();
+  //avrcp_init();
 }
 
 PROCESS_NAME(bluetooth_process);

@@ -39,19 +39,30 @@ static void hfp_try_respond(uint16_t rfcomm_channel_id){
     }
 }
 
-static uint16_t   hpf_service_buffer[50];
+static service_record_item_t hfp_service_record;
+static const uint8_t   hfp_service_buffer[85] =
+{
+  0x36,0x00,0x52,0x09,0x00,0x00,0x0A,0x00,0x01,0x00,0x02,0x09,0x00,0x01,0x36,
+  0x00,0x06,0x19,0x11,0x1E,0x19,0x12,0x03,0x09,0x00,0x04,0x36,0x00,0x0E,0x36,
+  0x00,0x03,0x19,0x01,0x00,0x36,0x00,0x05,0x19,0x00,0x03,0x08,0x06,0x09,0x00,
+  0x05,0x36,0x00,0x03,0x19,0x10,0x02,0x09,0x00,0x09,0x36,0x00,0x09,0x36,0x00,
+  0x06,0x19,0x11,0x1E,0x09,0x01,0x06,0x09,0x01,0x00,0x25,0x07,0x48,0x65,0x61,
+  0x64,0x73,0x65,0x74,0x09,0x03,0x11,0x09,0x00,0x08
+};
+
 void hfp_init(int channel)
 {
   rfcomm_register_service_internal(NULL, channel, 100);  // reserved channel, mtu=100
 
-  service_record_item_t * service_record_item;
-  memset(hpf_service_buffer, 0, sizeof(hpf_service_buffer));
-  service_record_item = (service_record_item_t *) hpf_service_buffer;
-  sdp_create_hfp_service( (uint8_t*) &service_record_item->service_record, channel, "Headset");
-  printf("HPF service buffer size: %u\n", (uint16_t) (sizeof(service_record_item_t) + de_get_len((uint8_t*) &service_record_item->service_record)));
+  memset(&hfp_service_record, 0, sizeof(hfp_service_record));
+  hfp_service_record.service_record = (uint8_t*)&hfp_service_buffer[0];
+#if 0
+  sdp_create_hfp_service( hfp_service_record.service_record, channel, "Headset");
+  log_info("SDP service buffer size: %u\n", de_get_len(hfp_service_record.service_record));
   //de_dump_data_element(service_record_item->service_record);
-  sdp_register_service_internal(NULL, service_record_item);
-
+  hexdump((void*)hfp_service_buffer, de_get_len(hfp_service_record.service_record));
+#endif
+  sdp_register_service_internal(NULL, &hfp_service_record);
   state = INITIALIZING;
 }
 
