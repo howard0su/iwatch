@@ -1,3 +1,4 @@
+#include <stdlib.h>
 
 #include "l2cap.h"
 #include "config.h"
@@ -22,20 +23,29 @@
 
 #pragma pack(1)
 struct avctp_header {
-	uint8_t ipid:1;
-	uint8_t cr:1;
-	uint8_t packet_type:2;
-	uint8_t transaction:4;
-	uint16_t pid;
+  uint8_t ipid:1;
+  uint8_t cr:1;
+  uint8_t packet_type:2;
+  uint8_t transaction:4;
+  uint16_t pid;
+};
+
+struct avctp_header_start {
+  uint8_t ipid:1;
+  uint8_t cr:1;
+  uint8_t packet_type:2;
+  uint8_t transaction:4;
+  uint8_t num_package;
+  uint16_t pid;
 };
 #define AVCTP_HEADER_LENGTH 3
 
 struct avc_header {
-	uint8_t code:4;
-	uint8_t _hdr0:4;
-	uint8_t subunit_id:3;
-	uint8_t subunit_type:5;
-	uint8_t opcode;
+  uint8_t code:4;
+  uint8_t _hdr0:4;
+  uint8_t subunit_id:3;
+  uint8_t subunit_type:5;
+  uint8_t opcode;
 };
 #pragma pack()
 
@@ -46,7 +56,10 @@ static void     avctp_packet_handler(uint8_t packet_type, uint16_t channel,
                                      uint8_t *packet, uint16_t size);
 
 #define MAX_PAYLOAD_SIZE 64
+#define MAX_RESPONSE_SIZE 256
 static uint8_t avctp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_PAYLOAD_SIZE];
+static uint8_t avctp_resp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_RESPONSE_SIZE];
+static uint16_t resp_size;
 static uint8_t id = 0;
 static uint8_t need_send_release = 0;
 void avctp_init()
@@ -62,7 +75,13 @@ static void avctp_try_respond(void){
   // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
   uint16_t size = avctp_response_size;
   avctp_response_size = 0;
-  l2cap_send_internal(l2cap_cid, avctp_response_buffer, size);
+  int error = l2cap_send_internal(l2cap_cid, avctp_response_buffer, size);
+  if (error)
+  {
+    avctp_response_size = size;
+    printf("avctp_try_respond l2cap_send_internal error: %d\n", error);
+    return;
+  }
 
   if (need_send_release)
   {
@@ -79,19 +98,75 @@ static void avctp_try_respond(void){
   }
 }
 
-static void (*packet_handler) (uint8_t packet_type, uint8_t *packet, uint16_t size);
+static void (*packet_handler) (uint8_t *packet, uint16_t size);
+static uint16_t current_pid;
 
-void register_avctp_pid(uint16_t pid, void (*handler)(uint8_t packet_type, uint8_t *packet, uint16_t size))
+void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t *packet, uint16_t size))
 {
   packet_handler = handler;
+
+  current_pid = __swap_bytes(pid);
 }
 
 static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
+  static uint16_t pid;
+
   switch (packet_type) {
   case L2CAP_DATA_PACKET:
     {
       hexdump(packet, size);
+      struct avctp_header *avctph = (struct avctp_header*)packet;
+      struct avc_header *avch = (struct avc_header*)(avctph+1);
+      uint8_t *buf;
+
+      if (avctph->packet_type == AVCTP_PACKET_SINGLE)
+      {
+        // single package
+        pid = avctph->pid;
+        buf = (uint8_t*)(avch+1);
+      }
+      else if (avctph->packet_type == AVCTP_PACKET_START)
+      {
+        // start package
+        struct avctp_header_start *avctph2 = (struct avctp_header_start*)packet;
+        printf("pid=%x package#=%d\n", avctph2->pid, avctph2->num_package);
+        avch = (struct avc_header*)(avctph2 + 1);
+        resp_size = size - sizeof(struct avctp_header_start) - sizeof(struct avc_header);
+        memcpy(avctp_resp_buf, (void*)(avch+1), resp_size);
+        break;
+      }
+      else if (avctph->packet_type == AVCTP_PACKET_CONTINUE)
+      {
+        // continues package
+        if (resp_size + size - 1 > MAX_RESPONSE_SIZE)
+        {
+          log_error("resp size is too small\n");
+          return;
+        }
+        memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
+        resp_size += size - 1;
+        break;
+      }
+      else if (avctph->packet_type == AVCTP_PACKET_END)
+      {
+        if (resp_size + size - 1 > MAX_RESPONSE_SIZE)
+        {
+          log_error("resp size is too small\n");
+          return;
+        }
+
+        // end packet
+        memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
+        resp_size += size - 1;
+        size = resp_size;
+        buf = (uint8_t*)&avctp_resp_buf;
+        resp_size = 0;
+      }
+
+      if (current_pid == pid)
+          (*packet_handler)(buf, size);
+
       break;
     }
   case HCI_EVENT_PACKET:
@@ -129,7 +204,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       break;
     }
   }
- }
+}
 
 int avctp_send_passthrough(uint8_t op)
 {
@@ -163,8 +238,8 @@ int avctp_send_passthrough(uint8_t op)
 }
 
 static int avctp_send(uint8_t transaction, uint8_t cr,
-				uint8_t code, uint8_t subunit, uint8_t opcode,
-				uint8_t *operands, uint8_t operand_count)
+                      uint8_t code, uint8_t subunit, uint8_t opcode,
+                      uint8_t *operands, uint8_t operand_count)
 {
   uint8_t *buf;
   struct avctp_header *avctp;
@@ -200,13 +275,28 @@ static int avctp_send(uint8_t transaction, uint8_t cr,
   avctp_response_size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + operand_count;
   avctp_response_buffer = avctp_buf;
 
+  avctp_try_respond();
+
   return 0;
 }
 
-int avctp_send_vendordep_resp(uint8_t code, uint8_t subunit,
-				uint8_t *operands, uint8_t operand_count)
+int avctp_send_vendordep(uint8_t code, uint8_t subunit,
+                         uint8_t *operands, uint8_t operand_count)
 {
-	return avctp_send(id++, AVCTP_RESPONSE, code, subunit,
-					AVC_OP_VENDORDEP, operands, operand_count);
+  if (!l2cap_cid) return -1;
+
+  return avctp_send(id++, AVCTP_COMMAND, code, subunit,
+                    AVC_OP_VENDORDEP, operands, operand_count);
+
+}
+
+int avctp_send_vendordep_resp(uint8_t code, uint8_t subunit,
+                              uint8_t *operands, uint8_t operand_count)
+{
+  if (!l2cap_cid) return -1;
+
+  return avctp_send(id++, AVCTP_COMMAND, code, subunit,
+                    AVC_OP_VENDORDEP, operands, operand_count);
+
 }
 

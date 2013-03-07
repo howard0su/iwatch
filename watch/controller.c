@@ -46,6 +46,12 @@ PROCESS_THREAD(control_process, ev, data)
       }
       else if ((uint8_t)data == KEY_ENTER)
       {
+        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+
+      }
+      else if ((uint8_t)data == KEY_EXIT)
+      {
+        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
     }
     else

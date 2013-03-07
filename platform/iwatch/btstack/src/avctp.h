@@ -41,9 +41,9 @@
 #define BACKWARD_OP			0x4c
 
 extern void avctp_init();
-extern void register_avctp_pid(uint16_t pid, void (*handler)(uint8_t packet_type, uint8_t *packet, uint16_t size));
+extern void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t *packet, uint16_t size));
 
-extern int avctp_send_vendordep_resp(uint8_t code, uint8_t subunit,
+extern int avctp_send_vendordep(uint8_t code, uint8_t subunit,
 				uint8_t *operands, uint8_t operand_count);
 extern int avctp_send_passthrough(uint8_t op);
 

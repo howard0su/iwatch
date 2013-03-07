@@ -1,9 +1,17 @@
 #include <stdio.h>
+#include <string.h>
+
+#include "l2cap.h"
+#include "config.h"
+#include "debug.h"
 
 #include "sdp.h"
 #include "avrcp.h"
 #include "avctp.h"
 #include "btstack/sdp_util.h"
+#include "btstack/utils.h"
+
+#define htons(x) __swap_bytes(x)
 
 /* Company IDs for vendor dependent commands */
 #define IEEEID_BTSIG		0x001958
@@ -50,30 +58,87 @@
 #define AVRCP_FEATURE_PLAYER_SETTINGS	0x0010
 
 enum battery_status {
-	BATTERY_STATUS_NORMAL =		0,
-	BATTERY_STATUS_WARNING =	1,
-	BATTERY_STATUS_CRITICAL =	2,
-	BATTERY_STATUS_EXTERNAL =	3,
-	BATTERY_STATUS_FULL_CHARGE =	4,
+  BATTERY_STATUS_NORMAL =		0,
+  BATTERY_STATUS_WARNING =	1,
+  BATTERY_STATUS_CRITICAL =	2,
+  BATTERY_STATUS_EXTERNAL =	3,
+  BATTERY_STATUS_FULL_CHARGE =	4,
 };
 
 static uint16_t   avrcp_service_buffer[50];
 
 #pragma pack(1)
 struct avrcp_header {
-	uint8_t company_id[3];
-	uint8_t pdu_id;
-	uint8_t packet_type:2;
-	uint8_t rsvd:6;
-	uint16_t params_len;
-	uint8_t params[0];
+  uint8_t company_id[3];
+  uint8_t pdu_id;
+  uint8_t packet_type:2;
+  uint8_t rsvd:6;
+  uint16_t params_len;
+  uint8_t params[0];
 };
 #define AVRCP_HEADER_LENGTH 7
 #pragma pack()
 
-static void handle_pdu(struct avrcp_header *pdu)
-{
+int avrcp_get_attributes(uint32_t id);
 
+static void handle_notification(struct avrcp_header *pdu )
+{
+  switch(pdu->params[0])
+  {
+  case AVRCP_EVENT_STATUS_CHANGED:
+    log_info("current status is %d\n", pdu->params[1]);
+    break;
+  case AVRCP_EVENT_TRACK_CHANGED:
+    avrcp_get_attributes(0);
+    break;
+  }
+}
+
+static void handle_attributes(struct avrcp_header *pdu)
+{
+  uint8_t elementnum = pdu->params[0];
+  uint16_t offset = 1;
+  for (int i = 0; i < elementnum; i++)
+  {
+    uint32_t attributeid = READ_NET_32(pdu->params, offset);
+    offset += 4;
+    uint16_t charsetid = READ_NET_16(pdu->params, offset);
+    offset += 2;
+    uint16_t len = READ_NET_16(pdu->params, offset);
+    offset += 2;
+    if (len > 0)
+    {
+      pdu->params[offset + len] = 0;
+      printf("attribute %ld charset %d len %d : %s\n", attributeid, charsetid,
+              len, &pdu->params[offset]);
+      offset += len;
+    }
+    else
+    {
+      printf("attribute %ld charset %d len %d\n", attributeid, charsetid,
+              len);
+    }
+
+  }
+}
+
+static void handle_pdu(uint8_t *data, uint16_t size)
+{
+  struct avrcp_header *pdu = (struct avrcp_header *)data;
+  printf("pduid: %d\n", pdu->pdu_id);
+
+  switch(pdu->pdu_id)
+  {
+  case AVRCP_REGISTER_NOTIFICATION:
+    handle_notification(pdu);
+    break;
+  case AVRCP_GET_CAPABILITIES:
+
+    break;
+  case AVRCP_GET_ELEMENT_ATTRIBUTES:
+    handle_attributes(pdu);
+    break;
+  }
 }
 
 void avrcp_init()
@@ -86,19 +151,38 @@ void avrcp_init()
   //de_dump_data_element(service_record_item->service_record);
   sdp_register_service_internal(NULL, service_record_item);
 
-  register_avctp_pid(0x110E, NULL);
+  avctp_register_pid(0x110E, handle_pdu);
 }
 
 /*
- * set_company_id:
- *
- * Set three-byte Company_ID into outgoing AVRCP message
- */
-static void set_company_id(uint8_t cid[3], const uint32_t cid_in)
+* set_company_id:
+*
+* Set three-byte Company_ID into outgoing AVRCP message
+*/
+static inline void set_company_id(uint8_t cid[3], const uint32_t cid_in)
 {
-	cid[0] = cid_in >> 16;
-	cid[1] = cid_in >> 8;
-	cid[2] = cid_in;
+  cid[0] = cid_in >> 16;
+  cid[1] = cid_in >> 8;
+  cid[2] = cid_in;
+}
+
+
+int avrcp_enable_notification(uint8_t id)
+{
+  uint8_t buf[AVRCP_HEADER_LENGTH + 5];
+  struct avrcp_header *pdu = (void *) buf;
+
+  memset(buf, 0, sizeof(buf));
+
+  set_company_id(pdu->company_id, IEEEID_BTSIG);
+
+  pdu->pdu_id = AVRCP_REGISTER_NOTIFICATION;
+  //pdu->packet_type = AVRCP_PACKET_TYPE_SINGLE;
+  pdu->params[0] = id;
+  pdu->params_len = htons(5);
+
+  return avctp_send_vendordep(AVC_CTYPE_NOTIFY, AVC_SUBUNIT_PANEL,
+                              buf, 5 + AVRCP_HEADER_LENGTH);
 }
 
 int avrcp_set_volume(uint8_t volume)
@@ -106,11 +190,44 @@ int avrcp_set_volume(uint8_t volume)
   uint8_t buf[AVRCP_HEADER_LENGTH + 1];
   struct avrcp_header *pdu = (void *) buf;
 
+  memset(buf, 0, sizeof(buf));
   set_company_id(pdu->company_id, IEEEID_BTSIG);
 
   pdu->pdu_id = AVRCP_SET_ABSOLUTE_VOLUME;
   pdu->params[0] = volume;
   pdu->params_len = htons(1);
 
-  return avctp_send_vendordep_resp(AVC_CTYPE_CONTROL, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
+  return avctp_send_vendordep(AVC_CTYPE_CONTROL, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
+}
+
+int avrcp_get_capability()
+{
+  uint8_t buf[AVRCP_HEADER_LENGTH + 1];
+  struct avrcp_header *pdu = (void *) buf;
+
+  memset(buf, 0, sizeof(buf));
+  set_company_id(pdu->company_id, IEEEID_BTSIG);
+
+  pdu->pdu_id = AVRCP_GET_CAPABILITIES;
+  pdu->params[0] = 0x03;
+  pdu->params_len = htons(1);
+
+  return avctp_send_vendordep(AVC_CTYPE_STATUS, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
+}
+
+int avrcp_get_attributes(uint32_t id)
+{
+  uint8_t buf[AVRCP_HEADER_LENGTH + 8 + 1 + 4 * 2];
+  struct avrcp_header *pdu = (void *) buf;
+
+  memset(buf, 0, sizeof(buf));
+  set_company_id(pdu->company_id, IEEEID_BTSIG);
+
+  pdu->pdu_id = AVRCP_GET_ELEMENT_ATTRIBUTES;
+  pdu->params[8] = 2;
+  net_store_32(pdu->params, 9, AVRCP_MEDIA_ATTRIBUTE_TITLE);
+  net_store_32(pdu->params, 13, AVRCP_MEDIA_ATTRIBUTE_ARTIST);
+  pdu->params_len = htons(17);
+
+  return avctp_send_vendordep(AVC_CTYPE_STATUS, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
 }

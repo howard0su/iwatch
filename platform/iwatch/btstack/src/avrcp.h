@@ -52,10 +52,16 @@
 #define AVRCP_EVENT_TRACK_CHANGED	0x02
 #define AVRCP_EVENT_TRACK_REACHED_END	0x03
 #define AVRCP_EVENT_TRACK_REACHED_START	0x04
+#define AVRCP_EVENT_PLAYBACK_POS_CHANGED 0x05
+#define AVRCP_EVENT_BATT_STATUS_CHANGED 0x06
 #define AVRCP_EVENT_LAST		AVRCP_EVENT_TRACK_REACHED_START
 
 extern void avrcp_init();
 
 extern int avrcp_set_volume(uint8_t volume);
+extern int avrcp_register_handler();
+extern int avrcp_enable_notification(uint8_t event);
+extern int avrcp_get_element_attribute(uint32_t item);
+extern int avrcp_get_capability();
 
 #endif
