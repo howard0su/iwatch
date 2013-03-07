@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <string.h>
 
 #include "l2cap.h"
 #include "config.h"
@@ -241,12 +241,9 @@ static int avctp_send(uint8_t transaction, uint8_t cr,
                       uint8_t code, uint8_t subunit, uint8_t opcode,
                       uint8_t *operands, uint8_t operand_count)
 {
-  uint8_t *buf;
   struct avctp_header *avctp;
   struct avc_header *avc;
   uint8_t *pdu;
-  int sk, err = 0;
-  uint16_t size;
 
   if (!l2cap_cid) return -1;
   if (operand_count > MAX_PAYLOAD_SIZE)
@@ -254,8 +251,6 @@ static int avctp_send(uint8_t transaction, uint8_t cr,
     log_error("too long operand payload.\n");
     return -1;
   }
-
-  size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + operand_count;
 
   avctp = (void *) avctp_buf;
   avc = (void *) &avctp_buf[AVCTP_HEADER_LENGTH];

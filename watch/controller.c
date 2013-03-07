@@ -36,12 +36,10 @@ PROCESS_THREAD(control_process, ev, data)
     {
       if ((uint8_t)data == KEY_UP)
       {
-        printf("send play op\n");
         avctp_send_passthrough(PLAY_OP);
       }
       else if ((uint8_t)data == KEY_DOWN)
       {
-        printf("send pause op\n");
         avctp_send_passthrough(PAUSE_OP);
       }
       else if ((uint8_t)data == KEY_ENTER)
