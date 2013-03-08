@@ -166,9 +166,9 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
-        hci_send_cmd(&hci_vs_write_codec_config, 64, 0x00, 1638, 0x0000, 0x00, 0x00, 0,
-                       16, 0x00, 0x00, 0x08, 0x00, 0x00, 0,
-                       16, 17, 0x00, 0x08, 0x00, 0x00, 0
+        hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, 800, 1, 0, 0, 0,
+                       16, 1, 0, 16, 1, 1, 0,
+                       16, 17, 0, 16, 17, 1, 0
                        );
         break;
       }
@@ -381,8 +381,8 @@ static void btstack_setup(){
 
   hfp_init(HFP_CHANNEL);
 
-  //avctp_init();
-  //avrcp_init();
+  avctp_init();
+  avrcp_init();
 }
 
 PROCESS_NAME(bluetooth_process);

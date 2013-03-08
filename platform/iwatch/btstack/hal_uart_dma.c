@@ -18,6 +18,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "isr_compat.h"
 #include "sys/clock.h"
@@ -32,9 +33,8 @@
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
 
-// tx state
-static uint16_t  bytes_to_write = 0;
-static uint8_t * tx_buffer_ptr = 0;
+static uint8_t   rx_temp_buffer;
+static uint8_t   rx_temp_size = 0;
 
 // handlers
 static void (*rx_done_handler)(void) = NULL;
@@ -74,6 +74,7 @@ void hal_uart_dma_init(void)
   UCA0CTL1 &= ~UCSWRST;             // continue
 
   hal_uart_dma_set_baud(115200);
+  UCA0IE |= UCRXIE ;  // enable RX interrupts
 
   power_pin(POWER_SMCLK + POWER_ACLK);
 }
@@ -205,6 +206,9 @@ void hal_uart_dma_shutdown(void) {
 
 int dma_channel_1()
 {
+  if (tx_done_handler)
+    (*tx_done_handler)();
+
   return 1;
 }
 
@@ -212,26 +216,47 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 
   //printf("hal_uart_dma_send_block, size %u\n\r", len);
 
-  UCA0IE &= ~UCTXIE ;  // disable TX interrupts
-
-  tx_buffer_ptr = (uint8_t *) data;
-  bytes_to_write = len;
-
-  UCA0IE |= UCTXIE;    // enable TX interrupts
+  // UCA0 TXIFG trigger
+  DMACTL0 |= DMA1TSEL_17;
+  // Source block address
+  __data16_write_addr((unsigned short) &DMA1SA,(unsigned long) data);
+  // Destination single address
+  __data16_write_addr((unsigned short) &DMA1DA,(unsigned long) &UCA0TXBUF);
+  DMA1SZ = len;                                // Block size
+  DMA1CTL &= ~DMAIFG;
+  DMA1CTL = DMASRCINCR_3 + DMASBDB + DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
 }
 
 // int used to indicate a request for more new data
 void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
+  //printf("hal_uart_dma_receive_block, size %u temp_size: %u\n\r", len, rx_temp_size);
+
   UCA0IE &= ~UCRXIE ;  // disable RX interrupts
+  if (rx_temp_size)
+  {
+    *buffer = rx_temp_buffer;
+    rx_temp_size = 0;
+    buffer++;
+    len--;
+  }
 
-  rx_buffer_ptr = buffer;
-  bytes_to_read = len;
+  if (len == 0)
+  {
+    if (rx_done_handler)
+      (*rx_done_handler)();
 
-  UCA0IE |= UCRXIE;    // enable RX interrupts
+    UCA0IE |= UCRXIE;    // enable RX interrupts
+  }
+  else
+  {
+    rx_buffer_ptr = buffer;
+    bytes_to_read = len;
+    UCA0IE |= UCRXIE;    // enable RX interrupts
 
-  // enable send
-  BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
+    // enable send
+    BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
+  }
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep){
@@ -253,8 +278,9 @@ ISR(USCI_A0, usbRxTxISR)
 
   case 2: // RXIFG
     if (bytes_to_read == 0) {
-      BT_RTS_OUT |= BT_RTS_BIT;  // = 1 - RTS high -> stop
-      UCA0IE &= ~UCRXIE ;  // disable RX interrupts
+      // put the data into buffer
+      rx_temp_buffer = UCA0RXBUF;
+      rx_temp_size = 1;
       return;
     }
     *rx_buffer_ptr = UCA0RXBUF;
@@ -264,33 +290,9 @@ ISR(USCI_A0, usbRxTxISR)
       return;
     }
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
-    UCA0IE &= ~UCRXIE ; // disable RX interrupts
 
     if (rx_done_handler)
       (*rx_done_handler)();
-
-    // force exit low power mode
-    LPM4_EXIT;
-
-    break;
-
-  case 4: // TXIFG
-    if (bytes_to_write == 0){
-      UCA0IE &= ~UCTXIE ;  // disable TX interrupts
-      return;
-    }
-    UCA0TXBUF = *tx_buffer_ptr;
-    ++tx_buffer_ptr;
-    --bytes_to_write;
-
-    if (bytes_to_write > 0) {
-      return;
-    }
-
-    UCA0IE &= ~UCTXIE ;  // disable TX interrupts
-
-    if (tx_done_handler)
-      (*tx_done_handler)();
 
     // force exit low power mode
     LPM4_EXIT;
