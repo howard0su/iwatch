@@ -58,11 +58,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -113,7 +113,7 @@
         </option>
         <option>
           <name>RadioDataModelType</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GHeap20Size</name>
@@ -181,7 +181,7 @@
         </option>
         <option>
           <name>CCListCFile</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListCMnemonics</name>
@@ -2015,11 +2015,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -2070,7 +2070,7 @@
         </option>
         <option>
           <name>RadioDataModelType</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GHeap20Size</name>
@@ -3018,6 +3018,7 @@
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x\ant_cmds.c</name>
         <excluded>
+          <configuration>Debug</configuration>
           <configuration>Retail</configuration>
         </excluded>
       </file>
@@ -3077,6 +3078,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\memory_pool.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\mns.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\remote_device_db_memory.c</name>

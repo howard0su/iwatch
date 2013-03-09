@@ -235,8 +235,11 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 }
 #define SPP_CHANNEL 1
 #define HFP_CHANNEL 6
+#define MNS_CHANNEL 17
+
 static uint16_t hfp_channel_id = 0;
 static uint16_t spp_channel_id = 0;
+static uint16_t mns_channel_id = 0;
 
 static void spp_handler(uint16_t channel, uint8_t packet_type, uint8_t *packet, uint16_t size)
 {
@@ -255,6 +258,10 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
     else if (channel == spp_channel_id)
     {
       spp_handler(spp_channel_id, RFCOMM_DATA_PACKET, packet, size);
+    }
+    else if (channel == mns_channel_id)
+    {
+
     }
     return;
   }
@@ -372,7 +379,7 @@ static void btstack_setup(){
   memset(&spp_service_record, 0, sizeof(spp_service_record));
   spp_service_record.service_record = (uint8_t*)&spp_service_buffer[0];
 #if 0
-  sdp_create_spp_service( spp_service_record.service_record, 1, "iWatch Configure");
+  sdp_create_spp_service( spp_service_record.service_record, SPP_CHANNEL, "iWatch Configure");
   log_info("SDP service buffer size: %u\n", de_get_len(spp_service_record.service_record));
   hexdump((void*)spp_service_buffer, de_get_len(spp_service_record.service_record));
   //de_dump_data_element(service_record_item->service_record);
@@ -383,6 +390,8 @@ static void btstack_setup(){
 
   avctp_init();
   avrcp_init();
+
+  mns_init();
 }
 
 PROCESS_NAME(bluetooth_process);

@@ -827,3 +827,72 @@ void sdp_create_avrcp_service(uint8_t *service, const char *name){
 	de_add_number(service,  DE_UINT, DE_SIZE_16, 0x01); // Catagory 1
 
 }
+
+
+void sdp_create_map_service(uint8_t *service, int service_id, const char *name) {
+
+	uint8_t* attribute;
+	de_create_sequence(service);
+
+        // 0x0000 "Service Record Handle"
+	de_add_number(service, DE_UINT, DE_SIZE_16, SDP_ServiceRecordHandle);
+	de_add_number(service, DE_UINT, DE_SIZE_32, 0x10004);
+
+	// 0x0001 "Service Class ID List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_ServiceClassIDList);
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x1133 );
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0004 "Protocol Descriptor List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_ProtocolDescriptorList);
+	attribute = de_push_sequence(service);
+	{
+		uint8_t* l2cpProtocol = de_push_sequence(attribute);
+		{
+			de_add_number(l2cpProtocol,  DE_UUID, DE_SIZE_16, 0x0100);
+		}
+		de_pop_sequence(attribute, l2cpProtocol);
+
+		uint8_t* rfcomm = de_push_sequence(attribute);
+		{
+			de_add_number(rfcomm,  DE_UUID, DE_SIZE_16, 0x0003);  // rfcomm_service
+			de_add_number(rfcomm,  DE_UINT, DE_SIZE_8,  service_id);  // rfcomm channel
+		}
+		de_pop_sequence(attribute, rfcomm);
+
+                uint8_t* obex = de_push_sequence(attribute);
+		{
+			de_add_number(obex,  DE_UUID, DE_SIZE_16, 0x0008);
+		}
+		de_pop_sequence(attribute, obex);
+	}
+	de_pop_sequence(service, attribute);
+
+        // 0x0005 "Public Browse Group"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BrowseGroupList); // public browse group
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x1002 );
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0009 "Bluetooth Profile Descriptor List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BluetoothProfileDescriptorList);
+	attribute = de_push_sequence(service);
+	{
+		uint8_t *mapProfile = de_push_sequence(attribute);
+		{
+			de_add_number(mapProfile,  DE_UUID, DE_SIZE_16, 0x1134);
+                        de_add_number(mapProfile,  DE_UINT, DE_SIZE_16, 0x0100);
+		}
+		de_pop_sequence(attribute, mapProfile);
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0100 "ServiceName"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, 0x0100);
+	de_add_data(service,  DE_STRING, strlen(name), (uint8_t *) name);
+}
