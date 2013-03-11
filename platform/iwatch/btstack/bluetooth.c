@@ -94,11 +94,6 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
   }
 }
 
-
-
-#define AT_BRSF "AT+BRSF=4\r"
-
-
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
@@ -234,35 +229,17 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   }
 }
 #define SPP_CHANNEL 1
-#define HFP_CHANNEL 6
-#define MNS_CHANNEL 17
 
-static uint16_t hfp_channel_id = 0;
+
 static uint16_t spp_channel_id = 0;
-static uint16_t mns_channel_id = 0;
 
-static void spp_handler(uint16_t channel, uint8_t packet_type, uint8_t *packet, uint16_t size)
-{
-}
-
-static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
+static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   uint16_t rfcomm_id;
 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
-    if (channel == hfp_channel_id)
-    {
-      hfp_handler(hfp_channel_id, RFCOMM_DATA_PACKET, packet, size);
-    }
-    else if (channel == spp_channel_id)
-    {
-      spp_handler(spp_channel_id, RFCOMM_DATA_PACKET, packet, size);
-    }
-    else if (channel == mns_channel_id)
-    {
-
-    }
+    hexdump(packet, size);
     return;
   }
 
@@ -279,25 +256,14 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
         rfcomm_channel_nr = packet[8];
         rfcomm_id = READ_BT_16(packet, 9);
         log_info("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
-        switch(rfcomm_channel_nr)
+        if (spp_channel_id == 0)
         {
-          case HFP_CHANNEL:
-            {
-              rfcomm_accept_connection_internal(rfcomm_id);
-              hfp_channel_id = rfcomm_id;
-              break;
-            }
-        case SPP_CHANNEL:
-          {
-            rfcomm_accept_connection_internal(rfcomm_id);
-            spp_channel_id = rfcomm_id;
-            break;
-          }
-        default:
-          {
-            log_info("unknow channel %d\n",  rfcomm_channel_nr);
-            rfcomm_decline_connection_internal(rfcomm_id);
-          }
+          rfcomm_accept_connection_internal(rfcomm_id);
+          break;
+        }
+        else
+        {
+          rfcomm_decline_connection_internal(rfcomm_id);
         }
         break;
       }
@@ -306,36 +272,28 @@ static void rfcomm_app_packet_handler (void * connection, uint8_t packet_type, u
         // data: event(8), len(8), status (8), address (48), server channel(8), rfcomm_cid(16), max frame size(16)
         if (packet[2]) {
           log_info("RFCOMM channel open failed, status %u\n", packet[2]);
+          spp_channel_id = 0;
         } else {
           rfcomm_id = READ_BT_16(packet, 12);
           uint16_t mtu = READ_BT_16(packet, 14);
           log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
-          if (rfcomm_id == hfp_channel_id)
-          {
-            hfp_handler(hfp_channel_id, RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE, packet, size);
-          }
         }
         break;
       }
     case RFCOMM_EVENT_CREDITS:
       {
         // data: event(8), len(8), rfcomm_cid(16), credits(8)
-        rfcomm_id = READ_BT_16(packet, 2);
-        uint8_t credits = packet[4];
-        if (rfcomm_id == hfp_channel_id && credits > 0)
-        {
-          hfp_handler(hfp_channel_id, RFCOMM_EVENT_CREDITS, packet, size);
-        }
+        //rfcomm_id = READ_BT_16(packet, 2);
+        //uint8_t credits = packet[4];
         break;
       }
     case RFCOMM_EVENT_CHANNEL_CLOSED:
       {
         // data: event(8), len(8), rfcomm_cid(16)
         rfcomm_id = READ_BT_16(packet, 2);
-        if (rfcomm_id == hfp_channel_id)
+        if (spp_channel_id == rfcomm_id)
         {
-          hfp_handler(hfp_channel_id, RFCOMM_EVENT_CHANNEL_CLOSED, packet, size);
-          hfp_channel_id = 0;
+          spp_channel_id = 0;
         }
         break;
       }
@@ -364,8 +322,7 @@ static void btstack_setup(){
 
   // init RFCOMM
   rfcomm_init();
-  rfcomm_register_packet_handler(rfcomm_app_packet_handler);
-  rfcomm_register_service_internal(NULL, 1, 100);  // reserved channel, mtu=100
+  rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
 
   // set up ATT
   att_set_db(profile_data);
@@ -386,7 +343,7 @@ static void btstack_setup(){
 #endif
   sdp_register_service_internal(NULL, &spp_service_record);
 
-  hfp_init(HFP_CHANNEL);
+  hfp_init();
 
   avctp_init();
   avrcp_init();

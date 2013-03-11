@@ -10,6 +10,8 @@
 #include "config.h"
 #include "debug.h"
 
+#define HFP_CHANNEL 6
+
 static enum
 {
   INITIALIZING,
@@ -50,9 +52,11 @@ static const uint8_t   hfp_service_buffer[85] =
   0x64,0x73,0x65,0x74,0x09,0x03,0x11,0x09,0x00,0x08
 };
 
-void hfp_init(int channel)
+static void hfp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
+
+void hfp_init()
 {
-  rfcomm_register_service_internal(NULL, channel, 100);  // reserved channel, mtu=100
+  rfcomm_register_service_internal(NULL, hfp_handler, HFP_CHANNEL, 100);  // reserved channel, mtu=100
 
   memset(&hfp_service_record, 0, sizeof(hfp_service_record));
   hfp_service_record.service_record = (uint8_t*)&hfp_service_buffer[0];
@@ -348,9 +352,11 @@ static void hfp_state_handler(int code, char* buf)
 
 }
 
+static uint16_t rfcomm_channel_id = 0;
+
 static uint8_t textbuf[255];
 static uint8_t textbufptr = 0;
-void hfp_handler(int rfcomm_channel_id, int type, uint8_t *packet, uint16_t len)
+static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint16_t len)
 {
   log_info("hfp_handler state %d event %d\n", state, type);
   switch(type)
@@ -389,32 +395,69 @@ void hfp_handler(int rfcomm_channel_id, int type, uint8_t *packet, uint16_t len)
 
       break;
     }
-  case RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE:
+  case HCI_EVENT_PACKET:
     {
-      if (state == INITIALIZING)
+      switch(packet[0])
       {
-        state = WAIT_BRSF;
-        hfp_response_buffer = AT_BRSF;
-        hfp_response_size = sizeof(AT_BRSF);
-        hfp_try_respond(rfcomm_channel_id);
+      case RFCOMM_EVENT_INCOMING_CONNECTION:
+        {
+          uint8_t   rfcomm_channel_nr;
+          bd_addr_t event_addr;
+          // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
+          bt_flip_addr(event_addr, &packet[2]);
+          rfcomm_channel_nr = packet[8];
+          uint16_t rfcomm_id = READ_BT_16(packet, 9);
+          log_info("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
+          if (rfcomm_channel_id == 0)
+          {
+            rfcomm_channel_id = rfcomm_id;
+            rfcomm_accept_connection_internal(rfcomm_id);
+            break;
+          }
+          else
+          {
+            rfcomm_decline_connection_internal(rfcomm_id);
+          }
+          break;
+        }
+
+      case RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE:
+        {
+          if (packet[2])
+          {
+            rfcomm_channel_id = 0;
+            break;
+          }
+
+          if (state == INITIALIZING)
+          {
+            state = WAIT_BRSF;
+            hfp_response_buffer = AT_BRSF;
+            hfp_response_size = sizeof(AT_BRSF);
+            hfp_try_respond(rfcomm_channel_id);
+          }
+          else
+          {
+            state = ERROR;
+          }
+          break;
+        }
+      case RFCOMM_EVENT_CREDITS:
+        {
+          hfp_try_respond(rfcomm_channel_id);
+          break;
+        }
+      case RFCOMM_EVENT_CHANNEL_CLOSED:
+        {
+          if (rfcomm_channel_id)
+          {
+            rfcomm_channel_id = 0;
+          }
+          state = INITIALIZING;
+          textbufptr = 0;
+          break;
+        }
       }
-      else
-      {
-        state = ERROR;
-      }
-      break;
-    }
-  case DAEMON_EVENT_HCI_PACKET_SENT:
-  case RFCOMM_EVENT_CREDITS:
-    {
-      hfp_try_respond(rfcomm_channel_id);
-      break;
-    }
-  case RFCOMM_EVENT_CHANNEL_CLOSED:
-    {
-      state = INITIALIZING;
-      textbufptr = 0;
-      break;
     }
   }
 }

@@ -1,13 +1,20 @@
 #include <string.h>
 
 #include "l2cap.h"
+#include "rfcomm.h"
 #include "config.h"
 #include "debug.h"
 #include "sdp.h"
 #include <btstack/sdp_util.h>
 
+#define MNS_CHANNEL 17
+
 static service_record_item_t mns_service_record;
 static uint8_t   mns_service_buffer[100];
+
+static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
+{
+}
 
 int mns_init(int channel)
 {
@@ -22,7 +29,7 @@ int mns_init(int channel)
   sdp_register_service_internal(NULL, &mns_service_record);
 
   // register to obex
-
+  rfcomm_register_service_internal(NULL, mns_packet_handler, MNS_CHANNEL, 0xffff);
   return 0;
 }
 
