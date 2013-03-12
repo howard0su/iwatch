@@ -20,7 +20,7 @@ static uint8_t txlen;
     }                                                                   \
   } while(0)
 
-enum { STATE_IDL, STATE_RUNNING, STATE_DONE, STATE_ERROR} state;
+static enum { STATE_IDL, STATE_RUNNING, STATE_DONE, STATE_ERROR} state;
 
 void I2C_Init()
 {
