@@ -1,0 +1,135 @@
+/****************************************************************
+*  Description: Implementation for sdp client to drive auto connection
+*    History:
+*      Jun Su          2013/1/1        Created
+*      Jun Su          2013/1/13       Support BT and BLE
+*      Jun Su          2013/1/21       Make BT and BLE runs same time
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
+#include "contiki.h"
+
+#include <btstack/hci_cmds.h>
+#include <btstack/run_loop.h>
+#include <btstack/sdp_util.h>
+
+#include "hci.h"
+#include "l2cap.h"
+#include "btstack_memory.h"
+#include "remote_device_db.h"
+#include "rfcomm.h"
+#include "sdp.h"
+#include "hfp.h"
+#include "config.h"
+#include "avctp.h"
+#include "avrcp.h"
+#include "debug.h"
+
+static const uint16_t serviceids[3] = {
+  0x111F, // HFP gateway
+  0x110C, // AVRCP server
+  0x1132, // MAP MNS Server
+};
+uint8_t current_server = 0;
+
+static enum
+{
+  SENDING,
+  RECV,
+  DONE
+}state;
+
+static uint16_t l2cap_cid;
+static uint16_t transitionid = 0;
+
+static void sdpc_trysend()
+{
+  uint8_t buf[128];
+  if (state != SENDING) return;
+  if (!l2cap_cid) return;
+  if (!l2cap_can_send_packet_now(l2cap_cid)) return;
+
+  buf[0] = SDP_ServiceSearchAttributeRequest;
+  net_store_16(buf, 1, transitionid++);
+
+  uint8_t *param = &buf[5];
+  de_create_sequence(param);
+  de_add_number(param, DE_UUID, DE_SIZE_16, serviceids[current_server]);
+  uint16_t size = de_get_len(param);
+  net_store_16(param, size, 30); // max length is 30 bytes
+  size+=2;
+  de_create_sequence(param + size);
+  de_add_number(param + size, DE_UINT, DE_SIZE_16, SDP_ProtocolDescriptorList);
+  size += de_get_len(param + size);
+  param[size++] = 0;
+
+  net_store_16(buf, 3, size);
+  hexdump(buf, size + 5);
+  l2cap_send_internal(l2cap_cid, buf, size + 5);
+  state = RECV;
+
+}
+
+static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
+{
+  if (packet_type == HCI_EVENT_PACKET)
+  {
+    switch(packet[0]){
+    case L2CAP_EVENT_CHANNEL_OPENED:
+      {
+        if (packet[2]) {
+          log_info("Connection failed\n");
+          return;
+        }
+        log_info("Connected\n");
+        state = SENDING;
+        current_server = 0;
+        l2cap_cid = READ_BT_16(packet, 13);
+        sdpc_trysend();
+      }
+    case L2CAP_EVENT_CREDITS:
+      {
+        sdpc_trysend();
+        break;
+      }
+    case L2CAP_EVENT_CHANNEL_CLOSED:
+      if (channel == l2cap_cid){
+        // reset
+        l2cap_cid = 0;
+      }
+      break;
+    }
+  }
+
+  if (packet_type == L2CAP_DATA_PACKET){
+    log_info("SDP Respone %d \n", READ_NET_16(packet, 5));
+    de_dump_data_element(&packet[7]);
+
+    current_server++;
+    if (current_server == 3)
+    {
+      state = DONE;
+      l2cap_close_connection(&current_server);
+    }
+    else
+    {
+      state = SENDING;
+      sdpc_trysend();
+    }
+  }
+}
+
+
+void sdpc_open(bd_addr_t remote_addr)
+{
+  if (l2cap_cid != 0)
+    return;
+  bd_addr_t addr = {0xbc, 0xcf, 0xcc, 0xda,0x9d, 0x41};
+  l2cap_create_channel_internal(&current_server, sdpc_packet_handler, addr , PSM_SDP, 0xffff);
+}
