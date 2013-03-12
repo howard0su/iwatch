@@ -101,17 +101,17 @@ typedef uint8_t device_name_t[DEVICE_NAME_LEN+1];
 
 void bt_store_16(uint8_t *buffer, uint16_t pos, uint16_t value);
 void bt_store_32(uint8_t *buffer, uint16_t pos, uint32_t value);
-void bt_flip_addr(bd_addr_t dest, bd_addr_t src);
+void bt_flip_addr(bd_addr_t dest, const bd_addr_t src);
 
 void net_store_16(uint8_t *buffer, uint16_t pos, uint16_t value);
 void net_store_32(uint8_t *buffer, uint16_t pos, uint32_t value);
 
-void hexdump(void *data, int size);
-void printUUID(uint8_t *uuid);
+void hexdump(const void *data, int size);
+void printUUID(const uint8_t *uuid);
 
 // @deprecated please use more convenient bd_addr_to_str
 void print_bd_addr( bd_addr_t addr);
-char * bd_addr_to_str(bd_addr_t addr);
+char * bd_addr_to_str(const bd_addr_t addr);
 
 int sscan_bd_addr(uint8_t * addr_string, bd_addr_t addr);
 
