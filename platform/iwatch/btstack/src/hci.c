@@ -1265,7 +1265,7 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
         bt_flip_addr(addr, &packet[3]);
 		link_type = packet[9];
         log_info("Create_connection to %s type=%d \n", bd_addr_to_str(addr), link_type);
-        conn = connection_for_address(addr, link_type);
+        conn = connection_for_address(addr, 1); // only create ACL connection
         if (conn) {
             // if connection exists
             if (conn->state == OPEN) {
@@ -1277,7 +1277,7 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
 
         }
         // create connection struct and register, state = SENT_CREATE_CONNECTION
-        conn = create_connection_for_addr(addr, link_type);
+        conn = create_connection_for_addr(addr, 1);
         if (!conn){
             // notify client that alloc failed
             hci_emit_connection_complete(conn, BTSTACK_MEMORY_ALLOC_FAILED);
