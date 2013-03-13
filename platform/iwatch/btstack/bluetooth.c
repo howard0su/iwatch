@@ -176,6 +176,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
+        hci_send_cmd(&hci_write_simple_pairing_mode, 0x00);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_simple_pairing_mode)) {
         hci_send_cmd(&hci_write_class_of_device, 0x7C0704);
         break;
       }
@@ -226,10 +230,34 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       hci_send_cmd(&hci_pin_code_request_reply, &event_addr, 4, "0000");
       break;
     }
+  case HCI_EVENT_IO_CAPABILITY_REQUEST:
+    {
+      log_info("IO_CAPABILITY_REQUEST\n");
+      bt_flip_addr(event_addr, &packet[2]);
+      hci_send_cmd(&hci_io_capability_request_reply, &event_addr, 0x01, 0x00, 0x00);
+      break;
+    }
+  case HCI_EVENT_USER_CONFIRMATION_REQUEST:
+    {
+      bt_flip_addr(event_addr, &packet[2]);
+      uint32_t value = READ_BT_32(packet, 8);
+      log_info("USER_CONFIRMATION_REQUEST %lx\n", value);
+      hci_send_cmd(&hci_user_confirmation_request_reply, &event_addr);
+      break;
+    }
+  case HCI_EVENT_LINK_KEY_NOTIFICATION:
+    {
+      // new device is paired
+      bt_flip_addr(event_addr, &packet[2]);
+      //sdpc_open(event_addr);
+      break;
+    }
+  case DAEMON_EVENT_HCI_PACKET_SENT:
+    break;
   }
 }
-#define SPP_CHANNEL 1
 
+#define SPP_CHANNEL 1
 
 static uint16_t spp_channel_id = 0;
 
@@ -372,6 +400,8 @@ void bluetooth_init()
 
   process_start(&bluetooth_process, NULL);
   BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low
+
+  //sdpc_open(config_data.bd_addr);
 }
 
 void bluetooth_shutdown()

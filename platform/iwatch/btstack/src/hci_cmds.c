@@ -237,7 +237,18 @@ OPCODE(OGF_LINK_CONTROL, 0x1A), "B"
 const hci_cmd_t hci_accept_synchronous_connection = {
 OPCODE(OGF_LINK_CONTROL, 0x29), "B442212"
 };
-
+const hci_cmd_t hci_io_capability_request_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x2B), "B111"
+//BD_ADDR, IO_Capability, OOB_Data_Present, Authentication_Requirements
+};
+const hci_cmd_t hci_user_confirmation_request_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x2c), "B"
+//BD_ADDR
+};
+const hci_cmd_t hci_user_confirmation_request_negative_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x2d), "B"
+//BD_ADDR
+};
 /**
  *  Link Policy Commands
  */

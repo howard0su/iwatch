@@ -108,6 +108,9 @@ extern "C" {
 #define HCI_EVENT_INQUIRY_RESULT_WITH_RSSI		      	   0x22
 #define HCI_EVENT_SYNCHRONOUS_CONNECTION_COMPLETE               0x2c
 #define HCI_EVENT_EXTENDED_INQUIRY_RESPONSE                0x2F
+#define HCI_EVENT_IO_CAPABILITY_REQUEST                    0x31
+#define HCI_EVENT_IO_CAPABILITY_RESPONSE                   0x32
+#define HCI_EVENT_USER_CONFIRMATION_REQUEST                0x33
 #define HCI_EVENT_LE_META                                  0x3E
 #define HCI_EVENT_VENDOR_SPECIFIC				           0xFF
 
@@ -316,6 +319,10 @@ extern const hci_cmd_t hci_write_num_broadcast_retransmissions;
 extern const hci_cmd_t hci_write_page_timeout;
 extern const hci_cmd_t hci_write_scan_enable;
 extern const hci_cmd_t hci_write_simple_pairing_mode;
+extern const hci_cmd_t hci_io_capability_request_reply;
+extern const hci_cmd_t hci_user_confirmation_request_reply;
+extern const hci_cmd_t hci_user_confirmation_request_negative_reply;
+
 
 extern const hci_cmd_t hci_le_add_device_to_whitelist;
 extern const hci_cmd_t hci_le_clear_white_list;
