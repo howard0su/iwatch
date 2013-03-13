@@ -58,7 +58,7 @@ static void sdp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
 static linked_list_t sdp_service_records = NULL;
 
 // our handles start after the reserved range
-static uint32_t sdp_next_service_record_handle = maxReservedServiceRecordHandle + 2;
+static uint32_t sdp_next_service_record_handle = ((uint32_t)maxReservedServiceRecordHandle) + 2;
 
 static uint8_t sdp_response_buffer[SDP_RESPONSE_BUFFER_SIZE];
 
@@ -81,7 +81,7 @@ void sdp_register_packet_handler(void (*handler)(void * connection, uint8_t pack
 }
 
 uint32_t sdp_get_service_record_handle(uint8_t * record){
-    uint8_t * serviceRecordHandleAttribute = sdp_get_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle);
+    const uint8_t * serviceRecordHandleAttribute = sdp_get_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle);
     if (!serviceRecordHandleAttribute) return 0;
     if (de_get_element_type(serviceRecordHandleAttribute) != DE_UINT) return 0;
     if (de_get_size_type(serviceRecordHandleAttribute) != DE_SIZE_32) return 0;
@@ -136,10 +136,10 @@ uint32_t sdp_register_service_internal(void *connection, service_record_item_t *
   // get user record handle
     uint32_t record_handle = record_item->service_record_handle;
     // get actual record
-    uint8_t *record = record_item->service_record;
+    const uint8_t *record = record_item->service_record;
 
     // check for ServiceRecordHandle attribute, returns pointer or null
-    uint8_t * req_record_handle = sdp_get_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle);
+    const uint8_t * req_record_handle = sdp_get_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle);
     if (!req_record_handle) {
         log_error("SDP Error - record does not contain ServiceRecordHandle attribute\n");
         return 0;
@@ -161,10 +161,14 @@ uint32_t sdp_register_service_internal(void *connection, service_record_item_t *
 
     // create new handle if needed
     if (!record_handle){
+#if 0
         record_handle = sdp_create_service_record_handle();
         // Write the handle back into the record too
         record_item->service_record_handle = record_handle;
         sdp_set_attribute_value_for_attribute_id(record, SDP_ServiceRecordHandle, record_handle);
+#endif
+        log_error("SDP Error - record does not contain a valid sevice handle\n");
+        return 0;
     }
 
     // add to linked list
