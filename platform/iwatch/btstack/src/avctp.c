@@ -62,9 +62,19 @@ static uint8_t avctp_resp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_RESP
 static uint16_t resp_size;
 static uint8_t id = 0;
 static uint8_t need_send_release = 0;
+
 void avctp_init()
 {
-  l2cap_register_service_internal(NULL, avctp_packet_handler, AVCTP_PSM, 0xffff);
+  l2cap_cid = 0;
+  l2cap_register_service_internal(NULL, avctp_packet_handler, PSM_AVCTP, 0xffff);
+}
+
+void avctp_connect(bd_addr_t remote_addr)
+{
+  if (l2cap_cid) return;
+
+  l2cap_create_channel_internal(&l2cap_cid, avctp_packet_handler,
+                                remote_addr , PSM_AVCTP, 0xffff);
 }
 
 static void avctp_try_respond(void){
@@ -190,6 +200,11 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       if (packet[2]) {
         // open failed -> reset
         l2cap_cid = 0;
+      }
+      else
+      {
+        l2cap_cid = READ_BT_16(packet, 13);
+        (*packet_handler)(NULL, 0);
       }
       break;
     case L2CAP_EVENT_CREDITS:

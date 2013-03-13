@@ -133,6 +133,12 @@ static void handle_attributes(struct avrcp_header *pdu)
 
 static void handle_pdu(uint8_t *data, uint16_t size)
 {
+  if (data == NULL)
+  {
+    avrcp_get_capability();
+    return;
+  }
+
   struct avrcp_header *pdu = (struct avrcp_header *)data;
   printf("pduid: %d\n", pdu->pdu_id);
 
@@ -163,6 +169,11 @@ void avrcp_init()
   sdp_register_service_internal(NULL, &avrcp_service_record);
 
   avctp_register_pid(0x110E, handle_pdu);
+}
+
+void avrcp_connect(bd_addr_t remote_addr)
+{
+  avctp_connect(remote_addr);
 }
 
 /*

@@ -1,7 +1,9 @@
 #ifndef _AVCTP_H_
 #define _AVCTP_H_
 
-#define AVCTP_PSM 23
+#include "btstack/utils.h"
+
+#define PSM_AVCTP 23
 
 #define AVC_MTU 512
 #define AVC_HEADER_LENGTH 3
@@ -41,6 +43,7 @@
 #define BACKWARD_OP			0x4c
 
 extern void avctp_init();
+extern void avctp_connect(bd_addr_t remote_addr);
 extern void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t *packet, uint16_t size));
 
 extern int avctp_send_vendordep(uint8_t code, uint8_t subunit,

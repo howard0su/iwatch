@@ -36,7 +36,8 @@ static const uint16_t serviceids[3] = {
   0x110C, // AVRCP server
   0x1132, // MAP MNS Server
 };
-uint8_t current_server = 0;
+static uint8_t current_server = 0;
+static bd_addr_t addr = {0xbc, 0xcf, 0xcc, 0xda,0x9d, 0x41};
 
 static enum
 {
@@ -111,6 +112,19 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     log_info("SDP Respone %d \n", READ_NET_16(packet, 5));
     de_dump_data_element(&packet[7]);
 
+    //check if valid answer returns
+    if (READ_NET_16(packet, 5) > 2)
+    {
+      switch(current_server)
+      {
+      case 0:
+        break;
+      case 1:
+        avrcp_connect(addr);
+        break;
+      }
+    }
+
     current_server++;
     if (current_server == 3)
     {
@@ -130,6 +144,5 @@ void sdpc_open(bd_addr_t remote_addr)
 {
   if (l2cap_cid != 0)
     return;
-  bd_addr_t addr = {0xbc, 0xcf, 0xcc, 0xda,0x9d, 0x41};
   l2cap_create_channel_internal(&current_server, sdpc_packet_handler, addr , PSM_SDP, 0xffff);
 }
