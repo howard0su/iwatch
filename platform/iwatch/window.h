@@ -20,6 +20,8 @@ extern struct process *ui_process;
 
 #define EVENT_BT_STATUS               0x96 // parameters BIT0:ENABLE, BIT1:CONNECT
 #define EVENT_ANT_STATUS              0x97 // parameters BIT0:EnABLE, BIT1:CONNECT
+#define EVENT_MPU_STATUS              0x98 // parameters BIT0:EnABLE
+#define EVENT_CODEC_STATUS            0x99 // parameters BIT0:EnABLE
 
 // Dialogs
 PROCESS_NAME(analogclock_process);

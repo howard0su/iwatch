@@ -6,6 +6,7 @@
 #include "sys/etimer.h"
 #include "dev/watchdog.h"
 #include <stdio.h>
+#include "window.h"
 
 #include "inv_mpu.h"
 #include "inv_mpu_dmp_motion_driver.h"
@@ -109,7 +110,7 @@ void mpu6050_init()
   result = mpu_init(NULL);
   if (result)
   {
-    printf("initialize mpu failed\n");
+    process_post(ui_process, EVENT_MPU_STATUS, (void*)0);
     return;
   }
 
@@ -214,7 +215,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 {
   PROCESS_BEGIN();
   etimer_set(&timer, CLOCK_SECOND * 10);
-  printf("mpu driver starts...\n");
+  process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
   while(1)
   {
     PROCESS_WAIT_EVENT();

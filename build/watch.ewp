@@ -3119,6 +3119,9 @@
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\run_loop.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\sdp_client.c</name>
+    </file>
   </group>
   <group>
     <name>core</name>

@@ -41,6 +41,7 @@
 
 #include "contiki.h"
 #include "power.h"
+#include "window.h"
 
 // ANT Channel settings
 #define ANT_CHANNEL_HRMRX                          ((UCHAR) 0)          // Default ANT Channel
@@ -118,6 +119,7 @@ void ant_shutdown()
 PROCESS_THREAD(ant_process, ev, data)
 {
   static struct etimer timer;
+  static UCHAR* pucRxBuffer;
 
   PROCESS_BEGIN();
 
@@ -129,7 +131,7 @@ PROCESS_THREAD(ant_process, ev, data)
   // Main loop
   while(TRUE)
   {
-    UCHAR* pucRxBuffer = ANTInterface_Transaction();                // Check if any data has been recieved from serial
+    pucRxBuffer = ANTInterface_Transaction();                // Check if any data has been recieved from serial
 
     if(pucRxBuffer)
     {
@@ -394,6 +396,7 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
             if (pucEventBuffer_[3] == MESG_OPEN_CHANNEL_ID)
             {
               printf("initialization is complete.\n");
+              process_post(ui_process, EVENT_ANT_STATUS, (void*)BIT0);
             }
             else if (pucEventBuffer_[3] == MESG_CLOSE_CHANNEL_ID)
             {

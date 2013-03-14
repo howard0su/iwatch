@@ -1,3 +1,6 @@
+#include "contiki.h"
+#include "window.h"
+
 #include <stdint.h>
 #include "i2c.h"
 /*
@@ -60,9 +63,9 @@
 #define REG_OUT3_MIXER_CTRL             (0x038)
 #define REG_OUT4_MIXER_CTRL             (0x039)
 
-static void inline codec_write(uint8_t reg, uint16_t data)
+static int inline codec_write(uint8_t reg, uint16_t data)
 {
-  I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
+  return I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
 }
 
 void codec_init()
@@ -71,19 +74,26 @@ void codec_init()
   // write some configure data for codec
   //codec_write(REG_RESET, 0);
 
-  codec_write(REG_POWER_MANAGEMENT1, 0x1F);
-  codec_write(REG_POWER_MANAGEMENT2, 0x1bf);
-  codec_write(REG_POWER_MANAGEMENT3, 0x7f);
-  codec_write(REG_AUDIO_INTERFACE, 0x10);
-  codec_write(REG_COMPANDING_CTRL, 0);
-  codec_write(REG_CLK_GEN_CTRL, 0);
-  codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff);
-  codec_write(REG_DAC_CTRL, 0x08);
-  codec_write(REG_BEEP_CONTROL, 0x10);
-  codec_write(REG_LEFT_INP_PGA_GAIN_CTRL, 0x139);
-  codec_write(REG_LEFT_MIXER_CTRL, 0x01);
-  codec_write(REG_OUTPUT_CTRL, 0x02);
-  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, 0x139);
-  codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff);
+  if (!codec_write(REG_POWER_MANAGEMENT1, 0x1F) &&
+    !codec_write(REG_POWER_MANAGEMENT2, 0x1bf) &&
+    !codec_write(REG_POWER_MANAGEMENT3, 0x7f) &&
+    !codec_write(REG_AUDIO_INTERFACE, 0x10) &&
+    !codec_write(REG_COMPANDING_CTRL, 0) &&
+    !codec_write(REG_CLK_GEN_CTRL, 0) &&
+    !codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff) &&
+    !codec_write(REG_DAC_CTRL, 0x08) &&
+    !codec_write(REG_BEEP_CONTROL, 0x10) &&
+    !codec_write(REG_LEFT_INP_PGA_GAIN_CTRL, 0x139) &&
+    !codec_write(REG_LEFT_MIXER_CTRL, 0x01) &&
+    !codec_write(REG_OUTPUT_CTRL, 0x02) &&
+    !codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, 0x139) &&
+    !codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff))
+  {
+    process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
+  }
+  else
+  {
+    process_post(ui_process, EVENT_CODEC_STATUS, (void*)0);
+  }
   I2C_done();
 }
