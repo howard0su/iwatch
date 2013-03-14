@@ -97,10 +97,10 @@
 // Include Files
 //
 //*****************************************************************************
-#include <msp430.h>
 #include "contiki.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include <string.h>
 
 #define SPIOUT  P3OUT
 #define SPIDIR  P3DIR
