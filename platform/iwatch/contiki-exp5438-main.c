@@ -105,8 +105,9 @@ main(int argc, char **argv)
   /*
   * This is the scheduler loop.
   */
+#if !DEBUG
   watchdog_start();
-
+#endif
   while(1) {
     int r;
     do {
@@ -140,7 +141,9 @@ main(int argc, char **argv)
       dint();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
       eint();
+#if !DEBUG
       watchdog_start();
+#endif
     }
   }
 }

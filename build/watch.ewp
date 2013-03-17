@@ -166,6 +166,7 @@
           <name>CCDefines</name>
           <state>AUTOSTART_ENABLE=1</state>
           <state>HAVE_BLE=1</state>
+          <state>DEBUG=1</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -3262,6 +3263,10 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>

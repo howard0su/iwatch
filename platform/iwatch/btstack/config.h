@@ -6,9 +6,11 @@
 
 #define HAVE_EHCILL
 
-#define ENABLE_LOG_INFO
 #define ENABLE_LOG_ERROR
+#if DEBUG
+#define ENABLE_LOG_INFO
 #define ENABLE_LOG_DEBUG
+#endif
 
 #define HCI_ACL_PAYLOAD_SIZE 52
 
