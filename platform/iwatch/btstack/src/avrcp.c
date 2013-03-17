@@ -133,12 +133,6 @@ static void handle_attributes(struct avrcp_header *pdu)
 
 static void handle_pdu(uint8_t *data, uint16_t size)
 {
-  if (data == NULL)
-  {
-    avrcp_get_capability();
-    return;
-  }
-
   struct avrcp_header *pdu = (struct avrcp_header *)data;
   printf("pduid: %d\n", pdu->pdu_id);
 

@@ -204,7 +204,6 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       else
       {
         l2cap_cid = READ_BT_16(packet, 13);
-        (*packet_handler)(NULL, 0);
       }
       break;
     case L2CAP_EVENT_CREDITS:
