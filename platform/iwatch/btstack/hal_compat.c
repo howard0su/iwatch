@@ -10,7 +10,7 @@
 // __delay_cycles is limited
 void waitAboutOneSecond(void){
   int i;
-  for (i=0;i<1000;i++) __delay_cycles(16000);
+  for (i=0;i<1000;i++) __delay_cycles(8000);
 }
 
 // access far text for MSP430X platform
@@ -22,14 +22,14 @@ uint8_t FlashReadByte (uint32_t addr){
   uint32_t register sr, flash;
 
   __asm__ __volatile__ (
-                        "mov    r2  , %1   \n"
-                          "bic    %3  , r2   \n"
-                            "nop               \n"
-                              "movx.a %4  , %2   \n"
-                                "movx.b @%2, %0    \n"
-                                  "mov    %1 , r2    \n"
-                                    :"=X"(result),"=r"(sr),"=r"(flash)
-                                      :"i"(GIE),"m"(addr));
+      "mov    r2  , %1   \n"
+      "bic    %3  , r2   \n"
+      "nop               \n"
+      "movx.a %4  , %2   \n"
+      "movx.b @%2, %0    \n"
+      "mov    %1 , r2    \n"
+      :"=X"(result),"=r"(sr),"=r"(flash)
+      :"i"(GIE),"m"(addr));
 
   return result;
 }

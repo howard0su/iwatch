@@ -79,10 +79,10 @@ PROCESS_THREAD(bluetooth_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  static struct etimer timer;
-  // wait about one second for bluetooth to start
-  etimer_set(&timer, CLOCK_SECOND);
-  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+  //static struct etimer timer;
+  // wait about 100ms for bluetooth to start
+  //etimer_set(&timer, CLOCK_SECOND / 10);
+  //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
 
   // turn on!
   hci_power_control(HCI_POWER_ON);

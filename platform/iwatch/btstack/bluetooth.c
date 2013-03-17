@@ -98,7 +98,6 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
-  const uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff };
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
@@ -107,87 +106,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   }
 
   switch (packet[0]) {
-  case BTSTACK_EVENT_STATE:
-    // bt stack activated, get started - set local name
-    if (packet[2] == HCI_STATE_WORKING) {
-      printf("Start initialize bluetooth chip!\n");
-      hci_send_cmd(&hci_read_local_supported_features);
-    }
-    break;
-
-  case HCI_EVENT_COMMAND_COMPLETE:
-    {
-      if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
-        bt_flip_addr(event_addr, &packet[6]);
-        log_info("BD ADDR: %s\n", bd_addr_to_str(event_addr));
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
-        log_info("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
-        hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
-        hci_send_cmd(&hci_write_le_host_supported, 1, 1);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
-        hci_send_cmd(&hci_le_set_event_mask, 0xffffffff, 0xffffffff);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
-        hci_send_cmd(&hci_le_read_buffer_size);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
-        log_info("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
-        hci_send_cmd(&hci_le_read_supported_states);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
-        hci_send_cmd(&hci_le_set_advertising_parameters,  0x0400, 0x0800, 0, 0, 0, &event_addr, 0x07, 0);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
-        hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
-        hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
-        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
-        hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, 800, 1, 0, 0, 0,
-                       16, 1, 0, 16, 1, 1, 0,
-                       16, 17, 0, 16, 17, 1, 0
-                       );
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
-        hci_send_cmd(&hci_write_voice_setting, 0x0060);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_voice_setting)){
-        hci_send_cmd(&hci_write_local_name, DEVICENAME);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
-        hci_send_cmd(&hci_write_simple_pairing_mode, 0x00);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_simple_pairing_mode)) {
-        hci_send_cmd(&hci_write_class_of_device, 0x7C0704);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
-        process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
-      }
-      break;
-    }
   case HCI_EVENT_LE_META:
     switch (packet[2]) {
     case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
@@ -252,10 +170,107 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       //sdpc_open(event_addr);
       break;
     }
-  case DAEMON_EVENT_HCI_PACKET_SENT:
-    break;
   }
 }
+
+static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
+{
+  bd_addr_t event_addr;
+  const uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff };
+
+  // handle events, ignore data
+  if (packet_type != HCI_EVENT_PACKET)
+  {
+    return;
+  }
+
+  switch (packet[0]) {
+  case BTSTACK_EVENT_STATE:
+    // bt stack activated, get started - set local name
+    if (packet[2] == HCI_STATE_WORKING) {
+      printf("Start initialize bluetooth chip!\n");
+      hci_send_cmd(&hci_read_local_supported_features);
+    }
+    break;
+
+  case HCI_EVENT_COMMAND_COMPLETE:
+    {
+      if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
+        bt_flip_addr(event_addr, &packet[6]);
+        log_info("BD ADDR: %s\n", bd_addr_to_str(event_addr));
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
+        log_info("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
+        hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
+        hci_send_cmd(&hci_write_le_host_supported, 1, 1);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
+        hci_send_cmd(&hci_le_set_event_mask, 0xffffffff, 0xffffffff);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
+        hci_send_cmd(&hci_le_read_buffer_size);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
+        log_info("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
+        hci_send_cmd(&hci_le_read_supported_states);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
+        hci_send_cmd(&hci_le_set_advertising_parameters,  0x0400, 0x0800, 0, 0, 0, &event_addr, 0x07, 0);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
+        hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
+        hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+        hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, 800, 1, 0, 0, 0,
+                       16, 1, 0, 16, 1, 1, 0,
+                       16, 17, 0, 16, 17, 1, 0
+                       );
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
+        hci_send_cmd(&hci_write_voice_setting, 0x0060);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_voice_setting)){
+        hci_send_cmd(&hci_write_local_name, DEVICENAME);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
+        hci_send_cmd(&hci_write_simple_pairing_mode, 0x00);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_simple_pairing_mode)) {
+        hci_send_cmd(&hci_write_class_of_device, 0x7C0704);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
+        hci_send_cmd(&hci_le_set_advertise_enable, 1);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
+        l2cap_register_packet_handler(packet_handler);
+        //sdpc_open(config_data.bd_addr);
+      }
+      break;
+    }
+  }
+}
+
 
 #define SPP_CHANNEL 1
 
@@ -345,8 +360,8 @@ static void btstack_setup(){
 
   // init L2CAP
   l2cap_init();
+  l2cap_register_packet_handler(init_packet_handler);
   l2cap_register_fixed_channel(att_packet_handler, L2CAP_CID_ATTRIBUTE_PROTOCOL);
-  l2cap_register_packet_handler(packet_handler);
 
   // init RFCOMM
   rfcomm_init();
@@ -371,10 +386,10 @@ static void btstack_setup(){
 #endif
   sdp_register_service_internal(NULL, &spp_service_record);
 
-  hfp_init();
-
   avctp_init();
   avrcp_init();
+
+  hfp_init();
 
   mns_init();
 }
@@ -387,21 +402,9 @@ void bluetooth_init()
   btstack_setup();
   splx(x);
 
-  // set BT SHUTDOWN to 1 (active low)
-  BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
-  BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
-  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
-
-  // Enable ACLK to provide 32 kHz clock to Bluetooth module
-  BT_ACLK_SEL |= BT_ACLK_BIT;
-  BT_ACLK_DIR |= BT_ACLK_BIT;
-
-  codec_init();
+  codec_init(); // init codec
 
   process_start(&bluetooth_process, NULL);
-  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1 - Active low
-
-  //sdpc_open(config_data.bd_addr);
 }
 
 void bluetooth_shutdown()
