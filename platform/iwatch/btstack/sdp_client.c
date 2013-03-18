@@ -14,6 +14,7 @@
 * or in part, is forbidden except by express written permission.
 ****************************************************************/
 #include "contiki.h"
+#include <string.h>
 
 #include <btstack/hci_cmds.h>
 #include <btstack/run_loop.h>
@@ -37,7 +38,7 @@ static const uint16_t serviceids[3] = {
   0x1132, // MAP MNS Server
 };
 static uint8_t current_server = 0;
-static bd_addr_t addr = {0xbc, 0xcf, 0xcc, 0xda,0x9d, 0x41};
+static bd_addr_t addr;
 
 static enum
 {
@@ -72,9 +73,16 @@ static void sdpc_trysend()
 
   net_store_16(buf, 3, size);
   hexdump(buf, size + 5);
-  l2cap_send_internal(l2cap_cid, buf, size + 5);
-  state = RECV;
-
+  int err = l2cap_send_internal(l2cap_cid, buf, size + 5);
+  if (!err)
+  {
+    state = RECV;
+    log_info("sdp request sent.\n");
+  }
+  else
+  {
+    printf("sdpc_trysend l2cap_send_internal error: %d\n", err);
+  }
 }
 
 static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -144,5 +152,10 @@ void sdpc_open(bd_addr_t remote_addr)
 {
   if (l2cap_cid != 0)
     return;
-  l2cap_create_channel_internal(&current_server, sdpc_packet_handler, addr , PSM_SDP, 0xffff);
+
+  if (*(uint32_t*)&remote_addr == 0)
+    return;
+
+  memcpy(addr, remote_addr, sizeof(addr));
+  l2cap_create_channel_internal(&current_server, sdpc_packet_handler, remote_addr , PSM_SDP, 0xffff);
 }
