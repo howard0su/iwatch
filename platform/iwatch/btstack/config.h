@@ -61,4 +61,5 @@
 #define BT_CTS_IFG     	P1IFG
 #define BT_CTS_IES     	P1IES
 #define BT_CTS_IE     	P1IE
+#define BT_CTS_IN       P1IN
 #define BT_CTS_BIT      BIT3

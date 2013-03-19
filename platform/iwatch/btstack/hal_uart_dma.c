@@ -22,12 +22,23 @@
 
 #include "isr_compat.h"
 #include "sys/clock.h"
+#include "sys/rtimer.h"
 
 #include <msp430x54x.h>
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
 #include "power.h"
+
+#define BUSYWAIT_UNTIL(cond, max_time)                                  \
+  do {                                                                  \
+    rtimer_clock_t t0;                                                  \
+    t0 = RTIMER_NOW();                                                  \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {  \
+      __bis_SR_register(LPM0_bits + GIE);                               \
+      __no_operation();                                                 \
+    }                                                                   \
+  } while(0)
 
 // rx state
 static uint16_t  bytes_to_read = 0;
@@ -63,13 +74,19 @@ void hal_uart_dma_init(void)
   // set BT SHUTDOWN to 1 (active low)
   BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
   BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
-  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1
+  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 1
 
   // Enable ACLK to provide 32 kHz clock to Bluetooth module
   BT_ACLK_SEL |= BT_ACLK_BIT;
   BT_ACLK_DIR |= BT_ACLK_BIT;
 
-  waitAboutOneSecond();
+  // wait clock stable
+  __delay_cycles(100);
+
+  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1
+
+  // wait RTS of BT pull down to 0
+  BUSYWAIT_UNTIL((BT_CTS_IN & BT_CTS_BIT) == 0, RTIMER_SECOND);
 
   UCA0CTL1 |= UCSWRST;              //Reset State
 
