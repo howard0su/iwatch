@@ -195,7 +195,7 @@ void  btstack_memory_db_mem_device_name_free(void *db_mem_device_name){
 
 
 // MARK: db_mem_device_link_key_t
-#ifdef MAX_NO_DB_MEM_DEVICE_LINK_KEYS
+#if MAX_NO_DB_MEM_DEVICE_LINK_KEYS > 0
 static db_mem_device_link_key_t db_mem_device_link_key_storage[MAX_NO_DB_MEM_DEVICE_LINK_KEYS];
 static memory_pool_t db_mem_device_link_key_pool;
 void * btstack_memory_db_mem_device_link_key_get(void){
@@ -256,7 +256,7 @@ void btstack_memory_init(void){
 #if MAX_NO_DB_MEM_DEVICE_NAMES > 0
     memory_pool_create(&db_mem_device_name_pool, db_mem_device_name_storage, MAX_NO_DB_MEM_DEVICE_NAMES, sizeof(db_mem_device_name_t));
 #endif
-#ifdef MAX_NO_DB_MEM_DEVICE_LINK_KEYS
+#if MAX_NO_DB_MEM_DEVICE_LINK_KEYS > 0
     memory_pool_create(&db_mem_device_link_key_pool, db_mem_device_link_key_storage, MAX_NO_DB_MEM_DEVICE_LINK_KEYS, sizeof(db_mem_device_link_key_t));
 #endif
 #ifdef MAX_NO_DB_MEM_SERVICES
