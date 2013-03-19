@@ -2317,7 +2317,7 @@
         <option>
           <name>CCOptStrategy</name>
           <version>0</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>CCOptLevelSlave</name>
@@ -3259,13 +3259,9 @@
       <name>$PROJ_DIR$\..\platform\iwatch\platform-conf.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\power.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
       <excluded>
         <configuration>Debug</configuration>
-        <configuration>Retail</configuration>
       </excluded>
     </file>
     <file>

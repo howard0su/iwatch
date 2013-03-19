@@ -28,8 +28,6 @@
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
-#include "power.h"
-
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
   do {                                                                  \
     rtimer_clock_t t0;                                                  \
@@ -103,8 +101,6 @@ void hal_uart_dma_init(void)
 
   hal_uart_dma_set_baud(115200);
   UCA0IE |= UCRXIE ;  // enable RX interrupts
-
-  power_pin(POWER_SMCLK + POWER_ACLK);
 }
 
 /**
@@ -288,14 +284,6 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep){
-  if (!sleep)
-  {
-    power_pin(POWER_SMCLK);
-  }
-  else
-  {
-    power_unpin(POWER_SMCLK);
-  }
 }
 
 // block-wise "DMA" RX/TX UART driver
