@@ -101,7 +101,9 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
         current_server = 0;
         l2cap_cid = READ_BT_16(packet, 13);
         sdpc_trysend();
+        break;
       }
+    case DAEMON_EVENT_HCI_PACKET_SENT:
     case L2CAP_EVENT_CREDITS:
       {
         sdpc_trysend();
@@ -153,7 +155,7 @@ void sdpc_open(bd_addr_t remote_addr)
   if (l2cap_cid != 0)
     return;
 
-  if (*(uint32_t*)&remote_addr == 0)
+  if (*(uint32_t*)remote_addr == 0)
     return;
 
   memcpy(addr, remote_addr, sizeof(addr));
