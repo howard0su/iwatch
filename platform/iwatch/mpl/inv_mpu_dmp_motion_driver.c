@@ -17,6 +17,9 @@
 #define MOTION_DRIVER_TARGET_MSP430 1
 #define MPU6050 1
 
+#include <in430.h>
+extern void get_ms(unsigned long *count);
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
