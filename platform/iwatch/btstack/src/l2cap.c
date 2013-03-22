@@ -482,7 +482,7 @@ uint16_t l2cap_max_mtu(void){
 
 // open outgoing L2CAP channel
 void l2cap_create_channel_internal(void * connection, btstack_packet_handler_t packet_handler,
-                                   bd_addr_t address, uint16_t psm, uint16_t mtu){
+                                   const bd_addr_t address, uint16_t psm, uint16_t mtu){
 
     // alloc structure
     l2cap_channel_t * chan = (l2cap_channel_t*) btstack_memory_l2cap_channel_get();
