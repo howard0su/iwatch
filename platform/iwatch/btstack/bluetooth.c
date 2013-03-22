@@ -52,6 +52,9 @@ static const uint8_t   spp_service_buffer[100] = {
 
 #include "att.h"
 
+extern void codec_init();
+extern void sdpc_open(const bd_addr_t remote_addr);
+
 static att_connection_t att_connection;
 static uint16_t         att_response_handle = 0;
 static uint16_t         att_response_size   = 0;
@@ -167,7 +170,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     {
       // new device is paired
       bt_flip_addr(event_addr, &packet[2]);
-      //sdpc_open(event_addr);
+      sdpc_open(event_addr);
       break;
     }
   }
@@ -264,7 +267,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
         process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
         l2cap_register_packet_handler(packet_handler);
-        //sdpc_open(config_data.bd_addr);
+        sdpc_open(config_data.bd_addr);
       }
       break;
     }

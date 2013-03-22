@@ -67,6 +67,7 @@ static void sdpc_trysend()
   net_store_16(param, size, 30); // max length is 30 bytes
   size+=2;
   de_create_sequence(param + size);
+  de_add_number(param + size, DE_UINT, DE_SIZE_16, SDP_ServiceClassIDList);
   de_add_number(param + size, DE_UINT, DE_SIZE_16, SDP_ProtocolDescriptorList);
   size += de_get_len(param + size);
   param[size++] = 0;
@@ -150,7 +151,7 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 }
 
 
-void sdpc_open(bd_addr_t remote_addr)
+void sdpc_open(const bd_addr_t remote_addr)
 {
   if (l2cap_cid != 0)
     return;
