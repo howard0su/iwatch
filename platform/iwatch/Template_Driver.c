@@ -106,6 +106,10 @@
 #define SPIDIR  P3DIR
 #define SPISEL  P3SEL
 
+#define V5VOUT  P6OUT
+#define V5VDIR  P6DIR
+#define V5BIT   BIT6
+
 #define _SCLK	BIT3					// SPI clock
 #define _SDATA	BIT1					// SPI data (sent to display)
 #define _SCS	BIT0					// SPI chip select
@@ -220,6 +224,10 @@ memlcd_DriverInit(void)
   // enable disply
   P8DIR |= BIT2; // p8.2 is display
   P8OUT |= BIT2; // set 1 to active display
+
+  // enable 5v
+  V5VDIR |= V5BIT;
+  V5VOUT |= V5BIT;
 
   data.start = 0xff;
   data.end = 0;
