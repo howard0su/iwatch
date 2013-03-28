@@ -50,20 +50,20 @@ static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
-ISR(TIMER0_B1, timerb1)
+ISR(TIMER1_A1, timera1)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  if(TB0IV == 2) {
+  if(TA1IV == 2) {
 
     /* HW timer bug fix: Interrupt handler called before TR==CCR.
      * Occurrs when timer state is toggled between STOP and CONT. */
-    while(TB0CTL & MC1 && TB0CCR1 - TB0R == 1);
+    while(TA1CTL & MC1 && TA1CCR1 - TA1R == 1);
 
     /* Make sure interrupt time is future */
     do {
       /*      TACTL &= ~MC1;*/
-      TB0CCR1 += INTERVAL;
+      TA1CCR1 += INTERVAL;
       /*      TACTL |= MC1;*/
       ++count;
 
@@ -79,9 +79,9 @@ ISR(TIMER0_B1, timerb1)
         ++seconds;
         energest_flush();
       }
-    } while((TB0CCR1 - TB0R) > INTERVAL);
+    } while((TA1CCR1 - TA1R) > INTERVAL);
 
-    last_tar = TB0R;
+    last_tar = TA1R;
 
     if(etimer_pending() &&
        (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
@@ -111,8 +111,8 @@ clock_time(void)
 void
 clock_set(clock_time_t clock, clock_time_t fclock)
 {
-  TB0R = fclock;
-  TB0CCR1 = fclock + INTERVAL;
+  TA1R = fclock;
+  TA1CCR1 = fclock + INTERVAL;
   count = clock;
 }
 /*---------------------------------------------------------------------------*/
@@ -129,7 +129,7 @@ clock_fine(void)
   /* Assign last_tar to local varible that can not be changed by interrupt */
   t = last_tar;
   /* perform calc based on t, TAR will not be changed during interrupt */
-  return (unsigned short) (TB0R - t);
+  return (unsigned short) (TA1R - t);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -141,25 +141,25 @@ clock_init(void)
   /* TACTL = TASSEL1 | TACLR | ID_3; */
 
   /* Select ACLK 32768Hz clock, divide by 2 */
-/*   TB0CTL = TASSEL0 | TACLR | ID_1; */
+/*   TA1CTL = TASSEL0 | TACLR | ID_1; */
 
 #if INTERVAL==32768/CLOCK_SECOND
-  TB0CTL = TBSSEL0 | TBCLR;
+  TA1CTL = TASSEL0 | TACLR;
 #elif INTERVAL==16384/CLOCK_SECOND
-  TB0CTL = TBSSEL0 | TBCLR | ID_1;
+  TA1CTL = TASSEL0 | TACLR | ID_1;
 #else
 #error NEED TO UPDATE clock.c to match interval!
 #endif
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
-  TB0CCTL1 = CCIE;
+  TA1CCTL1 = CCIE;
 
   /* Interrupt after X ms. */
-  TB0CCR1 = INTERVAL;
+  TA1CCR1 = INTERVAL;
 
   /* Start Timer_A in continuous mode. */
-  TB0CTL |= MC1;
+  TA1CTL |= MC1;
 
   count = 0;
 
@@ -242,6 +242,6 @@ clock_seconds(void)
 rtimer_clock_t
 clock_counter(void)
 {
-  return TB0R;
+  return TA1R;
 }
 /*---------------------------------------------------------------------------*/
