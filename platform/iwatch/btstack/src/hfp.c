@@ -26,6 +26,7 @@ static enum
 
 static uint16_t hfp_response_size;
 static void*    hfp_response_buffer;
+static uint16_t rfcomm_channel_id = 0;
 
 static void hfp_try_respond(uint16_t rfcomm_channel_id){
     if (!hfp_response_size ) return;
@@ -68,6 +69,14 @@ void hfp_init()
 #endif
   sdp_register_service_internal(NULL, &hfp_service_record);
   state = INITIALIZING;
+}
+
+void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
+{
+  if (rfcomm_channel_id)
+    return;
+
+  rfcomm_create_channel_internal(NULL, hfp_handler, (bd_addr_t*)remote_addr, port);
 }
 
 #define AT_BRSF  "AT+BRSF=4\r"
@@ -351,8 +360,6 @@ static void hfp_state_handler(int code, char* buf)
   }
 
 }
-
-static uint16_t rfcomm_channel_id = 0;
 
 static uint8_t textbuf[255];
 static uint8_t textbufptr = 0;
