@@ -641,6 +641,64 @@ void de_dump_data_element(const uint8_t * record){
     de_traversal_dump_data(record, type, size, (void*) &indent);
 }
 
+struct sdp_context_get_parameters
+{
+  const uint8_t * element;
+  uint8_t found;
+  uint16_t value;
+  uint8_t uuid[16];
+};
+
+int sdp_traversal_get_parameters(const uint8_t * element, de_type_t attributeType, de_size_t size, void *my_context){
+  struct sdp_context_get_parameters* context = (struct sdp_context_get_parameters*)my_context;
+  if (attributeType == DE_DES)
+  {
+    context->found = 0;
+    context->element = element;
+    de_traverse_sequence(element, sdp_traversal_get_parameters, context);
+    if (context->found)
+      return 1;
+    return 0;
+  }
+
+  if (attributeType == DE_UUID)
+  {
+    uint8_t target[16];
+    de_get_normalized_uuid(target, element);
+    if (memcmp(target, context->uuid, 16) == 0)
+    {
+      context->found = 1;
+      return 0;
+    }
+  }
+
+  if (context->found == 1)
+  {
+    if (attributeType == DE_UINT)
+    {
+      context->value = READ_BT_16(element, 1);
+    }
+
+    return 1;
+  }
+
+  return 0;
+}
+
+uint16_t sdp_get_parameters_for_uuid(const uint8_t *record, uint16_t uuid)
+{
+  struct sdp_context_get_parameters context;
+  context.element = record;
+  context.value = 0;
+  context.found = 0;
+  sdp_normalize_uuid(context.uuid, uuid);
+  de_traverse_sequence(record, sdp_traversal_get_parameters, &context);
+  if (context.found)
+    return context.value;
+  else
+    return 0;
+}
+
 void sdp_create_spp_service(uint8_t *service, int service_id, const char *name){
 
 	uint8_t* attribute;

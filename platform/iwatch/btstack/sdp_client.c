@@ -1,9 +1,7 @@
 /****************************************************************
 *  Description: Implementation for sdp client to drive auto connection
 *    History:
-*      Jun Su          2013/1/1        Created
-*      Jun Su          2013/1/13       Support BT and BLE
-*      Jun Su          2013/1/21       Make BT and BLE runs same time
+*      Jun Su          2013/3/20        Created
 *
 * Copyright (c) Jun Su, 2013
 *
@@ -67,7 +65,7 @@ static void sdpc_trysend()
   net_store_16(param, size, 30); // max length is 30 bytes
   size+=2;
   de_create_sequence(param + size);
-  de_add_number(param + size, DE_UINT, DE_SIZE_16, SDP_ServiceClassIDList);
+  //de_add_number(param + size, DE_UINT, DE_SIZE_16, SDP_ServiceClassIDList);
   de_add_number(param + size, DE_UINT, DE_SIZE_16, SDP_ProtocolDescriptorList);
   size += de_get_len(param + size);
   param[size++] = 0;
@@ -86,6 +84,21 @@ static void sdpc_trysend()
   }
 }
 
+static uint8_t hfp_port, mns_port;
+/*
+parse the sdp record:
+type   DES (6), element len 26
+    type   DES (6), element len 24
+        type  UINT (1), element len  3 , value: 0x00000004
+        type   DES (6), element len 19
+            type   DES (6), element len  5
+                type  UUID (3), element len  3 , value: 0x00000100
+            type   DES (6), element len  7
+                type  UUID (3), element len  3 , value: 0x00000003
+                type  UINT (1), element len  2 , value: 0x00000002
+            type   DES (6), element len  5
+                type  UUID (3), element len  3 , value: 0x00000008
+*/
 static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   if (packet_type == HCI_EVENT_PACKET)
@@ -129,10 +142,19 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
       switch(current_server)
       {
       case 0:
+        {
+        hfp_port = sdp_get_parameters_for_uuid(&packet[7], 0x0003);;
+        log_info("hfp port: %d\n", hfp_port);
         break;
+        }
       case 1:
-        avrcp_connect(addr);
         break;
+      case 2:
+        {
+        mns_port = sdp_get_parameters_for_uuid(&packet[7], 0x0003);;
+        log_info("MAP port: %d\n", mns_port );
+        break;
+        }
       }
     }
 
@@ -141,6 +163,8 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     {
       state = DONE;
       l2cap_close_connection(&current_server);
+      hfp_open(&addr, hfp_port);
+      mns_open(&addr, mns_port);
     }
     else
     {
