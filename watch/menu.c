@@ -28,12 +28,16 @@ static struct MenuItem
   struct process* handler;
 }MainMenu[] =
 {
+  {"Today's Activity", NULL},
   {"Analog Watch", &analogclock_process},
-  {"Digit Watch", NULL},
+  {"Digital Watch", NULL},
+  {"World Clock", NULL},
+  {"Calendar", NULL},
   {"Stop Watch", NULL},
-  {"Bluetooth", NULL},
-  {"ANT+", NULL},
-  {"Stop Watch", NULL},
+  {"Countdown Timer", NULL},
+  {"Music Control", NULL},
+  {"Sports Watch", NULL},
+  {"Watch Setup", NULL},
   {NULL}
 };
 
@@ -41,6 +45,16 @@ static tContext context;
 
 
 #define NUM_MENU_A_PAGE 5
+#define MENU_SPACE 28
+
+
+static void drawMenuItem(struct MenuItem *item, int index, int selected)
+{
+  GrContextForegroundSet(&context, selected);
+  GrContextBackgroundSet(&context, !selected);
+  GrStringDraw(&context, item[index].name, -1, 32, 20 + index * MENU_SPACE, 1);
+  GrFlush(&context);
+}
 
 static void drawMenu(struct MenuItem *item, int startIndex)
 {
@@ -48,9 +62,6 @@ static void drawMenu(struct MenuItem *item, int startIndex)
   {
      // draw some grey area means something in the up
   }
-  GrContextForegroundSet(&context, 0);
-  GrContextBackgroundSet(&context, 1);
-
   item += startIndex;
 
   for(int i = 0; i < NUM_MENU_A_PAGE; i++)
@@ -58,7 +69,7 @@ static void drawMenu(struct MenuItem *item, int startIndex)
     if (item->name == NULL)
       break;
 
-    GrStringDraw(&context, item->name, -1, 32, 14 + i * 20, 1);
+    drawMenuItem(item, 0, 0);
     item++;
   }
 
@@ -66,16 +77,6 @@ static void drawMenu(struct MenuItem *item, int startIndex)
   {
     // there is something more
   }
-
-  GrFlush(&context);
-}
-
-static void drawCurrent(struct MenuItem *item, int index, int selected)
-{
-  GrContextForegroundSet(&context, selected);
-  GrContextBackgroundSet(&context, !selected);
-  GrStringDraw(&context, item[index].name, -1, 32, 14 + index * 20, 1);
-  GrFlush(&context);
 }
 
 static struct MenuItem *Items;
@@ -84,11 +85,10 @@ PROCESS_THREAD(menu_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  GrContextInit(&context, &g_memlcd_Driver);
-  GrContextFontSet(&context, &g_sFontCm16b);
-
   while(1)
   {
+    PROCESS_WAIT_EVENT();
+
     if (ev == EVENT_WINDOW_CREATED)
     {
       Items = (struct MenuItem*)data;
@@ -97,10 +97,14 @@ PROCESS_THREAD(menu_process, ev, data)
         Items = MainMenu;
       }
       current = currentTop = 0;
+      GrContextInit(&context, &g_memlcd_Driver);
+      GrContextFontSet(&context, &g_sFontCm12);
+
       GrClearDisplay(&context);
 
       drawMenu(Items, currentTop);
-      drawCurrent(Items, current - currentTop, 1);
+      drawMenuItem(Items, current - currentTop, 1);
+      GrFlush(&context);
     }
     else if (ev == EVENT_KEY_PRESSED)
     {
@@ -116,9 +120,10 @@ PROCESS_THREAD(menu_process, ev, data)
           }
           else
           {
-            drawCurrent(Items, current + 1 - currentTop, 0);
+            drawMenuItem(Items, current + 1 - currentTop, 0);
           }
-          drawCurrent(Items, current - currentTop, 1);
+          drawMenuItem(Items, current - currentTop, 1);
+          GrFlush(&context);
         }
       }
       else if ((uint8_t)data == KEY_DOWN)
@@ -133,9 +138,10 @@ PROCESS_THREAD(menu_process, ev, data)
           }
           else
           {
-            drawCurrent(Items, current - 1 - currentTop, 0);
+            drawMenuItem(Items, current - 1 - currentTop, 0);
           }
-          drawCurrent(Items, current - currentTop, 1);
+          drawMenuItem(Items, current - currentTop, 1);
+          GrFlush(&context);
         }
       }
       else if ((uint8_t)data == KEY_ENTER)
@@ -150,8 +156,6 @@ PROCESS_THREAD(menu_process, ev, data)
     {
       window_defproc(ev, data);
     }
-
-    PROCESS_WAIT_EVENT();
   }
 
   PROCESS_END();
