@@ -153,6 +153,8 @@ PROCESS_THREAD(analogclock_process, ev, data)
 
   while(1)
   {
+    PROCESS_WAIT_EVENT();
+
     if (ev == EVENT_TIME_CHANGED)
     {
       struct datetime* dt = (struct datetime*)data;
@@ -162,8 +164,6 @@ PROCESS_THREAD(analogclock_process, ev, data)
     {
       window_defproc(ev, data);
     }
-
-    PROCESS_WAIT_EVENT();
   }
   PROCESS_END();
 }

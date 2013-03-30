@@ -29,6 +29,8 @@ PROCESS_THREAD(control_process, ev, data)
 
   while(1)
   {
+    PROCESS_WAIT_EVENT();
+
     if (ev == EVENT_WINDOW_CREATED)
     {
     }
@@ -56,8 +58,6 @@ PROCESS_THREAD(control_process, ev, data)
     {
       window_defproc(ev, data);
     }
-
-    PROCESS_WAIT_EVENT();
   }
 
   PROCESS_END();
