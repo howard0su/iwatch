@@ -7,7 +7,7 @@
 #define HAVE_EHCILL
 
 #define ENABLE_LOG_ERROR
-#if DEBUG
+#if __DEBUG
 #define ENABLE_LOG_INFO
 #define ENABLE_LOG_DEBUG
 #endif
