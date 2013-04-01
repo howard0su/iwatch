@@ -84,7 +84,7 @@ void hal_uart_dma_init(void)
   BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1
 
   // wait RTS of BT pull down to 0
-  BUSYWAIT_UNTIL((BT_CTS_IN & BT_CTS_BIT) == 0, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(0, RTIMER_SECOND);
 
   UCA0CTL1 |= UCSWRST;              //Reset State
 
