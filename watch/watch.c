@@ -57,9 +57,9 @@ PROCESS_THREAD(system_process, ev, data)
   GrContextBackgroundSet(&context, COLOR_WHITE);
   tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
   GrRectFill(&context, &rect);
-  GrContextFontSet(&context, &g_sFontCm32);
+  GrContextFontSet(&context, &g_sFontCm44i);
   GrContextForegroundSet(&context, COLOR_WHITE);
-  GrStringDraw(&context, "iWatch", -1, 32, 58, 0);
+  GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
   GrFlush(&context);
   window_open(&menu_process, NULL);
 

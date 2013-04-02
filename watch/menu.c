@@ -28,14 +28,14 @@ struct MenuItem
   struct process* handler;
 };
 
-static struct MenuItem SetupMenu[] =
+static const struct MenuItem SetupMenu[] =
 {
   {"Bluetooth", NULL},
   {"ANT+", NULL},
   {NULL}
 };
 
-static struct MenuItem MainMenu[] =
+static const struct MenuItem MainMenu[] =
 {
   {"Today's Activity", NULL},
   {"Analog Watch", &analogclock_process},
@@ -43,7 +43,7 @@ static struct MenuItem MainMenu[] =
   {"World Clock", NULL},
   {"Calendar", NULL},
   {"Stop Watch", NULL},
-  {"Countdown Timer", NULL},
+  {"Countdown Timer", &countdown_process},
   {"Music Control", NULL},
   {"Sports Watch", NULL},
   {"Watch Setup", &menu_process},
@@ -55,7 +55,7 @@ extern tContext context;
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
 
-static void drawMenuItem(struct MenuItem *item, int index, int selected)
+static void drawMenuItem(const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
@@ -69,7 +69,7 @@ static void drawMenuItem(struct MenuItem *item, int index, int selected)
     GrContextBackgroundSet(&context, COLOR_WHITE);
   }
 
-  tRectangle rect = {10, 16 + index * MENU_SPACE, 134, 10 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {10, 16 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, !selected);
@@ -77,7 +77,7 @@ static void drawMenuItem(struct MenuItem *item, int index, int selected)
   GrStringDraw(&context, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 }
 
-static void drawMenu(struct MenuItem *item, int startIndex)
+static void drawMenu(const struct MenuItem *item, int startIndex)
 {
   if (startIndex > 0)
   {
@@ -100,8 +100,9 @@ static void drawMenu(struct MenuItem *item, int startIndex)
   }
 }
 
-static struct MenuItem *Items;
+static const struct MenuItem *Items;
 static uint8_t currentTop, current;
+
 PROCESS_THREAD(menu_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -118,8 +119,7 @@ PROCESS_THREAD(menu_process, ev, data)
         Items = MainMenu;
       }
       current = currentTop = 0;
-      GrContextInit(&context, &g_memlcd_Driver);
-      GrContextFontSet(&context, &g_sFontCm12);
+      GrContextFontSet(&context, &g_sFontCmss16);
 
       GrClearDisplay(&context);
 
