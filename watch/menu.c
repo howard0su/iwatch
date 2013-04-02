@@ -22,31 +22,38 @@
  */
 PROCESS(menu_process, "Menu Window");
 
-static struct MenuItem
+struct MenuItem
 {
   char *name;
   struct process* handler;
-}MainMenu[] =
+};
+
+static struct MenuItem SetupMenu[] =
+{
+  {"Bluetooth", NULL},
+  {"ANT+", NULL},
+  {NULL}
+};
+
+static struct MenuItem MainMenu[] =
 {
   {"Today's Activity", NULL},
   {"Analog Watch", &analogclock_process},
-  {"Digital Watch", NULL},
+  {"Digital Watch", &digitclock_process},
   {"World Clock", NULL},
   {"Calendar", NULL},
   {"Stop Watch", NULL},
   {"Countdown Timer", NULL},
   {"Music Control", NULL},
   {"Sports Watch", NULL},
-  {"Watch Setup", NULL},
+  {"Watch Setup", &menu_process},
   {NULL}
 };
 
-static tContext context;
-
+extern tContext context;
 
 #define NUM_MENU_A_PAGE 5
-#define MENU_SPACE 28
-
+#define MENU_SPACE 30
 
 static void drawMenuItem(struct MenuItem *item, int index, int selected)
 {
@@ -62,17 +69,16 @@ static void drawMenuItem(struct MenuItem *item, int index, int selected)
     GrContextBackgroundSet(&context, COLOR_WHITE);
   }
 
-  tRectangle rect = {10, 10 + index * MENU_SPACE, 130, 30 + index * MENU_SPACE};
+  tRectangle rect = {10, 16 + index * MENU_SPACE, 134, 10 + (index + 1) * MENU_SPACE};
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, !selected);
   GrContextBackgroundSet(&context, selected);
-  GrStringDraw(&context, item[index].name, -1, 32, 20 + index * MENU_SPACE, 0);
+  GrStringDraw(&context, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 }
 
-static void drawMenu(struct MenuItem *menus, int startIndex)
+static void drawMenu(struct MenuItem *item, int startIndex)
 {
-  struct MenuItem * item = menus;
   if (startIndex > 0)
   {
      // draw some grey area means something in the up
@@ -84,7 +90,7 @@ static void drawMenu(struct MenuItem *menus, int startIndex)
     if (item->name == NULL)
       break;
 
-    drawMenuItem(menus, startIndex + i, 0);
+    drawMenuItem(item, i, 0);
     item++;
   }
 
@@ -118,7 +124,7 @@ PROCESS_THREAD(menu_process, ev, data)
       GrClearDisplay(&context);
 
       drawMenu(Items, currentTop);
-      drawMenuItem(Items, current - currentTop, 1);
+      drawMenuItem(&Items[0], current - currentTop, 1);
       GrFlush(&context);
     }
     else if (ev == EVENT_KEY_PRESSED)
@@ -135,9 +141,11 @@ PROCESS_THREAD(menu_process, ev, data)
           }
           else
           {
-            drawMenuItem(Items, current + 1 - currentTop, 0);
+            // deselect the previous one
+            drawMenuItem(&Items[current+1], current + 1 - currentTop, 0);
           }
-          drawMenuItem(Items, current - currentTop, 1);
+
+          drawMenuItem(&Items[current], current - currentTop, 1);
           GrFlush(&context);
         }
       }
@@ -153,9 +161,9 @@ PROCESS_THREAD(menu_process, ev, data)
           }
           else
           {
-            drawMenuItem(Items, current - 1 - currentTop, 0);
+            drawMenuItem(&Items[current - 1], current - 1 - currentTop, 0);
           }
-          drawMenuItem(Items, current - currentTop, 1);
+          drawMenuItem(&Items[current], current - currentTop, 1);
           GrFlush(&context);
         }
       }

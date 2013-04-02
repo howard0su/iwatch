@@ -2028,6 +2028,9 @@
       <name>$PROJ_DIR$\..\watch\controller.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>

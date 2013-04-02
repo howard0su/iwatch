@@ -47,10 +47,6 @@ extern tContext context;
 PROCESS_THREAD(system_process, ev, data)
 {
   PROCESS_BEGIN();
-//  ui_process = &analogclock_process;
-//  ui_process = &control_process;
-//  ui_process = ;
-//  ui_process = PROCESS_CURRENT();
   button_init();
   rtc_init();
 
@@ -59,9 +55,12 @@ PROCESS_THREAD(system_process, ev, data)
 
   GrContextForegroundSet(&context, COLOR_BLACK);
   GrContextBackgroundSet(&context, COLOR_WHITE);
-  tRectangle rect = {0, 0, 144, 168};
+  tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
   GrRectFill(&context, &rect);
-
+  GrContextFontSet(&context, &g_sFontCm32);
+  GrContextForegroundSet(&context, COLOR_WHITE);
+  GrStringDraw(&context, "iWatch", -1, 32, 58, 0);
+  GrFlush(&context);
   window_open(&menu_process, NULL);
 
   // give time to starts

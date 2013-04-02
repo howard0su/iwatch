@@ -55,12 +55,6 @@ void window_defproc(process_event_t ev, process_data_t data)
       GrFlush(&context);
       break;
     }
-  case PROCESS_EVENT_INIT:
-    {
-      process_post(PROCESS_CURRENT(), EVENT_WINDOW_CREATED, data);
-      process_post(PROCESS_CURRENT(), EVENT_BT_STATUS, (void*)bt_status);
-      break;
-    }
   case EVENT_KEY_LONGPRESSED:
     {
       if ((uint8_t)data == KEY_ENTER && ui_process != &menu_process)
