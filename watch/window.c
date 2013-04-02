@@ -29,11 +29,14 @@ void window_showdialog(struct process* dialog, void* data)
 
 void window_open(struct process* dialog, void* data)
 {
-  process_post(ui_process, EVENT_WINDOW_CLOSING, NULL);
-  process_exit(ui_process);
-
+  if (ui_process)
+  {
+    process_post(ui_process, EVENT_WINDOW_CLOSING, NULL);
+    process_exit(ui_process);
+  }
   process_start(dialog, data);
   ui_process = dialog;
+  process_post(dialog, EVENT_WINDOW_CREATED, NULL);
 }
 
 static uint8_t bt_status;

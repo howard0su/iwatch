@@ -49,24 +49,28 @@ PROCESS_THREAD(system_process, ev, data)
   PROCESS_BEGIN();
 //  ui_process = &analogclock_process;
 //  ui_process = &control_process;
-  ui_process = &menu_process;
+//  ui_process = ;
 //  ui_process = PROCESS_CURRENT();
   button_init();
   rtc_init();
 
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
-  GrContextFontSet(&context, &g_sFontCm12);
-  GrClearDisplay(&context);
+
+  GrContextForegroundSet(&context, COLOR_BLACK);
+  GrContextBackgroundSet(&context, COLOR_WHITE);
+  tRectangle rect = {0, 0, 144, 168};
+  GrRectFill(&context, &rect);
+
+  window_open(&menu_process, NULL);
 
   // give time to starts
   I2C_Init();
 
   ant_init();
   bluetooth_init();
-  mpu6050_init();
+  //mpu6050_init();
 
-  window_open(ui_process, NULL);
 #if 0
   while(1)
   {

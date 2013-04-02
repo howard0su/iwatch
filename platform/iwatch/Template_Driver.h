@@ -159,7 +159,9 @@
 // Various LCD Controller command name labels and associated control bits
 //
 //*****************************************************************************
-
+#define COLOR_BLACK 0
+#define COLOR_WHITE 1
+#define COLOR_XOR   2
 
 //*****************************************************************************
 //

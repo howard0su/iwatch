@@ -609,10 +609,11 @@ Template_DriverClearScreen (void *pvDisplayData, unsigned int ulValue)
 
   for(i = 0; i < LCD_Y_SIZE; i++)
   {
-    memset(lines[i].pixels, 0xff, LCD_X_SIZE/8);
+    memset(lines[i].pixels, 0, LCD_X_SIZE/8);
   }
 
-  process_post_synch(&lcd_process, clear_event, NULL);
+  halLcdRefresh(0, LCD_Y_SIZE);
+  //process_post_synch(&lcd_process, clear_event, NULL);
 }
 
 //*****************************************************************************

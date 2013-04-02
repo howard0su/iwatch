@@ -50,14 +50,29 @@ static tContext context;
 
 static void drawMenuItem(struct MenuItem *item, int index, int selected)
 {
-  GrContextForegroundSet(&context, selected);
-  GrContextBackgroundSet(&context, !selected);
-  GrStringDraw(&context, item[index].name, -1, 32, 20 + index * MENU_SPACE, 1);
-  GrFlush(&context);
+  if (selected)
+  {
+    // draw a rect
+    GrContextForegroundSet(&context, COLOR_WHITE);
+    GrContextBackgroundSet(&context, COLOR_BLACK);
+  }
+  else
+  {
+    GrContextForegroundSet(&context, COLOR_BLACK);
+    GrContextBackgroundSet(&context, COLOR_WHITE);
+  }
+
+  tRectangle rect = {10, 10 + index * MENU_SPACE, 130, 30 + index * MENU_SPACE};
+  GrRectFill(&context, &rect);
+
+  GrContextForegroundSet(&context, !selected);
+  GrContextBackgroundSet(&context, selected);
+  GrStringDraw(&context, item[index].name, -1, 32, 20 + index * MENU_SPACE, 0);
 }
 
-static void drawMenu(struct MenuItem *item, int startIndex)
+static void drawMenu(struct MenuItem *menus, int startIndex)
 {
+  struct MenuItem * item = menus;
   if (startIndex > 0)
   {
      // draw some grey area means something in the up
@@ -69,7 +84,7 @@ static void drawMenu(struct MenuItem *item, int startIndex)
     if (item->name == NULL)
       break;
 
-    drawMenuItem(item, 0, 0);
+    drawMenuItem(menus, startIndex + i, 0);
     item++;
   }
 
