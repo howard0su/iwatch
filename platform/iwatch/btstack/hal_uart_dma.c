@@ -69,23 +69,6 @@ void hal_uart_dma_init(void)
   BT_CTS_SEL &= ~BT_CTS_BIT;  // = 0 - I/O
   BT_CTS_DIR &= ~BT_CTS_BIT;  // = 0 - Input
 
-  // set BT SHUTDOWN to 1 (active low)
-  BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
-  BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
-  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 1
-
-  // Enable ACLK to provide 32 kHz clock to Bluetooth module
-  BT_ACLK_SEL |= BT_ACLK_BIT;
-  BT_ACLK_DIR |= BT_ACLK_BIT;
-
-  // wait clock stable
-  __delay_cycles(100);
-
-  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1
-
-  // wait RTS of BT pull down to 0
-  BUSYWAIT_UNTIL(0, RTIMER_SECOND);
-
   UCA0CTL1 |= UCSWRST;              //Reset State
 
   BT_TXD_SEL |= BT_TXD_BIT;
