@@ -225,7 +225,7 @@ static const bt_control_t bt_control_cc256x = {
 
 static const hci_uart_config_t hci_uart_config_cc256x = {
     .baudrate_init = 115200,
-    .baudrate_main = 115200
+    .baudrate_main = 0
 };
 
 // MARK: public API
