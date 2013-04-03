@@ -35,4 +35,5 @@ extern void window_defproc(process_event_t ev, process_data_t data);
 extern void window_init();
 extern void window_showdialog(struct process* dialog, void* data);
 extern void window_open(struct process* dialog, void* data);
+extern void window_button(uint8_t key, const char* text);
 #endif

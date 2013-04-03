@@ -73,3 +73,57 @@ void window_defproc(process_event_t ev, process_data_t data)
   }
   return;
 }
+
+/*
+ * Draw the button text for the keys
+ * If text is NULL, draw a empty box
+ */
+void window_button(uint8_t key, const char* text)
+{
+#define SPACE 2
+  uint8_t width, height;
+  int x, y;
+  if (text)
+  {
+    width = 100;
+  }
+  else
+  {
+    width = GrStringWidthGet(&context, text, -1);
+  }
+
+  height = GrStringHeightGet(&context);
+
+  if (key == KEY_UP || key == KEY_DOWN)
+  {
+    x = LCD_X_SIZE - width - SPACE;
+  }
+  else
+  {
+    x = SPACE;
+  }
+
+  if (key == KEY_ENTER || key == KEY_DOWN)
+  {
+    y = 135;
+  }
+  else
+  {
+    y = 30;
+  }
+
+  // draw black box
+  GrContextForegroundSet(&context, COLOR_WHITE);
+  GrContextFontSet(&context, &g_sFontFixed6x8);
+
+  tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
+  GrRectFill(&context, &rect);
+
+  if (text)
+  {
+    GrContextForegroundSet(&context, COLOR_BLACK);
+    GrStringDraw(&context, text, -1, x, y, 0);
+  }
+
+#undef SPACE
+}
