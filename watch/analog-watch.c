@@ -74,7 +74,7 @@ static void drawClock(int day, int h, int m, int s)
     // sec hand: length = 75
     angle = s * 6;
     fangle = (360 - angle) * PI/180;
-    GrContextForegroundSet(&context, COLOR_XOR); // xor
+    GrContextForegroundSet(&context, COLOR_BLACK); // xor
     GrLineDraw(&context, CENTER_X, CENTER_Y, lastSecX , lastSecY);
     lastSecX = CENTER_X + SEC_HAND_LEN * sin(fangle);
     lastSecY = CENTER_Y + SEC_HAND_LEN * cos(fangle);
@@ -89,7 +89,7 @@ static void drawClock(int day, int h, int m, int s)
   if (x != lastMinX)
   {
     y = CENTER_Y + MIN_HAND_LEN * cos(fangle);
-    GrContextForegroundSet(&context, COLOR_XOR); // xor
+    GrContextForegroundSet(&context, COLOR_BLACK); // xor
     GrLineDraw(&context, CENTER_X, CENTER_Y,  lastMinX, lastMinY);
     GrContextForegroundSet(&context, COLOR_WHITE);
     GrLineDraw(&context, CENTER_X, CENTER_Y,  x, y);
@@ -109,7 +109,7 @@ static void drawClock(int day, int h, int m, int s)
   if (x != lastHourX)
   {
     y = CENTER_Y + HOUR_HAND_LEN * cos(fangle);
-    GrContextForegroundSet(&context, COLOR_XOR); // xor
+    GrContextForegroundSet(&context, COLOR_BLACK); // xor
     GrLineDraw(&context, CENTER_X, CENTER_Y,  lastHourX, lastHourY);
     GrContextForegroundSet(&context, COLOR_WHITE);
     GrLineDraw(&context, CENTER_X, CENTER_Y,  x, y);

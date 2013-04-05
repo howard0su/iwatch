@@ -275,13 +275,9 @@ Template_DriverPixelDraw(void *pvDisplayData, int x, int y,
     // if 0
     lines[y].pixels[x/8] &= ~(1 << (x & 0x07));
   }
-  else if (ulValue == 1)
+  else
   {
     lines[y].pixels[x/8] |= 1 << (x & 0x07);
-  }
-  else if (ulValue == 2)
-  {
-    lines[y].pixels[x/8] ^= 1 << (x & 0x07);
   }
 
   halLcdRefresh(y, y);
@@ -464,16 +460,56 @@ static void
 Template_DriverLineDrawH(void *pvDisplayData, int lX1, int lX2,
                                    int lY, unsigned int ulValue)
 {
-  /* Ideally this function shouldn't call pixel draw. It should have it's own
-  definition using the built in auto-incrementing of the LCD controller and its
-  own calls to SetAddress() and WriteData(). Better yet, SetAddress() and WriteData()
-  can be made into macros as well to eliminate function call overhead. */
+  unsigned char *pucData = lines[lY].pixels;
+  uint8_t lMask;
 
-  do
+  if (ulValue) ulValue = 0xffff; // 16 bit value
+
+  pucData += lX1 / 8;
+
+  // see if current buffer byte need retain
+  if (lX1 & 7)
   {
-    Template_DriverPixelDraw(pvDisplayData, lX1, lY, ulValue);
+    lMask = 8 - (lX1 & 7);
+    if (lMask > (lX2 - lX1 + 1))
+    {
+      lMask = lX2 - lX1 + 1;
+    }
+    lMask = ((1 << lMask) - 1) << ((lX1 & 7));
+
+    // draw the pixel
+    *pucData = (*pucData & ~lMask) | (ulValue & lMask);
+    pucData++;
+    lX1 = (lX1 + 7) & ~7;
   }
-  while(lX1++ < lX2);
+
+ if (((unsigned int)pucData & 1) && ((lX2 - lX1) > 8))
+ {
+   *pucData++ = ulValue & 0xff;
+   lX1 += 8;
+ }
+
+ while((lX1 + 15) <= lX2)
+ {
+   *(unsigned int *)pucData = ulValue;
+   pucData += 2;
+   lX1 += 16;
+ }
+
+ while((lX1 + 7) <= lX2)
+ {
+   *pucData = ulValue & 0xff;
+   pucData ++;
+   lX1 += 8;
+ }
+
+ if (lX1 <= lX2)
+ {
+   lMask = 0xff >> (7 - (lX2 - lX1));
+   *pucData = (*pucData & ~lMask) | (ulValue & lMask);
+ }
+
+ halLcdRefresh(lY, lY);
 }
 
 //*****************************************************************************
