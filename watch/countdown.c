@@ -18,8 +18,6 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-PROCESS(countdown_process, "Countdown Watch Window");
-
 static enum _state{
   STATE_CONFIG_HOUR,
   STATE_CONFIG_MINUTE,
@@ -37,16 +35,19 @@ static uint32_t totaltime, lefttime;
 static struct etimer timer;
 
 extern tContext context;
+extern tRectangle client_clip;
 
 static void drawTime()
 {
   char data[2];
 
+  // initialize state
+  GrContextFontSet(&context, &g_sFontCmss32b);
+
   // clear the region
   GrContextForegroundSet(&context, COLOR_BLACK);
   GrContextBackgroundSet(&context, COLOR_WHITE);
-  tRectangle rect = {5, 63, 10 + 3 * 45 + 40, 94};
-  GrRectFill(&context, &rect);
+  GrRectFill(&context, &client_clip);
 
   for(int i = 0; i < 3; i++)
   {
@@ -59,7 +60,7 @@ static void drawTime()
       GrContextForegroundSet(&context, COLOR_WHITE);
       GrContextBackgroundSet(&context, COLOR_BLACK);
 
-      tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 40, 94};
+      tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 35, 94};
       GrRectFill(&context, &rect);
       GrContextForegroundSet(&context, COLOR_BLACK);
       GrContextBackgroundSet(&context, COLOR_WHITE);
@@ -71,6 +72,13 @@ static void drawTime()
     }
 
     GrStringDraw(&context, data, 2, 10 + i * 45, 68, 0);
+
+    if (i != 2)
+    {
+      GrContextForegroundSet(&context, COLOR_WHITE);
+      GrContextBackgroundSet(&context, COLOR_BLACK);
+      GrStringDraw(&context, ":", 1, 45 + i * 45, 63, 0);
+    }
   }
 
   // draw the button text
@@ -96,14 +104,14 @@ static void drawTime()
     {
       window_button(KEY_UP, NULL);
       window_button(KEY_DOWN, "PAUSE");
-      window_button(KEY_DOWN, "STOP");
+      window_button(KEY_ENTER, "STOP");
       break;
     }
   }
   GrFlush(&context);
 }
 
-static int process_event(uint8_t ev, void* data)
+static int process_event(uint8_t ev, uint16_t data)
 {
   switch(state)
   {
@@ -114,7 +122,7 @@ static int process_event(uint8_t ev, void* data)
       // handle up, down
       if (ev != EVENT_KEY_PRESSED)
         return 0;
-      switch((uint8_t)data)
+      switch(data)
       {
       case KEY_UP:
         times[state]++;
@@ -155,7 +163,7 @@ static int process_event(uint8_t ev, void* data)
         state = STATE_CONFIG_SECOND;
         times[0] = times[1] = times[2] = 0;
       }
-      else if ((uint8_t)data == KEY_ENTER)
+      else if (data == KEY_ENTER)
       {
         lefttime = totaltime = times[STATE_CONFIG_SECOND] + times[STATE_CONFIG_MINUTE] * 60
               + times[STATE_CONFIG_HOUR] * 3600;
@@ -172,12 +180,12 @@ static int process_event(uint8_t ev, void* data)
     {
       if (ev == EVENT_KEY_PRESSED)
       {
-        if ((uint8_t)data == KEY_DOWN)
+        if (data == KEY_DOWN)
         {
           etimer_stop(&timer);
           state = STATE_CONFIG_READY;
         }
-        else if ((uint8_t)data == KEY_ENTER)
+        else if (data == KEY_ENTER)
         {
           etimer_stop(&timer);
           state = STATE_CONFIG_READY;
@@ -209,32 +217,23 @@ static int process_event(uint8_t ev, void* data)
   return 0;
 }
 
-PROCESS_THREAD(countdown_process, ev, data)
+uint8_t countdown_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  PROCESS_BEGIN();
-  while(1)
+  if (ev == EVENT_WINDOW_CREATED)
   {
-    PROCESS_WAIT_EVENT();
-    if (ev == EVENT_WINDOW_CREATED)
-    {
-      // initialize state
-      GrContextFontSet(&context, &g_sFontCmss22);
-      GrClearDisplay(&context);
-
-      state = STATE_CONFIG_SECOND;
-      times[0] = times[1] = times[2] = 0;
-      drawTime();
-    }
-    else if (ev == EVENT_WINDOW_CLOSING)
-    {
-      // remove timer
-      etimer_stop(&timer);
-    }
-    else
-    {
-      if (!process_event(ev, data))
-        window_defproc(ev, data);
-    }
+    state = STATE_CONFIG_SECOND;
+    times[0] = times[1] = times[2] = 0;
+    drawTime();
   }
-  PROCESS_END();
+  else if (ev == EVENT_WINDOW_CLOSING)
+  {
+    // remove timer
+    etimer_stop(&timer);
+  }
+  else
+  {
+    return process_event(ev, lparam);
+  }
+
+  return 1;
 }

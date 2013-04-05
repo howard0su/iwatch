@@ -38,10 +38,11 @@ static uint16_t lastMinX, lastMinY;
 static uint16_t lastHourX, lastHourY;
 
 extern tContext context;
+extern tRectangle client_clip;
 
 static void drawBackground()
 {
-  GrClearDisplay(&context);
+  GrRectFill(&context, &client_clip);
 
   const static tRectangle rect1 = {72, 0, 74, 9};
   const static tRectangle rect2 = {72, 158, 74, 167};
@@ -133,34 +134,31 @@ static void drawClock(int day, int h, int m, int s)
   GrFlush(&context);
 }
 
-PROCESS(analogclock_process, "Analog Clock Window");
-
-PROCESS_THREAD(analogclock_process, ev, data)
+uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  PROCESS_BEGIN();
-  while(1)
+  static int firsttime;
+
+  if (ev == EVENT_WINDOW_CREATED)
   {
-    PROCESS_WAIT_EVENT();
-    if (ev == EVENT_WINDOW_CREATED)
+    rtc_enablechange(SECOND_CHANGE);
+    firsttime = 1;
+  }
+  else if (ev == EVENT_TIME_CHANGED)
+  {
+    struct datetime* dt = (struct datetime*)rparam;
+    if (firsttime)
     {
-      rtc_enablechange(SECOND_CHANGE);
-      PROCESS_WAIT_EVENT_UNTIL(ev == EVENT_TIME_CHANGED);
-      {
-        struct datetime* dt = (struct datetime*)data;
-        drawBackground();
-        drawClock(dt->day, dt->hour, dt->minute, -1);
-      }
+      firsttime = 0;
       rtc_enablechange(MINUTE_CHANGE);
     }
-    else if (ev == EVENT_TIME_CHANGED)
-    {
-      struct datetime* dt = (struct datetime*)data;
-      drawClock(dt->day, dt->hour, dt->minute, -1);
-    }
-    else
-    {
-      window_defproc(ev, data);
-    }
+
+    drawBackground();
+    drawClock(dt->day, dt->hour, dt->minute, -1);
   }
-  PROCESS_END();
+  else
+  {
+    return 0;
+  }
+
+  return 1;
 }

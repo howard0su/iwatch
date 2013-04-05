@@ -20,6 +20,7 @@
 #include "Template_Driver.h"
 
 extern tContext context;
+extern tRectangle client_clip;
 
 static void drawClock(struct datetime *dt)
 {
@@ -41,37 +42,30 @@ static void drawClock(struct datetime *dt)
   GrFlush(&context);
 }
 
-PROCESS(digitclock_process, "Digit Clock Window");
-
-PROCESS_THREAD(digitclock_process, ev, data)
+uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  PROCESS_BEGIN();
+  static int firsttime;
 
-  while(1)
+  if (ev == EVENT_WINDOW_CREATED)
   {
-    PROCESS_WAIT_EVENT();
-    if (ev == EVENT_WINDOW_CREATED)
+    rtc_enablechange(SECOND_CHANGE);
+    firsttime = 1;
+  }
+  else if (ev == EVENT_TIME_CHANGED)
+  {
+    struct datetime* dt = (struct datetime*)rparam;
+    if (firsttime)
     {
-      rtc_enablechange(SECOND_CHANGE);
-      PROCESS_WAIT_EVENT_UNTIL(ev == EVENT_TIME_CHANGED);
-      {
-        struct datetime* dt = (struct datetime*)data;
-        tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-        GrRectFill(&context, &rect);
-
-        drawClock(dt);
-      }
+      firsttime = 0;
       rtc_enablechange(MINUTE_CHANGE);
     }
-    else if (ev == EVENT_TIME_CHANGED)
-    {
-      struct datetime* dt = (struct datetime*)data;
-      drawClock(dt);
-    }
-    else
-    {
-      window_defproc(ev, data);
-    }
+
+    drawClock(dt);
   }
-  PROCESS_END();
+  else
+  {
+    return 0;
+  }
+
+  return 1;
 }

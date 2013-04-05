@@ -18,47 +18,34 @@
 #include "avctp.h"
 #include "avrcp.h"
 
-/*
- * This implement the menu
- */
-PROCESS(control_process, "Controller Window");
-
-PROCESS_THREAD(control_process, ev, data)
+uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  PROCESS_BEGIN();
-
-  while(1)
+  if (ev == EVENT_WINDOW_CREATED)
   {
-    PROCESS_WAIT_EVENT();
-
-    if (ev == EVENT_WINDOW_CREATED)
+  }
+  else if (ev == EVENT_KEY_PRESSED)
+  {
+    if (lparam == KEY_UP)
     {
+      avctp_send_passthrough(PLAY_OP);
     }
-    else if (ev == EVENT_KEY_PRESSED)
+    else if (lparam == KEY_DOWN)
     {
-      if ((uint8_t)data == KEY_UP)
-      {
-        avctp_send_passthrough(PLAY_OP);
-      }
-      else if ((uint8_t)data == KEY_DOWN)
-      {
-        avctp_send_passthrough(PAUSE_OP);
-      }
-      else if ((uint8_t)data == KEY_ENTER)
-      {
-        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
-
-      }
-      else if ((uint8_t)data == KEY_EXIT)
-      {
-        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
-      }
+      avctp_send_passthrough(PAUSE_OP);
     }
-    else
+    else if (lparam == KEY_ENTER)
     {
-      window_defproc(ev, data);
+      avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+
+    }
+    else if (lparam == KEY_EXIT)
+    {
+      avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
     }
   }
-
-  PROCESS_END();
+  else
+  {
+    return 0;
+  }
+  return 1;
 }

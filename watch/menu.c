@@ -20,12 +20,11 @@
 /*
  * This implement the menu
  */
-PROCESS(menu_process, "Menu Window");
 
 struct MenuItem
 {
   char *name;
-  struct process* handler;
+  windowproc handler;
 };
 
 static const struct MenuItem SetupMenu[] =
@@ -51,6 +50,7 @@ static const struct MenuItem MainMenu[] =
 };
 
 extern tContext context;
+extern tRectangle client_clip;
 
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
@@ -59,12 +59,16 @@ static void drawMenuItem(const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
+    GrContextFontSet(&context, &g_sFontCmss16b);
+
     // draw a rect
     GrContextForegroundSet(&context, COLOR_WHITE);
     GrContextBackgroundSet(&context, COLOR_BLACK);
   }
   else
   {
+    GrContextFontSet(&context, &g_sFontCmss16);
+
     GrContextForegroundSet(&context, COLOR_BLACK);
     GrContextBackgroundSet(&context, COLOR_WHITE);
   }
@@ -77,7 +81,7 @@ static void drawMenuItem(const struct MenuItem *item, int index, int selected)
   GrStringDraw(&context, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 }
 
-static void drawMenu(const struct MenuItem *item, int startIndex)
+static void drawMenu(const struct MenuItem *item, int startIndex, int selected)
 {
   if (startIndex > 0)
   {
@@ -90,7 +94,7 @@ static void drawMenu(const struct MenuItem *item, int startIndex)
     if (item->name == NULL)
       break;
 
-    drawMenuItem(item, i, 0);
+    drawMenuItem(item, i, selected == startIndex + i);
     item++;
   }
 
@@ -103,33 +107,25 @@ static void drawMenu(const struct MenuItem *item, int startIndex)
 static const struct MenuItem *Items;
 static uint8_t currentTop, current;
 
-PROCESS_THREAD(menu_process, ev, data)
+uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  PROCESS_BEGIN();
-
-  while(1)
-  {
-    PROCESS_WAIT_EVENT();
-
     if (ev == EVENT_WINDOW_CREATED)
     {
-      Items = (struct MenuItem*)data;
+      Items = (struct MenuItem*)rparam;
       if (Items == NULL)
       {
         Items = MainMenu;
       }
       current = currentTop = 0;
-      GrContextFontSet(&context, &g_sFontCmss16);
+      GrContextForegroundSet(&context, COLOR_BLACK);
+      GrRectFill(&context, &client_clip);
 
-      GrClearDisplay(&context);
-
-      drawMenu(Items, currentTop);
-      drawMenuItem(&Items[0], current - currentTop, 1);
+      drawMenu(Items, currentTop, current);
       GrFlush(&context);
     }
     else if (ev == EVENT_KEY_PRESSED)
     {
-      if ((uint8_t)data == KEY_UP)
+      if (lparam == KEY_UP)
       {
         if (current > 0)
         {
@@ -137,19 +133,13 @@ PROCESS_THREAD(menu_process, ev, data)
           if (currentTop > current)
           {
             currentTop--;
-            drawMenu(Items, currentTop);
-          }
-          else
-          {
-            // deselect the previous one
-            drawMenuItem(&Items[current+1], current + 1 - currentTop, 0);
           }
 
-          drawMenuItem(&Items[current], current - currentTop, 1);
+          drawMenu(Items, currentTop, current);
           GrFlush(&context);
         }
       }
-      else if ((uint8_t)data == KEY_DOWN)
+      else if (lparam == KEY_DOWN)
       {
         if (Items[current+1].name != NULL)
         {
@@ -157,17 +147,13 @@ PROCESS_THREAD(menu_process, ev, data)
           if (currentTop + NUM_MENU_A_PAGE <= current)
           {
             currentTop++;
-            drawMenu(Items, currentTop);
           }
-          else
-          {
-            drawMenuItem(&Items[current - 1], current - 1 - currentTop, 0);
-          }
-          drawMenuItem(&Items[current], current - currentTop, 1);
+
+          drawMenu(Items, currentTop, current);
           GrFlush(&context);
         }
       }
-      else if ((uint8_t)data == KEY_ENTER)
+      else if (lparam == KEY_ENTER)
       {
         if (Items[current].handler)
         {
@@ -177,9 +163,8 @@ PROCESS_THREAD(menu_process, ev, data)
     }
     else
     {
-      window_defproc(ev, data);
+     return 0;
     }
-  }
 
-  PROCESS_END();
+    return 1;
 }

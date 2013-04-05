@@ -4,7 +4,20 @@
 #include "Template_Driver.h"
 #include <stdio.h>
 
+extern void mpu6050_init();
+extern void ant_init();
+extern void rtc_init();
+extern void bluetooth_init();
+extern void button_init();
+extern void I2C_Init();
+
+
+PROCESS(system_process, "System process");
+AUTOSTART_PROCESSES(&system_process);
+
 struct process* ui_process = NULL;
+windowproc ui_window = NULL;
+const tRectangle client_clip = {0, 16, LCD_X_SIZE, LCD_Y_SIZE};
 
 void window_init()
 {
@@ -13,65 +26,75 @@ void window_init()
 
 tContext context;
 
-#if 0
-#define MAX_DIALOG_DEPTH 5
-static struct process *dialogStack[MAX_DIALOG_DEPTH];
-static uint8_t dialogStackPtr = 0;
-
-void window_showdialog(struct process* dialog, void* data)
+void window_open(windowproc dialog, void* data)
 {
-  process_start(dialog, data);
-  dialogStack[dialogStackPtr++] = ui_process;
-  ui_process = dialog;
-  process_post(dialog, EVENT_WINDOW_CREATED, NULL);
-}
-#endif
-
-void window_open(struct process* dialog, void* data)
-{
-  if (ui_process)
+  if (ui_window)
   {
-    process_post(ui_process, EVENT_WINDOW_CLOSING, NULL);
-    process_exit(ui_process);
+    ui_window(EVENT_WINDOW_CLOSING, 0, NULL);
   }
-  process_start(dialog, data);
-  ui_process = dialog;
-  process_post(dialog, EVENT_WINDOW_CREATED, NULL);
+
+  ui_window = dialog;
+  ui_window(EVENT_WINDOW_CREATED, 0, data);
 }
 
-static uint8_t bt_status;
-
-void window_defproc(process_event_t ev, process_data_t data)
+/*
+* This process is the startup process.
+* It first shows the logo
+* Like the whole dialog intrufstture.
+*/
+PROCESS_THREAD(system_process, ev, data)
 {
-  switch(ev)
+  PROCESS_BEGIN();
+
+  while(1)
   {
-  case EVENT_BT_STATUS:
+    if (ev == PROCESS_EVENT_INIT)
     {
-      bt_status = (uint8_t)data;
-      if (bt_status & BIT0) GrStringDraw(&context, "B", 1, 90, 2, 0);
-      else GrStringDraw(&context, " ", 1, 90, 2, 0);
-      if (bt_status & BIT1) GrStringDraw(&context, "=", 1, 102, 2, 0);
-      else GrStringDraw(&context, " ", 1, 102, 2, 0);
+      memlcd_DriverInit();
+      GrContextInit(&context, &g_memlcd_Driver);
+
+      GrContextForegroundSet(&context, COLOR_BLACK);
+      GrContextBackgroundSet(&context, COLOR_WHITE);
+      tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+      GrRectFill(&context, &rect);
+      GrContextFontSet(&context, &g_sFontCm44i);
+      GrContextForegroundSet(&context, COLOR_WHITE);
+      GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
       GrFlush(&context);
-      break;
-    }
-  case EVENT_KEY_LONGPRESSED:
-    {
-      if ((uint8_t)data == KEY_ENTER && ui_process != &menu_process)
-      {
-        window_open(&menu_process, 0);
-      }
 
-      printf("Key Long Pressed: %d\n", (uint8_t)data);
-      break;
+      // give time to starts
+      button_init();
+      rtc_init();
+      I2C_Init();
+
+      //ant_init();
+      bluetooth_init();
+      mpu6050_init();
+      window_open(&menu_process, NULL);
     }
-  case EVENT_KEY_PRESSED:
+    else if (ev == EVENT_TIME_CHANGED || ev == PROCESS_EVENT_TIMER)
     {
-      printf("Key Pressed: %d\n", (uint8_t)data);
-      break;
+      // event converter to pass data as rparameter
+      ui_window(ev, 0, data);
     }
+    else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED)
+    {
+      // event converter to pass data as lparam
+      uint8_t ret = ui_window(ev, (uint16_t)data, NULL);
+
+      if (!ret)
+      {
+        // default handler for long pressed
+        if ((uint16_t)data == KEY_EXIT && ui_window != &menu_process)
+        {
+          window_open(&menu_process, 0);
+        }
+      }
+    }
+    PROCESS_WAIT_EVENT();
   }
-  return;
+
+  PROCESS_END();
 }
 
 /*
@@ -83,7 +106,9 @@ void window_button(uint8_t key, const char* text)
 #define SPACE 2
   uint8_t width, height;
   int x, y;
-  if (text)
+
+  GrContextFontSet(&context, &g_sFontFixed6x8);
+  if (!text)
   {
     width = 100;
   }
@@ -113,16 +138,19 @@ void window_button(uint8_t key, const char* text)
   }
 
   // draw black box
-  GrContextForegroundSet(&context, COLOR_WHITE);
-  GrContextFontSet(&context, &g_sFontFixed6x8);
-
   tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
-  GrRectFill(&context, &rect);
 
   if (text)
   {
+    GrContextForegroundSet(&context, COLOR_WHITE);
+    GrRectFill(&context, &rect);
     GrContextForegroundSet(&context, COLOR_BLACK);
     GrStringDraw(&context, text, -1, x, y, 0);
+  }
+  else
+  {
+    GrContextForegroundSet(&context, COLOR_BLACK);
+    GrRectFill(&context, &rect);
   }
 
 #undef SPACE

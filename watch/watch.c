@@ -33,9 +33,6 @@ extern void I2C_Init();
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
-PROCESS(system_process, "System process");
-AUTOSTART_PROCESSES(&system_process);
-/*---------------------------------------------------------------------------*/
 
 extern tContext context;
 
@@ -44,11 +41,9 @@ extern tContext context;
 * It first shows the logo
 * Like the whole dialog intrufstture.
 */
-PROCESS_THREAD(system_process, ev, data)
+
 {
   PROCESS_BEGIN();
-  button_init();
-  rtc_init();
 
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
@@ -64,73 +59,19 @@ PROCESS_THREAD(system_process, ev, data)
   window_open(&menu_process, NULL);
 
   // give time to starts
+  button_init();
+  rtc_init();
   I2C_Init();
 
-  ant_init();
+  //ant_init();
   bluetooth_init();
-  //mpu6050_init();
+  mpu6050_init();
 
-#if 0
   while(1)
   {
-    PROCESS_WAIT_EVENT();
-    switch(ev)
-    {
-    case EVENT_BT_STATUS:
-      {
-        bt_status = (uint8_t)data;
-        if (bt_status & BIT0)
-        {
-          GrStringDraw(&context, "BT OK", -1, 10, 2, 0);
-          GrFlush(&context);
-          printf("=============================BT OK=============================\n");
-        }
-        break;
-      }
-    case EVENT_ANT_STATUS:
-      {
-        bt_status = (uint8_t)data;
-        if (bt_status & BIT0)
-        {
-          GrStringDraw(&context, "ANT OK", -1, 10, 18, 0);
-          GrFlush(&context);
-          printf("=============================ANT OK============================\n");
-        }
-        break;
-      }
-    case EVENT_MPU_STATUS:
-      {
-        bt_status = (uint8_t)data;
-        if (bt_status & BIT0)
-        {
-          GrStringDraw(&context, "MPU OK", -1, 10, 26, 0);
-          GrFlush(&context);
-          printf("=============================MPU OK============================\n");
-        }
-        break;
-      }
-    case EVENT_CODEC_STATUS:
-      {
-        bt_status = (uint8_t)data;
-        if (bt_status & BIT0)
-        {
-          GrStringDraw(&context, "CODEC OK", -1, 10, 42, 0);
-          GrFlush(&context);
-          printf("=============================CODEC OK==========================\n");
-        }
-        break;
-      }
-    case EVENT_KEY_PRESSED:
-      {
-        GrStringDraw(&context, "KEY OK", -1, 10, 58, 0);
-        GrFlush(&context);
 
-        printf("=============================KEY OK============================\n");
-        break;
-      }
-    }
   }
-#endif
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
