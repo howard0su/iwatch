@@ -666,6 +666,7 @@ PROCESS_THREAD(lcd_process, ev, data)
       SPIOUT &= ~_SCS;
       state = STATE_NONE;
 
+      // if there is an update?
       if (refreshStart != 0xff)
       {
         SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
@@ -685,7 +686,7 @@ PROCESS_THREAD(lcd_process, ev, data)
       if (state == STATE_NONE)
       {
         SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
-                * sizeof(struct _linebuf));
+                * sizeof(struct _linebuf) + 1);
 
         refreshStart = 0xff;
         refreshStop = 0;
