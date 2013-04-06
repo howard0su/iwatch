@@ -138,7 +138,7 @@ void window_button(uint8_t key, const char* text)
   }
 
   // draw black box
-  tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
+  const tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
 
   if (text)
   {
@@ -154,4 +154,21 @@ void window_button(uint8_t key, const char* text)
   }
 
 #undef SPACE
+}
+
+void window_progress(long lY, uint8_t step)
+{
+  tRectangle rect = {20, lY, 125, lY + 16};
+  GrContextForegroundSet(&context, COLOR_WHITE);
+  GrRectFill(&context, &rect);
+  GrContextForegroundSet(&context, COLOR_BLACK);
+
+  if (step < 100)
+  {
+    rect.sXMin = 22;
+    rect.sYMin = lY + 2;
+    rect.sYMax = lY + 14;
+    rect.sXMax = 22 + step;
+    GrRectFill(&context, &rect);
+  }
 }

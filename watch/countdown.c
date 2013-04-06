@@ -98,6 +98,11 @@ static void drawTime()
       window_button(KEY_UP, NULL);
       window_button(KEY_DOWN, "RESET");
       window_button(KEY_ENTER, "START");
+
+      // display progress bar
+      if (totaltime != lefttime)
+        window_progress(100, 100 - (uint8_t)(lefttime * 100 / totaltime));
+
       break;
     }
   case STATE_RUNNING:
@@ -105,6 +110,10 @@ static void drawTime()
       window_button(KEY_UP, NULL);
       window_button(KEY_DOWN, "PAUSE");
       window_button(KEY_ENTER, "STOP");
+
+      // display progress bar
+      window_progress(100, 100 - (uint8_t)(lefttime * 100 / totaltime));
+
       break;
     }
   }
@@ -182,11 +191,14 @@ static int process_event(uint8_t ev, uint16_t data)
       {
         if (data == KEY_DOWN)
         {
+          // pause
           etimer_stop(&timer);
           state = STATE_CONFIG_READY;
         }
         else if (data == KEY_ENTER)
         {
+          // stop
+          totaltime = lefttime;
           etimer_stop(&timer);
           state = STATE_CONFIG_READY;
         }

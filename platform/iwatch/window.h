@@ -5,10 +5,10 @@
 extern struct process *ui_process;
 
 /* Key name for key event */
-#define KEY_UP          0
-#define KEY_DOWN        1
-#define KEY_ENTER       2
-#define KEY_EXIT        3
+#define KEY_UP          3
+#define KEY_DOWN        2
+#define KEY_ENTER       1
+#define KEY_EXIT        0
 
 
 #define EVENT_WINDOW_CREATED          0x90
@@ -28,6 +28,7 @@ typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 extern void window_init();
 extern void window_open(windowproc proc, void* data);
 extern void window_button(uint8_t key, const char* text);
+extern void window_progress(long lY, uint8_t step);
 
 // Dialogs
 extern uint8_t analogclock_process(uint8_t event, uint16_t lparam, void* rparam);
