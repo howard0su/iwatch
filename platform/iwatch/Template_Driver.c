@@ -130,16 +130,16 @@
 static process_event_t refresh_event, clear_event;
 static struct RefreshData data;
 
-static unsigned char clear_cmd[2] = {MLCD_CM, 0};
-//static unsigned char static_cmd[2] = {MLCD_SM, 0};
+static uint8_t clear_cmd[2] = {MLCD_CM, 0};
+//static uint8_t static_cmd[2] = {MLCD_SM, 0};
 
 struct RefreshData
 {
-  unsigned char start, end;
+  uint8_t start, end;
 };
 
-enum {STATE_NONE, STATE_SENDING};
-static unsigned char state = STATE_NONE;
+
+static enum {STATE_NONE, STATE_SENDING}state = STATE_NONE;
 
 //*****************************************************************************
 //
@@ -148,9 +148,9 @@ static unsigned char state = STATE_NONE;
 //*****************************************************************************
 static struct _linebuf
 {
-  unsigned char opcode;
-  unsigned char linenum;
-  unsigned char pixels[LCD_X_SIZE/8];
+  uint8_t opcode;
+  uint8_t linenum;
+  uint8_t pixels[LCD_X_SIZE/8];
 }lines[LCD_Y_SIZE]; // give a dummy
 
 PROCESS(lcd_process, "LCD");
@@ -206,7 +206,7 @@ memlcd_DriverInit(void)
   unsigned int i;
   for(i = 0; i < LCD_Y_SIZE; i++)
   {
-    lines[i].linenum = i;
+    lines[i].linenum = i + 1;
     lines[i].opcode = MLCD_WR;
   }
 
@@ -312,7 +312,7 @@ static void
 Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
                                            int lY, int lX0, int lCount,
                                            int lBPP,
-                                           const unsigned char *pucData,
+                                           const uint8_t *pucData,
                                            const unsigned int *pucPalette)
 {
 	unsigned int ulByte;
@@ -460,7 +460,7 @@ static void
 Template_DriverLineDrawH(void *pvDisplayData, int lX1, int lX2,
                                    int lY, unsigned int ulValue)
 {
-  unsigned char *pucData = lines[lY].pixels;
+  uint8_t *pucData = lines[lY].pixels;
   uint8_t lMask;
 
   if (ulValue) ulValue = 0xffff; // 16 bit value
@@ -566,9 +566,10 @@ Template_DriverRectFill(void *pvDisplayData, const tRectangle *pRect,
   int y0 = pRect->sYMin;
   int y1 = pRect->sYMax;
 
-  while(y0++ <= y1)
+  while(y0 <= y1)
   {
     Template_DriverLineDrawH(pvDisplayData, x0, x1, y0, ulValue);
+    y0++;
   }
 }
 
@@ -687,7 +688,7 @@ const tDisplay g_memlcd_Driver =
 
 PROCESS_THREAD(lcd_process, ev, data)
 {
-  static unsigned char refreshStart = 0xff, refreshStop = 0;
+  static uint8_t refreshStart = 0xff, refreshStop = 0;
 
   PROCESS_BEGIN();
 
@@ -706,7 +707,7 @@ PROCESS_THREAD(lcd_process, ev, data)
       if (refreshStart != 0xff)
       {
         SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
-                * sizeof(struct _linebuf) + 1);
+                * sizeof(struct _linebuf) + 2);
         refreshStart = 0xff;
         refreshStop = 0;
       }
@@ -722,7 +723,7 @@ PROCESS_THREAD(lcd_process, ev, data)
       if (state == STATE_NONE)
       {
         SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
-                * sizeof(struct _linebuf) + 1);
+                * sizeof(struct _linebuf) + 2);
 
         refreshStart = 0xff;
         refreshStop = 0;

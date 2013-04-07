@@ -54,7 +54,6 @@ PROCESS_THREAD(system_process, ev, data)
       GrContextInit(&context, &g_memlcd_Driver);
 
       GrContextForegroundSet(&context, COLOR_BLACK);
-      GrContextBackgroundSet(&context, COLOR_WHITE);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
       GrContextFontSet(&context, &g_sFontCm44i);

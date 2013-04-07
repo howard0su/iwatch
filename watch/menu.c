@@ -73,12 +73,12 @@ static void drawMenuItem(const struct MenuItem *item, int index, int selected)
     GrContextBackgroundSet(&context, COLOR_WHITE);
   }
 
-  tRectangle rect = {10, 16 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {10, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, !selected);
   GrContextBackgroundSet(&context, selected);
-  GrStringDraw(&context, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+  GrStringDraw(&context, item->name, -1, 32, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 }
 
 static void drawMenu(const struct MenuItem *item, int startIndex, int selected)
