@@ -112,7 +112,7 @@ GrContextInit(tContext *pContext, const tDisplay *pDisplay)
 //
 //*****************************************************************************
 void
-GrContextClipRegionSet(tContext *pContext, tRectangle *pRect)
+GrContextClipRegionSet(tContext *pContext, const tRectangle *pRect)
 {
     unsigned long ulW, ulH;
 

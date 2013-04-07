@@ -60,38 +60,38 @@ extern "C"
 //! This structure defines the characteristics of a Bitmap Image
 //
 //*****************************************************************************
-typedef struct 
+typedef struct
 {
     //
     //! Bits per pixel and Compressed/Uncompressed
     //
-    unsigned char BPP; 
-    
+    unsigned char BPP;
+
     //
     //! X size
     //
-    unsigned int XSize;  
-  
+    unsigned int XSize;
+
     //
     //! Y size
     //
-    unsigned int YSize;               
-    
+    unsigned int YSize;
+
     //
     //! Number of Colors in Palette
     //
-    
-    unsigned int NumColors;     
-    
+
+    unsigned int NumColors;
+
     //
     //! Pointer to Palette
     //
-    const unsigned long * pPalette;   
-    
+    const unsigned long * pPalette;
+
     //
     //! Pointer to pixel data
     //
-    const unsigned char * pPixel;     
+    const unsigned char * pPixel;
 }
 tImage;
 
@@ -166,7 +166,7 @@ typedef struct
                                  int lX0, int lCount, int lBPP,
                                  const unsigned char *pucData,
                                  const unsigned int *pucPalette);
-    
+
     //
     //! A pointer to the function to draw a horizontal line on this display.
     //
@@ -420,7 +420,7 @@ tFontEx;
 
 //*****************************************************************************
 //
-//! Indicates that the image data is compressed with 4 bit Run Length Encoding 
+//! Indicates that the image data is compressed with 4 bit Run Length Encoding
 //! and represents each pixel with two bits.
 //
 //*****************************************************************************
@@ -428,7 +428,7 @@ tFontEx;
 
 //*****************************************************************************
 //
-//! Indicates that the image data is compressed with 4 bit Run Length Encoding 
+//! Indicates that the image data is compressed with 4 bit Run Length Encoding
 //! and represents each pixel with four bits.
 //
 //*****************************************************************************
@@ -436,7 +436,7 @@ tFontEx;
 
 //*****************************************************************************
 //
-//! Indicates that the image data is compressed with 8 bit Run Length Encoding 
+//! Indicates that the image data is compressed with 8 bit Run Length Encoding
 //! and represents each pixel with a single bit.
 //
 //*****************************************************************************
@@ -1555,7 +1555,7 @@ extern void GrCircleDraw(const tContext *pContext, long lX, long lY,
                          long lRadius);
 extern void GrCircleFill(const tContext *pContext, long lX, long lY,
                          long lRadius);
-extern void GrContextClipRegionSet(tContext *pContext, tRectangle *pRect);
+extern void GrContextClipRegionSet(tContext *pContext, const tRectangle *pRect);
 extern void GrContextInit(tContext *pContext, const tDisplay *pDisplay);
 extern void GrImageDraw(const tContext *pContext,
                         const tImage *pBitmap, int lX, int lY);
