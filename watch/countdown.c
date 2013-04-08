@@ -32,7 +32,6 @@ static enum _state{
 
 static uint8_t times[3];
 static uint32_t totaltime, lefttime;
-static struct etimer timer;
 
 extern tContext context;
 extern tRectangle client_clip;
@@ -177,7 +176,7 @@ static int process_event(uint8_t ev, uint16_t data)
         lefttime = totaltime = times[STATE_CONFIG_SECOND] + times[STATE_CONFIG_MINUTE] * 60
               + times[STATE_CONFIG_HOUR] * 3600;
         // setup timer every second
-        etimer_set(&timer, CLOCK_SECOND);
+        window_timer(CLOCK_SECOND);
 
         state = STATE_RUNNING;
       }
@@ -192,14 +191,14 @@ static int process_event(uint8_t ev, uint16_t data)
         if (data == KEY_DOWN)
         {
           // pause
-          etimer_stop(&timer);
+          window_timer(0);
           state = STATE_CONFIG_READY;
         }
         else if (data == KEY_ENTER)
         {
           // stop
           totaltime = lefttime;
-          etimer_stop(&timer);
+          window_timer(0);
           state = STATE_CONFIG_READY;
         }
       }
@@ -215,7 +214,7 @@ static int process_event(uint8_t ev, uint16_t data)
         }
         else
         {
-          etimer_restart(&timer);
+          window_timer(CLOCK_SECOND);
         }
       }
       else
@@ -240,7 +239,7 @@ uint8_t countdown_process(uint8_t ev, uint16_t lparam, void* rparam)
   else if (ev == EVENT_WINDOW_CLOSING)
   {
     // remove timer
-    etimer_stop(&timer);
+    window_timer(0);
   }
   else
   {
