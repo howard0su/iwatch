@@ -105,9 +105,8 @@ main(int argc, char **argv)
   /*
   * This is the scheduler loop.
   */
-#if !DEBUG
   watchdog_start();
-#endif
+
   while(1) {
     int r;
     do {
@@ -127,27 +126,24 @@ main(int argc, char **argv)
       static unsigned long irq_energest = 0;
 
       /* Re-enable interrupts and go to sleep atomically. */
-
+      ENERGEST_OFF(ENERGEST_TYPE_CPU);
+      ENERGEST_ON(ENERGEST_TYPE_LPM);
       /* We only want to measure the processing done in IRQs when we
-      are asleep, so we discard the processing time done when we
-      were awake. */
+         are asleep, so we discard the processing time done when we
+         were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
 
-      ENERGEST_OFF(ENERGEST_TYPE_CPU);
-      ENERGEST_ON(ENERGEST_TYPE_LPM3);
       __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
-      ENERGEST_OFF(ENERGEST_TYPE_LPM3);
-      ENERGEST_ON(ENERGEST_TYPE_CPU);
 
       /* We get the current processing time for interrupts that was
-      done during the LPM and store it for next time around.  */
+         done during the LPM and store it for next time around.  */
       dint();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
       eint();
-#if !DEBUG
       watchdog_start();
-#endif
+      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_ON(ENERGEST_TYPE_CPU);
     }
   }
 }
