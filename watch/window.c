@@ -1,4 +1,5 @@
 #include "contiki.h"
+
 #include "window.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
@@ -10,7 +11,6 @@ extern void rtc_init();
 extern void bluetooth_init();
 extern void button_init();
 extern void I2C_Init();
-
 
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
@@ -53,13 +53,7 @@ PROCESS_THREAD(system_process, ev, data)
       memlcd_DriverInit();
       GrContextInit(&context, &g_memlcd_Driver);
 
-      GrContextForegroundSet(&context, COLOR_BLACK);
-      tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-      GrRectFill(&context, &rect);
-      GrContextFontSet(&context, &g_sFontCm44i);
-      GrContextForegroundSet(&context, COLOR_WHITE);
-      GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
-      GrFlush(&context);
+      window_open(&watch_process, NULL);
 
       // give time to starts
       button_init();
@@ -67,16 +61,14 @@ PROCESS_THREAD(system_process, ev, data)
       I2C_Init();
 
       //ant_init();
-      bluetooth_init();
       mpu6050_init();
-      window_open(&menu_process, NULL);
     }
     else if (ev == EVENT_TIME_CHANGED || ev == PROCESS_EVENT_TIMER)
     {
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
     }
-    else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED)
+    else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED || ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS)
     {
       // event converter to pass data as lparam
       uint8_t ret = ui_window(ev, (uint16_t)data, NULL);
@@ -169,5 +161,19 @@ void window_progress(long lY, uint8_t step)
     rect.sYMax = lY + 14;
     rect.sXMax = 22 + step;
     GrRectFill(&context, &rect);
+  }
+}
+
+static struct etimer timer;
+
+void window_timer(clock_time_t time)
+{
+  if (time == 0)
+  {
+    etimer_stop(&timer);
+  }
+  else
+  {
+    etimer_set(&timer, time);
   }
 }

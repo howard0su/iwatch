@@ -41,6 +41,8 @@
 
 #include "att.h"
 
+#include "bluetooth.h"
+
 extern void codec_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
@@ -112,9 +114,9 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
     {
       if (packet[2]) {
-        process_post(ui_process, EVENT_BT_STATUS, (void*)(BIT0 | BIT1));
+        process_post(ui_process, EVENT_BT_STATUS, (void*)(BT_INITIALIZED | BT_CONNECTED));
       } else {
-        process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
       }
       break;
     }
@@ -159,7 +161,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     {
       // new device is paired
       bt_flip_addr(event_addr, &packet[2]);
-      sdpc_open(event_addr);
+      //sdpc_open(event_addr);
       break;
     }
   }
@@ -250,11 +252,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
-        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertise_enable)){
-        process_post(ui_process, EVENT_BT_STATUS, (void*)BIT0);
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_register_packet_handler(packet_handler);
         sdpc_open(config_data.bd_addr);
       }
@@ -304,8 +302,6 @@ static void btstack_setup(){
   mns_init();
 }
 
-PROCESS_NAME(bluetooth_process);
-
 void bluetooth_init()
 {
   btstack_setup();
@@ -323,4 +319,15 @@ void bluetooth_shutdown()
 
   // notify UI that we are shutdown
   process_post(ui_process, EVENT_BT_STATUS, 0);
+}
+
+void bluetooth_discoverable(uint8_t onoff)
+{
+  hci_discoverable_control(onoff);
+  hci_send_cmd(&hci_le_set_advertise_enable, onoff);
+}
+
+uint8_t bluetooth_paired()
+{
+  return (*(uint32_t*)config_data.bd_addr != 0);
 }

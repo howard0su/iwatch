@@ -29,6 +29,7 @@ extern void window_init();
 extern void window_open(windowproc proc, void* data);
 extern void window_button(uint8_t key, const char* text);
 extern void window_progress(long lY, uint8_t step);
+extern void window_timer(clock_time_t time);
 
 // Dialogs
 extern uint8_t analogclock_process(uint8_t event, uint16_t lparam, void* rparam);
@@ -36,4 +37,6 @@ extern uint8_t digitclock_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t menu_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t control_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t countdown_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam);
 #endif

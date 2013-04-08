@@ -29,7 +29,7 @@ struct MenuItem
 
 static const struct MenuItem SetupMenu[] =
 {
-  {"Bluetooth", NULL},
+  {"Bluetooth", btconfig_process},
   {"ANT+", NULL},
   {NULL}
 };
@@ -157,7 +157,17 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         if (Items[current].handler)
         {
-          window_open(Items[current].handler, NULL);
+          if (Items[current].handler == &menu_process)
+          {
+            if (current == 9)
+            {
+              window_open(&menu_process, (void*)&SetupMenu);
+            }
+          }
+          else
+          {
+            window_open(Items[current].handler, NULL);
+          }
         }
       }
     }
