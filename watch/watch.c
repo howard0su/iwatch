@@ -23,10 +23,10 @@
 
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "btstack/bluetooth.h"
 
 extern void mpu6050_init();
 extern void ant_init();
-extern void bluetooth_init();
 extern void button_init();
 extern void I2C_Init();
 
@@ -41,37 +41,38 @@ extern tContext context;
 * It first shows the logo
 * Like the whole dialog intrufstture.
 */
-
+uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  PROCESS_BEGIN();
-
-  memlcd_DriverInit();
-  GrContextInit(&context, &g_memlcd_Driver);
-
-  GrContextForegroundSet(&context, COLOR_BLACK);
-  GrContextBackgroundSet(&context, COLOR_WHITE);
-  tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-  GrRectFill(&context, &rect);
-  GrContextFontSet(&context, &g_sFontCm44i);
-  GrContextForegroundSet(&context, COLOR_WHITE);
-  GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
-  GrFlush(&context);
-  window_open(&menu_process, NULL);
-
-  // give time to starts
-  button_init();
-  rtc_init();
-  I2C_Init();
-
-  //ant_init();
-  bluetooth_init();
-  mpu6050_init();
-
-  while(1)
+  switch(ev)
   {
+  case EVENT_WINDOW_CREATED:
+    {
+      GrContextForegroundSet(&context, COLOR_BLACK);
+      tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+      GrRectFill(&context, &rect);
+      GrContextFontSet(&context, &g_sFontCm44i);
+      GrContextForegroundSet(&context, COLOR_WHITE);
+      GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
+      GrFlush(&context);
 
+      if (bluetooth_paired())
+      {
+        bluetooth_init();
+      }
+
+      window_timer(CLOCK_SECOND);
+      break;
+    }
+  case PROCESS_EVENT_TIMER:
+    {
+      window_open(&menu_process, NULL);
+      break;
+    }
+  case EVENT_WINDOW_CLOSING:
+    {
+
+      break;
+    }
   }
-
-  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
