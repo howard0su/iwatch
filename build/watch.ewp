@@ -1045,7 +1045,7 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
@@ -1100,7 +1100,7 @@
         </option>
         <option>
           <name>RadioDataModelType</name>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>GHeap20Size</name>
@@ -2023,6 +2023,9 @@
     <name>app</name>
     <file>
       <name>$PROJ_DIR$\..\watch\analog-watch.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\btconfig.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\controller.c</name>
