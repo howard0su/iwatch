@@ -103,8 +103,6 @@ PROCESS_THREAD(bluetooth_process, ev, data)
 
   // turn on!
   hci_power_control(HCI_POWER_ON);
-  // make discoverable
-  hci_discoverable_control(1);
 
   while(1)
   {

@@ -272,21 +272,23 @@ void hal_uart_dma_set_sleep(uint8_t sleep){
 // block-wise "DMA" RX/TX UART driver
 ISR(USCI_A0, usbRxTxISR)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
   // find reason
   switch (__even_in_range(UCA0IV, 16)){
 
   case 2: // RXIFG
     if (bytes_to_read == 0) {
-      // put the data into buffer
+      // put the data into buffer to avoid race condition
       rx_temp_buffer = UCA0RXBUF;
       rx_temp_size = 1;
-      return;
+      break;
     }
     *rx_buffer_ptr = UCA0RXBUF;
     ++rx_buffer_ptr;
     --bytes_to_read;
     if (bytes_to_read > 0) {
-      return;
+      break;
     }
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
 
@@ -301,6 +303,7 @@ ISR(USCI_A0, usbRxTxISR)
   default:
     break;
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
 
