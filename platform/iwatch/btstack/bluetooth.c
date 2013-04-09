@@ -114,9 +114,9 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
     {
       if (packet[2]) {
-        process_post(ui_process, EVENT_BT_STATUS, (void*)(BT_INITIALIZED | BT_CONNECTED));
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_CONNECTED);
       } else {
-        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_DISCONNECTED);
       }
       break;
     }
@@ -164,6 +164,18 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       //sdpc_open(event_addr);
       break;
     }
+  case BTSTACK_EVENT_DISCOVERABLE_ENABLED:
+    {
+      if (packet[2])
+      {
+        hci_send_cmd(&hci_le_set_advertise_enable, 1);
+      }
+      else
+      {
+        hci_send_cmd(&hci_le_set_advertise_enable, 0);
+      }
+      break;
+    }
   }
 }
 
@@ -186,7 +198,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       hci_send_cmd(&hci_read_local_supported_features);
     }
     break;
-
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
@@ -318,13 +329,12 @@ void bluetooth_shutdown()
   process_exit(&bluetooth_process);
 
   // notify UI that we are shutdown
-  process_post(ui_process, EVENT_BT_STATUS, 0);
+  process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
 }
 
 void bluetooth_discoverable(uint8_t onoff)
 {
   hci_discoverable_control(onoff);
-  hci_send_cmd(&hci_le_set_advertise_enable, onoff);
 }
 
 uint8_t bluetooth_paired()

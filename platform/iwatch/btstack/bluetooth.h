@@ -1,8 +1,11 @@
 #ifndef _BLUETOOTH_H_
 #define _BLUETOOTH_H_
 
-#define BT_INITIALIZED  BIT0
-#define BT_CONNECTED    BIT1
+#define BT_INITIALIZED  1
+#define BT_CONNECTED    2
+#define BT_DISCONNECTED 3
+#define BT_PAIRED       4
+#define BT_SHUTDOWN     5
 
 extern void bluetooth_init();
 extern void bluetooth_shutdown();

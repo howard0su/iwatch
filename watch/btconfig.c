@@ -72,12 +72,12 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_BT_STATUS:
     {
-      if ((lparam & BT_INITIALIZED) && (state == BT_OFF || state == BT_INITIALING))
+      if ((lparam == BT_INITIALIZED) && (state == BT_OFF || state == BT_INITIALING))
       {
         bluetooth_discoverable(1);
         state = BT_ON;
       }
-      else if (!(lparam & BT_INITIALIZED) && state == BT_ON)
+      else if ((lparam == BT_SHUTDOWN) && state == BT_ON)
       {
         state = BT_OFF;
       }
