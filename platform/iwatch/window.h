@@ -1,8 +1,10 @@
 #ifndef _WINDOW_H_
 #define _WINDOWN_H_
 
+PROCESS_NAME(system_process);
+
 // the active process to handle input and various notifications
-extern struct process *ui_process;
+#define ui_process (&system_process)
 
 /* Key name for key event */
 #define KEY_UP          3

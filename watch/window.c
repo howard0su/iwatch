@@ -15,7 +15,6 @@ extern void I2C_Init();
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
 
-struct process* ui_process = NULL;
 windowproc ui_window = NULL;
 const tRectangle client_clip = {0, 16, LCD_X_SIZE, LCD_Y_SIZE};
 
