@@ -19,6 +19,8 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
+#undef SUPPORT_SECOND
+
 /*
  * This implement the digit watch
  * Wake up every 1 second and update the watch
@@ -33,7 +35,9 @@
 #define MIN_HAND_LEN 60
 #define HOUR_HAND_LEN 45
 
+#ifdef SUPPORT_SECOND
 static uint16_t lastSecX, lastSecY;
+#endif
 static uint16_t lastMinX, lastMinY;
 static uint16_t lastHourX, lastHourY;
 
@@ -53,14 +57,6 @@ static void drawBackground()
   GrRectFill(&context, &rect2);
   GrRectFill(&context, &rect3);
   GrRectFill(&context, &rect4);
-
-  GrFlush(&context);
-  lastSecX = CENTER_X;
-  lastSecY = CENTER_Y;
-  lastMinX = CENTER_X;
-  lastMinY = CENTER_Y;
-  lastHourX = CENTER_X;
-  lastHourY = CENTER_Y;
 }
 
 static void drawClock(int day, int h, int m, int s)
@@ -70,6 +66,7 @@ static void drawClock(int day, int h, int m, int s)
   uint16_t x, y;
   char buf[2];
 
+#ifdef SUPPORT_SECOND
   if (s > 0)
   {
     // sec hand: length = 75
@@ -82,6 +79,7 @@ static void drawClock(int day, int h, int m, int s)
     GrContextForegroundSet(&context, COLOR_WHITE);
     GrLineDraw(&context, CENTER_X, CENTER_Y, lastSecX , lastSecY);
   }
+#endif
 
   // minute hand = length = 70
   angle = m*6+s/10;
@@ -125,7 +123,7 @@ static void drawClock(int day, int h, int m, int s)
 
   GrCircleFill(&context, CENTER_X, CENTER_Y, 5);
 
-  buf[0] = '0' + day >> 4;
+  buf[0] = '0' + (day >> 4);
   buf[1] = '0' + (day & 0x0f);
 
   GrContextForegroundSet(&context, COLOR_BLACK);
@@ -141,6 +139,15 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 
   if (ev == EVENT_WINDOW_CREATED)
   {
+#ifdef SUPPORT_SECOND
+    lastSecX = CENTER_X;
+    lastSecY = CENTER_Y;
+#endif
+    lastMinX = CENTER_X;
+    lastMinY = CENTER_Y;
+    lastHourX = CENTER_X;
+    lastHourY = CENTER_Y;
+
     GrContextForegroundSet(&context, COLOR_BLACK);
     GrRectFill(&context, &client_clip);
 
