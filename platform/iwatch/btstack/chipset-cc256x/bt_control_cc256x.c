@@ -68,8 +68,8 @@ extern const uint32_t cc256x_init_script_size;
 
 //
 static uint32_t init_script_offset  = 0;
-static int16_t  init_power_in_dB    = 13; // 13 dBm
-static int      init_ehcill_enabled = 0;
+static int16_t  init_power_in_dB    = 0; // 13 dBm
+static int      init_ehcill_enabled = 1;
 
 
 static int bt_control_cc256x_on(void *config){
