@@ -7,10 +7,10 @@ PROCESS_NAME(system_process);
 #define ui_process (&system_process)
 
 /* Key name for key event */
-#define KEY_UP          3
-#define KEY_DOWN        2
-#define KEY_ENTER       1
-#define KEY_EXIT        0
+#define KEY_UP          2
+#define KEY_DOWN        3
+#define KEY_ENTER       0
+#define KEY_EXIT        1
 
 
 #define EVENT_WINDOW_CREATED          0x90
