@@ -2,6 +2,7 @@
 #include "window.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include "i2c.h"
 /*
  * Codec NAU1080 for BT
@@ -63,7 +64,25 @@
 #define REG_OUT3_MIXER_CTRL             (0x038)
 #define REG_OUT4_MIXER_CTRL             (0x039)
 
-static int inline codec_write(uint8_t reg, uint16_t data)
+static const uint16_t config[] =
+{
+  0, 0x17d, 0x15, 0xfd, //Power Management
+  0x118, 0x0, 0x149, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0x0, 0x108, 0x1ff, // Audio Control
+  0xFFFF, 0xFFFF, // skip 2
+  0x12c, 0x2c, 0x2c, 0x2c, 0x2c, //Equalizer
+  0xFFFF, // skip 1
+  0x32, 0x0, // DAC Limiter
+  0xFFFF, // skip 1
+  0x0, 0x0, 0x0, 0x0, //Notch Filter
+  0xffff, // skip 1
+  0x38, 0xb, 0x32, 0x0, //ALC Control
+  0x8, 0xc, 0x93, 0xe9, //PLL Control
+  0x0, // BYP Control
+  0xFFFF, 0xFFFF, 0xFFFF, // skip 3
+  0x3, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xb9, 0x40, 0x1, //Input Output Mixer
+};
+
+static int codec_write(uint8_t reg, uint16_t data)
 {
   return I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
 }
@@ -71,29 +90,25 @@ static int inline codec_write(uint8_t reg, uint16_t data)
 void codec_init()
 {
   I2C_addr(CODEC_ADDRESS);
-  // write some configure data for codec
-  //codec_write(REG_RESET, 0);
+  //reset codec ?
+  codec_write(REG_RESET, 0);
+  __delay_cycles(5000);
 
-  if (!codec_write(REG_POWER_MANAGEMENT1, 0x1F) &&
-    !codec_write(REG_POWER_MANAGEMENT2, 0x1bf) &&
-    !codec_write(REG_POWER_MANAGEMENT3, 0x7f) &&
-    !codec_write(REG_AUDIO_INTERFACE, 0x10) &&
-    !codec_write(REG_COMPANDING_CTRL, 0) &&
-    !codec_write(REG_CLK_GEN_CTRL, 0) &&
-    !codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff) &&
-    !codec_write(REG_DAC_CTRL, 0x08) &&
-    !codec_write(REG_BEEP_CONTROL, 0x10) &&
-    !codec_write(REG_LEFT_INP_PGA_GAIN_CTRL, 0x139) &&
-    !codec_write(REG_LEFT_MIXER_CTRL, 0x01) &&
-    !codec_write(REG_OUTPUT_CTRL, 0x02) &&
-    !codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, 0x139) &&
-    !codec_write(REG_LEFT_ADC_DIGITAL_VOL, 0x1ff))
+  for(uint8_t i = 1; i <= 0x38; i++)
   {
-    process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
+    if (config[i] == 0xffff)
+      continue;
+
+    //log_info("write to %x with %x\n", i, config[i]);
+
+    if (codec_write(i, config[i]))
+    {
+      I2C_done();
+      return;
+    }
   }
-  else
-  {
-    process_post(ui_process, EVENT_CODEC_STATUS, (void*)0);
-  }
+
+  process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
+  printf("initialize codec sucess\n");
   I2C_done();
 }
