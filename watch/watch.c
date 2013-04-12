@@ -24,6 +24,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "btstack/bluetooth.h"
+#include "backlight.h"
 
 extern void mpu6050_init();
 extern void ant_init();
@@ -47,6 +48,7 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     {
+      backlight_on(255);
       GrContextForegroundSet(&context, COLOR_BLACK);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
@@ -65,6 +67,7 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case PROCESS_EVENT_TIMER:
     {
+      backlight_on(0);
       window_open(&menu_process, NULL);
       break;
     }
