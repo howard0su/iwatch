@@ -19,12 +19,12 @@ static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
 
 }
 
-int mns_init(int channel)
+int mns_init()
 {
   memset(&mns_service_record, 0, sizeof(mns_service_record));
   mns_service_record.service_record = (uint8_t*)&mns_service_buffer[0];
 #if 1
-  sdp_create_map_service( (uint8_t*)&mns_service_buffer[0], channel, "MAP MNS-iWatch");
+  sdp_create_map_service( (uint8_t*)&mns_service_buffer[0], MNS_CHANNEL, "MAP MNS-iWatch");
   log_info("MNS service buffer size: %u\n", de_get_len(mns_service_record.service_record));
   //hexdump((void*)spp_service_buffer, de_get_len(spp_service_record.service_record));
   de_dump_data_element(mns_service_record.service_record);
