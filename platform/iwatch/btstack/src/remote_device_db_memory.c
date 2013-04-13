@@ -42,7 +42,7 @@
 #include "dev/flash.h"
 
 #pragma constseg = INFOB
-const struct _configdata config_data = {0};
+__no_init const struct _configdata config_data;
 #pragma constseg = default
 
 // Device info
