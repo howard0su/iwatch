@@ -1,5 +1,5 @@
 #ifndef _WINDOW_H_
-#define _WINDOWN_H_
+#define _WINDOW_H_
 
 PROCESS_NAME(system_process);
 
@@ -13,17 +13,20 @@ PROCESS_NAME(system_process);
 #define KEY_EXIT        1
 
 
-#define EVENT_WINDOW_CREATED          0x90
-#define EVENT_WINDOW_CLOSING          0x91
-#define EVENT_WINDOW_CLOSED           0x92
-#define EVENT_KEY_PRESSED             0x93
-#define EVENT_KEY_LONGPRESSED         0x94
-#define EVENT_TIME_CHANGED            0x95
-#define EVENT_BT_STATUS               0x96 // parameters BIT0:ENABLE, BIT1:CONNECT
-#define EVENT_ANT_STATUS              0x97 // parameters BIT0:EnABLE, BIT1:CONNECT
-#define EVENT_MPU_STATUS              0x98 // parameters BIT0:EnABLE
-#define EVENT_CODEC_STATUS            0x99 // parameters BIT0:EnABLE
-#define EVENT_WINDOW_PAINT            0xa0 // no parameter
+// parameter is used as rparam
+#define EVENT_TIME_CHANGED            0x90
+
+// parameter is used as lparam
+#define EVENT_WINDOW_CREATED          0xa0
+#define EVENT_WINDOW_CLOSING          0xa1
+#define EVENT_WINDOW_CLOSED           0xa2
+#define EVENT_KEY_PRESSED             0xa3
+#define EVENT_KEY_LONGPRESSED         0xa4
+#define EVENT_BT_STATUS               0xa6 // parameters BIT0:ENABLE, BIT1:CONNECT
+#define EVENT_ANT_STATUS              0xa7 // parameters BIT0:EnABLE, BIT1:CONNECT
+#define EVENT_MPU_STATUS              0xa8 // parameters BIT0:EnABLE
+#define EVENT_CODEC_STATUS            0xa9 // parameters BIT0:EnABLE
+#define EVENT_WINDOW_PAINT            0xaa // no parameter
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 
