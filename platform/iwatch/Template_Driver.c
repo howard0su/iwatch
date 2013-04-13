@@ -621,9 +621,12 @@ Template_DriverColorTranslate(void *pvDisplayData,
 static void
 Template_DriverFlush(void *pvDisplayData)
 {
-  process_post_synch(&lcd_process, refresh_event, &data);
-  data.start = 0xff;
-  data.end = 0;
+  if (data.start != 0xff)
+  {
+    process_post_synch(&lcd_process, refresh_event, &data);
+    data.start = 0xff;
+    data.end = 0;
+  }
 }
 
 //*****************************************************************************
