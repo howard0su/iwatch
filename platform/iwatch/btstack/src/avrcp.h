@@ -2,6 +2,7 @@
 #define _AVRCP_H_
 
 #include "btstack/utils.h"
+#include "window.h"
 
 /* player attributes */
 #define AVRCP_ATTRIBUTE_ILEGAL		0x00
@@ -58,12 +59,17 @@
 #define AVRCP_EVENT_BATT_STATUS_CHANGED 0x06
 #define AVRCP_EVENT_LAST		AVRCP_EVENT_TRACK_REACHED_START
 
+#define AVRCP_EVENT_CONNECTED           AVRCP_EVENT_LAST + 1
+#define AVRCP_EVENT_DISCONNECTED           AVRCP_EVENT_LAST + 2
+
+
 extern void avrcp_init();
 extern void avrcp_connect(bd_addr_t remote_addr);
 extern int avrcp_set_volume(uint8_t volume);
-extern int avrcp_register_handler();
+extern int avrcp_register_handler(windowproc proc);
 extern int avrcp_enable_notification(uint8_t event);
 extern int avrcp_get_element_attribute(uint32_t item);
 extern int avrcp_get_capability();
+extern int avrcp_get_playstatus();
 
 #endif

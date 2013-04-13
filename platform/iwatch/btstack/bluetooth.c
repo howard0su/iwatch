@@ -265,7 +265,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_register_packet_handler(packet_handler);
-        sdpc_open(config_data.bd_addr);
+        //sdpc_open(config_data.bd_addr);
       }
       break;
     }
@@ -340,4 +340,9 @@ void bluetooth_discoverable(uint8_t onoff)
 uint8_t bluetooth_paired()
 {
   return (*(uint32_t*)config_data.bd_addr != 0);
+}
+
+bd_addr_t* bluetooth_paired_addr()
+{
+  return (bd_addr_t*)&config_data.bd_addr;
 }

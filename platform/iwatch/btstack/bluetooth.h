@@ -1,5 +1,6 @@
 #ifndef _BLUETOOTH_H_
 #define _BLUETOOTH_H_
+#include "btstack/utils.h"
 
 #define BT_INITIALIZED  1
 #define BT_CONNECTED    2
@@ -11,6 +12,7 @@ extern void bluetooth_init();
 extern void bluetooth_shutdown();
 extern void bluetooth_discoverable(uint8_t onoff);
 extern uint8_t bluetooth_paired();
+extern bd_addr_t* bluetooth_paired_addr();
 
 PROCESS_NAME(bluetooth_process);
 

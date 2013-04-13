@@ -6,7 +6,7 @@
 #include "window.h"
 
 #define DEBOUNCE_PERIOD CLOCK_SECOND/40
-#define LONGPRESS_PERIOD CLOCK_SECOND/8
+#define LONGPRESS_PERIOD CLOCK_SECOND
 
 const struct sensors_sensor button_sensor;
 

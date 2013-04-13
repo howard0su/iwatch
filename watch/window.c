@@ -1,6 +1,7 @@
 #include "contiki.h"
 
 #include "window.h"
+#include "backlight.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include <stdio.h>
@@ -49,16 +50,19 @@ PROCESS_THREAD(system_process, ev, data)
   {
     if (ev == PROCESS_EVENT_INIT)
     {
+      backlight_init();
       memlcd_DriverInit();
       GrContextInit(&context, &g_memlcd_Driver);
-
-      window_open(&watch_process, NULL);
 
       // give time to starts
       button_init();
       rtc_init();
       I2C_Init();
 
+      // welcome dialog depends on backlight/lcd/i2c
+      window_open(&watch_process, NULL);
+
+      codec_init();
       //ant_init();
       mpu6050_init();
     }
@@ -75,7 +79,7 @@ PROCESS_THREAD(system_process, ev, data)
       if (!ret)
       {
         // default handler for long pressed
-        if ((uint16_t)data == KEY_EXIT && ui_window != &menu_process)
+        if ((uint16_t)data == KEY_EXIT && ui_window != &menu_process && ev == EVENT_KEY_LONGPRESSED)
         {
           window_open(&menu_process, 0);
         }

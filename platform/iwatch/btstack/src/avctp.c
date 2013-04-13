@@ -118,6 +118,19 @@ void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t *packet, uint16_t 
   current_pid = __swap_bytes(pid);
 }
 
+uint8_t avctp_connected()
+{
+  return (l2cap_cid != 0);
+}
+
+void avctp_disconnect()
+{
+  if (avctp_connected())
+  {
+    l2cap_disconnect_internal(l2cap_cid, 0);
+  }
+}
+
 static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   static uint16_t pid;
@@ -183,7 +196,6 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
     switch (packet[0]) {
     case L2CAP_EVENT_INCOMING_CONNECTION:
       {
-        log_info("incoming connection for avctp\n");
         if (l2cap_cid)
         {
           l2cap_decline_connection_internal(channel, 0x0d);
@@ -203,7 +215,12 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       }
       else
       {
+        log_info("avctp connected\n");
         l2cap_cid = READ_BT_16(packet, 13);
+        if (packet_handler)
+        {
+          packet_handler(NULL, 1); // connected
+        }
       }
       break;
     case L2CAP_EVENT_CREDITS:
@@ -214,6 +231,8 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       if (channel == l2cap_cid){
         // reset
         l2cap_cid = 0;
+        packet_handler(NULL, 0); // disconnected
+        log_info("avctp disconnected\n");
       }
       break;
     }

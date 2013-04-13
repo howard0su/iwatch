@@ -73,9 +73,12 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_CLOSING:
     {
-
       break;
     }
+  default:
+    return 0;
   }
+
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
