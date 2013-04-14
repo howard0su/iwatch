@@ -170,7 +170,10 @@ uint32_t sdp_register_service_internal(void *connection, service_record_item_t *
         log_error("SDP Error - record does not contain a valid sevice handle\n");
         return 0;
     }
-
+    else
+    {
+        record_item->service_record_handle = record_handle;
+    }
     // add to linked list
     linked_list_add(&sdp_service_records, (linked_item_t *) record_item);
 
