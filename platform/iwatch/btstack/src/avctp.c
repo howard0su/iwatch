@@ -62,9 +62,12 @@ static uint8_t avctp_resp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_RESP
 static uint16_t resp_size;
 static uint8_t id = 0;
 static uint8_t need_send_release = 0;
+static void (*packet_handler) (uint8_t *packet, uint16_t size);
+static uint16_t current_pid;
 
 void avctp_init()
 {
+  packet_handler = NULL;
   l2cap_cid = 0;
   l2cap_register_service_internal(NULL, avctp_packet_handler, PSM_AVCTP, 0xffff);
 }
@@ -107,9 +110,6 @@ static void avctp_try_respond(void){
     avctp_try_respond();
   }
 }
-
-static void (*packet_handler) (uint8_t *packet, uint16_t size);
-static uint16_t current_pid;
 
 void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t *packet, uint16_t size))
 {
