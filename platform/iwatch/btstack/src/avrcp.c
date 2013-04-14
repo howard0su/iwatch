@@ -193,6 +193,75 @@ int avrcp_register_handler(windowproc proc)
   return 0;
 }
 
+static void sdp_create_avrcp_service(uint8_t *service, const char *name){
+
+	uint8_t* attribute;
+	de_create_sequence(service);
+
+        // 0x0000 "Service Record Handle"
+	de_add_number(service, DE_UINT, DE_SIZE_16, SDP_ServiceRecordHandle);
+	de_add_number(service, DE_UINT, DE_SIZE_32, 0x10003);
+
+	// 0x0001 "Service Class ID List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_ServiceClassIDList);
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x110E );
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x110F );
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0004 "Protocol Descriptor List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_ProtocolDescriptorList);
+	attribute = de_push_sequence(service);
+	{
+		uint8_t* l2cpProtocol = de_push_sequence(attribute);
+		{
+			de_add_number(l2cpProtocol,  DE_UUID, DE_SIZE_16, 0x0100);
+                        de_add_number(l2cpProtocol,  DE_UINT, DE_SIZE_16, 0x0017);  // PSM_AVRCP
+		}
+		de_pop_sequence(attribute, l2cpProtocol);
+
+		uint8_t* avctp = de_push_sequence(attribute);
+		{
+			de_add_number(avctp,  DE_UUID, DE_SIZE_16, 0x0017);  // avctp_service
+			de_add_number(avctp,  DE_UINT, DE_SIZE_16, 0x0104);  // version
+		}
+		de_pop_sequence(attribute, avctp);
+	}
+	de_pop_sequence(service, attribute);
+
+        // 0x0005 "Public Browse Group"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BrowseGroupList); // public browse group
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x1002 );
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0009 "Bluetooth Profile Descriptor List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BluetoothProfileDescriptorList);
+	attribute = de_push_sequence(service);
+	{
+		uint8_t *avrcpProfile = de_push_sequence(attribute);
+		{
+			de_add_number(avrcpProfile,  DE_UUID, DE_SIZE_16, 0x110E);
+			de_add_number(avrcpProfile,  DE_UINT, DE_SIZE_16, 0x0105); // version
+		}
+		de_pop_sequence(attribute, avrcpProfile);
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0100 "ServiceName"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, 0x0100);
+	de_add_data(service,  DE_STRING, strlen(name), (uint8_t *) name);
+
+        // 0x0311 "SupportedFeatures"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_SupportedFeatures);
+	de_add_number(service,  DE_UINT, DE_SIZE_16, 0x01); // Catagory 1
+
+}
+
 void avrcp_init()
 {
   memset(&avrcp_service_record, 0, sizeof(avrcp_service_record));

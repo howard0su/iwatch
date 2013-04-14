@@ -55,6 +55,75 @@ static const uint8_t   hfp_service_buffer[85] =
 
 static void hfp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
 
+
+static void sdp_create_hfp_service(uint8_t *service, int service_id, const char *name){
+
+	uint8_t* attribute;
+	de_create_sequence(service);
+
+    // 0x0000 "Service Record Handle"
+	de_add_number(service, DE_UINT, DE_SIZE_16, SDP_ServiceRecordHandle);
+	de_add_number(service, DE_UINT, DE_SIZE_32, 0x10002);
+
+	// 0x0001 "Service Class ID List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_ServiceClassIDList);
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x111E );
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x1203 );
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0004 "Protocol Descriptor List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_ProtocolDescriptorList);
+	attribute = de_push_sequence(service);
+	{
+		uint8_t* l2cpProtocol = de_push_sequence(attribute);
+		{
+			de_add_number(l2cpProtocol,  DE_UUID, DE_SIZE_16, 0x0100);
+		}
+		de_pop_sequence(attribute, l2cpProtocol);
+
+		uint8_t* rfcomm = de_push_sequence(attribute);
+		{
+			de_add_number(rfcomm,  DE_UUID, DE_SIZE_16, 0x0003);  // rfcomm_service
+			de_add_number(rfcomm,  DE_UINT, DE_SIZE_8,  service_id);  // rfcomm channel
+		}
+		de_pop_sequence(attribute, rfcomm);
+	}
+	de_pop_sequence(service, attribute);
+
+    // 0x0005 "Public Browse Group"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BrowseGroupList); // public browse group
+	attribute = de_push_sequence(service);
+	{
+		de_add_number(attribute,  DE_UUID, DE_SIZE_16, 0x1002 );
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0009 "Bluetooth Profile Descriptor List"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_BluetoothProfileDescriptorList);
+	attribute = de_push_sequence(service);
+	{
+		uint8_t *hfpProfile = de_push_sequence(attribute);
+		{
+			de_add_number(hfpProfile,  DE_UUID, DE_SIZE_16, 0x111E);
+			de_add_number(hfpProfile,  DE_UINT, DE_SIZE_16, 0x0106);
+		}
+		de_pop_sequence(attribute, hfpProfile);
+	}
+	de_pop_sequence(service, attribute);
+
+	// 0x0100 "ServiceName"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, 0x0100);
+	de_add_data(service,  DE_STRING, strlen(name), (uint8_t *) name);
+
+        // 0x0311 "SupportedFeatures"
+	de_add_number(service,  DE_UINT, DE_SIZE_16, SDP_SupportedFeatures);
+	de_add_number(service,  DE_UINT, DE_SIZE_16, 0x08); // Voice recognition
+}
+
+
 void hfp_init()
 {
   rfcomm_register_service_internal(NULL, hfp_handler, HFP_CHANNEL, 100);  // reserved channel, mtu=100

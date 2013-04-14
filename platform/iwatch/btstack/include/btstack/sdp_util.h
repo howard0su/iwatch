@@ -82,6 +82,14 @@ typedef enum {
 #define SDP_SupportedFormatsList    0x0303
 #define SDP_SupportedFeatures       0x0311
 
+//PNP Device ID Profile
+#define SDP_SpecificationID     0x0200
+#define SDP_VendorID            0x0201
+#define SDP_ProductID           0x0202
+#define SDP_Version             0x0203
+#define SDP_PrimaryRecord       0x0204
+#define SDP_VendorIDSource      0x0205
+
 // SERVICE CLASSES
 #define SDP_OBEXObjectPush    0x1105
 #define SDP_OBEXFileTransfer  0x1106
@@ -133,10 +141,6 @@ int       spd_get_filtered_size(const uint8_t *record, const uint8_t *attributeI
 int       sdp_filter_attributes_in_attributeIDList(const uint8_t *record, const uint8_t *attributeIDList, uint16_t startOffset, uint16_t maxBytes, uint16_t *usedBytes, uint8_t *buffer);
 uint16_t  sdp_get_parameters_for_uuid(const uint8_t *record, uint16_t uuid);
 
-void      sdp_create_spp_service(uint8_t *service, int service_id, const char *name);
-void 	  sdp_create_hfp_service(uint8_t *service, int service_id, const char *name);
-void      sdp_create_avrcp_service(uint8_t *service, const char *name);
-void      sdp_create_map_service(uint8_t *service, int service_id, const char *name);
 #if defined __cplusplus
 }
 #endif
