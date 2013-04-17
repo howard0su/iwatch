@@ -36,6 +36,7 @@ void draw_screen()
     GrStringDraw(&context, "Bluetooth is off", -1, 10, 68, 0);
     window_button(KEY_DOWN, "ON");
   }
+  else
   {
     GrStringDraw(&context, "Bluetooth is initializing", -1, 10, 68, 0);
     //todo: add init timeout
@@ -102,6 +103,22 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
         draw_screen();
         return 1;
       }
+      break;
+    }
+  case EVENT_WINDOW_CLOSING:
+    {
+      if (state == BT_ON)
+      {
+        if (bluetooth_paired())
+        {
+          bluetooth_discoverable(0);
+        }
+        else
+        {
+          bluetooth_shutdown();
+        }
+      }
+      break;
     }
   }
 
