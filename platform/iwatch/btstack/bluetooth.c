@@ -265,7 +265,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_register_packet_handler(packet_handler);
-        //sdpc_open(config_data.bd_addr);
+        sdpc_open(config_data.bd_addr);
       }
       break;
     }
@@ -303,6 +303,10 @@ static void btstack_setup(){
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();
+
+  // register device id record
+  deviceid_init();
+
   spp_init();
 
   avctp_init();
