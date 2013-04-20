@@ -13,7 +13,7 @@ PROCESS_NAME(bluetooth_process);
 void draw_screen()
 {
     // initialize state
-  GrContextFontSet(&context, &g_sFontCmss16);
+  GrContextFontSet(&context, &g_sFontNova12);
 
   // clear the region
   GrContextForegroundSet(&context, COLOR_BLACK);
@@ -26,7 +26,7 @@ void draw_screen()
   if (state == BT_ON)
   {
     GrStringDraw(&context, "Bluetooth is on", -1, 10, 68, 0);
-    GrContextFontSet(&context, &g_sFontCmss12);
+    GrContextFontSet(&context, &g_sFontNova12);
     GrStringDraw(&context, "device is disconverable now.", -1, 20, 90, 0);
 
     window_button(KEY_DOWN, "OFF");
