@@ -59,7 +59,7 @@ static void drawMenuItem(const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
-    GrContextFontSet(&context, &g_sFontCmss16b);
+    GrContextFontSet(&context, &g_sFontNova13b);
 
     // draw a rect
     GrContextForegroundSet(&context, COLOR_WHITE);
@@ -67,7 +67,7 @@ static void drawMenuItem(const struct MenuItem *item, int index, int selected)
   }
   else
   {
-    GrContextFontSet(&context, &g_sFontCmss16);
+    GrContextFontSet(&context, &g_sFontNova12);
 
     GrContextForegroundSet(&context, COLOR_BLACK);
     GrContextBackgroundSet(&context, COLOR_WHITE);

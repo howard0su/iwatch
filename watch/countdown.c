@@ -41,7 +41,7 @@ static void drawTime()
   char data[2];
 
   // initialize state
-  GrContextFontSet(&context, &g_sFontCmss32b);
+  GrContextFontSet(&context, &g_sFontNova30b);
 
   // clear the region
   GrContextForegroundSet(&context, COLOR_BLACK);

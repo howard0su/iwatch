@@ -101,7 +101,7 @@ void window_button(uint8_t key, const char* text)
   uint8_t width, height;
   int x, y;
 
-  GrContextFontSet(&context, &g_sFontFixed6x8);
+  GrContextFontSet(&context, &g_sFontNova9b);
   if (!text)
   {
     width = 100;

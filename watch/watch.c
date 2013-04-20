@@ -52,7 +52,7 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrContextForegroundSet(&context, COLOR_BLACK);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
-      GrContextFontSet(&context, &g_sFontCm44i);
+      GrContextFontSet(&context, &g_sFontNova30b);
       GrContextForegroundSet(&context, COLOR_WHITE);
       GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
       GrFlush(&context);

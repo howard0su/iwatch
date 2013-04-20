@@ -27,7 +27,7 @@ static void drawClock(struct datetime *dt)
   char buf[2] = "00";
 
   GrContextForegroundSet(&context, COLOR_WHITE);
-  GrContextFontSet(&context, &g_sFontCm32);
+  GrContextFontSet(&context, &g_sFontNova30b);
 
   buf[0] = '0' + dt->hour / 10;
   buf[1] = '0' + dt->hour % 10;

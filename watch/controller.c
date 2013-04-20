@@ -17,8 +17,9 @@
 #include "Template_Driver.h"
 #include "avctp.h"
 #include "avrcp.h"
-
 #include "btstack/bluetooth.h"
+
+#include <stdio.h>
 
 extern tContext context;
 extern tRectangle client_clip;
@@ -35,7 +36,7 @@ static uint8_t state;
 
 static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  GrContextFontSet(&context, &g_sFontCmss32);
+  GrContextFontSet(&context, &g_sFontNova30b);
 
   switch(ev)
   {
@@ -64,7 +65,6 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
       case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
         break;
       }
-      //avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       break;
     }
   case AVRCP_EVENT_STATUS_CHANGED:
@@ -101,12 +101,11 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
         window_button(KEY_ENTER, "PREV");
         break;
       }
-      //avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
       break;
     }
   }
 
-  printf("state = %d\n", state);
+  printf("state = %d\n", (uint16_t)state);
   GrFlush(&context);
 
   return 1;
@@ -161,6 +160,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_CLOSING:
     {
+      avrcp_register_handler(NULL);
       avctp_disconnect();
       break;
     }
