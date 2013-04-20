@@ -42,7 +42,7 @@
 #include "dev/flash.h"
 
 #pragma constseg = INFOB
-__no_init const struct _configdata config_data;
+const struct _configdata config_data;
 #pragma constseg = default
 
 // Device info
@@ -65,25 +65,27 @@ static int get_name(bd_addr_t *bd_addr, device_name_t *device_name) {
 }
 
 static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key) {
-
-  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
+  log_info("get link key for %s\n", bd_addr_to_str(*bd_addr));
+  if (memcmp(*bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
   {
     return 0;
   }
 
-  memcpy(link_key, config_data.link_key, LINK_KEY_LEN);
+  memcpy(*link_key, config_data.link_key, LINK_KEY_LEN);
 
   return 1;
 }
 
 static void delete_link_key(bd_addr_t *bd_addr){
-  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
+  log_info("delete link key for %s\n", bd_addr_to_str(*bd_addr));
+  if (memcmp(*bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
   {
     return;
   }
   struct _configdata newdata;
   memcpy(&newdata, &config_data, sizeof(config_data));
-  memset(newdata.link_key, 0, LINK_KEY_LEN);
+  memset(newdata.bd_addr, 0xFF, BD_ADDR_LEN);
+  memset(newdata.link_key, 0xFF, LINK_KEY_LEN);
 
   // write to flash
   flash_setup();
@@ -94,11 +96,12 @@ static void delete_link_key(bd_addr_t *bd_addr){
 
 
 static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key){
+  log_info("put link key for %s\n", bd_addr_to_str(*bd_addr));
   struct _configdata newdata;
   memcpy(&newdata, &config_data, sizeof(config_data));
 
-  memcpy(newdata.bd_addr, bd_addr, BD_ADDR_LEN);
-  memcpy(newdata.link_key, link_key, LINK_KEY_LEN);
+  memcpy(newdata.bd_addr, *bd_addr, BD_ADDR_LEN);
+  memcpy(newdata.link_key, *link_key, LINK_KEY_LEN);
 
   // write to flash
   flash_setup();
