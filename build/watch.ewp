@@ -231,7 +231,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>11111</state>
+          <state>00000</state>
         </option>
         <option>
           <name>CCObjUseModuleName</name>
@@ -356,7 +356,7 @@
         </option>
         <option>
           <name>CCOptLevel</name>
-          <state>3</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCOptStrategy</name>
@@ -365,7 +365,7 @@
         </option>
         <option>
           <name>CCOptLevelSlave</name>
-          <state>3</state>
+          <state>1</state>
         </option>
         <option>
           <name>CInput</name>
@@ -1049,7 +1049,7 @@
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -2150,6 +2150,9 @@
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\config.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\deviceid.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\hal.c</name>
     </file>
     <file>
@@ -2230,463 +2233,28 @@
     <group>
       <name>fonts</name>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm12.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova12.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm12b.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova13b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm12i.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova25b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm14.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova28b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm14b.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova30.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm14i.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova30b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm16.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova9.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm16b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm16i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm18.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm18b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm18i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm20.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm20b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm20i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm22.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm22b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm22i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm24.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm24b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm24i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm26.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm26b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm26i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm28.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm28b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm28i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm30.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm30b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm30i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm32.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm32b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm32i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm34.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm34b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm34i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm36.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm36b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm36i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm38.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm38b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm38i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm40.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm40b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm40i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm42.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm42b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm42i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm44.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm44b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm44i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm46.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm46b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm46i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm48.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm48b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcm48i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc12.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc14.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc16.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc18.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc20.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc22.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc24.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc26.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc28.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc30.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc32.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc34.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc36.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc38.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc40.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc42.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc44.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc46.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmsc48.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss12.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss12b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss12i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss14.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss14b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss14i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss16.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss16b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss16i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss18.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss18b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss18i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss20.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss20b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss20i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss22.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss22b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss22i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss24.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss24b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss24i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss26.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss26b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss26i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss28.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss28b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss28i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss30.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss30b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss30i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss32.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss32b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss32i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss34.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss34b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss34i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss36.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss36b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss36i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss38.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss38b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss38i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss40.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss40b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss40i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss42.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss42b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss42i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss44.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss44b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss44i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss46.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss46b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss46i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss48.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss48b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmss48i.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt12.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt14.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt16.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt18.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt20.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt22.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt24.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt26.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt28.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt30.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt32.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt34.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt36.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt38.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt40.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt42.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt44.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt46.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontcmtt48.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontfixed6x8.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova9b.c</name>
       </file>
     </group>
     <file>
