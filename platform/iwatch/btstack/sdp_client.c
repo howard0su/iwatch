@@ -163,8 +163,8 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     {
       state = DONE;
       l2cap_close_connection(&current_server);
-      hfp_open(&addr, hfp_port);
-      mns_open(&addr, mns_port);
+      //hfp_open(&addr, hfp_port);
+      //mns_open(&addr, mns_port);
     }
     else
     {
