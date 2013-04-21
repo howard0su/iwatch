@@ -49,7 +49,7 @@
 #define F_CPU 8000000uL // 8MHz by default
 
 /* Our clock resolution, this is the same as Unix HZ. */
-#define CLOCK_CONF_SECOND 128UL
+#define CLOCK_CONF_SECOND 8
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
