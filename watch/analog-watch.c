@@ -41,9 +41,6 @@ static uint16_t lastSecX, lastSecY;
 static uint16_t lastMinX, lastMinY;
 static uint16_t lastHourX, lastHourY;
 
-extern tContext context;
-extern tRectangle client_clip;
-
 static void drawBackground()
 {
   GrContextForegroundSet(&context, COLOR_WHITE);

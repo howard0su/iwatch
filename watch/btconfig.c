@@ -5,8 +5,6 @@
 
 #include "btstack/bluetooth.h"
 
-extern tContext context;
-extern tRectangle client_clip;
 static enum {BT_ON, BT_OFF, BT_INITIALING} state;
 PROCESS_NAME(bluetooth_process);
 

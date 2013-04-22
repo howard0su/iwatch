@@ -62,7 +62,7 @@ PROCESS_THREAD(system_process, ev, data)
       // welcome dialog depends on backlight/lcd/i2c
       window_open(&watch_process, NULL);
 
-      codec_init();
+      //codec_init();
       //ant_init();
       mpu6050_init();
     }

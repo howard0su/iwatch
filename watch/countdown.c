@@ -33,9 +33,6 @@ static enum _state{
 static uint8_t times[3];
 static uint32_t totaltime, lefttime;
 
-extern tContext context;
-extern tRectangle client_clip;
-
 static void drawTime()
 {
   char data[2];

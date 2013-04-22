@@ -1,5 +1,6 @@
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
+#include "grlib/grlib.h"
 
 PROCESS_NAME(system_process);
 
@@ -35,6 +36,9 @@ extern void window_open(windowproc proc, void* data);
 extern void window_button(uint8_t key, const char* text);
 extern void window_progress(long lY, uint8_t step);
 extern void window_timer(clock_time_t time);
+
+extern tContext context;
+extern const tRectangle client_clip;
 
 // Dialogs
 extern uint8_t analogclock_process(uint8_t event, uint16_t lparam, void* rparam);

@@ -19,9 +19,6 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-extern tContext context;
-extern tRectangle client_clip;
-
 static void drawClock(struct datetime *dt)
 {
   char buf[2] = "00";

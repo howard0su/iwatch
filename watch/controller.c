@@ -21,9 +21,6 @@
 
 #include <stdio.h>
 
-extern tContext context;
-extern tRectangle client_clip;
-
 static uint8_t state;
 
 #define STATE_X 10

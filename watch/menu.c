@@ -49,9 +49,6 @@ static const struct MenuItem MainMenu[] =
   {NULL}
 };
 
-extern tContext context;
-extern tRectangle client_clip;
-
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
 
