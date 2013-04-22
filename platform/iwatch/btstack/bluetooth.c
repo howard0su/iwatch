@@ -44,6 +44,8 @@
 #include "bluetooth.h"
 
 extern void codec_init();
+extern void deviceid_init();
+extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
 static att_connection_t att_connection;
