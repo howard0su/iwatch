@@ -49,20 +49,23 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CREATED:
     {
       backlight_on(255);
-      GrContextForegroundSet(&context, COLOR_BLACK);
-      tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-      GrRectFill(&context, &rect);
-      GrContextFontSet(&context, &g_sFontNova30b);
-      GrContextForegroundSet(&context, COLOR_WHITE);
-      GrStringDraw(&context, "iWatch", -1, 10, 58, 0);
-      GrFlush(&context);
 
-      if (bluetooth_paired())
+      //if (bluetooth_paired())
       {
         bluetooth_init();
+        bluetooth_discoverable(1);
       }
 
       window_timer(CLOCK_SECOND);
+      break;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      tContext *pContext = (tContext*)rparam;
+      GrContextFontSet(pContext, &g_sFontNova30b);
+      GrContextForegroundSet(pContext, COLOR_WHITE);
+      GrStringDraw(pContext, "iWatch", -1, 10, 58, 0);
+
       break;
     }
   case PROCESS_EVENT_TIMER:

@@ -52,46 +52,54 @@ static const struct MenuItem MainMenu[] =
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
 
-static void drawMenuItem(const struct MenuItem *item, int index, int selected)
+static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
-    GrContextFontSet(&context, &g_sFontNova13b);
+    GrContextFontSet(pContext, &g_sFontNova13b);
 
     // draw a rect
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrContextBackgroundSet(&context, COLOR_BLACK);
+    GrContextForegroundSet(pContext, COLOR_WHITE);
+    GrContextBackgroundSet(pContext, COLOR_BLACK);
   }
   else
   {
-    GrContextFontSet(&context, &g_sFontNova12);
+    GrContextFontSet(pContext, &g_sFontNova12);
 
-    GrContextForegroundSet(&context, COLOR_BLACK);
-    GrContextBackgroundSet(&context, COLOR_WHITE);
+    GrContextForegroundSet(pContext, COLOR_BLACK);
+    GrContextBackgroundSet(pContext, COLOR_WHITE);
   }
 
   tRectangle rect = {10, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
-  GrRectFill(&context, &rect);
+  GrRectFill(pContext, &rect);
 
-  GrContextForegroundSet(&context, !selected);
-  GrContextBackgroundSet(&context, selected);
-  GrStringDraw(&context, item->name, -1, 32, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+  GrContextForegroundSet(pContext, !selected);
+  GrContextBackgroundSet(pContext, selected);
+  GrStringDraw(pContext, item->name, -1, 32, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 }
 
-static void drawMenu(const struct MenuItem *item, int startIndex, int selected)
+static const struct MenuItem *Items;
+static uint8_t currentTop, current;
+
+static void drawMenu(tContext *pContext)
 {
-  if (startIndex > 0)
+  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrRectFill(pContext, &client_clip);
+
+  struct MenuItem const * item = Items;
+
+  if (currentTop > 0)
   {
      // draw some grey area means something in the up
   }
-  item += startIndex;
+  item += currentTop;
 
   for(int i = 0; i < NUM_MENU_A_PAGE; i++)
   {
     if (item->name == NULL)
       break;
 
-    drawMenuItem(item, i, selected == startIndex + i);
+    drawMenuItem(pContext, item, i, current == currentTop + i);
     item++;
   }
 
@@ -100,9 +108,6 @@ static void drawMenu(const struct MenuItem *item, int startIndex, int selected)
     // there is something more
   }
 }
-
-static const struct MenuItem *Items;
-static uint8_t currentTop, current;
 
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -114,11 +119,11 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         Items = MainMenu;
       }
       current = currentTop = 0;
-      GrContextForegroundSet(&context, COLOR_BLACK);
-      GrRectFill(&context, &client_clip);
-
-      drawMenu(Items, currentTop, current);
-      GrFlush(&context);
+    }
+    else if (ev == EVENT_WINDOW_PAINT)
+    {
+      drawMenu((tContext*)rparam);
+      return 1;
     }
     else if (ev == EVENT_KEY_PRESSED)
     {
@@ -131,9 +136,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
           {
             currentTop--;
           }
-
-          drawMenu(Items, currentTop, current);
-          GrFlush(&context);
+          window_invalid(NULL);
         }
       }
       else if (lparam == KEY_DOWN)
@@ -145,9 +148,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
           {
             currentTop++;
           }
-
-          drawMenu(Items, currentTop, current);
-          GrFlush(&context);
+          window_invalid(NULL);
         }
       }
       else if (lparam == KEY_ENTER)

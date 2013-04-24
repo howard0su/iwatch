@@ -20,6 +20,7 @@
 #include "btstack/bluetooth.h"
 
 #include <stdio.h>
+#include <string.h>
 
 static uint8_t state;
 
@@ -31,17 +32,73 @@ static uint8_t state;
 
 #define PROGRESS_Y 80
 
+static char title[32];
+static char artist[32];
+static uint16_t length;
+static uint16_t position;
+
+static void DrawIt(tContext *pContext)
+{
+  // clear the region
+  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrContextBackgroundSet(pContext, COLOR_WHITE);
+  GrRectFill(pContext, &client_clip);
+
+  GrContextFontSet(pContext, &g_sFontNova30b);
+  // draw length
+  if (length != 0)
+  {
+    uint8_t times[3];
+    times[2] = position % 60;
+    times[1] = (position / 60) % 60;
+    times[0] = position / 3600;
+
+    char data[2];
+    for(int i = 0; i < 3; i++)
+    {
+      data[0] = '0' + times[i] / 10;
+      data[1] = '0' + times[i] % 10;
+
+      // revert color
+      GrContextForegroundSet(pContext, COLOR_WHITE);
+      GrContextBackgroundSet(pContext, COLOR_BLACK);
+
+      tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 25, 94};
+      GrRectFill(pContext, &rect);
+      GrContextForegroundSet(pContext, COLOR_BLACK);
+      GrContextBackgroundSet(pContext, COLOR_WHITE);
+
+      GrStringDraw(pContext, data, 2, 10 + i * 45, 28, 0);
+
+      if (i != 2)
+      {
+        GrContextForegroundSet(pContext, COLOR_WHITE);
+        GrContextBackgroundSet(pContext, COLOR_BLACK);
+        GrStringDraw(pContext, ":", 1, 45 + i * 45, 23, 0);
+      }
+    }
+  }
+
+    // draw title
+    GrContextFontSet(pContext, &g_sFontNova25b);
+    GrContextForegroundSet(pContext, COLOR_WHITE);
+    GrContextBackgroundSet(pContext, COLOR_BLACK);
+    GrStringDraw(pContext, title, -1, 25, 83, 0);
+
+    GrFlush(pContext);
+
+}
 static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  GrContextFontSet(&context, &g_sFontNova30b);
-
   switch(ev)
   {
   case AVRCP_EVENT_CONNECTED:
     avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
     avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
-    break;
+    avrcp_get_playstatus();
+    return 1;
   case AVRCP_EVENT_DISCONNECTED:
+
     break;
   case AVRCP_EVENT_TRACK_CHANGED:
     {
@@ -49,50 +106,40 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
       {
       case AVRCP_MEDIA_ATTRIBUTE_TITLE:
         {
-          GrContextForegroundSet(&context, COLOR_BLACK);
-          tRectangle rect = {TITLE_X, TITLE_Y, TITLE_X + 90, TITLE_Y + 40};
-          GrRectFill(&context, &rect);
-          GrContextForegroundSet(&context, COLOR_WHITE);
-
-          GrStringDraw(&context, rparam, -1, TITLE_X, TITLE_Y, 0);
+          strncpy(title, rparam, sizeof(title) - 1);
           break;
         }
-        case AVRCP_MEDIA_ATTRIBUTE_DURATION:
+      case AVRCP_MEDIA_ATTRIBUTE_DURATION:
         break;
       case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
-        break;
+        {
+          strncpy(artist, rparam, sizeof(artist) - 1);
+          break;
+        }
       }
       break;
     }
   case AVRCP_EVENT_STATUS_CHANGED:
     {
       state = lparam;
-      GrContextForegroundSet(&context, COLOR_BLACK);
-      tRectangle rect = {STATE_X, STATE_Y, STATE_X + 90, STATE_Y + 40};
-      GrRectFill(&context, &rect);
-      GrContextForegroundSet(&context, COLOR_WHITE);
       switch(state)
       {
       case AVRCP_PLAY_STATUS_ERROR:
-        GrStringDraw(&context, "ERROR", -1, STATE_X, STATE_Y, 0);
         window_button(KEY_UP, NULL);
         window_button(KEY_DOWN, NULL);
         window_button(KEY_ENTER, NULL);
         break;
       case AVRCP_PLAY_STATUS_STOPPED:
-        GrStringDraw(&context, "STOP", -1, STATE_X, STATE_Y, 0);
         window_button(KEY_UP, "PLAY");
         window_button(KEY_DOWN, "NEXT");
         window_button(KEY_ENTER, "PREV");
         break;
       case AVRCP_PLAY_STATUS_PLAYING:
-        GrStringDraw(&context, "PLAY", -1, STATE_X, STATE_Y, 0);
         window_button(KEY_UP, "PAUSE");
         window_button(KEY_DOWN, "NEXT");
         window_button(KEY_ENTER, "PREV");
         break;
       case AVRCP_PLAY_STATUS_PAUSED:
-        GrStringDraw(&context, "PAUSE", -1, STATE_X, STATE_Y, 0);
         window_button(KEY_UP, "PLAY");
         window_button(KEY_DOWN, "NEXT");
         window_button(KEY_ENTER, "PREV");
@@ -103,7 +150,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
   }
 
   printf("state = %d\n", (uint16_t)state);
-  GrFlush(&context);
+  window_invalid(NULL);
 
   return 1;
 }
@@ -113,23 +160,34 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev){
   case EVENT_WINDOW_CREATED:
     {
-      GrContextForegroundSet(&context, COLOR_BLACK);
-      GrRectFill(&context, &client_clip);
-
       avrcp_register_handler(bt_handler);
       state = AVRCP_PLAY_STATUS_ERROR;
 
-      if (!avctp_connected() && bluetooth_paired())
+      strcpy(title, "Connecting");
+      if (!avctp_connected())
       {
-        avctp_connect(*bluetooth_paired_addr());
+        if (bluetooth_paired())
+        {
+          avctp_connect(*bluetooth_paired_addr());
+        }
+        else
+        {
+          window_notify("No Bluetooth Device Paired", NOTIFY_OK, NULL);
+          return 1;
+        }
       }
       else
       {
         avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
         avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
+        avrcp_get_playstatus();
       }
-      // call update
-      GrFlush(&context);
+
+      break;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      DrawIt((tContext*)rparam);
       break;
     }
   case EVENT_KEY_PRESSED:

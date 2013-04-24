@@ -8,44 +8,44 @@
 static enum {BT_ON, BT_OFF, BT_INITIALING} state;
 PROCESS_NAME(bluetooth_process);
 
-void draw_screen()
+void draw_screen(tContext *pContext)
 {
     // initialize state
-  GrContextFontSet(&context, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontNova12);
 
   // clear the region
-  GrContextForegroundSet(&context, COLOR_BLACK);
-  GrRectFill(&context, &client_clip);
+  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrRectFill(pContext, &client_clip);
 
-  GrContextForegroundSet(&context, COLOR_WHITE);
-  GrContextBackgroundSet(&context, COLOR_BLACK);
+  GrContextForegroundSet(pContext, COLOR_WHITE);
+  GrContextBackgroundSet(pContext, COLOR_BLACK);
 
   // display text
   if (state == BT_ON)
   {
-    GrStringDraw(&context, "Bluetooth is on", -1, 10, 68, 0);
-    GrContextFontSet(&context, &g_sFontNova12);
-    GrStringDraw(&context, "device is disconverable now.", -1, 20, 90, 0);
+    GrStringDraw(pContext, "Bluetooth is on", -1, 10, 68, 0);
+    GrContextFontSet(pContext, &g_sFontNova12);
+    GrStringDraw(pContext, "device is disconverable now.", -1, 20, 90, 0);
 
     window_button(KEY_DOWN, "OFF");
   }
   else if (state == BT_OFF)
   {
-    GrStringDraw(&context, "Bluetooth is off", -1, 10, 68, 0);
+    GrStringDraw(pContext, "Bluetooth is off", -1, 10, 68, 0);
     window_button(KEY_DOWN, "ON");
   }
   else
   {
-    GrStringDraw(&context, "Bluetooth is initializing", -1, 10, 68, 0);
+    GrStringDraw(pContext, "Bluetooth is initializing", -1, 10, 68, 0);
     //todo: add init timeout
   }
 
   if (bluetooth_paired())
   {
-    GrStringDraw(&context, "Device is paired", -1, 10, 50, 0);
+    GrStringDraw(pContext, "Device is paired", -1, 10, 50, 0);
   }
 
-  GrFlush(&context);
+  GrFlush(pContext);
 }
 
 uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -66,7 +66,12 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         state = BT_OFF;
       }
-      draw_screen();
+
+      return 1;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      draw_screen((tContext*)rparam);
       return 1;
     }
   case EVENT_BT_STATUS:
@@ -81,7 +86,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
         state = BT_OFF;
       }
 
-      draw_screen();
+      window_invalid(NULL);
       return 1;
     }
   case EVENT_KEY_PRESSED:
@@ -98,7 +103,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
           state = BT_INITIALING;
           bluetooth_init();
         }
-        draw_screen();
+        window_invalid(NULL);
         return 1;
       }
       break;

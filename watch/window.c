@@ -17,6 +17,10 @@ PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
 
 windowproc ui_window = NULL;
+#define WINDOW_FLAGS_REFRESH 1
+static uint8_t ui_window_flag;
+static tRectangle current_clip;
+
 const tRectangle client_clip = {0, 16, LCD_X_SIZE, LCD_Y_SIZE};
 
 void window_init()
@@ -35,6 +39,11 @@ void window_open(windowproc dialog, void* data)
 
   ui_window = dialog;
   ui_window(EVENT_WINDOW_CREATED, 0, data);
+
+  ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
+  GrContextClipRegionSet(&context, &client_clip);
+  ui_window(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
 }
 
 /*
@@ -53,6 +62,10 @@ PROCESS_THREAD(system_process, ev, data)
       backlight_init();
       memlcd_DriverInit();
       GrContextInit(&context, &g_memlcd_Driver);
+      GrContextForegroundSet(&context, COLOR_BLACK);
+      tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+      GrRectFill(&context, &rect);
+      GrFlush(&context);
 
       // give time to starts
       button_init();
@@ -60,7 +73,15 @@ PROCESS_THREAD(system_process, ev, data)
       I2C_Init();
 
       // welcome dialog depends on backlight/lcd/i2c
-      window_open(&watch_process, NULL);
+      //window_open(&watch_process, NULL);
+      ui_window = watch_process;
+      ui_window(EVENT_WINDOW_CREATED, 0, data);
+
+      ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
+      GrContextClipRegionSet(&context, &client_clip);
+      ui_window(EVENT_WINDOW_PAINT, 0, &context);
+      GrFlush(&context);
+
 
       //codec_init();
       //ant_init();
@@ -85,6 +106,15 @@ PROCESS_THREAD(system_process, ev, data)
         }
       }
     }
+
+    if (ui_window_flag & WINDOW_FLAGS_REFRESH)
+    {
+      ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
+      GrContextClipRegionSet(&context, &current_clip);
+      ui_window(EVENT_WINDOW_PAINT, 0, &context);
+      GrFlush(&context);
+    }
+
     PROCESS_WAIT_EVENT();
   }
 
@@ -92,9 +122,9 @@ PROCESS_THREAD(system_process, ev, data)
 }
 
 /*
- * Draw the button text for the keys
- * If text is NULL, draw a empty box
- */
+* Draw the button text for the keys
+* If text is NULL, draw a empty box
+*/
 void window_button(uint8_t key, const char* text)
 {
 #define SPACE 2
@@ -179,4 +209,97 @@ void window_timer(clock_time_t time)
   {
     etimer_set(&timer, time);
   }
+}
+
+static windowproc notify_parent_window;
+static uint8_t notify_buttons;
+static uint8_t notification_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  switch(ev)
+  {
+  case EVENT_KEY_PRESSED:
+    {
+      if (lparam == KEY_DOWN)
+      {
+        switch(notify_buttons)
+        {
+        case NOTIFY_OK:
+          {
+            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_OK);
+            break;
+          }
+        case NOTIFY_YESNO:
+          {
+            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_YES);
+            break;
+          }
+        case NOTIFY_ACCEPT_REJECT:
+          {
+            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_ACCEPT);
+            break;
+          }
+          break;
+        default:
+          return 0;
+        }
+      }
+      if (lparam == KEY_ENTER)
+      {
+        switch(notify_buttons)
+        {
+        case NOTIFY_YESNO:
+          {
+            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_NO);
+            break;
+          }
+        case NOTIFY_ACCEPT_REJECT:
+          {
+            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_REJECT);
+            break;
+          }
+          break;
+        default:
+          return 0;
+        }
+      }
+
+      // close notification
+      ui_window = notify_parent_window;
+      notify_parent_window = NULL;
+      break;
+    }
+  default:
+    return 0;
+  }
+
+  return 0;
+}
+
+void window_notify(const char* message, uint8_t buttons, windowproc callback)
+{
+  // switch proc to windows_notify service
+  notify_parent_window = ui_window;
+  if (callback == NULL)
+    ui_window = notification_process;
+  else
+    ui_window = callback;
+
+  notify_buttons = buttons;
+  // show the notification
+
+  return;
+}
+
+void window_invalid(const tRectangle *rect)
+{
+  if (rect != NULL)
+  {
+    current_clip = *rect;
+  }
+  else
+  {
+    current_clip = client_clip;
+  }
+
+  ui_window_flag |= WINDOW_FLAGS_REFRESH;
 }

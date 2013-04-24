@@ -16,6 +16,7 @@ PROCESS_NAME(system_process);
 
 // parameter is used as rparam
 #define EVENT_TIME_CHANGED            0x90
+#define EVENT_NOTIFICATION            0x91
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xa0
@@ -28,16 +29,32 @@ PROCESS_NAME(system_process);
 #define EVENT_MPU_STATUS              0xa8 // parameters BIT0:EnABLE
 #define EVENT_CODEC_STATUS            0xa9 // parameters BIT0:EnABLE
 #define EVENT_WINDOW_PAINT            0xaa // no parameter
+#define EVENT_NOTIFICATION_DONE       0xab
+#define EVENT_PAINT                   0xac // refresh the screen after notification
+#define EVENT_NOTIFY_RESULT           0xad // the notification result
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 
 extern void window_init();
 extern void window_open(windowproc proc, void* data);
+extern void window_invalid(const tRectangle *rect);
+
 extern void window_button(uint8_t key, const char* text);
 extern void window_progress(long lY, uint8_t step);
 extern void window_timer(clock_time_t time);
 
-extern tContext context;
+#define NOTIFY_OK 0
+#define NOTIFY_YESNO 1
+#define NOTIFY_ACCEPT_REJECT 2
+
+#define NOTIFY_RESULT_OK 1
+#define NOTIFY_RESULT_YES 1
+#define NOTIFY_RESULT_NO 2
+#define NOTIFY_RESULT_ACCEPT 1
+#define NOTIFY_RESULT_REJECT 2
+
+extern void window_notify(const char* message, uint8_t buttons, windowproc callback);
+
 extern const tRectangle client_clip;
 
 // Dialogs

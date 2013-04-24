@@ -33,17 +33,17 @@ static enum _state{
 static uint8_t times[3];
 static uint32_t totaltime, lefttime;
 
-static void drawTime()
+static void drawTime(tContext *pContext)
 {
   char data[2];
 
   // initialize state
-  GrContextFontSet(&context, &g_sFontNova30b);
+  GrContextFontSet(pContext, &g_sFontNova30b);
 
   // clear the region
-  GrContextForegroundSet(&context, COLOR_BLACK);
-  GrContextBackgroundSet(&context, COLOR_WHITE);
-  GrRectFill(&context, &client_clip);
+  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrContextBackgroundSet(pContext, COLOR_WHITE);
+  GrRectFill(pContext, &client_clip);
 
   for(int i = 0; i < 3; i++)
   {
@@ -53,27 +53,27 @@ static void drawTime()
     if (state == i)
     {
       // revert color
-      GrContextForegroundSet(&context, COLOR_WHITE);
-      GrContextBackgroundSet(&context, COLOR_BLACK);
+      GrContextForegroundSet(pContext, COLOR_WHITE);
+      GrContextBackgroundSet(pContext, COLOR_BLACK);
 
       tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 35, 94};
-      GrRectFill(&context, &rect);
-      GrContextForegroundSet(&context, COLOR_BLACK);
-      GrContextBackgroundSet(&context, COLOR_WHITE);
+      GrRectFill(pContext, &rect);
+      GrContextForegroundSet(pContext, COLOR_BLACK);
+      GrContextBackgroundSet(pContext, COLOR_WHITE);
     }
     else
     {
-      GrContextForegroundSet(&context, COLOR_WHITE);
-      GrContextBackgroundSet(&context, COLOR_BLACK);
+      GrContextForegroundSet(pContext, COLOR_WHITE);
+      GrContextBackgroundSet(pContext, COLOR_BLACK);
     }
 
-    GrStringDraw(&context, data, 2, 10 + i * 45, 68, 0);
+    GrStringDraw(pContext, data, 2, 10 + i * 45, 68, 0);
 
     if (i != 2)
     {
-      GrContextForegroundSet(&context, COLOR_WHITE);
-      GrContextBackgroundSet(&context, COLOR_BLACK);
-      GrStringDraw(&context, ":", 1, 45 + i * 45, 63, 0);
+      GrContextForegroundSet(pContext, COLOR_WHITE);
+      GrContextBackgroundSet(pContext, COLOR_BLACK);
+      GrStringDraw(pContext, ":", 1, 45 + i * 45, 63, 0);
     }
   }
 
@@ -113,7 +113,6 @@ static void drawTime()
       break;
     }
   }
-  GrFlush(&context);
 }
 
 static int process_event(uint8_t ev, uint16_t data)
@@ -154,7 +153,7 @@ static int process_event(uint8_t ev, uint16_t data)
           state--;
         break;
       }
-      drawTime();
+      window_invalid(NULL);
 
       return 1;
     }
@@ -177,7 +176,7 @@ static int process_event(uint8_t ev, uint16_t data)
 
         state = STATE_RUNNING;
       }
-      drawTime();
+      window_invalid(NULL);
 
       return 1;
     }
@@ -217,7 +216,7 @@ static int process_event(uint8_t ev, uint16_t data)
       else
         return 0;
 
-      drawTime();
+      window_invalid(NULL);
       return 1;
     }
   }
@@ -231,12 +230,15 @@ uint8_t countdown_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
     state = STATE_CONFIG_SECOND;
     times[0] = times[1] = times[2] = 0;
-    drawTime();
   }
   else if (ev == EVENT_WINDOW_CLOSING)
   {
     // remove timer
     window_timer(0);
+  }
+  else if (ev == EVENT_WINDOW_PAINT)
+  {
+     drawTime((tContext*)rparam);
   }
   else
   {

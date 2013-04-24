@@ -19,24 +19,24 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-static void drawClock(struct datetime *dt)
+static uint8_t hour, minute;
+
+static void drawClock(tContext *pContext)
 {
   char buf[2] = "00";
 
-  GrContextForegroundSet(&context, COLOR_WHITE);
-  GrContextFontSet(&context, &g_sFontNova30b);
+  GrContextForegroundSet(pContext, COLOR_WHITE);
+  GrContextFontSet(pContext, &g_sFontNova30b);
 
-  buf[0] = '0' + dt->hour / 10;
-  buf[1] = '0' + dt->hour % 10;
+  buf[0] = '0' + hour / 10;
+  buf[1] = '0' + hour % 10;
 
-  GrStringDraw(&context, buf, 2, 68, 77, 0);
+  GrStringDraw(pContext, buf, 2, 68, 77, 0);
 
-  buf[0] = '0' + dt->minute / 10;
-  buf[1] = '0' + dt->minute % 10;
+  buf[0] = '0' + minute / 10;
+  buf[1] = '0' + minute % 10;
 
-  GrStringDraw(&context, buf, 2, 98, 77, 0);
-
-  GrFlush(&context);
+  GrStringDraw(pContext, buf, 2, 98, 77, 0);
 }
 
 uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -45,19 +45,18 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 
   if (ev == EVENT_WINDOW_CREATED)
   {
-    rtc_enablechange(SECOND_CHANGE);
-    firsttime = 1;
+  }
+  else if (ev == EVENT_WINDOW_PAINT)
+  {
+    drawClock((tContext*)rparam);
   }
   else if (ev == EVENT_TIME_CHANGED)
   {
     struct datetime* dt = (struct datetime*)rparam;
-    if (firsttime)
-    {
-      firsttime = 0;
-      rtc_enablechange(MINUTE_CHANGE);
-    }
+    hour = dt->hour;
+    minute = dt->minute;
 
-    drawClock(dt);
+    window_invalid(NULL);
   }
   else
   {

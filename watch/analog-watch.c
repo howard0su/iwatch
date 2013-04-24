@@ -19,7 +19,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-#undef SUPPORT_SECOND
+#define SUPPORT_SECOND
 
 /*
  * This implement the digit watch
@@ -35,28 +35,27 @@
 #define MIN_HAND_LEN 60
 #define HOUR_HAND_LEN 45
 
-#ifdef SUPPORT_SECOND
-static uint16_t lastSecX, lastSecY;
-#endif
-static uint16_t lastMinX, lastMinY;
-static uint16_t lastHourX, lastHourY;
+static uint8_t day, hour, minute, sec;
 
-static void drawBackground()
+static void drawFace(tContext *pContext)
 {
-  GrContextForegroundSet(&context, COLOR_WHITE);
+  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrRectFill(pContext, &client_clip);
+
+  GrContextForegroundSet(pContext, COLOR_WHITE);
 
   const static tRectangle rect1 = {72, 16, 74, 25};
   const static tRectangle rect2 = {72, 158, 74, 167};
   const static tRectangle rect3 = {0, 84, 9, 86};
   const static tRectangle rect4 = {134, 84, 143, 86};
 
-  GrRectFill(&context, &rect1);
-  GrRectFill(&context, &rect2);
-  GrRectFill(&context, &rect3);
-  GrRectFill(&context, &rect4);
+  GrRectFill(pContext, &rect1);
+  GrRectFill(pContext, &rect2);
+  GrRectFill(pContext, &rect3);
+  GrRectFill(pContext, &rect4);
 }
 
-static void drawClock(int day, int h, int m, int s)
+static void drawHands(tContext *pContext, int day, int h, int m, int s)
 {
   float fangle;
   int angle;
@@ -69,12 +68,10 @@ static void drawClock(int day, int h, int m, int s)
     // sec hand: length = 75
     angle = s * 6;
     fangle = (360 - angle) * PI/180;
-    GrContextForegroundSet(&context, COLOR_BLACK);
-    GrLineDraw(&context, CENTER_X, CENTER_Y, lastSecX , lastSecY);
-    lastSecX = CENTER_X + SEC_HAND_LEN * sin(fangle);
-    lastSecY = CENTER_Y + SEC_HAND_LEN * cos(fangle);
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrLineDraw(&context, CENTER_X, CENTER_Y, lastSecX , lastSecY);
+    x = CENTER_X + SEC_HAND_LEN * sin(fangle);
+    y = CENTER_Y + SEC_HAND_LEN * cos(fangle);
+    GrContextForegroundSet(pContext, COLOR_WHITE);
+    GrLineDraw(pContext, CENTER_X, CENTER_Y, x, y);
   }
 #endif
 
@@ -82,86 +79,48 @@ static void drawClock(int day, int h, int m, int s)
   angle = m*6+s/10;
   fangle = (360 - angle) * PI/180;
   x = CENTER_X + MIN_HAND_LEN * sin(fangle);
-  if (x != lastMinX)
-  {
-    y = CENTER_Y + MIN_HAND_LEN * cos(fangle);
-    GrContextForegroundSet(&context, COLOR_BLACK); // xor
-    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastMinX, lastMinY);
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrLineDraw(&context, CENTER_X, CENTER_Y,  x, y);
-    lastMinX = x;
-    lastMinY = y;
-  }
-  else
-  {
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastMinX, lastMinY);
-  }
+  y = CENTER_Y + MIN_HAND_LEN * cos(fangle);
+  GrContextForegroundSet(pContext, COLOR_WHITE);
+  GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
 
-  // hour hand 45
+    // hour hand 45
   angle = h*30 + m/2;
   fangle = (360 - angle) * PI/180;
   x = CENTER_X + HOUR_HAND_LEN * sin(fangle);
-  if (x != lastHourX)
-  {
-    y = CENTER_Y + HOUR_HAND_LEN * cos(fangle);
-    GrContextForegroundSet(&context, COLOR_BLACK); // xor
-    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastHourX, lastHourY);
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrLineDraw(&context, CENTER_X, CENTER_Y,  x, y);
-    lastHourX = x;
-    lastHourY = y;
-  }
-  else
-  {
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrLineDraw(&context, CENTER_X, CENTER_Y,  lastHourX, lastHourY);
-  }
+  y = CENTER_Y + HOUR_HAND_LEN * cos(fangle);
+  GrContextForegroundSet(pContext, COLOR_WHITE);
+  GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
+  GrCircleFill(pContext, CENTER_X, CENTER_Y, 5);
 
-  GrCircleFill(&context, CENTER_X, CENTER_Y, 5);
-
+#if 0
   buf[0] = '0' + (day >> 4);
   buf[1] = '0' + (day & 0x0f);
 
-  GrContextForegroundSet(&context, COLOR_BLACK);
-  GrContextBackgroundSet(&context, COLOR_WHITE);
-  GrStringDraw(&context, buf, 2, 98, 77, 1);
-
-  GrFlush(&context);
+  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrContextBackgroundSet(pContext, COLOR_WHITE);
+  GrStringDraw(pContext, buf, 2, 98, 77, 1);
+#endif
 }
 
 uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  static int firsttime;
-
   if (ev == EVENT_WINDOW_CREATED)
   {
-#ifdef SUPPORT_SECOND
-    lastSecX = CENTER_X;
-    lastSecY = CENTER_Y;
-#endif
-    lastMinX = CENTER_X;
-    lastMinY = CENTER_Y;
-    lastHourX = CENTER_X;
-    lastHourY = CENTER_Y;
-
-    GrContextForegroundSet(&context, COLOR_BLACK);
-    GrRectFill(&context, &client_clip);
-
+    rtc_readtime(&hour, &minute, &sec);
     rtc_enablechange(SECOND_CHANGE);
-    firsttime = 1;
+  }
+  else if (ev == EVENT_WINDOW_PAINT)
+  {
+    drawFace((tContext*)rparam);
+    drawHands((tContext*)rparam, 10, hour, minute, sec);
   }
   else if (ev == EVENT_TIME_CHANGED)
   {
     struct datetime* dt = (struct datetime*)rparam;
-    if (firsttime)
-    {
-      firsttime = 0;
-      rtc_enablechange(MINUTE_CHANGE);
-    }
-
-    drawBackground();
-    drawClock(dt->day, dt->hour, dt->minute, -1);
+    hour = dt->hour;
+    minute = dt->minute;
+    sec = dt->second;
+    window_invalid(NULL);
   }
   else
   {
