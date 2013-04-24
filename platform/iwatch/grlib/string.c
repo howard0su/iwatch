@@ -65,7 +65,7 @@ int NumLeadingZeros(long x)
       break;
     count++;
     y = y >> 1;
-  }    
+  }
    return count;
 }
 //*****************************************************************************
@@ -216,10 +216,6 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
     unsigned char ucFirst, ucLast, ucAbsent;
     tContext sCon;
 
-    long lYSave = lY;
-    lY = 0;
-
-    
     //
     // Check the arguments.
     //
@@ -409,7 +405,7 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
                     // inverting the data and counting the number of zeros).
                     //
                     lCount = NumLeadingZeros(~(pucData[lIdx] << lBit));
-                    
+
 
                     //
                     // If there were more than 8, then it is a "false" result
@@ -563,7 +559,7 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
                     {
                         sCon.ulForeground = pContext->ulBackground;
                         GrLineDrawH(&sCon, lX + lX0, lX + lX0 + lCount - 1,
-                        		lYSave + lY + lY0);
+                        		lY + lY0);
                     }
 
                     //
@@ -592,7 +588,7 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
                        ((lX + lX0) <= sCon.sClipRegion.sXMax) &&
                        ((lY + lY0) >= sCon.sClipRegion.sYMin) && bOpaque)
                     {
-                       DpyPixelDraw(pContext->pDisplay, lX + lX0, lYSave + lY + lY0,
+                       DpyPixelDraw(pContext->pDisplay, lX + lX0, lY + lY0,
                                      pContext->ulBackground);
                     }
 
@@ -664,8 +660,8 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
                     {
                         sCon.ulForeground = pContext->ulForeground;
                         GrLineDrawH(&sCon, lX + lX0, lX + lX0 + lCount - 1,
-                        		lYSave + lY + lY0);
-                        
+                        		lY + lY0);
+
                     }
 
                     //
@@ -693,9 +689,9 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
                     if(((lX + lX0) >= sCon.sClipRegion.sXMin) &&
                        ((lX + lX0) <= sCon.sClipRegion.sXMax) &&
                        ((lY + lY0) >= sCon.sClipRegion.sYMin))
-                    	DpyPixelDraw(pContext->pDisplay, lX + lX0, lYSave + lY + lY0,
+                    	DpyPixelDraw(pContext->pDisplay, lX + lX0, lY + lY0,
                                      pContext->ulForeground);
-          
+
                     //
                     // Decrement the count of on pixels.
                     //
