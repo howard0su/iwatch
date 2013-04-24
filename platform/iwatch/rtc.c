@@ -67,6 +67,8 @@ void rtc_setalarm()
 
 void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 {
+  while (!(RTCCTL01&RTCRDY));
+
   if (hour) *hour = RTCHOUR;
   if (min) *min = RTCMIN;
   if (sec) *sec = RTCSEC;
@@ -74,6 +76,8 @@ void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday)
 {
+  while (!(RTCCTL01&RTCRDY));
+
   if (year) *year = RTCYEAR;
   if (month) *month = RTCMON;
   if (day) *day = RTCDAY;
