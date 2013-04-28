@@ -16,7 +16,6 @@
 #include "window.h"
 #include "math.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
 
 static enum _state{
   STATE_CONFIG_HOUR,
@@ -35,47 +34,14 @@ static uint32_t totaltime, lefttime;
 
 static void drawTime(tContext *pContext)
 {
-  char data[2];
-
-  // initialize state
   GrContextFontSet(pContext, &g_sFontNova30b);
 
   // clear the region
-  GrContextForegroundSet(pContext, COLOR_BLACK);
-  GrContextBackgroundSet(pContext, COLOR_WHITE);
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  for(int i = 0; i < 3; i++)
-  {
-    data[0] = '0' + times[i] / 10;
-    data[1] = '0' + times[i] % 10;
-
-    if (state == i)
-    {
-      // revert color
-      GrContextForegroundSet(pContext, COLOR_WHITE);
-      GrContextBackgroundSet(pContext, COLOR_BLACK);
-
-      tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 35, 94};
-      GrRectFill(pContext, &rect);
-      GrContextForegroundSet(pContext, COLOR_BLACK);
-      GrContextBackgroundSet(pContext, COLOR_WHITE);
-    }
-    else
-    {
-      GrContextForegroundSet(pContext, COLOR_WHITE);
-      GrContextBackgroundSet(pContext, COLOR_BLACK);
-    }
-
-    GrStringDraw(pContext, data, 2, 10 + i * 45, 68, 0);
-
-    if (i != 2)
-    {
-      GrContextForegroundSet(pContext, COLOR_WHITE);
-      GrContextBackgroundSet(pContext, COLOR_BLACK);
-      GrStringDraw(pContext, ":", 1, 45 + i * 45, 63, 0);
-    }
-  }
+  window_drawtime(pContext, 0, times[0], times[1], times[2], 1 << state);
 
   // draw the button text
   switch(state)
@@ -84,31 +50,31 @@ static void drawTime(tContext *pContext)
   case STATE_CONFIG_MINUTE:
   case STATE_CONFIG_HOUR:
     {
-      window_button(KEY_UP, "UP");
-      window_button(KEY_DOWN, "DOWN");
-      window_button(KEY_ENTER, "OK");
+      window_button(pContext, KEY_UP, "UP");
+      window_button(pContext, KEY_DOWN, "DOWN");
+      window_button(pContext, KEY_ENTER, "OK");
       break;
     }
   case STATE_CONFIG_READY:
     {
-      window_button(KEY_UP, NULL);
-      window_button(KEY_DOWN, "RESET");
-      window_button(KEY_ENTER, "START");
+      window_button(pContext, KEY_UP, NULL);
+      window_button(pContext, KEY_DOWN, "RESET");
+      window_button(pContext, KEY_ENTER, "START");
 
       // display progress bar
       if (totaltime != lefttime)
-        window_progress(100, 100 - (uint8_t)(lefttime * 100 / totaltime));
+        window_progress(pContext, 100, 100 - (uint8_t)(lefttime * 100 / totaltime));
 
       break;
     }
   case STATE_RUNNING:
     {
-      window_button(KEY_UP, NULL);
-      window_button(KEY_DOWN, "PAUSE");
-      window_button(KEY_ENTER, "STOP");
+      window_button(pContext, KEY_UP, NULL);
+      window_button(pContext, KEY_DOWN, "PAUSE");
+      window_button(pContext, KEY_ENTER, "STOP");
 
       // display progress bar
-      window_progress(100, 100 - (uint8_t)(lefttime * 100 / totaltime));
+      window_progress(pContext, 100, 100 - (uint8_t)(lefttime * 100 / totaltime));
 
       break;
     }

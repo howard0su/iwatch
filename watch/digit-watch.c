@@ -19,32 +19,26 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-static uint8_t hour, minute;
+static uint8_t hour, minute, second;
 
 static void drawClock(tContext *pContext)
 {
-  char buf[2] = "00";
-
-  GrContextForegroundSet(pContext, COLOR_WHITE);
   GrContextFontSet(pContext, &g_sFontNova30b);
 
-  buf[0] = '0' + hour / 10;
-  buf[1] = '0' + hour % 10;
+  // clear the region
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextBackgroundSet(pContext, ClrWhite);
+  GrRectFill(pContext, &client_clip);
 
-  GrStringDraw(pContext, buf, 2, 68, 77, 0);
-
-  buf[0] = '0' + minute / 10;
-  buf[1] = '0' + minute % 10;
-
-  GrStringDraw(pContext, buf, 2, 98, 77, 0);
+  window_drawtime(pContext, 45, hour, minute, second, 0);
 }
 
 uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  static int firsttime;
-
   if (ev == EVENT_WINDOW_CREATED)
   {
+    rtc_readtime(&hour, &minute, &second);
+    rtc_enablechange(SECOND_CHANGE);
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {
@@ -55,8 +49,9 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     struct datetime* dt = (struct datetime*)rparam;
     hour = dt->hour;
     minute = dt->minute;
-
-    window_invalid(NULL);
+    second = dt->second;
+    tRectangle rect = {0, 63, LCD_Y_SIZE, 94};
+    window_invalid(&rect);
   }
   else
   {

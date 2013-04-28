@@ -62,7 +62,7 @@ PROCESS_THREAD(system_process, ev, data)
       backlight_init();
       memlcd_DriverInit();
       GrContextInit(&context, &g_memlcd_Driver);
-      GrContextForegroundSet(&context, COLOR_BLACK);
+      GrContextForegroundSet(&context, ClrBlack);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
       GrFlush(&context);
@@ -119,82 +119,6 @@ PROCESS_THREAD(system_process, ev, data)
   }
 
   PROCESS_END();
-}
-
-/*
-* Draw the button text for the keys
-* If text is NULL, draw a empty box
-*/
-void window_button(uint8_t key, const char* text)
-{
-#define SPACE 2
-  uint8_t width, height;
-  int x, y;
-
-  GrContextFontSet(&context, &g_sFontNova9b);
-  if (!text)
-  {
-    width = 100;
-  }
-  else
-  {
-    width = GrStringWidthGet(&context, text, -1);
-  }
-
-  height = GrStringHeightGet(&context);
-
-  if (key == KEY_UP || key == KEY_DOWN)
-  {
-    x = LCD_X_SIZE - width - SPACE;
-  }
-  else
-  {
-    x = SPACE;
-  }
-
-  if (key == KEY_ENTER || key == KEY_DOWN)
-  {
-    y = 135;
-  }
-  else
-  {
-    y = 30;
-  }
-
-  // draw black box
-  const tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
-
-  if (text)
-  {
-    GrContextForegroundSet(&context, COLOR_WHITE);
-    GrRectFill(&context, &rect);
-    GrContextForegroundSet(&context, COLOR_BLACK);
-    GrStringDraw(&context, text, -1, x, y, 0);
-  }
-  else
-  {
-    GrContextForegroundSet(&context, COLOR_BLACK);
-    GrRectFill(&context, &rect);
-  }
-
-#undef SPACE
-}
-
-void window_progress(long lY, uint8_t step)
-{
-  tRectangle rect = {20, lY, 125, lY + 16};
-  GrContextForegroundSet(&context, COLOR_WHITE);
-  GrRectFill(&context, &rect);
-  GrContextForegroundSet(&context, COLOR_BLACK);
-
-  if (step < 100)
-  {
-    rect.sXMin = 22;
-    rect.sYMin = lY + 2;
-    rect.sYMax = lY + 14;
-    rect.sXMax = 22 + step;
-    GrRectFill(&context, &rect);
-  }
 }
 
 static struct etimer timer;
@@ -302,4 +226,9 @@ void window_invalid(const tRectangle *rect)
   }
 
   ui_window_flag |= WINDOW_FLAGS_REFRESH;
+}
+
+void window_close()
+{
+  window_open(menu_process, NULL);
 }

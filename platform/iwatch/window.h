@@ -38,10 +38,13 @@ typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 extern void window_init();
 extern void window_open(windowproc proc, void* data);
 extern void window_invalid(const tRectangle *rect);
-
-extern void window_button(uint8_t key, const char* text);
-extern void window_progress(long lY, uint8_t step);
 extern void window_timer(clock_time_t time);
+extern void window_close();
+
+// Common control
+extern void window_button(tContext *pContext, uint8_t key, const char* text);
+extern void window_progress(tContext *pContext, long lY, uint8_t step);
+extern void window_drawtime(tContext *pContext, long y, uint8_t hour, uint8_t minute, uint8_t second, uint8_t selected);
 
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1
@@ -65,4 +68,6 @@ extern uint8_t control_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t countdown_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t configdate_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam);
 #endif

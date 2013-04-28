@@ -14,11 +14,11 @@ void draw_screen(tContext *pContext)
   GrContextFontSet(pContext, &g_sFontNova12);
 
   // clear the region
-  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
 
-  GrContextForegroundSet(pContext, COLOR_WHITE);
-  GrContextBackgroundSet(pContext, COLOR_BLACK);
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
 
   // display text
   if (state == BT_ON)
@@ -27,12 +27,12 @@ void draw_screen(tContext *pContext)
     GrContextFontSet(pContext, &g_sFontNova12);
     GrStringDraw(pContext, "device is disconverable now.", -1, 20, 90, 0);
 
-    window_button(KEY_DOWN, "OFF");
+    window_button(pContext, KEY_DOWN, "OFF");
   }
   else if (state == BT_OFF)
   {
     GrStringDraw(pContext, "Bluetooth is off", -1, 10, 68, 0);
-    window_button(KEY_DOWN, "ON");
+    window_button(pContext, KEY_DOWN, "ON");
   }
   else
   {
@@ -115,10 +115,6 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
         if (bluetooth_paired())
         {
           bluetooth_discoverable(0);
-        }
-        else
-        {
-          bluetooth_shutdown();
         }
       }
       break;

@@ -18,8 +18,8 @@
 #include "Template_Driver.h"
 
 /*
- * This implement the menu
- */
+* This implement the menu
+*/
 
 struct MenuItem
 {
@@ -29,6 +29,8 @@ struct MenuItem
 
 static const struct MenuItem SetupMenu[] =
 {
+  {"Date", configdate_process},
+  {"Time", configtime_process},
   {"Bluetooth", btconfig_process},
   {"ANT+", NULL},
   {NULL}
@@ -59,15 +61,15 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextFontSet(pContext, &g_sFontNova13b);
 
     // draw a rect
-    GrContextForegroundSet(pContext, COLOR_WHITE);
-    GrContextBackgroundSet(pContext, COLOR_BLACK);
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextBackgroundSet(pContext, ClrBlack);
   }
   else
   {
     GrContextFontSet(pContext, &g_sFontNova12);
 
-    GrContextForegroundSet(pContext, COLOR_BLACK);
-    GrContextBackgroundSet(pContext, COLOR_WHITE);
+    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextBackgroundSet(pContext, ClrWhite);
   }
 
   tRectangle rect = {10, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
@@ -83,14 +85,14 @@ static uint8_t currentTop, current;
 
 static void drawMenu(tContext *pContext)
 {
-  GrContextForegroundSet(pContext, COLOR_BLACK);
+  GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
 
   struct MenuItem const * item = Items;
 
   if (currentTop > 0)
   {
-     // draw some grey area means something in the up
+    // draw some grey area means something in the up
   }
   item += currentTop;
 
@@ -111,68 +113,72 @@ static void drawMenu(tContext *pContext)
 
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-    if (ev == EVENT_WINDOW_CREATED)
+  if (ev == EVENT_WINDOW_CREATED)
+  {
+    Items = (struct MenuItem*)rparam;
+    if (Items == NULL)
     {
-      Items = (struct MenuItem*)rparam;
-      if (Items == NULL)
-      {
-        Items = MainMenu;
-      }
-      current = currentTop = 0;
+      Items = MainMenu;
     }
-    else if (ev == EVENT_WINDOW_PAINT)
-    {
-      drawMenu((tContext*)rparam);
-      return 1;
-    }
-    else if (ev == EVENT_KEY_PRESSED)
-    {
-      if (lparam == KEY_UP)
-      {
-        if (current > 0)
-        {
-          current--;
-          if (currentTop > current)
-          {
-            currentTop--;
-          }
-          window_invalid(NULL);
-        }
-      }
-      else if (lparam == KEY_DOWN)
-      {
-        if (Items[current+1].name != NULL)
-        {
-          current++;
-          if (currentTop + NUM_MENU_A_PAGE <= current)
-          {
-            currentTop++;
-          }
-          window_invalid(NULL);
-        }
-      }
-      else if (lparam == KEY_ENTER)
-      {
-        if (Items[current].handler)
-        {
-          if (Items[current].handler == &menu_process)
-          {
-            if (current == 9)
-            {
-              window_open(&menu_process, (void*)&SetupMenu);
-            }
-          }
-          else
-          {
-            window_open(Items[current].handler, NULL);
-          }
-        }
-      }
-    }
-    else
-    {
-     return 0;
-    }
-
+    current = currentTop = 0;
+  }
+  else if (ev == EVENT_WINDOW_PAINT)
+  {
+    drawMenu((tContext*)rparam);
     return 1;
+  }
+  else if (ev == EVENT_KEY_PRESSED)
+  {
+    if (lparam == KEY_UP)
+    {
+      if (current > 0)
+      {
+        current--;
+        if (currentTop > current)
+        {
+          currentTop--;
+        }
+
+        ///TODO: optimize this
+        window_invalid(NULL);
+      }
+    }
+    else if (lparam == KEY_DOWN)
+    {
+      if (Items[current+1].name != NULL)
+      {
+        current++;
+        if (currentTop + NUM_MENU_A_PAGE <= current)
+        {
+          currentTop++;
+        }
+
+        ///TODO: optimize this
+        window_invalid(NULL);
+      }
+    }
+    else if (lparam == KEY_ENTER)
+    {
+      if (Items[current].handler)
+      {
+        if (Items[current].handler == &menu_process)
+        {
+          if (current == 9)
+          {
+            window_open(&menu_process, (void*)&SetupMenu);
+          }
+        }
+        else
+        {
+          window_open(Items[current].handler, NULL);
+        }
+      }
+    }
+  }
+  else
+  {
+    return 0;
+  }
+
+  return 1;
 }

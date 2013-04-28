@@ -40,8 +40,8 @@ static uint16_t position;
 static void DrawIt(tContext *pContext)
 {
   // clear the region
-  GrContextForegroundSet(pContext, COLOR_BLACK);
-  GrContextBackgroundSet(pContext, COLOR_WHITE);
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
   GrContextFontSet(pContext, &g_sFontNova30b);
@@ -60,20 +60,20 @@ static void DrawIt(tContext *pContext)
       data[1] = '0' + times[i] % 10;
 
       // revert color
-      GrContextForegroundSet(pContext, COLOR_WHITE);
-      GrContextBackgroundSet(pContext, COLOR_BLACK);
+      GrContextForegroundSet(pContext, ClrWhite);
+      GrContextBackgroundSet(pContext, ClrBlack);
 
       tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 25, 94};
       GrRectFill(pContext, &rect);
-      GrContextForegroundSet(pContext, COLOR_BLACK);
-      GrContextBackgroundSet(pContext, COLOR_WHITE);
+      GrContextForegroundSet(pContext, ClrBlack);
+      GrContextBackgroundSet(pContext, ClrWhite);
 
       GrStringDraw(pContext, data, 2, 10 + i * 45, 28, 0);
 
       if (i != 2)
       {
-        GrContextForegroundSet(pContext, COLOR_WHITE);
-        GrContextBackgroundSet(pContext, COLOR_BLACK);
+        GrContextForegroundSet(pContext, ClrWhite);
+        GrContextBackgroundSet(pContext, ClrBlack);
         GrStringDraw(pContext, ":", 1, 45 + i * 45, 23, 0);
       }
     }
@@ -81,11 +81,33 @@ static void DrawIt(tContext *pContext)
 
     // draw title
     GrContextFontSet(pContext, &g_sFontNova25b);
-    GrContextForegroundSet(pContext, COLOR_WHITE);
-    GrContextBackgroundSet(pContext, COLOR_BLACK);
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextBackgroundSet(pContext, ClrBlack);
     GrStringDraw(pContext, title, -1, 25, 83, 0);
 
-    GrFlush(pContext);
+    switch(state)
+    {
+    case AVRCP_PLAY_STATUS_ERROR:
+      window_button(pContext, KEY_UP, NULL);
+      window_button(pContext, KEY_DOWN, NULL);
+      window_button(pContext, KEY_ENTER, NULL);
+      break;
+    case AVRCP_PLAY_STATUS_STOPPED:
+      window_button(pContext, KEY_UP, "PLAY");
+      window_button(pContext, KEY_DOWN, "NEXT");
+      window_button(pContext, KEY_ENTER, "PREV");
+      break;
+    case AVRCP_PLAY_STATUS_PLAYING:
+      window_button(pContext, KEY_UP, "PAUSE");
+      window_button(pContext, KEY_DOWN, "NEXT");
+      window_button(pContext, KEY_ENTER, "PREV");
+      break;
+    case AVRCP_PLAY_STATUS_PAUSED:
+      window_button(pContext, KEY_UP, "PLAY");
+      window_button(pContext, KEY_DOWN, "NEXT");
+      window_button(pContext, KEY_ENTER, "PREV");
+      break;
+    }
 
 }
 static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
@@ -122,29 +144,6 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
   case AVRCP_EVENT_STATUS_CHANGED:
     {
       state = lparam;
-      switch(state)
-      {
-      case AVRCP_PLAY_STATUS_ERROR:
-        window_button(KEY_UP, NULL);
-        window_button(KEY_DOWN, NULL);
-        window_button(KEY_ENTER, NULL);
-        break;
-      case AVRCP_PLAY_STATUS_STOPPED:
-        window_button(KEY_UP, "PLAY");
-        window_button(KEY_DOWN, "NEXT");
-        window_button(KEY_ENTER, "PREV");
-        break;
-      case AVRCP_PLAY_STATUS_PLAYING:
-        window_button(KEY_UP, "PAUSE");
-        window_button(KEY_DOWN, "NEXT");
-        window_button(KEY_ENTER, "PREV");
-        break;
-      case AVRCP_PLAY_STATUS_PAUSED:
-        window_button(KEY_UP, "PLAY");
-        window_button(KEY_DOWN, "NEXT");
-        window_button(KEY_ENTER, "PREV");
-        break;
-      }
       break;
     }
   }

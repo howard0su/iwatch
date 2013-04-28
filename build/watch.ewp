@@ -2028,7 +2028,13 @@
       <name>$PROJ_DIR$\..\watch\btconfig.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\configtime.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\controller.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\controls.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\countdown.c</name>

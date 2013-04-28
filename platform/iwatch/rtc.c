@@ -8,6 +8,7 @@ PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
 
 static struct datetime now;
+uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day);
 
 void rtc_init()
 {
@@ -16,13 +17,13 @@ void rtc_init()
   // RTC enable, BCD mode, RTC hold
   // enable RTC time event interrupt
 
-  RTCYEAR = 0x2013;                         // Year = 0x2010
-  RTCMON = 0x01;                             // Month = 0x04 = April
-  RTCDAY = 0x01;                            // Day = 0x05 = 5th
-  RTCDOW = 0x02;                            // Day of week = 0x01 = Monday
-  RTCHOUR = 0x08;                           // Hour = 0x10
-  RTCMIN = 0x10;                            // Minute = 0x32
-  RTCSEC = 0x18;                            // Seconds = 0x45
+  RTCYEAR = 2013;                         // Year = 0x2010
+  RTCMON = 5;                             // Month = 0x04 = April
+  RTCDAY = 1;                            // Day = 0x05 = 5th
+  RTCDOW = rtc_getweekday(13, 5, 1);
+  RTCHOUR = 22;                           // Hour = 0x10
+  RTCMIN = 10;                            // Minute = 0x32
+  RTCSEC = 0;                            // Seconds = 0x45
 
   //  RTCADOWDAY = 0x2;                         // RTC Day of week alarm = 0x2
   //  RTCADAY = 0x20;                           // RTC Day Alarm = 0x20
@@ -45,8 +46,25 @@ PROCESS_THREAD(rtc_process, ev, data)
   PROCESS_END();
 }
 
-void rtc_setdate(uint16_t year, uint8_t month, uint8_t day, uint8_t weekday)
+static uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day)
 {
+  if( month == 1 || month == 2 )
+  {
+    month += 12;
+    if( year> 0 )
+      year--;
+    else
+      year = 4;
+  }
+
+  return 1 + (( day + 2*month + 3*(month+1)/5 + year + year/4 ) %7);
+}
+
+void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
+{
+  uint8_t weekday;
+
+  weekday = rtc_getweekday(year - 2000, month, day);
   RTCYEAR = year;                         // Year = 0x2010
   RTCMON = month;                             // Month = 0x04 = April
   RTCDAY = day;                            // Day = 0x05 = 5th
@@ -58,6 +76,30 @@ void rtc_settime(uint8_t hour, uint8_t min, uint8_t sec)
   RTCHOUR = hour;                           // Hour = 0x10
   RTCMIN = min;                            // Minute = 0x32
   RTCSEC = sec;                            // Seconds = 0x45
+}
+
+uint8_t rtc_getmaxday(uint16_t year, uint8_t month)
+{
+  if (month == 2)
+  {
+    if (year%4==0 && year%100==0 || year%400==0)
+      return 29;
+    else
+      return 28;
+  }
+  if(month==8)
+  {
+    return 31;
+  }
+
+  if (month % 2 == 0)
+  {
+    return 30;
+  }
+  else
+  {
+    return 31;
+  }
 }
 
 void rtc_setalarm()
