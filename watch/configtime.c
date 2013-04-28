@@ -29,7 +29,7 @@ static enum _state{
 
 static void drawTime(tContext *pContext)
 {
-  GrContextFontSet(pContext, &g_sFontNova30b);
+  GrContextFontSet(pContext, &g_sFontNova28b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);

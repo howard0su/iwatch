@@ -23,7 +23,7 @@ static uint8_t hour, minute, second;
 
 static void drawClock(tContext *pContext)
 {
-  GrContextFontSet(pContext, &g_sFontNova30b);
+  GrContextFontSet(pContext, &g_sFontNova28b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);

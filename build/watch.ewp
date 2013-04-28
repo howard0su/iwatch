@@ -2239,25 +2239,19 @@
     <group>
       <name>fonts</name>
       <file>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova10.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova12.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova13b.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova12b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova25b.c</name>
+        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova28.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova28b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova30.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova30b.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova9.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova9b.c</name>

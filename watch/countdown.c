@@ -34,7 +34,7 @@ static uint32_t totaltime, lefttime;
 
 static void drawTime(tContext *pContext)
 {
-  GrContextFontSet(pContext, &g_sFontNova30b);
+  GrContextFontSet(pContext, &g_sFontNova28b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);

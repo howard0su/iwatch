@@ -58,7 +58,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 {
   if (selected)
   {
-    GrContextFontSet(pContext, &g_sFontNova13b);
+    GrContextFontSet(pContext, &g_sFontNova12b);
 
     // draw a rect
     GrContextForegroundSet(pContext, ClrWhite);

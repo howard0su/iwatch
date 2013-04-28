@@ -44,7 +44,7 @@ static void DrawIt(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  GrContextFontSet(pContext, &g_sFontNova30b);
+  GrContextFontSet(pContext, &g_sFontNova28b);
   // draw length
   if (length != 0)
   {
@@ -53,34 +53,11 @@ static void DrawIt(tContext *pContext)
     times[1] = (position / 60) % 60;
     times[0] = position / 3600;
 
-    char data[2];
-    for(int i = 0; i < 3; i++)
-    {
-      data[0] = '0' + times[i] / 10;
-      data[1] = '0' + times[i] % 10;
-
-      // revert color
-      GrContextForegroundSet(pContext, ClrWhite);
-      GrContextBackgroundSet(pContext, ClrBlack);
-
-      tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 25, 94};
-      GrRectFill(pContext, &rect);
-      GrContextForegroundSet(pContext, ClrBlack);
-      GrContextBackgroundSet(pContext, ClrWhite);
-
-      GrStringDraw(pContext, data, 2, 10 + i * 45, 28, 0);
-
-      if (i != 2)
-      {
-        GrContextForegroundSet(pContext, ClrWhite);
-        GrContextBackgroundSet(pContext, ClrBlack);
-        GrStringDraw(pContext, ":", 1, 45 + i * 45, 23, 0);
-      }
-    }
+    window_drawtime(pContext, 54, times[0], times[1], times[2], 0);
   }
 
     // draw title
-    GrContextFontSet(pContext, &g_sFontNova25b);
+    GrContextFontSet(pContext, &g_sFontNova12);
     GrContextForegroundSet(pContext, ClrWhite);
     GrContextBackgroundSet(pContext, ClrBlack);
     GrStringDraw(pContext, title, -1, 25, 83, 0);
