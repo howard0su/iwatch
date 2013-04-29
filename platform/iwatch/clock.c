@@ -188,8 +188,8 @@ clock_delay(unsigned int i)
   asm("jnz $-2");
 #else
 #ifdef __GNUC__
-  asm("add #-1, r15");
-  asm("jnz $-2");
+  __asm("add #-1, r15");
+  __asm("jnz $-2");
 #else
   do {
     asm("nop");
@@ -204,8 +204,8 @@ void
 __delay_cycles(unsigned long c)
 {
   c /= 4;
-  asm("add #-1, r15");
-  asm("jnz $-2");
+  __asm("add #-1, r15");
+  __asm("jnz $-2");
 }
 #endif /* __GNUC__ */
 /*---------------------------------------------------------------------------*/
