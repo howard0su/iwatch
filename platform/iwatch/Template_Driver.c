@@ -172,7 +172,7 @@ static void SPIInit()
   UCB0CTL1 &= ~UCSWRST;
 }
 
-static void SPISend(void* data, unsigned int size)
+static void SPISend(const void* data, unsigned int size)
 {
   PRINTF("Send Data %d bytes\n", size);
   state = STATE_SENDING;
@@ -181,9 +181,9 @@ static void SPISend(void* data, unsigned int size)
   // USB0 TXIFG trigger
   DMACTL0 = DMA0TSEL_19;
   // Source block address
-  __data16_write_addr((unsigned short) &DMA0SA,(unsigned long) data);
+  DMA0SA = (void*)data;
   // Destination single address
-  __data16_write_addr((unsigned short) &DMA0DA,(unsigned long) &UCB0TXBUF);
+  DMA0DA = (void*)&UCB0TXBUF;
   DMA0SZ = size;                                // Block size
   DMA0CTL &= ~DMAIFG;
   DMA0CTL = DMASRCINCR_3+DMASBDB+DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
