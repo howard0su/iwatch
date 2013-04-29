@@ -17,6 +17,7 @@ extern void rtc_settime(uint8_t hour, uint8_t min, uint8_t sec);
 extern void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec);
 extern void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday);
 extern uint8_t rtc_getmaxday(uint16_t year, uint8_t month);
+extern uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day);
 
 #define SECOND_CHANGE 0x01
 #define MINUTE_CHANGE 0x02

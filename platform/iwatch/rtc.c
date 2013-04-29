@@ -8,7 +8,6 @@ PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
 
 static struct datetime now;
-uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day);
 
 void rtc_init()
 {
@@ -46,7 +45,7 @@ PROCESS_THREAD(rtc_process, ev, data)
   PROCESS_END();
 }
 
-static uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day)
+uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day)
 {
   if( month == 1 || month == 2 )
   {
