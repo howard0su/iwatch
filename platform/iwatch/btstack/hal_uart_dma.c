@@ -226,9 +226,9 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
   // UCA0 TXIFG trigger
   DMACTL0 |= DMA1TSEL_17;
   // Source block address
-  __data16_write_addr((unsigned short) &DMA1SA,(unsigned long) data);
+  DMA1SA = (void*)data;
   // Destination single address
-  __data16_write_addr((unsigned short) &DMA1DA,(unsigned long) &UCA0TXBUF);
+  DMA1DA = (void*)&UCA0TXBUF;
   DMA1SZ = len;                                // Block size
   DMA1CTL &= ~DMAIFG;
   DMA1CTL = DMASRCINCR_3 + DMASBDB + DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src

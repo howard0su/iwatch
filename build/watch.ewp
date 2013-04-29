@@ -1045,7 +1045,7 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
@@ -1100,7 +1100,7 @@
         </option>
         <option>
           <name>RadioDataModelType</name>
-          <state>2</state>
+          <state>1</state>
         </option>
         <option>
           <name>GHeap20Size</name>
