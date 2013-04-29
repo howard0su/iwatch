@@ -33,6 +33,7 @@
 #include "config.h"
 #include "timer.h"
 #include "antmessage.h"
+#include "contiki.h"
 #include "isr_compat.h"
 #include <stdio.h>
 
@@ -986,6 +987,8 @@ int port1_pin5()
 ////////////////////////////////////////////////////////////////////////////
 ISR(USCI_A2, USCI_A2_ISR)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  
   switch (__even_in_range(UCA2IV, 16)){
   case 2: // RXIFG
 	if (Asynchronous_ProcessByte(UART_ASYNC_UCI_RXBUF))
@@ -997,7 +1000,8 @@ ISR(USCI_A2, USCI_A2_ISR)
   default:
 	break;
   }
-  return;
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
 ////////////////////////////////////////////////////////////////////////////
