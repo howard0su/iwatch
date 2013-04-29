@@ -15,10 +15,9 @@
 #include "contiki.h"
 #include "window.h"
 #include "rtc.h"
-#include "math.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
-
+#include "cordic.h"
 #define SUPPORT_SECOND
 
 /*
@@ -27,7 +26,6 @@
  * If in 10 minutes, no key or other things
  * if get system key in non-suspend state, post event to system.
  */
-#define PI 3.1415927
 #define CENTER_X 72
 #define CENTER_Y 84
 
@@ -57,7 +55,7 @@ static void drawFace(tContext *pContext)
 
 static void drawHands(tContext *pContext, int h, int m, int s)
 {
-  float fangle;
+  int cos_val, sin_val;
   int angle;
   uint16_t x, y;
 
@@ -66,9 +64,9 @@ static void drawHands(tContext *pContext, int h, int m, int s)
   {
     // sec hand: length = 75
     angle = s * 6;
-    fangle = angle * PI/180;
-    x = CENTER_X + SEC_HAND_LEN * sin(fangle);
-    y = CENTER_Y - SEC_HAND_LEN * cos(fangle);
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    x = CENTER_X + ((SEC_HAND_LEN * (sin_val >> 8)) >> 7);
+    y = CENTER_Y - ((SEC_HAND_LEN * (cos_val >> 8)) >> 7);
     GrContextForegroundSet(pContext, ClrWhite);
     GrLineDraw(pContext, CENTER_X, CENTER_Y, x, y);
   }
@@ -76,17 +74,17 @@ static void drawHands(tContext *pContext, int h, int m, int s)
 
   // minute hand = length = 70
   angle = m*6+s/10;
-  fangle = angle * PI/180;
-  x = CENTER_X + MIN_HAND_LEN * sin(fangle);
-  y = CENTER_Y - MIN_HAND_LEN * cos(fangle);
+  cordic_sincos(angle, 13, &sin_val, &cos_val);
+  x = CENTER_X + ((MIN_HAND_LEN * (sin_val >> 8)) >> 7);
+  y = CENTER_Y - ((MIN_HAND_LEN * (cos_val >> 8)) >> 7);
   GrContextForegroundSet(pContext, ClrWhite);
   GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
 
     // hour hand 45
   angle = h*30 + m/2;
-  fangle = angle * PI/180;
-  x = CENTER_X + HOUR_HAND_LEN * sin(fangle);
-  y = CENTER_Y - HOUR_HAND_LEN * cos(fangle);
+  cordic_sincos(angle, 13, &sin_val, &cos_val);
+  x = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
+  y = CENTER_Y - ((HOUR_HAND_LEN * (cos_val >> 8)) >> 7);
   GrContextForegroundSet(pContext, ClrWhite);
   GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
   GrCircleFill(pContext, CENTER_X, CENTER_Y, 5);
