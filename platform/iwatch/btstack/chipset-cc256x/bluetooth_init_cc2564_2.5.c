@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #if defined(__GNUC__) && (__MSP430X__ > 0)
-__attribute__((section (".fartext")))
+#define __data20 
 #endif
 const uint8_t __data20 cc256x_init_script[] = {
 

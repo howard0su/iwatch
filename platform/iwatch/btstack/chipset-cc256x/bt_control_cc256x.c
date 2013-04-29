@@ -57,6 +57,7 @@
 
 #if defined(__GNUC__) && (__MSP430X__ > 0)
 #include "hal_compat.h"
+#define __data20
 #endif
 
 #include "bt_control.h"
