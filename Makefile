@@ -1,4 +1,6 @@
 CC      = /opt/local/bin/msp430-gcc
+OBJCOPY = /opt/local/bin/msp430-objcopy
+
 MEMORY_MODEL = medium
 CFLAGS  = -mmcu=msp430f5438a -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
 	-ffunction-sections -fdata-sections
@@ -137,19 +139,22 @@ $(OBJDIR_1)/%.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_1) $(ALL_FLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
 # create .hex file from .out
-%.hex: %.out
-	msp430-objcopy -O ihex $< $@    
+%.hex: %.elf
+	$(OBJCOPY) -O ihex $< $@    
 
 # create firmware image from common objects and example source file
 
 all: iwatch.hex
 
-iwatch.out: ${OBJS}
+iwatch.elf: ${OBJS}
 	${CC} $^ ${LDFLAGS} -o $@
 
 clean:
-	rm -f $ *.out *.hex
+	rm -f $ *.elf *.hex
 	rm -Rf objs/
 
 size: all
 	msp430-size *.out 
+
+flash:
+	mspdebug rf2500 'prog iwatch.elf'
