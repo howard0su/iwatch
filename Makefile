@@ -1,24 +1,24 @@
-CC      = /opt/local/bin/msp430-gcc
-OBJCOPY = /opt/local/bin/msp430-objcopy
+CC      = msp430-gcc
+OBJCOPY = msp430-objcopy
 
 MEMORY_MODEL = medium
-CFLAGS  = -mmcu=msp430f5438a -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
+CFLAGS  = -mmcu=msp430f5438a -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
 	-ffunction-sections -fdata-sections
-LDFLAGS = -mmcu=msp430f5438a -lm -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
+LDFLAGS = -mmcu=msp430f5438a -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
 ECHO	= echo
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
 ALL_INCLUDEDIRS = \
-          core \
-          core/lib \
-          cpu/msp430 \
-          platform/iwatch \
-          platform/iwatch/btstack \
-          platform/iwatch/btstack/src \
-          platform/iwatch/btstack/ble \
-          platform/iwatch/btstack \
-          platform/iwatch/btstack/chipset-cc256x \
-          platform/iwatch/btstack/include \
+	core \
+	core/lib \
+	cpu/msp430 \
+	platform/iwatch \
+	platform/iwatch/btstack \
+	platform/iwatch/btstack/src \
+	platform/iwatch/btstack/ble \
+	platform/iwatch/btstack \
+	platform/iwatch/btstack/chipset-cc256x \
+	platform/iwatch/btstack/include \
 
 CORE   = \
     core/sys/autostart.c \
@@ -41,7 +41,6 @@ PLATFORM = \
 	platform/iwatch/i2c.c \
 	platform/iwatch/isr.c \
 	platform/iwatch/msp430.c \
-	platform/iwatch/printf.c \
 	platform/iwatch/rtc.c \
 	platform/iwatch/rtimer-arch.c \
 	platform/iwatch/uart1-putchar.c \
@@ -55,6 +54,7 @@ ANT0 = \
 	base/hrm_rx.c \
 	base/main_hrm.c \
 	base/serial.c \
+	base/printf.c \
 	Timer_impl.c
 ANT = $(addprefix platform/iwatch/ant/, $(ANT0))
 
@@ -122,6 +122,7 @@ WATCH = \
     watch/digit-watch.c \
     watch/menu.c \
     watch/watch.c \
+    watch/cordic.c \
     watch/window.c
 
 OBJDIR_1 = objs
@@ -136,7 +137,7 @@ $(OBJDIR_1)/%.o: %.c
 	@test -d $(OBJDIR_1) || mkdir -pm 775 $(OBJDIR_1)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	$(CC) $(CFLAGS) $(CFLAGS_1) $(ALL_FLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	@$(CC) $(CFLAGS) $(CFLAGS_1) $(ALL_FLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
 # create .hex file from .out
 %.hex: %.elf
