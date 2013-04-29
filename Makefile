@@ -54,7 +54,6 @@ ANT0 = \
 	base/hrm_rx.c \
 	base/main_hrm.c \
 	base/serial.c \
-	base/printf.c \
 	Timer_impl.c
 ANT = $(addprefix platform/iwatch/ant/, $(ANT0))
 
@@ -120,26 +119,26 @@ WATCH = \
     watch/controller.c \
     watch/controls.c \
     watch/digit-watch.c \
+    watch/stopwatch.c \
     watch/menu.c \
     watch/watch.c \
     watch/cordic.c \
     watch/window.c
 
-OBJDIR_1 = objs
+OBJDIR = objs
 SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL)
 OBJS0 = $(SRCS:.c=.o)
 OBJS = $(addprefix objs/, $(OBJS0))
 
 #####################
 # rules to build the object files
-$(OBJDIR_1)/%.o: %.c
-	@$(ECHO) "$< -> $@"
-	@test -d $(OBJDIR_1) || mkdir -pm 775 $(OBJDIR_1)
+$(OBJDIR)/%.o: %.c
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	@$(CC) $(CFLAGS) $(CFLAGS_1) $(ALL_FLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
-# create .hex file from .out
+# create .hex file from .elf
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@    
 
@@ -155,7 +154,7 @@ clean:
 	rm -Rf objs/
 
 size: all
-	msp430-size *.out 
+	msp430-size *.elf 
 
 flash:
 	mspdebug rf2500 'prog iwatch.elf'

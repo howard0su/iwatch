@@ -43,7 +43,7 @@ static const struct MenuItem MainMenu[] =
   {"Digital Watch", &digitclock_process},
   {"World Clock", NULL},
   {"Calendar", NULL},
-  {"Stop Watch", NULL},
+  {"Stop Watch", &stopwatch_process},
   {"Countdown Timer", &countdown_process},
   {"Music Control", &control_process},
   {"Sports Watch", NULL},
