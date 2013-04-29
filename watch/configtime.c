@@ -27,7 +27,7 @@ static enum _state{
 }state;
 
 
-static void drawTime(tContext *pContext)
+static void OnDraw(tContext *pContext)
 {
   GrContextFontSet(pContext, &g_sFontNova28b);
 
@@ -170,7 +170,7 @@ uint8_t configdate_process(uint8_t event, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_PAINT:
     {
-      drawTime((tContext*)rparam);
+      OnDraw((tContext*)rparam);
       break;
     }
   case EVENT_KEY_PRESSED:
@@ -196,7 +196,7 @@ uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_PAINT:
     {
-      drawTime((tContext*)rparam);
+      OnDraw((tContext*)rparam);
       break;
     }
   case EVENT_KEY_PRESSED:

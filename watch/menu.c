@@ -83,7 +83,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 static const struct MenuItem *Items;
 static uint8_t currentTop, current;
 
-static void drawMenu(tContext *pContext)
+static void OnDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
@@ -124,7 +124,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {
-    drawMenu((tContext*)rparam);
+    OnDraw((tContext*)rparam);
     return 1;
   }
   else if (ev == EVENT_KEY_PRESSED)

@@ -37,7 +37,7 @@ static char artist[32];
 static uint16_t length;
 static uint16_t position;
 
-static void DrawIt(tContext *pContext)
+static void OnDraw(tContext *pContext)
 {
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
@@ -163,7 +163,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_PAINT:
     {
-      DrawIt((tContext*)rparam);
+      OnDraw((tContext*)rparam);
       break;
     }
   case EVENT_KEY_PRESSED:

@@ -32,7 +32,7 @@ static enum _state{
 static uint8_t times[3];
 static uint32_t totaltime, lefttime;
 
-static void drawTime(tContext *pContext)
+static void OnDraw(tContext *pContext)
 {
   GrContextFontSet(pContext, &g_sFontNova28b);
 
@@ -204,7 +204,7 @@ uint8_t countdown_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {
-     drawTime((tContext*)rparam);
+     OnDraw((tContext*)rparam);
   }
   else
   {
