@@ -1,6 +1,8 @@
 CC      = /opt/local/bin/msp430-gcc
-CFLAGS  = -mmcu=msp430f5438a -std=c99 -Os -Wall -mc20 -md20 -msr20
-LDFLAGS = -mmcu=msp430f5438a -lm
+MEMORY_MODEL = medium
+CFLAGS  = -mmcu=msp430f5438a -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
+	-ffunction-sections -fdata-sections
+LDFLAGS = -mmcu=msp430f5438a -lm -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
 ECHO	= echo
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
@@ -22,7 +24,6 @@ CORE   = \
     core/sys/etimer.c \
     core/sys/energest.c \
     core/sys/process.c \
-    core/sys/procinit.c \
     core/sys/rtimer.c \
     core/sys/stimer.c \
     core/sys/timer.c \
