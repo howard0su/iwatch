@@ -6,6 +6,7 @@
 *.elf
 *.ihex
 obj_*
+objs/
 symbols.*
 Makefile.target
 build/Debug
