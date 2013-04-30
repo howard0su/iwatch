@@ -9,6 +9,7 @@ ECHO	= echo
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
 ALL_INCLUDEDIRS = \
+	. \
 	core \
 	core/lib \
 	cpu/msp430 \
@@ -72,7 +73,7 @@ GRLIB_FONTS = \
 	fontnova12b.c \
 	fontnova28.c \
 	fontnova28b.c
-GRLIB = $(addprefix platform/iwatch/grlib/, $(GRLIB0)) $(addprefix platform/iwatch/grlib/fonts/, $(GRLIB_FONTS))
+GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
 	bluetooth.c \
