@@ -36,7 +36,7 @@ static void OnDraw(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  window_drawtime(pContext, 65, times[0], 1 << state);
+  window_drawtime(pContext, 65, times, 1 << state);
 
   if (state != STATE_CONFIG_READY)
   {
