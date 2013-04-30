@@ -24,9 +24,7 @@ static enum _state{
 
   STATE_CONFIG_READY, // the order above is assumed in the logic, don't change
 
-  STATE_RUNNING,
-  STATE_PAUSE,
-  STATE_ZERO
+  STATE_RUNNING
 }state;
 
 static uint8_t times[3];
