@@ -53,7 +53,7 @@ static void OnDraw(tContext *pContext)
     times[1] = (position / 60) % 60;
     times[0] = position / 3600;
 
-    window_drawtime(pContext, 54, times[0], times[1], times[2], 0);
+    window_drawtime(pContext, 54, times, 0);
   }
 
     // draw title

@@ -5,10 +5,9 @@
 #include "Template_Driver.h"
 
 
-void window_drawtime(tContext *pContext, long y, uint8_t hour, uint8_t minute, uint8_t second, uint8_t selected)
+void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected)
 {
   char data[2];
-  uint8_t times[3] = {hour, minute, second};
   for(int i = 0; i < 3; i++)
   {
     data[0] = '0' + times[i] / 10;

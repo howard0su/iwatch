@@ -44,7 +44,7 @@ extern void window_close();
 // Common control
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
 extern void window_progress(tContext *pContext, long lY, uint8_t step);
-extern void window_drawtime(tContext *pContext, long y, uint8_t hour, uint8_t minute, uint8_t second, uint8_t selected);
+extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected);
 
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1
