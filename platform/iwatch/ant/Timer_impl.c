@@ -1,6 +1,5 @@
-#include "base/timer.h"
+#include "timer.h"
 #include "sys/ctimer.h"
-#include "base/timer.h"
 
 #define MAX_TIMER 4
 static struct ctimer timer[MAX_TIMER];

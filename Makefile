@@ -13,6 +13,7 @@ ALL_INCLUDEDIRS = \
 	core \
 	core/lib \
 	cpu/msp430 \
+	ant \
 	platform/iwatch \
 	platform/iwatch/btstack \
 	platform/iwatch/btstack/src \
@@ -49,14 +50,13 @@ PLATFORM = \
 	platform/iwatch/watchdog.c \
 	platform/iwatch/Template_Driver.c
     
-ANT0 = \
-	base/ANTInterface.c \
-	base/cbsc_rx.c \
-	base/hrm_rx.c \
-	base/main_hrm.c \
-	base/serial.c \
-	Timer_impl.c
-ANT = $(addprefix platform/iwatch/ant/, $(ANT0))
+ANT = \
+	ant/ANTInterface.c \
+	ant/cbsc_rx.c \
+	ant/hrm_rx.c \
+	platform/iwatch/ant/base/main_hrm.c \
+	platform/iwatch/ant/base/serial.c \
+	platform/iwatch/ant/Timer_impl.c
 
 GRLIB0 = \
 	circle.c \
