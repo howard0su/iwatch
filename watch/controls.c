@@ -7,7 +7,13 @@
 
 void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected)
 {
-  char data[2];
+  char data[3];
+  data[0] = data[1] = '0';
+  data[2] = ':';
+  uint8_t height = GrStringHeightGet(pContext);
+  uint8_t width_all = GrStringWidthGet(pContext, data, 3);
+  uint8_t width_digit = GrStringWidthGet(pContext, data, 2);
+
   for(int i = 0; i < 3; i++)
   {
     data[0] = '0' + times[i] / 10;
@@ -19,7 +25,7 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
 
-      tRectangle rect = {5 + i * 45, 63, 10 + i * 45 + 35, 94};
+      tRectangle rect = {5 + i * width_all, y - 3, 10 + i * width_all + 35, y + height + 3};
       GrRectFill(pContext, &rect);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
@@ -30,13 +36,13 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextBackgroundSet(pContext, ClrBlack);
     }
 
-    GrStringDraw(pContext, data, 2, 10 + i * 45, 68, 0);
+    GrStringDraw(pContext, data, 2, 10 + i * width_all, y, 0);
 
     if (i != 2)
     {
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
-      GrStringDraw(pContext, ":", 1, 45 + i * 45, 63, 0);
+      GrStringDraw(pContext, ":", 1, 10 + width_digit + i * width_all, y, 0);
     }
   }
 }

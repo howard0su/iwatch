@@ -31,7 +31,7 @@ static void drawClock(tContext *pContext)
   GrRectFill(pContext, &client_clip);
 
   uint8_t times[3] = {hour, minute, second};
-  window_drawtime(pContext, 45, times, 0);
+  window_drawtime(pContext, 30, times, 0);
 }
 
 uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
