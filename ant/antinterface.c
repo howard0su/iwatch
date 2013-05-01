@@ -33,7 +33,7 @@
 #include "serial.h"
 #include "antmessage.h"
 #include "antdefines.h"
-#include "ANTInterface.h"
+#include "antinterface.h"
 #include "timer.h"
 #include "serial.h"
 

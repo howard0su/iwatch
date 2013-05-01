@@ -54,7 +54,7 @@ PLATFORM = \
 	platform/iwatch/Template_Driver.c
     
 ANT = \
-	ant/ANTInterface.c \
+	ant/antinterface.c \
 	ant/cbsc_rx.c \
 	ant/hrm_rx.c \
 	platform/iwatch/ant/base/main_hrm.c \
@@ -137,7 +137,7 @@ DEPFILES = $(OBJS:.o=.d)
 
 #####################
 # rules to build the object files
-$(OBJDIR)/%.o: %.c Makefile
+$(OBJDIR)/%.o: %.c $(OBJDIR)/%.d Makefile
 	@$(ECHO) "Compiling $<"
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
