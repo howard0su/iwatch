@@ -1,11 +1,12 @@
 CC      = msp430-gcc
 OBJCOPY = msp430-objcopy
+SIZE    = msp430-size
+ECHO	= echo
 
 MEMORY_MODEL = medium
 CFLAGS  = -mmcu=msp430f5438a -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
 	-ffunction-sections -fdata-sections
 LDFLAGS = -mmcu=msp430f5438a -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
-ECHO	= echo
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
 ALL_INCLUDEDIRS = \
@@ -22,6 +23,8 @@ ALL_INCLUDEDIRS = \
 	platform/iwatch/btstack/chipset-cc256x \
 	platform/iwatch/btstack/include \
 
+#######################################
+# source files
 CORE   = \
     core/sys/autostart.c \
     core/sys/ctimer.c \
@@ -130,25 +133,36 @@ OBJDIR = objs
 SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL)
 OBJS0 = $(SRCS:.c=.o)
 OBJS = $(addprefix objs/, $(OBJS0))
+DEPFILES = $(OBJS:.o=.d)
 
 #####################
 # rules to build the object files
-$(OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: %.c Makefile
+	@$(ECHO) "Compiling $<"
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
 	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
+$(OBJDIR)/%.d: %.c Makefile
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
+	@test -d $(@D) || mkdir -pm 775 $(@D)
+	@-$(RM) $@
+	@$(CC) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -MM $< -MT $(patsubst %.d, %.o, $@)> $@
+
+
 # create .hex file from .elf
 %.hex: %.elf
-	$(OBJCOPY) -O ihex $< $@    
+	@$(OBJCOPY) -O ihex $< $@    
+	@$(SIZE) $<
 
 # create firmware image from common objects and example source file
 
 all: iwatch.hex
 
 iwatch.elf: ${OBJS}
-	${CC} $^ ${LDFLAGS} -o $@
+	@$(ECHO) "Linking $@"
+	@${CC} $^ ${LDFLAGS} -o $@
 
 clean:
 	rm -f $ *.elf *.hex
@@ -159,3 +173,5 @@ size: all
 
 flash:
 	mspdebug rf2500 'prog iwatch.elf'
+
+-include $(DEPFILES)
