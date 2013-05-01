@@ -17,11 +17,10 @@ ALL_INCLUDEDIRS = \
 	ant \
 	platform/iwatch \
 	platform/iwatch/btstack \
-	platform/iwatch/btstack/src \
-	platform/iwatch/btstack/ble \
-	platform/iwatch/btstack \
-	platform/iwatch/btstack/chipset-cc256x \
-	platform/iwatch/btstack/include \
+	btstack/src \
+	btstack/ble \
+	btstack/chipset-cc256x \
+	btstack/include \
 
 #######################################
 # source files
@@ -87,7 +86,8 @@ BTSTACK0 = \
 	hal_uart_dma.c \
 	run_loop.c \
 	sdp_client.c \
-	spp.c \
+	spp.c
+BTSTACK1 = \
 	ble/att.c \
 	chipset-cc256x/bluetooth_init_cc2564_2.5.c \
 	chipset-cc256x/bt_control_cc256x.c \
@@ -110,7 +110,7 @@ BTSTACK0 = \
 	src/sdp_util.c \
 	src/utils.c
 
-BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0))
+BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1))
 
 MPL0 = inv_mpu.c inv_mpu_dmp_motion_driver.c mpu6050.c
 MPL = $(addprefix platform/iwatch/mpl/, $(MPL0))
