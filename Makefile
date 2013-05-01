@@ -57,9 +57,9 @@ ANT = \
 	ant/antinterface.c \
 	ant/cbsc_rx.c \
 	ant/hrm_rx.c \
-	platform/iwatch/ant/base/main_hrm.c \
-	platform/iwatch/ant/base/serial.c \
-	platform/iwatch/ant/Timer_impl.c
+	platform/iwatch/ant/main_hrm.c \
+	platform/iwatch/ant/serial.c \
+	platform/iwatch/ant/timer.c
 
 GRLIB0 = \
 	circle.c \
@@ -137,7 +137,7 @@ DEPFILES = $(OBJS:.o=.d)
 
 #####################
 # rules to build the object files
-$(OBJDIR)/%.o: %.c $(OBJDIR)/%.d Makefile
+$(OBJDIR)/%.o: %.c $(OBJDIR)/%.d
 	@$(ECHO) "Compiling $<"
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
