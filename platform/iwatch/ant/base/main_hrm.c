@@ -33,7 +33,6 @@
 #include "antinterface.h"
 #include "antdefines.h"
 #include "timer.h"
-#include "printf.h"
 #include "hrm_rx.h"
 #include "cbsc_rx.h"
 
@@ -41,7 +40,7 @@
 
 #include "contiki.h"
 #include "window.h"
-
+#include <stdio.h>
 // ANT Channel settings
 #define ANT_CHANNEL_HRMRX                          ((UCHAR) 0)          // Default ANT Channel
 #define CBSCRX_ANT_CHANNEL                         ((UCHAR) 0)         // Default ANT Channel

@@ -36,7 +36,6 @@
 #include "ANTInterface.h"
 #include "timer.h"
 #include "serial.h"
-#include "ioboard.h"
 
 #define DEBUG 1
 #if DEBUG
