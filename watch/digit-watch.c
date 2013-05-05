@@ -51,7 +51,7 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     hour = dt->hour;
     minute = dt->minute;
     second = dt->second;
-    tRectangle rect = {0, 63, LCD_Y_SIZE, 94};
+    tRectangle rect = {0, 30, LCD_Y_SIZE, 64};
     window_invalid(&rect);
   }
   else
