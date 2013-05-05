@@ -58,7 +58,7 @@ ANT = \
 	ant/hrm_rx.c \
 	platform/iwatch/ant/main_hrm.c \
 	platform/iwatch/ant/serial.c \
-	platform/iwatch/ant/timer.c
+	platform/iwatch/ant/ant_timer.c
 
 GRLIB0 = \
 	circle.c \
