@@ -1,12 +1,21 @@
-CC      = msp430-gcc
-OBJCOPY = msp430-objcopy
-SIZE    = msp430-size
+ifeq ($(MSPPATH),)
+MSPPATH = /tmp/mspgccx/bin
+endif
+CC      = $(MSPPATH)/msp430-gcc
+OBJCOPY = $(MSPPATH)/msp430-objcopy
+SIZE    = $(MSPPATH)/msp430-size
 ECHO	= echo
 
+TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
-CFLAGS  = -mmcu=msp430f5438a -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
+CFLAGS  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
 	-ffunction-sections -fdata-sections
-LDFLAGS = -mmcu=msp430f5438a -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
+LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
+
+ifeq ($(LTO),1)
+CFLAGS += -flto
+LDFLAGS += -flto
+endif
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
 ALL_INCLUDEDIRS = \
