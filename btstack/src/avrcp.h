@@ -61,14 +61,14 @@
 
 #define AVRCP_EVENT_CONNECTED           AVRCP_EVENT_LAST + 1
 #define AVRCP_EVENT_DISCONNECTED           AVRCP_EVENT_LAST + 2
-
+#define AVRCP_EVENT_ATTRIBUTE           AVRCP_EVENT_LAST + 3
 
 extern void avrcp_init();
 extern void avrcp_connect(bd_addr_t remote_addr);
 extern int avrcp_set_volume(uint8_t volume);
 extern int avrcp_register_handler(windowproc proc);
 extern int avrcp_enable_notification(uint8_t event);
-extern int avrcp_get_element_attribute(uint32_t item);
+extern int avrcp_get_attributes(uint32_t item);
 extern int avrcp_get_capability();
 extern int avrcp_get_playstatus();
 

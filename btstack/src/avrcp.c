@@ -17,8 +17,7 @@
 #define IEEEID_BTSIG		0x001958
 
 /* Error codes for metadata transfer */
-#define E_INVALID_COMMAND	0x00
-#define E_INVALID_PARAM		0x01
+#define E_INVALID_COMMAND	0x00#define E_INVALID_PARAM		0x01
 #define E_PARAM_NOT_FOUND	0x02
 #define E_INTERNAL		0x03
 
@@ -105,7 +104,10 @@ static void handle_notification(struct avrcp_header *pdu )
     }
     break;
   case AVRCP_EVENT_TRACK_CHANGED:
-    avrcp_get_attributes(0);
+    if (callback_handler)
+    {
+      callback_handler(AVRCP_EVENT_TRACK_CHANGED, 0, NULL);
+    }
     break;
   }
 }
@@ -129,7 +131,7 @@ static void handle_attributes(struct avrcp_header *pdu)
              len, &pdu->params[offset]);
       if (callback_handler)
       {
-        callback_handler(AVRCP_EVENT_TRACK_CHANGED, attributeid, &pdu->params[offset]);
+        callback_handler(AVRCP_EVENT_ATTRIBUTE, attributeid, &pdu->params[offset]);
       }
       offset += len;
     }
@@ -144,7 +146,11 @@ static void handle_playstatus(struct avrcp_header* pdu)
   uint8_t status = pdu->params[8];
 
   log_info("play status : %ld of %ld, status: %d\n", pos, length, (uint16_t)status);
-
+  if (callback_handler)
+  {
+    callback_handler(AVRCP_EVENT_STATUS_CHANGED, (uint16_t)status, NULL);
+    //callback_handler(AVRCP_EVENT_TRACK_CHANGED, pdu->params, NULL);
+  }
   return;
 }
 
@@ -175,7 +181,7 @@ static void handle_pdu(uint8_t *data, uint16_t size)
     }
   }
 
-
+  log_info("response pdu id=%d\n", pdu->pdu_id);
   switch(pdu->pdu_id)
   {
   case AVRCP_REGISTER_NOTIFICATION:
@@ -189,6 +195,9 @@ static void handle_pdu(uint8_t *data, uint16_t size)
     break;
   case AVRCP_GET_PLAY_STATUS:
     handle_playstatus(pdu);
+    break;
+  default:
+    log_info("unknow pdu\n");
     break;
   }
 }
@@ -298,6 +307,7 @@ static inline void set_company_id(uint8_t cid[3], const uint32_t cid_in)
 
 int avrcp_enable_notification(uint8_t id)
 {
+  log_info("avrcp_enable_notification: %d\n", id);
   uint8_t buf[AVRCP_HEADER_LENGTH + 5];
   struct avrcp_header *pdu = (void *) buf;
 
@@ -306,8 +316,8 @@ int avrcp_enable_notification(uint8_t id)
   set_company_id(pdu->company_id, IEEEID_BTSIG);
 
   pdu->pdu_id = AVRCP_REGISTER_NOTIFICATION;
-  //pdu->packet_type = AVRCP_PACKET_TYPE_SINGLE;
   pdu->params[0] = id;
+  net_store_32(pdu->params, 1, 1000); // only for track change
   pdu->params_len = htons(5);
 
   return avctp_send_vendordep(AVC_CTYPE_NOTIFY, AVC_SUBUNIT_PANEL,
@@ -361,18 +371,18 @@ int avrcp_get_playstatus()
 
 int avrcp_get_attributes(uint32_t id)
 {
-  uint8_t buf[AVRCP_HEADER_LENGTH + 8 + 1 + 4 * 2];
+  uint8_t buf[AVRCP_HEADER_LENGTH + 8 + 1 + 4 * 3]; // 3 parameter
   struct avrcp_header *pdu = (void *) buf;
 
   memset(buf, 0, sizeof(buf));
   set_company_id(pdu->company_id, IEEEID_BTSIG);
 
   pdu->pdu_id = AVRCP_GET_ELEMENT_ATTRIBUTES;
-  pdu->params[8] = 2;
+  pdu->params[8] = 3;
   net_store_32(pdu->params, 9, AVRCP_MEDIA_ATTRIBUTE_TITLE);
   net_store_32(pdu->params, 13, AVRCP_MEDIA_ATTRIBUTE_ARTIST);
-  //  net_store_32(pdu->params, 17, AVRCP_MEDIA_ATTRIBUTE_DURATION);
-  pdu->params_len = htons(17);
+  net_store_32(pdu->params, 17, AVRCP_MEDIA_ATTRIBUTE_DURATION);
+  pdu->params_len = htons(21);
 
   return avctp_send_vendordep(AVC_CTYPE_STATUS, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
 }

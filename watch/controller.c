@@ -85,21 +85,40 @@ static void OnDraw(tContext *pContext)
       window_button(pContext, KEY_ENTER, "PREV");
       break;
     }
-
 }
+
+
+uint8_t initing;
+
 static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev)
   {
   case AVRCP_EVENT_CONNECTED:
-    avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
-    avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
-    avrcp_get_playstatus();
-    return 1;
+    {
+      if (initing)
+      {
+        strcpy(title, "Connected");
+        avrcp_get_playstatus();
+      }
+      break;
+    }
   case AVRCP_EVENT_DISCONNECTED:
-
     break;
   case AVRCP_EVENT_TRACK_CHANGED:
+    {
+      if (initing)
+      {
+        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+        initing = 0;
+      }
+      else
+      {
+        avrcp_get_attributes(0);
+      }
+      break;
+    }
+  case AVRCP_EVENT_ATTRIBUTE:
     {
       switch(lparam)
       {
@@ -109,10 +128,14 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
           break;
         }
       case AVRCP_MEDIA_ATTRIBUTE_DURATION:
-        break;
+        {
+
+          break;
+        }
       case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
         {
           strncpy(artist, rparam, sizeof(artist) - 1);
+          window_invalid(NULL);
           break;
         }
       }
@@ -120,6 +143,11 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case AVRCP_EVENT_STATUS_CHANGED:
     {
+      if (initing)
+      {
+        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
+      }
+
       state = lparam;
       break;
     }
@@ -138,7 +166,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       avrcp_register_handler(bt_handler);
       state = AVRCP_PLAY_STATUS_ERROR;
-
+      initing = 1;
       strcpy(title, "Connecting");
       if (!avctp_connected())
       {
@@ -154,8 +182,6 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else
       {
-        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
-        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
         avrcp_get_playstatus();
       }
 
