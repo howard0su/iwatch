@@ -1315,13 +1315,16 @@
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$\..\core</state>
           <state>$PROJ_DIR$\..\cpu\msp430</state>
+          <state>$PROJ_DIR$\..\ant</state>
+          <state>$PROJ_DIR$\..</state>
+          <state>$PROJ_DIR$\..\btstack</state>
           <state>$PROJ_DIR$\..\platform\iwatch</state>
           <state>$PROJ_DIR$\..\platform\iwatch\btstack</state>
-          <state>$PROJ_DIR$\..\platform\iwatch\btstack\src</state>
-          <state>$PROJ_DIR$\..\platform\iwatch\btstack\ble</state>
-          <state>$PROJ_DIR$\..\platform\iwatch\btstack\</state>
-          <state>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x</state>
-          <state>$PROJ_DIR$\..\platform\iwatch\btstack\include</state>
+          <state>$PROJ_DIR$\..\btstack\src</state>
+          <state>$PROJ_DIR$\..\btstack\ble</state>
+          <state>$PROJ_DIR$\..\btstack\</state>
+          <state>$PROJ_DIR$\..\btstack\chipset-cc256x</state>
+          <state>$PROJ_DIR$\..\btstack\include</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1818,7 +1821,7 @@
         </option>
         <option>
           <name>RuntimeControl</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IoEmulation</name>
@@ -1993,46 +1996,22 @@
   <group>
     <name>ant</name>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\ANTInterface.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\ant_timer.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antinterface.h</name>
+      <name>$PROJ_DIR$\..\ant\antinterface.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antmessage.h</name>
+      <name>$PROJ_DIR$\..\ant\cbsc_rx.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\antplus.h</name>
+      <name>$PROJ_DIR$\..\ant\hrm_rx.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\cbsc_rx.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\main_hrm.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\cbsc_rx.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\common_pages.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\config.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\hrm_rx.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\hrm_rx.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\main_hrm.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\serial.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\base\serial.h</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\ant\Timer_impl.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\ant\serial.c</name>
     </file>
   </group>
   <group>
@@ -2053,6 +2032,9 @@
       <name>$PROJ_DIR$\..\watch\controls.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\cordic.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\countdown.c</name>
     </file>
     <file>
@@ -2060,6 +2042,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\menu.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\stopwatch.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\symbols.c</name>
@@ -2080,86 +2065,73 @@
     <group>
       <name>ble</name>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x\ant_cmds.c</name>
-        <excluded>
-          <configuration>Debug</configuration>
-          <configuration>Retail</configuration>
-        </excluded>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble\att.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\att.c</name>
       </file>
     </group>
     <group>
       <name>cc2564</name>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x\bluetooth_init_cc2564_2.5.c</name>
+        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.5.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\chipset-cc256x\bt_control_cc256x.c</name>
+        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bt_control_cc256x.c</name>
       </file>
     </group>
     <group>
       <name>core</name>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avctp.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\avctp.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avctp.h</name>
+        <name>$PROJ_DIR$\..\btstack\src\avrcp.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avrcp.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\btstack_memory.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\avrcp.h</name>
+        <name>$PROJ_DIR$\..\btstack\src\hci.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\btstack_memory.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\hci_cmds.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hci.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\hci_dump.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hci_cmds.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\hci_transport_h4_ehcill_dma.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hci_dump.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\hfp.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hci_transport_h4_ehcill_dma.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\l2cap.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\hfp.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\l2cap_signaling.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\l2cap.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\linked_list.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\l2cap_signaling.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\memory_pool.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\linked_list.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\mns.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\memory_pool.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\remote_device_db_memory.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\mns.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\rfcomm.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\remote_device_db_memory.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\sdp.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\rfcomm.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\sdp_util.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\sdp.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\sdp_util.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\btstack\src\utils.c</name>
+        <name>$PROJ_DIR$\..\btstack\src\utils.c</name>
       </file>
     </group>
     <file>
@@ -2255,44 +2227,44 @@
     <group>
       <name>fonts</name>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova10.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova10.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova12.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova12.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova12b.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova12b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova28.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova28.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova28b.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova28b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\platform\iwatch\grlib\fonts\fontnova9b.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova9b.c</name>
       </file>
     </group>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\circle.c</name>
+      <name>$PROJ_DIR$\..\grlib\circle.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\context.c</name>
+      <name>$PROJ_DIR$\..\grlib\context.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\grlib.h</name>
+      <name>$PROJ_DIR$\..\grlib\grlib.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\image.c</name>
+      <name>$PROJ_DIR$\..\grlib\image.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\line.c</name>
+      <name>$PROJ_DIR$\..\grlib\line.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\rectangle.c</name>
+      <name>$PROJ_DIR$\..\grlib\rectangle.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\grlib\string.c</name>
+      <name>$PROJ_DIR$\..\grlib\string.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\Template_Driver.c</name>

@@ -65,7 +65,6 @@ PROCESS_THREAD(system_process, ev, data)
       GrContextForegroundSet(&context, ClrBlack);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
-      GrFlush(&context);
 
       // give time to starts
       button_init();
