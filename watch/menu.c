@@ -33,6 +33,7 @@ static const struct MenuItem SetupMenu[] =
   {"Time", configtime_process},
   {"Bluetooth", btconfig_process},
   {"ANT+", NULL},
+  {"Self-test", NULL},
   {NULL}
 };
 

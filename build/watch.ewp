@@ -10,7 +10,7 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>11</archiveVersion>
+      <archiveVersion>12</archiveVersion>
       <data>
         <version>28</version>
         <wantNonLocal>1</wantNonLocal>
@@ -66,8 +66,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>1</version>
-          <state>2</state>
+          <version>2</version>
+          <state>3</state>
         </option>
         <option>
           <name>Input description</name>
@@ -75,8 +75,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>1</version>
-          <state>2</state>
+          <version>2</version>
+          <state>3</state>
         </option>
         <option>
           <name>Output description</name>
@@ -159,7 +159,7 @@
       <name>ICC430</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>34</version>
+        <version>35</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -457,13 +457,17 @@
           <name>CCOptimizationNoSizeConstraints</name>
           <state>1</state>
         </option>
+        <option>
+          <name>ADefines</name>
+          <state></state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>A430</name>
-      <archiveVersion>4</archiveVersion>
+      <archiveVersion>5</archiveVersion>
       <data>
-        <version>13</version>
+        <version>14</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -618,6 +622,10 @@
         <option>
           <name>AUserIncludes</name>
           <state></state>
+        </option>
+        <option>
+          <name>ACPUTAG</name>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -821,7 +829,7 @@
         </option>
         <option>
           <name>IoEmulation</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XcRTLibraryFile</name>
@@ -875,7 +883,7 @@
         </option>
         <option>
           <name>BufferedTermOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XExtraOptionsCheck</name>
@@ -997,7 +1005,7 @@
     <debug>0</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>11</archiveVersion>
+      <archiveVersion>12</archiveVersion>
       <data>
         <version>28</version>
         <wantNonLocal>1</wantNonLocal>
@@ -1053,8 +1061,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>1</version>
-          <state>2</state>
+          <version>2</version>
+          <state>3</state>
         </option>
         <option>
           <name>Input description</name>
@@ -1062,8 +1070,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>1</version>
-          <state>2</state>
+          <version>2</version>
+          <state>3</state>
         </option>
         <option>
           <name>Output description</name>
@@ -1146,7 +1154,7 @@
       <name>ICC430</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>34</version>
+        <version>35</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1445,13 +1453,17 @@
           <name>CCOptimizationNoSizeConstraints</name>
           <state>1</state>
         </option>
+        <option>
+          <name>ADefines</name>
+          <state>NDEBUG</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>A430</name>
-      <archiveVersion>4</archiveVersion>
+      <archiveVersion>5</archiveVersion>
       <data>
-        <version>13</version>
+        <version>14</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1606,6 +1618,10 @@
         <option>
           <name>AUserIncludes</name>
           <state></state>
+        </option>
+        <option>
+          <name>ACPUTAG</name>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -1833,7 +1849,7 @@
         </option>
         <option>
           <name>XExtraOutOverride</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>ExtraOutputFile</name>
@@ -1863,7 +1879,7 @@
         </option>
         <option>
           <name>BufferedTermOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XExtraOptionsCheck</name>
