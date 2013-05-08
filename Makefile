@@ -8,14 +8,13 @@ ECHO	= echo
 
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
-CFLAGS  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
+CFLAGS0  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
 	-ffunction-sections -fdata-sections
 LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
 
-ifeq ($(LTO),1)
-CFLAGS += -flto
+
+CFLAGS = $(CFLAGS0) -flto
 LDFLAGS += -flto
-endif
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
 ALL_INCLUDEDIRS = \
@@ -49,7 +48,6 @@ PLATFORM = \
 	platform/iwatch/backlight.c \
 	platform/iwatch/button-sensor.c \
 	platform/iwatch/clock.c \
-	platform/iwatch/contiki-exp5438-main.c \
 	platform/iwatch/flash.c \
 	platform/iwatch/i2c.c \
 	platform/iwatch/isr.c \
@@ -60,7 +58,7 @@ PLATFORM = \
 	platform/iwatch/uart1x.c \
 	platform/iwatch/watchdog.c \
 	platform/iwatch/Template_Driver.c
-    
+
 ANT = \
 	ant/antinterface.c \
 	ant/cbsc_rx.c \
@@ -152,7 +150,7 @@ $(OBJDIR)/%.o: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
 $(OBJDIR)/%.d: %.c Makefile
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
@@ -170,7 +168,7 @@ $(OBJDIR)/%.d: %.c Makefile
 
 all: iwatch.hex
 
-iwatch.elf: ${OBJS}
+iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
 	@$(ECHO) "Linking $@"
 	@${CC} $^ ${LDFLAGS} -o $@
 
@@ -183,5 +181,8 @@ size: all
 
 flash:
 	mspdebug rf2500 'prog iwatch.elf'
+
+$(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c
+	$(CC) $(CFLAGS0) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
 -include $(DEPFILES)
