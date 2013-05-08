@@ -128,15 +128,14 @@
 #endif
 
 static process_event_t refresh_event, clear_event;
-static struct RefreshData data;
 
-static uint8_t clear_cmd[2] = {MLCD_CM, 0};
-//static uint8_t static_cmd[2] = {MLCD_SM, 0};
+static const uint8_t clear_cmd[2] = {MLCD_CM, 0};
+static const uint8_t static_cmd[2] = {MLCD_SM, 0};
 
-struct RefreshData
+static struct RefreshData
 {
   uint8_t start, end;
-};
+}data;
 
 
 static enum {STATE_NONE, STATE_SENDING}state = STATE_NONE;
@@ -624,8 +623,6 @@ Template_DriverFlush(void *pvDisplayData)
   if (data.start != 0xff)
   {
     process_post_synch(&lcd_process, refresh_event, &data);
-    data.start = 0xff;
-    data.end = 0;
   }
 }
 
@@ -689,10 +686,8 @@ const tDisplay g_memlcd_Driver =
 //
 //*****************************************************************************
 
-PROCESS_THREAD(lcd_process, ev, data)
+PROCESS_THREAD(lcd_process, ev, d)
 {
-  static uint8_t refreshStart = 0xff, refreshStop = 0;
-
   PROCESS_BEGIN();
 
   refresh_event = process_alloc_event();
@@ -707,29 +702,23 @@ PROCESS_THREAD(lcd_process, ev, data)
       state = STATE_NONE;
 
       // if there is an update?
-      if (refreshStart != 0xff)
+      if (data.start != 0xff)
       {
-        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
+        SPISend(&lines[data.start], (data.end - data.start + 1)
                 * sizeof(struct _linebuf) + 2);
-        refreshStart = 0xff;
-        refreshStop = 0;
+        data.start = 0xff;
+        data.end = 0;
       }
     }
     else if (ev == refresh_event)
     {
-      struct RefreshData* d = (struct RefreshData*)data;
-      if (refreshStart > d->start)
-        refreshStart = d->start;
-      if (refreshStop < d->end)
-        refreshStop = d->end;
-
       if (state == STATE_NONE)
       {
-        SPISend(&lines[refreshStart], (refreshStop - refreshStart + 1)
+        SPISend(&lines[data.start], (data.end - data.start + 1)
                 * sizeof(struct _linebuf) + 2);
 
-        refreshStart = 0xff;
-        refreshStop = 0;
+        data.start = 0xff;
+        data.end = 0;
       }
     }
     else if (ev == clear_event)
@@ -738,8 +727,8 @@ PROCESS_THREAD(lcd_process, ev, data)
       {
         SPISend(clear_cmd, 2);
 
-        refreshStart = 0xff;
-        refreshStop = 0;
+        data.start = 0xff;
+        data.end = 0;
       }
     }
   }
