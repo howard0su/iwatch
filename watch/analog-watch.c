@@ -21,11 +21,11 @@
 #define SUPPORT_SECOND
 
 /*
- * This implement the digit watch
- * Wake up every 1 second and update the watch
- * If in 10 minutes, no key or other things
- * if get system key in non-suspend state, post event to system.
- */
+* This implement the digit watch
+* Wake up every 1 second and update the watch
+* If in 10 minutes, no key or other things
+* if get system key in non-suspend state, post event to system.
+*/
 #define CENTER_X 72
 #define CENTER_Y 84
 
@@ -80,7 +80,7 @@ static void drawHands(tContext *pContext, int h, int m, int s)
   GrContextForegroundSet(pContext, ClrWhite);
   GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
 
-    // hour hand 45
+  // hour hand 45
   angle = h*30 + m/2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   x = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
@@ -111,6 +111,10 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     minute = dt->minute;
     sec = dt->second;
     window_invalid(NULL);
+  }
+  else if (ev == EVENT_WINDOW_CLOSING)
+  {
+    rtc_enablechange(0);
   }
   else
   {

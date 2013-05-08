@@ -54,6 +54,10 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     tRectangle rect = {0, 30, LCD_Y_SIZE, 64};
     window_invalid(&rect);
   }
+  else if (ev == EVENT_WINDOW_CLOSING)
+  {
+    rtc_enablechange(0);
+  }
   else
   {
     return 0;
