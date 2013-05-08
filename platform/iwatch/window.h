@@ -71,4 +71,5 @@ extern uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configdate_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t calendar_process(uint8_t event, uint16_t lparam, void* rparam);
 #endif

@@ -17,7 +17,7 @@ void rtc_init()
   // enable RTC time event interrupt
 
   RTCYEAR = 2013;                         // Year = 0x2010
-  RTCMON = 5;                             // Month = 0x04 = April
+  RTCMON = 1;                             // Month = 0x04 = April
   RTCDAY = 1;                            // Day = 0x05 = 5th
   RTCDOW = rtc_getweekday(13, 5, 1);
   RTCHOUR = 22;                           // Hour = 0x10
@@ -45,15 +45,12 @@ PROCESS_THREAD(rtc_process, ev, data)
   PROCESS_END();
 }
 
-uint8_t rtc_getweekday(uint8_t year, uint8_t month, uint8_t day)
+uint8_t rtc_getweekday(uint16_t year, uint8_t month, uint8_t day)
 {
   if( month == 1 || month == 2 )
   {
     month += 12;
-    if( year> 0 )
-      year--;
-    else
-      year = 4;
+    year--;
   }
 
   return 1 + (( day + 2*month + 3*(month+1)/5 + year + year/4 ) %7);
@@ -63,7 +60,7 @@ void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
 {
   uint8_t weekday;
 
-  weekday = rtc_getweekday(year - 2000, month, day);
+  weekday = rtc_getweekday(year, month, day);
   RTCYEAR = year;                         // Year = 0x2010
   RTCMON = month;                             // Month = 0x04 = April
   RTCDAY = day;                            // Day = 0x05 = 5th
@@ -144,6 +141,15 @@ void rtc_enablechange(uint8_t changes)
   {
     RTCCTL01 &= ~RTCRDYIE;
   }
+
+  if (changes & TENMSECOND_CHANGE)
+  {
+    RTCPS1CTL = RT1PSIE | RT1IP2;
+  }
+  else
+  {
+    RTCPS1CTL &= ~RT1PSIE;
+  }
 }
 
 ISR(RTC, RTC_ISR)
@@ -182,6 +188,7 @@ ISR(RTC, RTC_ISR)
   case RTC_RT0PSIFG:                      // RT0PSIFG
     break;
   case RTC_RT1PSIFG:                      // RT1PSIFG
+    process_poll(&rtc_process);
     break;
   case 12: break;                         // Reserved
   case 14: break;                         // Reserved
