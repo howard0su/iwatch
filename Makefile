@@ -136,6 +136,7 @@ WATCH = \
     watch/menu.c \
     watch/watch.c \
     watch/cordic.c \
+    watch/calendar.c \
     watch/window.c
 
 OBJDIR = objs
@@ -146,7 +147,7 @@ DEPFILES = $(OBJS:.o=.d)
 
 #####################
 # rules to build the object files
-$(OBJDIR)/%.o: %.c $(OBJDIR)/%.d
+$(OBJDIR)/%.o: %.c
 	@$(ECHO) "Compiling $<"
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
