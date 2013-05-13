@@ -1,5 +1,5 @@
 ifeq ($(MSPPATH),)
-MSPPATH = /tmp/mspgccx/bin
+MSPPATH = /home/junsu/mspgccx/bin
 endif
 CC      = $(MSPPATH)/msp430-gcc
 OBJCOPY = $(MSPPATH)/msp430-objcopy
@@ -42,7 +42,7 @@ CORE   = \
     core/sys/stimer.c \
     core/sys/timer.c \
     core/lib/assert.c \
-    core/lib/list.c 
+    core/lib/list.c
 
 PLATFORM = \
 	platform/iwatch/backlight.c \
@@ -135,6 +135,8 @@ WATCH = \
     watch/watch.c \
     watch/cordic.c \
     watch/calendar.c \
+    watch/selftest.c \
+    watch/status.c \
     watch/window.c
 
 OBJDIR = objs
@@ -150,9 +152,9 @@ $(OBJDIR)/%.o: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
-$(OBJDIR)/%.d: %.c Makefile
+$(OBJDIR)/%.d: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
@@ -161,7 +163,7 @@ $(OBJDIR)/%.d: %.c Makefile
 
 # create .hex file from .elf
 %.hex: %.elf
-	@$(OBJCOPY) -O ihex $< $@    
+	@$(OBJCOPY) -O ihex $< $@
 	@$(SIZE) $<
 
 # create firmware image from common objects and example source file
@@ -177,12 +179,13 @@ clean:
 	rm -Rf objs/
 
 size: all
-	msp430-size *.elf 
+	msp430-size *.elf
 
-flash:
-	mspdebug rf2500 'prog iwatch.elf'
+flash: iwatch.hex
+	~/bin/mspdebug tilib 'prog iwatch.elf'
+	~/bin/mspdebug tilib run
 
 $(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c
-	$(CC) $(CFLAGS0) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	@$(CC) $(CFLAGS0) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
 -include $(DEPFILES)
