@@ -144,7 +144,7 @@ void rtc_enablechange(uint8_t changes)
 
   if (changes & TENMSECOND_CHANGE)
   {
-    RTCPS1CTL = RT1PSIE | RT1IP2;
+    RTCPS1CTL = RT1PSIE | RT1IP1;
   }
   else
   {
@@ -189,6 +189,7 @@ ISR(RTC, RTC_ISR)
     break;
   case RTC_RT1PSIFG:                      // RT1PSIFG
     process_poll(&rtc_process);
+    LPM4_EXIT;
     break;
   case 12: break;                         // Reserved
   case 14: break;                         // Reserved
