@@ -2,12 +2,12 @@
 //
 //   Description: This file contains a function to caluculate sine and cosine
 //                using CORDIC rotation on a 16 bit MSP430. The function takes
-//                any angle in degrees and outputs the answers in Q.15 fixed 
-//                point format[(floating point) = (fixed point)/ 2^15]. 
+//                any angle in degrees and outputs the answers in Q.15 fixed
+//                point format[(floating point) = (fixed point)/ 2^15].
 //
 //                In creating this file, I referenced the 2004 presentation of
 //                fixed point two's complement CORDIC arithmetic presentation
-//                by Titi Trandafir of Microtrend Systems which contained an 
+//                by Titi Trandafir of Microtrend Systems which contained an
 //                assembly language program utilizing CORDIC. I also referenced
 //                the CORDIC wikipedia page.
 //
@@ -18,21 +18,21 @@
 //
 //Copyright (c) 2011 Theo Brower
 //
-//Permission is hereby granted, free of charge, to any person obtaining a 
-//copy of this software and associated documentation files (the "Software"), 
-//to deal in the Software without restriction, including without limitation 
-//the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-//and/or sell copies of the Software, and to permit persons to whom the 
+//Permission is hereby granted, free of charge, to any person obtaining a
+//copy of this software and associated documentation files (the "Software"),
+//to deal in the Software without restriction, including without limitation
+//the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//and/or sell copies of the Software, and to permit persons to whom the
 //Software is furnished to do so, subject to the following conditions:
-//The above copyright notice and this permission notice shall be included 
+//The above copyright notice and this permission notice shall be included
 //in all copies or substantial portions of the Software.
 //
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-//OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-//THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-//FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+//OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //IN THE SOFTWARE.
 //******************************************************************************
 
@@ -58,27 +58,27 @@ int atantable[ATAN_TAB_N] = {  0x4000,   //atan(2^0) = 45 degrees
 };
 
 // Function to computer sine/cosine using CORDIC
-// Inputs: 
+// Inputs:
 //  theta = any (integer) angle in degrees
-//  iterations =  number of iterations for CORDIC algorithm, up to 16, 
+//  iterations =  number of iterations for CORDIC algorithm, up to 16,
 //                the ideal value seems to be 13
 //  *sin_result = pointer to where you want the sine result
 //  *cos_result = pointer to where you want the cosine result
 
-void cordic_sincos(int theta, 
-                   char iterations, 
+void cordic_sincos(int theta,
+                   char iterations,
                    int *sin_result,
                    int *cos_result){
   int sigma, s, x1, x2, y, i, quadAdj, shift;
   int *atanptr = atantable;
-  
+
   //Limit iterations to number of atan values in our table
   iterations = (iterations > ATAN_TAB_N) ? ATAN_TAB_N : iterations;
 
   //Shift angle to be in range -180 to 180
-  while(theta < -180) theta += 180;
-  while(theta > 180) theta -= 180;
-  
+  while(theta < -180) theta += 360;
+  while(theta > 180) theta -= 360;
+
   //Shift angle to be in range -90 to 90
   if (theta < -90){
     theta = theta + 180;
@@ -89,7 +89,7 @@ void cordic_sincos(int theta,
   } else{
     quadAdj = 1;
   }
-  
+
   //Shift angle to be in range -45 to 45
   if (theta < -45){
     theta = theta + 90;
@@ -100,7 +100,7 @@ void cordic_sincos(int theta,
   } else{
     shift = 0;
   }
-  
+
   //convert angle to decimal representation N = ((2^16)*angle_deg) / 180
   if(theta < 0){
     theta = -theta;
@@ -111,14 +111,14 @@ void cordic_sincos(int theta,
     theta = ((unsigned int)theta<<10)/45;   //Convert to decimal representation of angle
     theta = (unsigned int)theta<<4;
   }
-  
+
   //Initial values
-  x1 = 0x4DBA;    //this will be the cosine result, 
+  x1 = 0x4DBA;    //this will be the cosine result,
                   //initially the magic number 0.60725293
   y = 0;          //y will contain the sine result
   s = 0;          //s will contain the final angle
   sigma = 1;      //direction from target angle
-  
+
   for (i=0; i<iterations; i++){
     sigma = (theta - s) > 0 ? 1 : -1;
     if(sigma < 0){
@@ -133,10 +133,10 @@ void cordic_sincos(int theta,
       s += *atanptr++;
     }
   }
-  
+
   //Correct for possible overflow in cosine result
   if(x1 < 0) x1 = -x1;
-  
+
   //Push final values to appropriate registers
   if(shift > 0){
     *sin_result = x1;
@@ -148,7 +148,7 @@ void cordic_sincos(int theta,
     *sin_result = y;
     *cos_result = x1;
   }
-  
+
   //Adjust for sign change if angle was in quadrant 3 or 4
   *sin_result = quadAdj * *sin_result;
   *cos_result = quadAdj * *cos_result;
