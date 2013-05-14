@@ -18,7 +18,7 @@
 extern int dma_channel_0();
 extern int dma_channel_1();
 
-ISR(DMA, DMA0ISR)
+ISR(DMA, _DMA0ISR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
@@ -53,7 +53,7 @@ extern int port1_pin3();
 extern int port1_pin5();
 extern int port1_pin6();
 
-ISR(PORT1, PORT1ISR) {
+ISR(PORT1, _PORT1ISR) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   switch(__even_in_range(P1IV, 16))
@@ -93,7 +93,7 @@ extern int port2_pin1();
 extern int port2_pin2();
 extern int port2_pin6();
 
-ISR(PORT2, PORT2ISR)
+ISR(PORT2, _PORT2ISR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   switch(__even_in_range(P2IV, 16))
