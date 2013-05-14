@@ -5,6 +5,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include <stdio.h>
+#include "dev/flash.h"
 
 extern void mpu6050_init();
 extern void ant_init();
@@ -21,14 +22,27 @@ windowproc ui_window = NULL;
 static uint8_t ui_window_flag;
 static tRectangle current_clip;
 
+#if defined(__GNUC__)
+__attribute__ ((section(".infoc")))
+#else
+#pragma constseg = INFOC
+#endif
+static const ui_config ui_config_data =
+{
+  UI_CONFIG_SIGNATURE
+};
+#ifndef __GNUC__
+#pragma constseg = default
+#endif
+
 const tRectangle client_clip = {0, 16, LCD_X_SIZE, LCD_Y_SIZE};
+static tContext context;
+static struct etimer timer;
 
 void window_init()
 {
   return;
 }
-
-tContext context;
 
 void window_open(windowproc dialog, void* data)
 {
@@ -86,7 +100,14 @@ PROCESS_THREAD(system_process, ev, data)
       //ant_init();
       mpu6050_init();
     }
-    else if (ev == EVENT_TIME_CHANGED || ev == PROCESS_EVENT_TIMER)
+    else if (ev == PROCESS_EVENT_TIMER)
+    {
+      if (data == &timer)
+      {
+        ui_window(ev, 0, data);
+      }
+    }
+    else if (ev == EVENT_TIME_CHANGED)
     {
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
@@ -119,8 +140,6 @@ PROCESS_THREAD(system_process, ev, data)
 
   PROCESS_END();
 }
-
-static struct etimer timer;
 
 void window_timer(clock_time_t time)
 {
@@ -161,7 +180,6 @@ static uint8_t notification_process(uint8_t ev, uint16_t lparam, void* rparam)
             process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_ACCEPT);
             break;
           }
-          break;
         default:
           return 0;
         }
@@ -180,7 +198,6 @@ static uint8_t notification_process(uint8_t ev, uint16_t lparam, void* rparam)
             process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_REJECT);
             break;
           }
-          break;
         default:
           return 0;
         }
@@ -230,4 +247,18 @@ void window_invalid(const tRectangle *rect)
 void window_close()
 {
   window_open(menu_process, NULL);
+}
+
+const ui_config* window_readconfig()
+{
+  return &ui_config_data;
+}
+
+void window_writeconfig(ui_config* data)
+{
+  // write to flash
+  flash_setup();
+  flash_clear((uint16_t*)&ui_config_data);
+  flash_writepage((uint16_t*)&ui_config_data, (uint16_t*)&data, sizeof(ui_config_data));
+  flash_done();
 }

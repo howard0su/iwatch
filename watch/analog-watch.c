@@ -18,8 +18,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "cordic.h"
-#define SUPPORT_SECOND
-
+#include <stdio.h>
 /*
 * This implement the digit watch
 * Wake up every 1 second and update the watch
@@ -29,51 +28,152 @@
 #define CENTER_X 72
 #define CENTER_Y 84
 
-#define SEC_HAND_LEN 70
-#define MIN_HAND_LEN 60
-#define HOUR_HAND_LEN 45
+#define MIN_HAND_LEN 50
+#define HOUR_HAND_LEN 36
 
 static uint8_t hour, minute, sec;
+static uint8_t selection;
+typedef void (*draw_function)(tContext *pContext);
 
-static void drawFace(tContext *pContext)
+static void drawFace0(tContext *pContext)
 {
-  GrContextForegroundSet(pContext, ClrBlack);
-  GrRectFill(pContext, &client_clip);
+  int cos_val, sin_val;
+  uint8_t sx, sy, ex, ey;
 
-  GrContextForegroundSet(pContext, ClrWhite);
+  for(int angle = 0; angle < 359; angle +=30)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    ex = CENTER_X + ((64 * (sin_val >> 8)) >> 7);
+    ey = CENTER_Y - ((64 * (cos_val >> 8)) >> 7);
+    sx = CENTER_X + ((52 * (sin_val >> 8)) >> 7);
+    sy = CENTER_Y - ((52 * (cos_val >> 8)) >> 7);
 
-  const static tRectangle rect1 = {72, 16, 74, 25};
-  const static tRectangle rect2 = {72, 158, 74, 167};
-  const static tRectangle rect3 = {0, 84, 9, 86};
-  const static tRectangle rect4 = {134, 84, 143, 86};
-
-  GrRectFill(pContext, &rect1);
-  GrRectFill(pContext, &rect2);
-  GrRectFill(pContext, &rect3);
-  GrRectFill(pContext, &rect4);
+    GrLineDraw(pContext, sx, sy, ex, ey);
+  }
 }
 
-static void drawHands(tContext *pContext, int h, int m, int s)
+static void drawFace3(tContext *pContext)
+{
+  int cos_val, sin_val;
+  uint8_t sx, sy, ex, ey;
+
+  for(int angle = 0; angle < 359; angle += 6)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    sx = CENTER_X + ((52 * (sin_val >> 8)) >> 7);
+    sy = CENTER_Y - ((52 * (cos_val >> 8)) >> 7);
+
+    if (angle % 30 == 0)
+    {
+      ex = CENTER_X + ((64 * (sin_val >> 8)) >> 7);
+      ey = CENTER_Y - ((64 * (cos_val >> 8)) >> 7);
+
+      GrLineDraw(pContext, sx, sy, ex, ey);
+    }
+    else
+    {
+      GrCircleFill(pContext, sx, sy, 2);
+    }
+  }
+}
+
+static void drawFace6(tContext *pContext)
+{
+  int cos_val, sin_val;
+  uint8_t x, y;
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 62);
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 63);
+
+  for(int angle = 0; angle < 359; angle += 30)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    x = CENTER_X + ((57 * (sin_val >> 8)) >> 7);
+    y = CENTER_Y - ((57 * (cos_val >> 8)) >> 7);
+
+    if (angle % 90 == 0)
+    {
+      GrCircleFill(pContext, x, y, 4); 
+    }
+    else
+    {
+      GrCircleFill(pContext, x, y, 2);
+    }
+  }
+}
+
+static void drawFace7(tContext *pContext)
+{
+  int cos_val, sin_val;
+  uint8_t x, y;
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 62);
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 63);
+
+  for(int angle = 0; angle < 359; angle += 6)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    x = CENTER_X + ((57 * (sin_val >> 8)) >> 7);
+    y = CENTER_Y - ((57 * (cos_val >> 8)) >> 7);
+
+    GrCircleFill(pContext, x, y, 1);
+  }
+}
+
+static void drawFace4(tContext *pContext)
+{
+  int cos_val, sin_val;
+  uint8_t sx, sy, ex, ey;
+
+  for(int angle = 0; angle < 359; angle += 6)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    sx = CENTER_X + ((64 * (sin_val >> 8)) >> 7);
+    sy = CENTER_Y - ((64 * (cos_val >> 8)) >> 7);
+
+    if (angle % 30 == 0)
+    {
+      ex = CENTER_X + ((53 * (sin_val >> 8)) >> 7);
+      ey = CENTER_Y - ((53 * (cos_val >> 8)) >> 7);
+
+      GrLineDraw(pContext, sx, sy, ex, ey);
+    }
+    else
+    {
+      GrCircleFill(pContext, sx, sy, 2);
+    }
+  }
+}
+
+static void drawFace1(tContext *pContext)
+{
+  int cos_val, sin_val;
+  uint8_t x, y;
+
+  for(int angle = 0; angle < 359; angle += 6)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    x = CENTER_X + ((57 * (sin_val >> 8)) >> 7);
+    y = CENTER_Y - ((57 * (cos_val >> 8)) >> 7);
+
+    if (angle % 30 == 0)
+    {
+      GrCircleFill(pContext, x, y, 3);
+    }
+    else
+    {
+      GrCircleFill(pContext, x, y, 1);
+    }
+  }
+}
+
+// design 3, hand
+static void drawHand0(tContext *pContext)
 {
   int cos_val, sin_val;
   int angle;
   uint16_t x, y;
 
-#ifdef SUPPORT_SECOND
-  if (s > 0)
-  {
-    // sec hand: length = 75
-    angle = s * 6;
-    cordic_sincos(angle, 13, &sin_val, &cos_val);
-    x = CENTER_X + ((SEC_HAND_LEN * (sin_val >> 8)) >> 7);
-    y = CENTER_Y - ((SEC_HAND_LEN * (cos_val >> 8)) >> 7);
-    GrContextForegroundSet(pContext, ClrWhite);
-    GrLineDraw(pContext, CENTER_X, CENTER_Y, x, y);
-  }
-#endif
-
   // minute hand = length = 70
-  angle = m*6+s/10;
+  angle = minute * 6+ sec /10;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   x = CENTER_X + ((MIN_HAND_LEN * (sin_val >> 8)) >> 7);
   y = CENTER_Y - ((MIN_HAND_LEN * (cos_val >> 8)) >> 7);
@@ -81,40 +181,123 @@ static void drawHands(tContext *pContext, int h, int m, int s)
   GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
 
   // hour hand 45
-  angle = h*30 + m/2;
+  angle = hour * 30 + minute / 2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   x = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
   y = CENTER_Y - ((HOUR_HAND_LEN * (cos_val >> 8)) >> 7);
   GrContextForegroundSet(pContext, ClrWhite);
   GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
-  GrCircleFill(pContext, CENTER_X, CENTER_Y, 5);
 }
+
+static void drawHand1(tContext *pContext)
+{
+  int cos_val, sin_val;
+  int angle;
+  uint16_t sx, sy, ex, ey;
+
+  // draw the circle
+  GrCircleFill(pContext, CENTER_X, CENTER_Y, 3);
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 9);
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 10);
+
+  // minute hand = length = 70
+  angle = minute * 6+ sec /10;
+  cordic_sincos(angle, 13, &sin_val, &cos_val);
+  ex = CENTER_X + ((MIN_HAND_LEN * (sin_val >> 8)) >> 7);
+  ey = CENTER_Y - ((MIN_HAND_LEN * (cos_val >> 8)) >> 7);
+  sx = CENTER_X + ((14 * (sin_val >> 8)) >> 7);
+  sy = CENTER_Y - ((14 * (cos_val >> 8)) >> 7);
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrLineDraw(pContext, sx, sy, ex, ey);
+
+  // hour hand 45
+  angle = hour * 30 + minute / 2;
+  cordic_sincos(angle, 13, &sin_val, &cos_val);
+  ex = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
+  ey = CENTER_Y - ((HOUR_HAND_LEN * (cos_val >> 8)) >> 7);
+  sx = CENTER_X + ((14 * (sin_val >> 8)) >> 7);
+  sy = CENTER_Y - ((14 * (cos_val >> 8)) >> 7);
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrLineDraw(pContext, sx, sy,  ex, ey);
+}
+
+static void drawHand2(tContext *pContext)
+{
+  GrCircleFill(pContext, CENTER_X, CENTER_Y, 12);
+
+  drawHand0(pContext);
+}
+
+draw_function FaceSelections[] =
+{
+  drawFace0,
+  drawFace1,
+  drawFace3,
+  drawFace4,
+  drawFace6,
+  drawFace7
+};
+
+draw_function HandSelections[] =
+{
+  drawHand0,
+  drawHand1,
+  drawHand2,
+  drawHand0,
+  drawHand1,
+  drawHand2,  
+};
 
 uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   if (ev == EVENT_WINDOW_CREATED)
   {
     rtc_readtime(&hour, &minute, &sec);
-    rtc_enablechange(SECOND_CHANGE);
+    selection = window_readconfig()->analog_clock;
+    rtc_enablechange(MINUTE_CHANGE);
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {
-    drawFace((tContext*)rparam);
-    drawHands((tContext*)rparam, hour, minute, sec);
+    tContext *pContext = (tContext*)rparam;
+    GrContextForegroundSet(pContext, ClrBlack);
+    GrRectFill(pContext, &client_clip);
+
+    GrContextForegroundSet(pContext, ClrWhite);
+
+    FaceSelections[selection >> 4](pContext);
+    HandSelections[selection & 0x0f](pContext);
   }
   else if (ev == EVENT_TIME_CHANGED)
   {
     struct datetime* dt = (struct datetime*)rparam;
     hour = dt->hour;
-    if (hour > 12)
-      hour -= 12;
     minute = dt->minute;
     sec = dt->second;
     window_invalid(NULL);
   }
+  else if (ev == EVENT_KEY_PRESSED)
+  {
+    if (lparam == KEY_ENTER)
+    {
+      selection += 0x11;
+      if (selection > 0x55)
+      {
+        selection = 0x00;
+      }
+      window_invalid(NULL);
+    }
+  }
   else if (ev == EVENT_WINDOW_CLOSING)
   {
     rtc_enablechange(0);
+
+    if (selection != window_readconfig()->analog_clock)
+    {
+      ui_config config;
+      memcpy(&config, window_readconfig(), sizeof(config));
+      config.analog_clock = selection;
+      window_writeconfig(&config);
+    }
   }
   else
   {

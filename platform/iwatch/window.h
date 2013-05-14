@@ -72,4 +72,24 @@ extern uint8_t configdate_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t calendar_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t selftest_process(uint8_t event, uint16_t lparam, void* rparam);
+
+#define UI_CONFIG_SIGNATURE 0xABADFACE
+typedef struct {
+  uint32_t signature;
+  // world clock config
+  char worldclock_name[3][10];
+  int8_t worldclock_offset[3];
+
+  // analog clock config
+  uint8_t analog_clock; // high 4 bits for face, low 4 bits for hand
+
+  // digit clock config
+  uint8_t digit_clock;
+
+  // default
+}ui_config;
+
+extern const ui_config* window_readconfig();
+extern void window_writeconfig(ui_config* data);
 #endif

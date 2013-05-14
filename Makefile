@@ -81,7 +81,8 @@ GRLIB_FONTS = \
 	fontnova12.c \
 	fontnova12b.c \
 	fontnova28.c \
-	fontnova28b.c
+	fontnova28b.c \
+	fontnova38b.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
