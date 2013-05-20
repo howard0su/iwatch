@@ -17,7 +17,6 @@ extern void I2C_Init();
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
 
-windowproc ui_window = NULL;
 #define WINDOW_FLAGS_REFRESH 1
 static uint8_t ui_window_flag;
 static tRectangle current_clip;
@@ -39,18 +38,28 @@ const tRectangle client_clip = {0, 16, LCD_X_SIZE, LCD_Y_SIZE};
 static tContext context;
 static struct etimer timer;
 
+
+// the real stack is like this
+//     uistack[4]
+//     uistack[3]
+//     uistack[2]
+//     uistack[1]
+//     uistack[0] <<== stackptr = ui_window
+
+#define MAX_STACK 6
+#define ui_window (stack[stackptr])
+static windowproc stack[MAX_STACK]; // assume 5 is enough
+static uint8_t stackptr;
+
 void window_init()
 {
+  stackptr = 0;
   return;
 }
 
 void window_open(windowproc dialog, void* data)
 {
-  if (ui_window)
-  {
-    ui_window(EVENT_WINDOW_CLOSING, 0, NULL);
-  }
-
+  stackptr++;
   ui_window = dialog;
   ui_window(EVENT_WINDOW_CREATED, 0, data);
 
@@ -73,6 +82,7 @@ PROCESS_THREAD(system_process, ev, data)
   {
     if (ev == PROCESS_EVENT_INIT)
     {
+      window_init();
       backlight_init();
       memlcd_DriverInit();
       GrContextInit(&context, &g_memlcd_Driver);
@@ -120,9 +130,9 @@ PROCESS_THREAD(system_process, ev, data)
       if (!ret)
       {
         // default handler for long pressed
-        if ((uint16_t)data == KEY_EXIT && ui_window != &menu_process && ev == EVENT_KEY_LONGPRESSED)
+        if ((uint16_t)data == KEY_EXIT && stackptr != 0 && (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED))
         {
-          window_open(&menu_process, 0);
+          window_close();
         }
       }
     }
@@ -246,7 +256,16 @@ void window_invalid(const tRectangle *rect)
 
 void window_close()
 {
-  window_open(menu_process, NULL);
+  if (stackptr == 0)
+    return;
+
+  ui_window(EVENT_WINDOW_CLOSING, 0, NULL);
+
+  stackptr--;
+  ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
+  GrContextClipRegionSet(&context, &client_clip);
+  ui_window(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
 }
 
 const ui_config* window_readconfig()
