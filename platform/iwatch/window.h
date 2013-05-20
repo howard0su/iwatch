@@ -73,6 +73,7 @@ extern uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t calendar_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t selftest_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xABADFACE
 typedef struct {
@@ -87,6 +88,9 @@ typedef struct {
   // digit clock config
   uint8_t digit_clock;
 
+  // sports watch config
+  uint8_t sports_grid;
+  uint8_t sports_grid_data[5];
   // default
 }ui_config;
 

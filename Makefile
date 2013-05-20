@@ -4,13 +4,15 @@ endif
 CC      = $(MSPPATH)/msp430-gcc
 OBJCOPY = $(MSPPATH)/msp430-objcopy
 SIZE    = $(MSPPATH)/msp430-size
+NM		= $(MSPPATH)/msp430-nm
 ECHO	= echo
 
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
-CFLAGS0  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -mmemory-model=$(MEMORY_MODEL) \
+WARNING_FLAGS = -W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wmissing-format-attribute -pedantic -Wno-long-long -Wno-variadic-macros -Wno-overlength-strings -Wold-style-definition -Wc++-compat
+CFLAGS0  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -mmemory-model=$(MEMORY_MODEL) \
 	-ffunction-sections -fdata-sections
-LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os -Wall -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
+LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
 
 
 CFLAGS = $(CFLAGS0) -flto
@@ -138,6 +140,7 @@ WATCH = \
     watch/calendar.c \
     watch/selftest.c \
     watch/status.c \
+    watch/sportswatch.c \
     watch/window.c
 
 OBJDIR = objs
@@ -169,10 +172,10 @@ $(OBJDIR)/%.d: %.c
 
 # create firmware image from common objects and example source file
 
-all: iwatch.hex
+all: $(DEPFILES) $(OBJS) iwatch.hex
 
-iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
-	@$(ECHO) "Linking $@"
+iwatch.elf: ${OBJS} $(OBJDIR)/main.o0 $(OBJDIR)/$(OBJDIR)/symbols.o
+	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
 
 clean:
@@ -185,6 +188,17 @@ size: all
 flash: iwatch.hex
 	~/bin/mspdebug tilib 'prog iwatch.elf'
 	~/bin/mspdebug tilib run
+
+$(OBJDIR)/iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
+	@echo "Link $@ first pass"
+	@${CC} $^ ${LDFLAGS} -o $@
+
+$(OBJDIR)/symbols.c: $(OBJDIR)/iwatch.elf
+	@echo "Generate symbol table"
+	@echo "#include \"loader/symbols-def.h\"" > $@
+	@echo "const struct symbols symbols[] = {" >> $@
+	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{(void*)0x" $$1 ",\"" $$3 "\"}," }' | sort -f +1 -t ','>> $@
+	@echo "{(void*)0, 0}};" >> $@
 
 $(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c
 	@$(CC) $(CFLAGS0) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
