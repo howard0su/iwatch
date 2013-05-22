@@ -23,32 +23,33 @@
 
 struct MenuItem
 {
+  char icon;
   char *name;
   windowproc handler;
 };
 
 static const struct MenuItem SetupMenu[] =
 {
-  {"Date", configdate_process},
-  {"Time", configtime_process},
-  {"Bluetooth", btconfig_process},
-  {"ANT+", NULL},
-  {"Self-test", selftest_process},
+  {0, "Date", configdate_process},
+  {0, "Time", configtime_process},
+  {0, "Bluetooth", btconfig_process},
+  {0, "ANT+", NULL},
+  {0, "Self-test", selftest_process},
   {NULL}
 };
 
 static const struct MenuItem MainMenu[] =
 {
-  {"Today's Activity", NULL},
-  {"Analog Watch", &analogclock_process},
-  {"Digital Watch", &digitclock_process},
-  {"World Clock", NULL},
-  {"Calendar", &calendar_process},
-  {"Stop Watch", &stopwatch_process},
-  {"Countdown Timer", &countdown_process},
-  {"Music Control", &control_process},
-  {"Sports Watch", NULL},
-  {"Watch Setup", &menu_process},
+  {'a', "Today's Activity", NULL},
+  {'b', "Analog Watch", &analogclock_process},
+  {'c', "Digital Watch", &digitclock_process},
+  {'d', "World Clock", NULL},
+  {'e', "Calendar", &calendar_process},
+  {'f', "Stop Watch", &stopwatch_process},
+  {'g', "Countdown Timer", &countdown_process},
+  {'l', "Music Control", &control_process},
+  {'h', "Sports Watch", NULL},
+  {'i', "Watch Setup", &menu_process},
   {NULL}
 };
 
@@ -59,26 +60,37 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 {
   if (selected)
   {
-    GrContextFontSet(pContext, &g_sFontNova12b);
-
     // draw a rect
     GrContextForegroundSet(pContext, ClrWhite);
     GrContextBackgroundSet(pContext, ClrBlack);
   }
   else
   {
-    GrContextFontSet(pContext, &g_sFontNova12);
-
     GrContextForegroundSet(pContext, ClrBlack);
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {10, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {8, 17 + index * MENU_SPACE, 136, 9 + (index + 1) * MENU_SPACE};
   GrRectFill(pContext, &rect);
 
   GrContextForegroundSet(pContext, !selected);
   GrContextBackgroundSet(pContext, selected);
-  GrStringDraw(pContext, item->name, -1, 32, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+  if (item->icon != 0)
+  {
+    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
+    GrStringDraw(pContext, &item->icon, 1, 10, 14 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+  }
+
+  if (selected)
+  {
+    GrContextFontSet(pContext, &g_sFontNova12b);
+  }
+  else
+  {
+    GrContextFontSet(pContext, &g_sFontNova12);
+  }
+
+  GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 }
 
 static const struct MenuItem *Items;
@@ -166,7 +178,9 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           if (current == 9)
           {
-            window_open(&menu_process, (void*)&SetupMenu);
+            Items = SetupMenu;
+            current = currentTop = 0;
+            window_invalid(NULL);
           }
         }
         else
@@ -174,6 +188,16 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
           window_open(Items[current].handler, NULL);
         }
       }
+    }
+    else if (lparam == KEY_EXIT)
+    {
+        if (Items != MainMenu)
+        {
+          Items = MainMenu;
+          currentTop = 5;
+          current = 9;
+          window_invalid(NULL);
+        }
     }
   }
   else
