@@ -30,8 +30,10 @@ APP:=ftrasterize
 #
 # The object files that comprise this application.
 #
-OBJS:=ftrasterize.o                           \
+OBJS:=ftrasterize.o                         \
       freetype-2.3.5/objs/.libs/libfreetype.a
+
+DEBUG = 1
 
 #
 # Include the generic rules.
@@ -47,7 +49,7 @@ CFLAGS:=${CFLAGS} -I freetype-2.3.5/include
 # Fetch the tarball that contains FreeType.
 #
 freetype-2.3.5.tar.bz2:
-	@URL=http://download.savannah.gnu.org/releases/freetype; \
+	@URL=http://download.savannah.gnu.org/releases/freetype/freetype-old; \
 	 URL=$${URL}/freetype-2.3.5.tar.bz2;                     \
 	 if [ x${VERBOSE} = x ];                                 \
 	 then                                                    \

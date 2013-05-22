@@ -4008,6 +4008,776 @@ int ShowFontCharacters(tConversionParameters *pParams)
     return (1);
 }
 
+// Convert a image which contains raster font into a font
+int ConvertRasterFont(tConversionParameters *pParams)
+{
+    int iOpt, iXMin, iYMin, iXMax, iYMax, iX, iY, iWidth;
+    int iPrevBit, iBit, iZero, iOne;
+    int iTranslateStart, iTranslateSource;
+    int iDisplayFont, iWideFont, iIndex, iNewStruct;
+    char *pcCapFilename;
+    unsigned char pucChar[512];
+    char pucSize[8];
+    tGlyph *pGlyph;
+    FILE *pFile;
+    tBoolean bRetcode;
+
+
+    if(pParams->bVerbose)
+    {
+        printf("Load pbm file\n");
+    }
+
+    unsigned long ulLength, ulWidth, ulHeight, ulMax, ulCount, ulMono, ulBitmap;
+    unsigned char *pucData;
+
+    //
+    // Open the input image file.
+    //
+    pFile = fopen(pParams->pcFontInputName[0], "rb");
+    if(!pFile)
+    {
+        fprintf(stderr, "Unable to open input file\n");
+        return(1);
+    }
+
+    //
+    // Get the length of the input image file.
+    //
+    fseek(pFile, 0, SEEK_END);
+    ulLength = ftell(pFile);
+    fseek(pFile, 0, SEEK_SET);
+
+    //
+    // Allocate a memory buffer to store the input image file.
+    //
+    pucData = malloc(ulLength);
+    if(!pucData)
+    {
+        fprintf(stderr, "Unable to allocate buffer for file.\n");
+        return(1);
+    }
+
+    //
+    // Read the input image file into the memory buffer.
+    //
+    if(fread(pucData, 1, ulLength, pFile) != ulLength)
+    {
+        fprintf(stderr, "Unable to read file data.\n");
+        return(1);
+    }
+
+    //
+    // Close the input image file.
+    //
+    fclose(pFile);
+
+    //
+    // Parse the file header to extract the width and height of the image, and
+    // to verify that the image file is a format that is recognized.
+    //
+    if((pucData[0] != 'P') || (pucData[1] != '1'))
+    {
+        fprintf(stderr, "not a supported PNM file.\n");
+        return(1);
+    }
+
+    //
+    // Are we dealing with a color or grayscale image?
+    //
+    ulMono = ((pucData[1] == '5') || (pucData[1] == '1')) ? 1 : 0;
+
+    //
+    // Are we dealing with a (1bpp) bitmap?
+    //
+    ulBitmap = ((pucData[1] == '4')  || (pucData[1] == '1')) ? 1 : 0;
+
+
+        //
+    // Loop through the values to be read from the header.
+    //
+    for(ulCount = 0, ulMax = 2; ulCount < 3; )
+    {
+        //
+        // Loop until a non-whitespace character is found.
+        //
+        while((pucData[ulMax] == ' ') || (pucData[ulMax] == '\t') ||
+              (pucData[ulMax] == '\r') || (pucData[ulMax] == '\n'))
+        {
+            ulMax++;
+        }
+
+        //
+        // If this is a '#', then it starts a comment line.  Ignore comment
+        // lines.
+        //
+        if(pucData[ulMax] == '#')
+        {
+            //
+            // Loop until the end of the line is found.
+            //
+            while((pucData[ulMax] != '\r') && (pucData[ulMax] != '\n'))
+            {
+                ulMax++;
+            }
+
+            //
+            // Restart the loop.
+            //
+            continue;
+        }
+
+        //
+        // Read this value from the file.
+        //
+        if(ulCount == 0)
+        {
+            if(sscanf(pucData + ulMax, "%lu", &ulWidth) != 1)
+            {
+                fprintf(stderr, "has an invalid width.\n");
+                return(1);
+            }
+        }
+        else if(ulCount == 1)
+        {
+            if(sscanf(pucData + ulMax, "%lu", &ulHeight) != 1)
+            {
+                fprintf(stderr, "has an invalid height.\n");
+                return(1);
+            }
+
+            //
+            // We've finished reading the header if this is a bitmap so force
+            // the loop to exit.
+            //
+            if(ulBitmap)
+            {
+                ulCount = 2;
+            }
+        }
+        else
+        {
+            //
+            // Read the maximum number of colors.  We ignore this value but
+            // need to skip past it.  Note that, if this is a bitmap, we will
+            // never get here.
+            //
+            if(sscanf(pucData + ulMax, "%lu", &ulCount) != 1)
+            {
+                fprintf(stderr, "has an invalid maximum value.\n");
+                return(1);
+            }
+            ulCount = 2;
+        }
+        ulCount++;
+
+        //
+        // Skip past this value.
+        //
+        while((pucData[ulMax] != ' ') && (pucData[ulMax] != '\t') &&
+              (pucData[ulMax] != '\r') && (pucData[ulMax] != '\n'))
+        {
+            ulMax++;
+        }
+    }
+
+    //
+    // Find the end of this line.
+    //
+    while((pucData[ulMax] != '\r') && (pucData[ulMax] != '\n'))
+    {
+        ulMax++;
+    }
+
+    //
+    // Skip this end of line marker.
+    //
+    ulMax++;
+    if((pucData[ulMax] == '\r') || (pucData[ulMax] == '\n'))
+    {
+        ulMax++;
+    }
+
+    //
+    // Is this a bitmap?
+    //
+    if(!ulBitmap)
+    {
+        printf("Not Supported yet\n");
+    }
+    else
+    {
+        //
+        // The data as read from the file is fine so we don't need to do any
+        // reformatting now that the palette is set up.  Just set up the length
+        // of the bitmap data remembering that each line is padded to a whole
+        // byte.  First check that the data we read is actually the correct
+        // length.
+        //
+        if((ulLength - ulMax) < (((ulWidth + 7) / 8) * ulHeight))
+        {
+            fprintf(stderr, "%s: Image data truncated. Size %d bytes "
+                    "but dimensions are %d x %d.\n", (ulLength - ulMax),
+                    ulWidth, ulHeight);
+            return(1);
+        }
+
+        //
+        // Set the length to the expected value.
+        //
+        //ulLength = Encode1BPP(pucData + ulMax, ulWidth, ulHeight, ulMono);
+        char *pucOutput = pucData + ulMax;
+        char *pucInput = pucData + ulMax;
+        int i, j;
+        for (i = 0; i < ulHeight * ulWidth / 8; i++)
+        {
+            unsigned char data = 0;
+            for (j = 0; j < 8; j++)
+            {
+                while(*pucInput == '\n') pucInput++;
+                if (*pucInput == '0')
+                    data = data << 1;
+                else
+                    data = (data << 1) + 1;
+            
+                pucInput++;
+            }
+            *pucOutput = data;
+            pucOutput++;
+        }
+        //
+        // Invert the image data to make 1 bits foreground (white) and 0
+        // bits background (black).
+        //
+//        for(ulCount = 0; ulCount < ulLength; ulCount++)
+//        {
+//            *(pucData + ulMax + ulCount) = ~(*(pucData + ulMax + ulCount));
+//        }
+    }
+
+
+    if (pParams->bVerbose)
+    {
+        printf("input image width = %d, height = %d, so font = %d from %c to %c\n",
+            ulWidth, ulHeight, ulHeight/ulWidth, 'a', 'a' + ulHeight / ulWidth);
+    }
+
+    pParams->iFirst = 'a';
+    pParams->iLast = 'a' + ulHeight/ulWidth;
+
+    // move the data into each Glypse
+    int uiChar;
+    for(uiChar = pParams->iFirst; uiChar <= pParams->iLast; uiChar++)
+    {
+        g_pGlyphs[uiChar].ulCodePoint = 'a' + uiChar;
+        g_pGlyphs[uiChar].iWidth = ulWidth;
+        g_pGlyphs[uiChar].iRows = ulWidth;
+        g_pGlyphs[uiChar].iPitch = ulWidth / 8;
+        g_pGlyphs[uiChar].iBitmapTop = 0;
+        g_pGlyphs[uiChar].pucData = pucData + ulMax + (uiChar - pParams->iFirst) * (ulWidth * ulWidth / 8);
+
+        pGlyph = &g_pGlyphs[uiChar];
+        //
+        // Now determine the minimum and maximum X pixel value in the
+        // rendered glyph.
+        //
+
+        //
+        // Loop through the rows of the bitmap for this glyph.
+        //
+        for(iY = 0, iXMin = 1000000, iXMax = 0; iY < pGlyph->iRows; iY++)
+        {
+            //
+            // Find the minimum X for this row of the glyph.
+            //
+            for(iX = 0; iX < pGlyph->iWidth; iX++)
+            {
+                if(pGlyph->pucData[(iY * pGlyph->iPitch) + (iX / 8)] & (1 << (7
+                        - (iX & 7))))
+                {
+                    if(iX < iXMin)
+                    {
+                        iXMin = iX;
+                    }
+                    break;
+                }
+            }
+
+            //
+            // Find the maximum X for this row of the glyph.
+            //
+            for(iX = pGlyph->iWidth - 1; iX >= 0; iX--)
+            {
+                if(pGlyph->pucData[(iY * pGlyph->iPitch) + (iX / 8)] & (1 << (7
+                        - (iX & 7))))
+                {
+                    if(iX > iXMax)
+                    {
+                        iXMax = iX;
+                    }
+                    break;
+                }
+            }
+        }
+
+        if(pParams->bVerbose)
+        {
+            printf("Character 0x%x: xMin %d, xMax %d\n", uiChar, iXMin,
+                    iXMax);
+        }
+
+        //
+        // Save the minimum and maximum X value for this glyph.
+        //
+        pGlyph->iMinX = iXMin;
+        pGlyph->iMaxX = iXMax;
+
+        if (iXMax == 0)
+        {
+            // empty block
+        g_pGlyphs[uiChar].iWidth = 0;
+        g_pGlyphs[uiChar].iRows = 0;
+        g_pGlyphs[uiChar].iPitch = 0;
+        g_pGlyphs[uiChar].iBitmapTop = 0;
+        g_pGlyphs[uiChar].pucData = NULL;
+        }
+    }
+
+    if(pParams->bVerbose)
+    {
+        printf("Finding maximum character dimensions...\n");
+    }
+
+    //
+    // Loop through the glyphs, finding the minimum and maximum Y values
+    // for the glyphs.
+    //
+    for(pGlyph = &g_pGlyphs[pParams->iFirst], iYMin = 0, iYMax = 0; pGlyph
+            <= &g_pGlyphs[pParams->iLast]; pGlyph++)
+    {
+        //
+        // Adjust the minimum Y value if necessary.
+        //
+        if(pGlyph->iBitmapTop > iYMin)
+        {
+            iYMin = pGlyph->iBitmapTop;
+        }
+
+        //
+        // Adjust the maximum Y value if necessary.
+        //
+        if((pGlyph->iBitmapTop - pGlyph->iRows + 1) < iYMax)
+        {
+            iYMax = pGlyph->iBitmapTop - pGlyph->iRows + 1;
+        }
+    }
+
+    if(pParams->bVerbose)
+    {
+        printf("Compressing glyphs...\n");
+    }
+
+    //
+    // Loop through the glyphs, compressing each one.
+    //
+    for(pGlyph = &g_pGlyphs[pParams->iFirst], uiChar = pParams->iFirst; pGlyph
+            <= &g_pGlyphs[pParams->iLast]; pGlyph++, uiChar++)
+    {
+        //
+        // Compress a single glyph.
+        //
+        bRetcode = CompressGlyph(pParams, pGlyph, iWidth, iYMin, iYMax);
+        if(pParams->bVerbose)
+        {
+            if(bRetcode)
+            {
+                if(pGlyph->pucChar)
+                {
+                    printf(
+                            "Compressed glyph 0x%x. Width %d, %d bytes of data.\n",
+                            pGlyph->ulCodePoint, pGlyph->pucChar[1],
+                            pGlyph->pucChar[0]);
+                }
+                else
+                {
+                    printf("NULL returned on compressing glyph %x!\n",
+                            pGlyph->ulCodePoint);
+                }
+            }
+            else
+            {
+                printf("Error on compressing glyph %x!\n", pGlyph->ulCodePoint);
+            }
+        }
+    }
+
+    if(pParams->bVerbose)
+    {
+        printf("Writing output file...\n");
+    }
+
+    //
+    // Convert the filename to all lower case letters.
+    //
+    for(iX = 0; iX < strlen(pParams->pcFilename); iX++)
+    {
+        if((pParams->pcFilename[iX] >= 'A') && (pParams->pcFilename[iX] <= 'Z'))
+        {
+            pParams->pcFilename[iX] += 0x20;
+        }
+    }
+
+    //
+    // Copy the filename and capitalize the first character.
+    //
+    pcCapFilename = malloc(strlen(pParams->pcFilename) + 1);
+    strcpy(pcCapFilename, pParams->pcFilename);
+    pcCapFilename[0] -= 0x20;
+
+    //
+    // Format the size string.
+    //
+    if(pParams->bFixedSize)
+    {
+        //
+        // This font is defined by a fixed pixel size.
+        //
+        sprintf(pucSize, "%dx%d", pParams->iFixedX, pParams->iFixedY);
+    }
+    else
+    {
+        //
+        // This font is defined by point size.
+        //
+        sprintf(pucSize, "%d", pParams->iSize);
+    }
+
+    //
+    // Open the file to which the compressed font will be written.
+    //
+    sprintf(pucChar, "font%s%d%s%s.c", pParams->pcFilename, pParams->iSize,
+            pParams->bBold ? "b" : "", pParams->bItalic ? "i" : "");
+    pFile = fopen(pucChar, "w");
+    if(!pFile)
+    {
+        printf("ERROR: Can't open output file %s!\n", pParams->pcFilename);
+        return(1);
+    }
+
+    //
+    // Write the header to the output file.
+    //
+    bRetcode = WriteCopyrightBlock(pParams, pucSize, pcCapFilename, pFile);
+    if(!bRetcode)
+    {
+        printf("ERROR: Failed to write copyright block to output file!\n");
+        fclose(pFile);
+        return(1);
+    }
+
+    fprintf(pFile, "\n");
+    fprintf(pFile, "#include \"grlib/grlib.h\"\n");
+    fprintf(pFile, "\n");
+
+    //
+    // Get the total size of the compressed font.
+    //
+    for(pGlyph = &g_pGlyphs[pParams->iFirst], iOpt = 0; pGlyph
+            <= &g_pGlyphs[pParams->iLast]; pGlyph++)
+    {
+        if(pGlyph->pucChar)
+        {
+            iOpt += pGlyph->pucChar[0];
+        }
+    }
+
+    //
+    // Write the font details to the output file.  The memory usage of the font
+    // is a close approximation that may vary based on the compiler used and
+    // the compiler options.
+    //
+    fprintf(pFile, "//********************************************************"
+        "*********************\n");
+    fprintf(pFile, "//\n");
+    fprintf(pFile, "// Details of this font:\n");
+    fprintf(pFile, "//     Characters: %d to %d inclusive\n", pParams->iFirst,
+            pParams->iLast);
+    fprintf(pFile, "//     Style: %s\n", pParams->pcFilename);
+    fprintf(pFile, "//     Size: %d point\n", pParams->iSize);
+    fprintf(pFile, "//     Bold: %s\n", pParams->bBold ? "yes" : "no");
+    fprintf(pFile, "//     Italic: %s\n", pParams->bItalic ? "yes" : "no");
+    fprintf(pFile, "//     Memory usage: %d bytes\n", ((iOpt + 3) & ~3) + 200);
+    fprintf(pFile, "//\n");
+    fprintf(pFile, "//********************************************************"
+        "*********************\n");
+    fprintf(pFile, "\n");
+
+    //
+    // Write the compressed font data array header to the output file.
+    //
+    fprintf(pFile, "//********************************************************"
+        "*********************\n");
+    fprintf(pFile, "//\n");
+    fprintf(pFile, "// The compressed data for the %d point %s%s%s font.\n",
+            pParams->iSize, pcCapFilename, pParams->bBold ? " bold" : "",
+            pParams->bItalic ? " italic" : "");
+    fprintf(pFile, "// Contains characters %d to %d inclusive.\n",
+            pParams->iFirst, pParams->iLast);
+    fprintf(pFile, "//\n");
+    fprintf(pFile, "//********************************************************"
+        "*********************\n");
+    fprintf(pFile, "static const unsigned char g_puc%s%d%s%sData[%d] =\n",
+            pcCapFilename, pParams->iSize, pParams->bBold ? "b" : "",
+            pParams->bItalic ? "i" : "", iOpt);
+    fprintf(pFile, "{\n");
+
+    //
+    // Loop through the glyphs.
+    //
+    for(pGlyph = &g_pGlyphs[pParams->iFirst], iOpt = 0; pGlyph
+            <= &g_pGlyphs[pParams->iLast]; pGlyph++)
+    {
+        //
+        // Loop through the bytes of the compressed data for this glyph.
+        //
+        if(pGlyph->pucChar)
+        {
+            for(iX = 0; iX < pGlyph->pucChar[0]; iX++)
+            {
+                //
+                // Output this byte of the compressed glyph data, along with any
+                // special formatting required to make the output file look
+                // readable.
+                //
+                if(iOpt == 0)
+                {
+                    fprintf(pFile, "   ");
+                }
+                else if((iOpt % 12) == 0)
+                {
+                    fprintf(pFile, "\n   ");
+                }
+                fprintf(pFile, " %3d,", pGlyph->pucChar[iX]);
+                iOpt++;
+            }
+        }
+    }
+
+    //
+    // Close the compressed data array.
+    //
+    if((iOpt % 12) != 0)
+    {
+        fprintf(pFile, "\n");
+    }
+    fprintf(pFile, "};\n");
+    fprintf(pFile, "\n");
+
+    //
+    // If we are using the new structure format, write the offset table as a
+    // separate array.
+    //
+    if(iNewStruct)
+    {
+        fprintf(pFile, "//****************************************************"
+            "*************************\n");
+        fprintf(pFile, "//\n");
+        fprintf(pFile,
+                "// The glyph offset table for the %d point %s%s%s font.\n",
+                pParams->iSize, pcCapFilename, pParams->bBold ? " bold" : "",
+                pParams->bItalic ? " italic" : "");
+        fprintf(pFile, "//\n");
+        fprintf(pFile, "//****************************************************"
+            "*************************\n\n");
+
+        fprintf(pFile, "const unsigned short g_usFontOffset%s%d%s%s[] =\n",
+                pcCapFilename, pParams->iSize, pParams->bBold ? "b" : "",
+                pParams->bItalic ? "i" : "");
+
+        fprintf(pFile, "{");
+        for(iY = 0, iOpt = 0; iY < ((pParams->iLast - pParams->iFirst) + 1); iY++)
+        {
+            if(!(iY % 8))
+            {
+                fprintf(pFile, "\n       ");
+            }
+            if(g_pGlyphs[iY + pParams->iFirst].pucChar)
+            {
+                fprintf(pFile, " %4d,", iOpt);
+                iOpt += g_pGlyphs[iY + pParams->iFirst].pucChar[0];
+            }
+            else
+            {
+                fprintf(pFile, " %4d,", 0);
+            }
+        }
+        fprintf(pFile, "\n};\n\n");
+
+        //
+        // Write the font definition header to the output file (original tFont
+        // structure).
+        //
+        fprintf(pFile, "//****************************************************"
+            "*************************\n");
+        fprintf(pFile, "//\n");
+        fprintf(pFile,
+                "// The font definition for the %d point %s%s%s font.\n",
+                pParams->iSize, pcCapFilename, pParams->bBold ? " bold" : "",
+                pParams->bItalic ? " italic" : "");
+        fprintf(pFile, "//\n");
+        fprintf(pFile, "//****************************************************"
+            "*************************\n");
+
+        //
+        // Write the font definition to the output file (using the new tFontEx
+        // structure.
+        //
+        fprintf(pFile, "const tFontEx g_sFontEx%s%d%s%s =\n", pcCapFilename,
+                pParams->iSize, pParams->bBold ? "b" : "",
+                pParams->bItalic ? "i" : "");
+        fprintf(pFile, "{\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The format of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    FONT_FMT_EX_PIXEL_RLE,\n");
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The maximum width of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", iWidth);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The height of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", iYMin - iYMax + 1);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The baseline of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", iYMin);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The first encoded character in the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", pParams->iFirst);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The last encoded character in the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", pParams->iLast);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // A pointer to the character offset table.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    g_usFontOffset%s%d%s%s,\n", pcCapFilename,
+                pParams->iSize, pParams->bBold ? "b" : "",
+                pParams->bItalic ? "i" : "");
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // A pointer to the actual font data\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    g_puc%s%d%s%sData\n", pcCapFilename,
+                pParams->iSize, pParams->bBold ? "b" : "",
+                pParams->bItalic ? "i" : "");
+        fprintf(pFile, "};\n");
+    }
+    else
+    {
+        //
+        // Write the font definition header to the output file (original tFont
+        // structure).
+        //
+        fprintf(pFile, "//****************************************************"
+            "*************************\n");
+        fprintf(pFile, "//\n");
+        fprintf(pFile,
+                "// The font definition for the %d point %s%s%s font.\n",
+                pParams->iSize, pcCapFilename, pParams->bBold ? " bold" : "",
+                pParams->bItalic ? " italic" : "");
+        fprintf(pFile, "//\n");
+        fprintf(pFile, "//****************************************************"
+            "*************************\n");
+
+        //
+        // Write the font definition to the output file.
+        //
+        fprintf(pFile, "const tFont g_sFont%s%d%s%s =\n", pcCapFilename,
+                pParams->iSize, pParams->bBold ? "b" : "",
+                pParams->bItalic ? "i" : "");
+        fprintf(pFile, "{\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The format of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    FONT_FMT_PIXEL_RLE,\n");
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The maximum width of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", iWidth);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The height of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", iYMin - iYMax + 1);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The baseline of the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    %d,\n", iYMin);
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // The offset to each character in the font.\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    {\n");
+        for(iY = 0, iOpt = 0; iY < 12; iY++)
+        {
+            fprintf(pFile, "       ");
+            for(iX = 0; iX < 8; iX++)
+            {
+                if((iY != 11) || (iX != 7))
+                {
+                    if(g_pGlyphs[(iY * 8) + iX + pParams->iFirst].pucChar)
+                    {
+                        fprintf(pFile, " %4d,", iOpt);
+                        iOpt
+                                += g_pGlyphs[((iY * 8) + iX + pParams->iFirst)].pucChar[0];
+                    }
+                    else
+                    {
+                        fprintf(pFile, " %4d,", 0);
+                    }
+                }
+            }
+            fprintf(pFile, "\n");
+        }
+        fprintf(pFile, "    },\n");
+        fprintf(pFile, "\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    // A pointer to the actual font data\n");
+        fprintf(pFile, "    //\n");
+        fprintf(pFile, "    g_puc%s%d%s%sData\n", pcCapFilename,
+                pParams->iSize, pParams->bBold ? "b" : "",
+                pParams->bItalic ? "i" : "");
+        fprintf(pFile, "};\n");
+    }
+
+    //
+    // Close the output file.
+    //
+    fclose(pFile);
+
+    if(pParams->bVerbose)
+    {
+        printf("Finished.\n");
+    }
+
+    //
+    // Success.
+    //
+    return (0);
+
+}
+
 //*****************************************************************************
 //
 // Generate a font file containing an 8 bit character set (e.g. an ISO8859
@@ -5160,6 +5930,15 @@ int main(int argc, char *argv[])
     if(sParams.bShow)
     {
         return(ShowFontCharacters(&sParams));
+    }
+
+    // check if intput is a image file
+    char *dot = strrchr(sParams.pcFontInputName[0], '.');
+    if (dot && !strcmp(dot, ".pbm"))
+    {
+        iRetcode = ConvertRasterFont(&sParams);
+
+        return (iRetcode);
     }
 
     //
