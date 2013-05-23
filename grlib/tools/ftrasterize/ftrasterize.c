@@ -4256,6 +4256,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
     }
 
 
+    iWidth = ulWidth;
     if (pParams->bVerbose)
     {
         printf("input image width = %d, height = %d, so font = %d from %c to %c\n",
