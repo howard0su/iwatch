@@ -48,6 +48,7 @@ CORE   = \
 
 PLATFORM = \
 	platform/iwatch/backlight.c \
+	platform/iwatch/battery.c \
 	platform/iwatch/button-sensor.c \
 	platform/iwatch/clock.c \
 	platform/iwatch/flash.c \
@@ -197,7 +198,7 @@ $(OBJDIR)/symbols.c: $(OBJDIR)/iwatch.elf
 	@echo "Generate symbol table"
 	@echo "#include \"loader/symbols-def.h\"" > $@
 	@echo "const struct symbols symbols[] = {" >> $@
-	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{(void*)0x" $$1 ",\"" $$3 "\"}," }' | sort -f +1 -t ','>> $@
+	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{(void*)0x" $$1 ",\"" $$3 "\"}," }' | sort -f -k+2 -t ','>> $@
 	@echo "{(void*)0, 0}};" >> $@
 
 $(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c

@@ -47,6 +47,7 @@
 
 #include "node-id.h"
 #include "power.h"
+#include "battery.h"
 
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
@@ -79,6 +80,7 @@ main(int argc, char **argv)
   */
   msp430_cpu_init();
   clock_init();
+  battery_init();
 
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 
