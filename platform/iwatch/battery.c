@@ -55,3 +55,8 @@ BATTERY_STATE battery_state(void)
   else
     return BATTERY_CHARGING;
 }
+
+uint8_t battery_level(void)
+{
+  return 75;
+}

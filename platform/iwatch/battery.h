@@ -8,5 +8,9 @@ typedef enum
   }BATTERY_STATE;
 void battery_init(void);
 
+// battery charging status
 BATTERY_STATE battery_state(void);
+
+// battery level
+uint8_t       battery_level(void);
 #endif
