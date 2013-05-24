@@ -5,6 +5,7 @@ CC      = $(MSPPATH)/msp430-gcc
 OBJCOPY = $(MSPPATH)/msp430-objcopy
 SIZE    = $(MSPPATH)/msp430-size
 NM		= $(MSPPATH)/msp430-nm
+MAKETXT = srec_cat
 ECHO	= echo
 
 TARGET_CPU = msp430f5438a
@@ -85,7 +86,8 @@ GRLIB_FONTS = \
 	fontnova12b.c \
 	fontnova28.c \
 	fontnova28b.c \
-	fontnova38b.c
+	fontnova38b.c \
+	fonticon16.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
@@ -170,18 +172,17 @@ $(OBJDIR)/%.d: %.c
 %.hex: %.elf
 	@$(OBJCOPY) -O ihex $< $@
 	@$(SIZE) $<
+%.txt: %.hex
+	$(MAKETXT) -O $@ -TITXT $< -I
+	unix2dos $@
 
 # create firmware image from common objects and example source file
 
-all: $(DEPFILES) $(OBJS) iwatch.hex
+all: $(DEPFILES) $(OBJS) iwatch.hex iwatch.txt
 
 iwatch.elf: ${OBJS} $(OBJDIR)/main.o0 $(OBJDIR)/$(OBJDIR)/symbols.o
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
-
-clean:
-	rm -f $ *.elf *.hex
-	rm -Rf objs/
 
 size: all
 	msp430-size *.elf
@@ -204,4 +205,11 @@ $(OBJDIR)/symbols.c: $(OBJDIR)/iwatch.elf
 $(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c
 	@$(CC) $(CFLAGS0) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
+ifneq ($(MAKECMDGOALS), clean)
 -include $(DEPFILES)
+endif
+.SILENT:
+.PHONY:	clean
+clean:
+	rm -f $ *.elf *.hex
+	rm -Rf objs/
