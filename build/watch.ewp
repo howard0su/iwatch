@@ -10,7 +10,7 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>12</archiveVersion>
+      <archiveVersion>11</archiveVersion>
       <data>
         <version>28</version>
         <wantNonLocal>1</wantNonLocal>
@@ -66,8 +66,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>2</version>
-          <state>3</state>
+          <version>1</version>
+          <state>2</state>
         </option>
         <option>
           <name>Input description</name>
@@ -75,8 +75,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>2</version>
-          <state>3</state>
+          <version>1</version>
+          <state>2</state>
         </option>
         <option>
           <name>Output description</name>
@@ -159,7 +159,7 @@
       <name>ICC430</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>35</version>
+        <version>34</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -457,17 +457,13 @@
           <name>CCOptimizationNoSizeConstraints</name>
           <state>1</state>
         </option>
-        <option>
-          <name>ADefines</name>
-          <state></state>
-        </option>
       </data>
     </settings>
     <settings>
       <name>A430</name>
-      <archiveVersion>5</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>14</version>
+        <version>13</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -622,10 +618,6 @@
         <option>
           <name>AUserIncludes</name>
           <state></state>
-        </option>
-        <option>
-          <name>ACPUTAG</name>
-          <state>1</state>
         </option>
       </data>
     </settings>
@@ -829,7 +821,7 @@
         </option>
         <option>
           <name>IoEmulation</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XcRTLibraryFile</name>
@@ -883,7 +875,7 @@
         </option>
         <option>
           <name>BufferedTermOutput</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XExtraOptionsCheck</name>
@@ -1005,7 +997,7 @@
     <debug>0</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>12</archiveVersion>
+      <archiveVersion>11</archiveVersion>
       <data>
         <version>28</version>
         <wantNonLocal>1</wantNonLocal>
@@ -1061,8 +1053,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>2</version>
-          <state>3</state>
+          <version>1</version>
+          <state>2</state>
         </option>
         <option>
           <name>Input description</name>
@@ -1070,8 +1062,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>2</version>
-          <state>3</state>
+          <version>1</version>
+          <state>2</state>
         </option>
         <option>
           <name>Output description</name>
@@ -1154,7 +1146,7 @@
       <name>ICC430</name>
       <archiveVersion>4</archiveVersion>
       <data>
-        <version>35</version>
+        <version>34</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1453,17 +1445,13 @@
           <name>CCOptimizationNoSizeConstraints</name>
           <state>1</state>
         </option>
-        <option>
-          <name>ADefines</name>
-          <state>NDEBUG</state>
-        </option>
       </data>
     </settings>
     <settings>
       <name>A430</name>
-      <archiveVersion>5</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>14</version>
+        <version>13</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1618,10 +1606,6 @@
         <option>
           <name>AUserIncludes</name>
           <state></state>
-        </option>
-        <option>
-          <name>ACPUTAG</name>
-          <state>1</state>
         </option>
       </data>
     </settings>
@@ -1821,11 +1805,11 @@
         </option>
         <option>
           <name>RuntimeControl</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>IoEmulation</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XcRTLibraryFile</name>
@@ -1849,7 +1833,7 @@
         </option>
         <option>
           <name>XExtraOutOverride</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ExtraOutputFile</name>
@@ -2023,6 +2007,9 @@
       <name>$PROJ_DIR$\..\watch\btconfig.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\calendar.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\configtime.c</name>
     </file>
     <file>
@@ -2044,6 +2031,15 @@
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\selftest.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\sportswatch.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\status.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\stopwatch.c</name>
     </file>
     <file>
@@ -2058,6 +2054,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\worldclock.c</name>
     </file>
   </group>
   <group>
@@ -2117,6 +2116,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\src\mns.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\src\obex.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\src\remote_device_db_memory.c</name>
@@ -2227,6 +2229,9 @@
     <group>
       <name>fonts</name>
       <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fonticon16.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova10.c</name>
       </file>
       <file>
@@ -2240,6 +2245,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova28b.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova38b.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova9b.c</name>
@@ -2289,6 +2297,9 @@
     <name>platform</name>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\backlight.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\battery.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\button-sensor.c</name>

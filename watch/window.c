@@ -30,7 +30,17 @@ __attribute__ ((section(".infoc")))
 #endif
 static const ui_config ui_config_data =
 {
-  UI_CONFIG_SIGNATURE
+  UI_CONFIG_SIGNATURE,
+
+  "Yukon", "Honolulu", "Anchorage",
+  +3, +4, -9,
+
+  4,
+
+  2,
+
+  0,
+  0, 1, 2
 };
 #ifndef __GNUC__
 #pragma constseg = default
@@ -123,7 +133,7 @@ PROCESS_THREAD(system_process, ev, data)
       }
       else if (data == &status_timer)
       {
-        ui_window_flag |= WINDOW_FLAGS_STATUSUPDATE;
+        status_process(ev, 0, data);
       }
     }
     else if (ev == EVENT_TIME_CHANGED)
