@@ -56,35 +56,35 @@ static void OnDraw(tContext *pContext)
     window_drawtime(pContext, 65, times, 0);
   }
 
-    // draw title
-    GrContextFontSet(pContext, &g_sFontNova12);
-    GrContextForegroundSet(pContext, ClrWhite);
-    GrContextBackgroundSet(pContext, ClrBlack);
-    GrStringDraw(pContext, title, -1, 25, 83, 0);
+  // draw title
+  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
+  GrStringDraw(pContext, title, -1, 25, 83, 0);
 
-    switch(state)
-    {
-    case AVRCP_PLAY_STATUS_ERROR:
-      window_button(pContext, KEY_UP, NULL);
-      window_button(pContext, KEY_DOWN, NULL);
-      window_button(pContext, KEY_ENTER, NULL);
-      break;
-    case AVRCP_PLAY_STATUS_STOPPED:
-      window_button(pContext, KEY_UP, "PLAY");
-      window_button(pContext, KEY_DOWN, "NEXT");
-      window_button(pContext, KEY_ENTER, "PREV");
-      break;
-    case AVRCP_PLAY_STATUS_PLAYING:
-      window_button(pContext, KEY_UP, "PAUSE");
-      window_button(pContext, KEY_DOWN, "NEXT");
-      window_button(pContext, KEY_ENTER, "PREV");
-      break;
-    case AVRCP_PLAY_STATUS_PAUSED:
-      window_button(pContext, KEY_UP, "PLAY");
-      window_button(pContext, KEY_DOWN, "NEXT");
-      window_button(pContext, KEY_ENTER, "PREV");
-      break;
-    }
+  switch(state)
+  {
+  case AVRCP_PLAY_STATUS_ERROR:
+    window_button(pContext, KEY_UP, NULL);
+    window_button(pContext, KEY_DOWN, NULL);
+    window_button(pContext, KEY_ENTER, NULL);
+    break;
+  case AVRCP_PLAY_STATUS_STOPPED:
+    window_button(pContext, KEY_UP, "PLAY");
+    window_button(pContext, KEY_DOWN, "NEXT");
+    window_button(pContext, KEY_ENTER, "PREV");
+    break;
+  case AVRCP_PLAY_STATUS_PLAYING:
+    window_button(pContext, KEY_UP, "PAUSE");
+    window_button(pContext, KEY_DOWN, "NEXT");
+    window_button(pContext, KEY_ENTER, "PREV");
+    break;
+  case AVRCP_PLAY_STATUS_PAUSED:
+    window_button(pContext, KEY_UP, "PLAY");
+    window_button(pContext, KEY_DOWN, "NEXT");
+    window_button(pContext, KEY_ENTER, "PREV");
+    break;
+  }
 }
 
 
@@ -99,7 +99,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
       if (initing)
       {
         strcpy(title, "Connected");
-        avrcp_get_playstatus();
+        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
       break;
     }
@@ -129,7 +129,6 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
         }
       case AVRCP_MEDIA_ATTRIBUTE_DURATION:
         {
-
           break;
         }
       case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
@@ -145,7 +144,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (initing)
       {
-        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
+        //avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
 
       state = lparam;
@@ -176,7 +175,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
         }
         else
         {
-          window_notify("No Bluetooth Device Paired", NOTIFY_OK, NULL);
+          //window_notify("No Bluetooth Device Paired", NOTIFY_OK, NULL);
           return 1;
         }
       }

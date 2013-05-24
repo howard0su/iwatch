@@ -1129,6 +1129,7 @@ extern const tFont g_sFontNova12b;
 extern const tFont g_sFontNova28;
 extern const tFont g_sFontNova28b;
 extern const tFont g_sFontNova38b;
+extern const tFontEx g_sFontExIcon16;
 
 //*****************************************************************************
 //

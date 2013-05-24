@@ -30,16 +30,16 @@ PROCESS_NAME(system_process);
 #define EVENT_CODEC_STATUS            0xa9 // parameters BIT0:EnABLE
 #define EVENT_WINDOW_PAINT            0xaa // no parameter
 #define EVENT_NOTIFICATION_DONE       0xab
-#define EVENT_PAINT                   0xac // refresh the screen after notification
 #define EVENT_NOTIFY_RESULT           0xad // the notification result
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 
-extern void window_init();
+extern void window_init(void);
 extern void window_open(windowproc proc, void* data);
 extern void window_invalid(const tRectangle *rect);
+extern void status_invalid(void);  // invalid status
 extern void window_timer(clock_time_t time);
-extern void window_close();
+extern void window_close(void);
 
 // Common control
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
@@ -59,6 +59,8 @@ extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_
 extern void window_notify(const char* message, uint8_t buttons, windowproc callback);
 
 extern const tRectangle client_clip;
+
+extern uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam);
 
 // Dialogs
 extern uint8_t analogclock_process(uint8_t event, uint16_t lparam, void* rparam);

@@ -17,8 +17,10 @@ extern void I2C_Init();
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
 
-#define WINDOW_FLAGS_REFRESH 1
-static uint8_t ui_window_flag;
+#define WINDOW_FLAGS_REFRESH            1
+#define WINDOW_FLAGS_STATUSUPDATE       2
+
+static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
 #if defined(__GNUC__)
@@ -34,9 +36,10 @@ static const ui_config ui_config_data =
 #pragma constseg = default
 #endif
 
-const tRectangle client_clip = {0, 16, LCD_X_SIZE, LCD_Y_SIZE};
+const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
+const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
 static tContext context;
-static struct etimer timer;
+static struct etimer timer, status_timer;
 
 
 // the real stack is like this
@@ -49,11 +52,10 @@ static struct etimer timer;
 #define MAX_STACK 6
 #define ui_window (stack[stackptr])
 static windowproc stack[MAX_STACK]; // assume 5 is enough
-static uint8_t stackptr;
+static uint8_t stackptr = 0;
 
 void window_init()
 {
-  stackptr = 0;
   return;
 }
 
@@ -105,10 +107,13 @@ PROCESS_THREAD(system_process, ev, data)
       ui_window(EVENT_WINDOW_PAINT, 0, &context);
       GrFlush(&context);
 
+      status_process(EVENT_WINDOW_CREATED, 0, data);
 
       //codec_init();
       //ant_init();
       mpu6050_init();
+
+      etimer_set(&status_timer, CLOCK_SECOND * 3);
     }
     else if (ev == PROCESS_EVENT_TIMER)
     {
@@ -116,13 +121,22 @@ PROCESS_THREAD(system_process, ev, data)
       {
         ui_window(ev, 0, data);
       }
+      else if (data == &status_timer)
+      {
+        ui_window_flag |= WINDOW_FLAGS_STATUSUPDATE;
+      }
     }
     else if (ev == EVENT_TIME_CHANGED)
     {
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
     }
-    else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED || ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS)
+    else if (ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS)
+    {
+      status_process(ev, (uint16_t)data, NULL);
+      ui_window(ev, (uint16_t)data, NULL);
+    }
+    else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED)
     {
       // event converter to pass data as lparam
       uint8_t ret = ui_window(ev, (uint16_t)data, NULL);
@@ -145,6 +159,14 @@ PROCESS_THREAD(system_process, ev, data)
       GrFlush(&context);
     }
 
+    if (ui_window_flag & WINDOW_FLAGS_STATUSUPDATE)
+    {
+      ui_window_flag &= ~WINDOW_FLAGS_STATUSUPDATE;
+      GrContextClipRegionSet(&context, &status_clip);
+      status_process(EVENT_WINDOW_PAINT, 0, &context);
+      GrFlush(&context);
+    }
+
     PROCESS_WAIT_EVENT();
   }
 
@@ -163,83 +185,6 @@ void window_timer(clock_time_t time)
   }
 }
 
-static windowproc notify_parent_window;
-static uint8_t notify_buttons;
-static uint8_t notification_process(uint8_t ev, uint16_t lparam, void* rparam)
-{
-  switch(ev)
-  {
-  case EVENT_KEY_PRESSED:
-    {
-      if (lparam == KEY_DOWN)
-      {
-        switch(notify_buttons)
-        {
-        case NOTIFY_OK:
-          {
-            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_OK);
-            break;
-          }
-        case NOTIFY_YESNO:
-          {
-            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_YES);
-            break;
-          }
-        case NOTIFY_ACCEPT_REJECT:
-          {
-            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_ACCEPT);
-            break;
-          }
-        default:
-          return 0;
-        }
-      }
-      if (lparam == KEY_ENTER)
-      {
-        switch(notify_buttons)
-        {
-        case NOTIFY_YESNO:
-          {
-            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_NO);
-            break;
-          }
-        case NOTIFY_ACCEPT_REJECT:
-          {
-            process_post(&system_process, EVENT_NOTIFY_RESULT, (void*)NOTIFY_RESULT_REJECT);
-            break;
-          }
-        default:
-          return 0;
-        }
-      }
-
-      // close notification
-      ui_window = notify_parent_window;
-      notify_parent_window = NULL;
-      break;
-    }
-  default:
-    return 0;
-  }
-
-  return 0;
-}
-
-void window_notify(const char* message, uint8_t buttons, windowproc callback)
-{
-  // switch proc to windows_notify service
-  notify_parent_window = ui_window;
-  if (callback == NULL)
-    ui_window = notification_process;
-  else
-    ui_window = callback;
-
-  notify_buttons = buttons;
-  // show the notification
-
-  return;
-}
-
 void window_invalid(const tRectangle *rect)
 {
   if (rect != NULL)
@@ -248,10 +193,16 @@ void window_invalid(const tRectangle *rect)
   }
   else
   {
+    // todo, merge two rect
     current_clip = client_clip;
   }
 
   ui_window_flag |= WINDOW_FLAGS_REFRESH;
+}
+
+void status_invalid()
+{
+  ui_window_flag |= WINDOW_FLAGS_STATUSUPDATE;
 }
 
 void window_close()
