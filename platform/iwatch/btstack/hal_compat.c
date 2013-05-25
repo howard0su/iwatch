@@ -22,12 +22,8 @@ uint8_t FlashReadByte (uint32_t addr){
   uint32_t register sr, flash;
 
   __asm__ __volatile__ (
-      "mov    r2  , %1   \n"
-      "bic    %3  , r2   \n"
-      "nop               \n"
       "movx.a %4  , %2   \n"
       "movx.b @%2, %0    \n"
-      "mov    %1 , r2    \n"
       :"=X"(result),"=r"(sr),"=r"(flash)
       :"i"(GIE),"m"(addr));
 
