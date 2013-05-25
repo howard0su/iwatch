@@ -1,0 +1,102 @@
+#include "contiki.h"
+#include "window.h"
+#include "grlib/grlib.h"
+#include "Template_Driver.h"
+
+static const char* message_title;
+static const char* message;
+static char message_icon;
+static uint8_t message_buttons;
+static uint8_t message_result;
+
+#define BORDER 10
+
+static const tRectangle rect[5] =
+{
+  {0, 17, LCD_X_SIZE, 17 + BORDER},
+  {0, 17, BORDER, LCD_Y_SIZE},
+  {0, LCD_Y_SIZE - BORDER, LCD_X_SIZE, LCD_Y_SIZE},
+  {LCD_X_SIZE - BORDER, 17, LCD_X_SIZE, LCD_Y_SIZE},
+  {BORDER/2, 17 + BORDER/2, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2}
+};
+
+static void onDraw(tContext *pContext)
+{
+
+  GrContextForegroundSet(pContext, ClrBlack);
+  for(int i = 0; i < 4; i++)
+    GrRectFill(pContext, &rect[i]);
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrRectFillRound(pContext, &rect[4], 4);
+
+  GrContextForegroundSet(pContext, ClrBlack);
+
+  // draw title
+  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrStringDraw(pContext, message_title, -1, 34, 43, 0);
+  // draw the line
+  GrLineDrawH(pContext, 5, 126, 63);
+  //draw message
+  // todo, how to wrap the text
+  GrContextFontSet(pContext, &g_sFontNova12);
+  GrStringDraw(pContext, message, -1, 12, 76, 0);
+
+  switch(message_buttons)
+  {
+  case NOTIFY_OK:
+    window_button(pContext, KEY_ENTER, "OK");
+    break;
+  case NOTIFY_YESNO:
+    window_button(pContext, KEY_ENTER, "Yes");
+    window_button(pContext, KEY_DOWN, "No");
+    break;
+  case NOTIFY_ACCEPT_REJECT:
+    window_button(pContext, KEY_ENTER, "Accept");
+    window_button(pContext, KEY_DOWN, "Reject");
+    break;
+  }
+}
+
+// notify window process
+uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  switch(ev)
+  {
+  case EVENT_WINDOW_CREATED:
+    break;
+  case EVENT_WINDOW_PAINT:
+    {
+      onDraw((tContext*)rparam);
+      break;
+    }
+  case EVENT_WINDOW_CLOSING:
+    process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)message_result);
+    break;
+  case EVENT_KEY_PRESSED:
+    if (lparam == KEY_ENTER)
+    {
+      message_result = NOTIFY_RESULT_OK;
+      window_close();
+    }
+    else if ((lparam == KEY_DOWN) && (message_buttons != NOTIFY_OK))
+    {
+      message_result = NOTIFY_RESULT_NO;
+      window_close();
+    }
+    break;
+  default:
+    return 0;
+  }
+
+  return 1;
+}
+
+void window_notify(const char* title, const char* msg, uint8_t buttons, char icon)
+{
+  message_title = title;
+  message = msg;
+  message_buttons = buttons;
+  message_icon = icon;
+  window_open(notify_process, NULL);
+}
+

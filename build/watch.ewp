@@ -2031,6 +2031,9 @@
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\notification.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
     </file>
     <file>

@@ -175,7 +175,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
         }
         else
         {
-          //window_notify("No Bluetooth Device Paired", NOTIFY_OK, NULL);
+          window_notify("ERROR", "No Bluetooth Device Paired", NOTIFY_OK, 0);
           return 1;
         }
       }
@@ -186,6 +186,9 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
 
       break;
     }
+  case EVENT_NOTIFY_RESULT:
+    window_close();
+    break;
   case EVENT_WINDOW_PAINT:
     {
       OnDraw((tContext*)rparam);
