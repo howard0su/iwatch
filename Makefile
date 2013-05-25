@@ -144,6 +144,8 @@ WATCH = \
     watch/selftest.c \
     watch/status.c \
     watch/sportswatch.c \
+    watch/notification.c \
+    watch/worldclock.c \
     watch/window.c
 
 OBJDIR = objs
