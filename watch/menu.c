@@ -71,7 +71,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
   }
 
   tRectangle rect = {8, 17 + index * MENU_SPACE, 136, 9 + (index + 1) * MENU_SPACE};
-  GrRectFill(pContext, &rect);
+  GrRectFillRound(pContext, &rect, 2);
 
   GrContextForegroundSet(pContext, !selected);
   GrContextBackgroundSet(pContext, selected);
