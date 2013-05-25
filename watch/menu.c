@@ -35,7 +35,7 @@ static const struct MenuItem SetupMenu[] =
   {0, "Bluetooth", btconfig_process},
   {0, "ANT+", NULL},
   {0, "Self-test", selftest_process},
-  {NULL}
+  {0, NULL}
 };
 
 static const struct MenuItem MainMenu[] =
@@ -50,7 +50,7 @@ static const struct MenuItem MainMenu[] =
   {'l', "Music Control", &control_process},
   {'h', "Sports Watch", &stopwatch_process},
   {'i', "Watch Setup", &menu_process},
-  {NULL}
+  {0, NULL}
 };
 
 #define NUM_MENU_A_PAGE 5
