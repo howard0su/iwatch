@@ -23,7 +23,7 @@
 PROCESS(mpu6050_process, "MPU6050 Driver");
 
 /* Starting sampling rate. */
-#define DEFAULT_MPU_HZ  (10)
+#define DEFAULT_MPU_HZ  (5)
 
 static struct etimer timer;
 
@@ -121,12 +121,18 @@ void mpu6050_init()
   MPU_INT_IES &= ~MPU_INT_BIT;  // IRQ on 0->1 transition
   MPU_INT_IE  |=  MPU_INT_BIT;  // enable IRQ for P1.6
 
+  long gyro[3], accel[3];
+  int r = mpu_run_self_test(gyro, accel);
+  printf("self test result %x\n", r);
+
   /* Get/set hardware configuration. Start gyro. */
   /* Wake up all sensors. */
   mpu_set_sensors(INV_XYZ_ACCEL); //INV_XYZ_GYRO
   /* Push both gyro and accel data into the FIFO. */
   mpu_configure_fifo(INV_XYZ_ACCEL); //INV_XYZ_GYRO
   mpu_set_sample_rate(DEFAULT_MPU_HZ);
+
+#if 1
   /* Read back configuration in case it was set improperly. */
   mpu_get_sample_rate(&gyro_rate);
   mpu_get_gyro_fsr(&gyro_fsr);
@@ -172,8 +178,15 @@ void mpu6050_init()
   dmp_set_fifo_rate(DEFAULT_MPU_HZ);
   mpu_set_dmp_state(1);
 
+  dmp_set_interrupt_mode(DMP_INT_GESTURE);
+#endif
+
   I2C_done();
-  process_start(&mpu6050_process, NULL);
+
+ // if (r)
+  {
+    process_start(&mpu6050_process, NULL);
+  }
 }
 
 extern int i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -214,7 +227,7 @@ static enum {STATE_RUNNING, STATE_SLEEP} state = STATE_RUNNING;
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
   PROCESS_BEGIN();
-  etimer_set(&timer, CLOCK_SECOND * 10);
+  etimer_set(&timer, CLOCK_SECOND * 3);
   process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
   while(1)
   {
@@ -226,7 +239,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 
       if (state == STATE_SLEEP)
       {
-        //mpu_lp_motion_interrupt(0, 0, 0);
+        mpu_lp_motion_interrupt(0, 0, 0);
         state = STATE_RUNNING;
       }
 
@@ -243,27 +256,43 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       * leftover packets in the FIFO.
       */
       I2C_addr(MPU6050_ADDR);
+      uint8_t c = 0;
       do
       {
-        short gyro[3], accel[3], sensors;
+        short gyro[3], accel[3];
+        short sensors;
         unsigned long sensor_timestamp;
         long quat[4];
 
+//        mpu_read_fifo(gyro, accel, &sensor_timestamp, &sensors,
+//                      &more);
+        c++;
         dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
                       &more);
         //printf("read one data\n");
-        PROCESS_YIELD();
+//        PROCESS_YIELD();
       }while(more);
+      printf("read %d data\n", c);
       I2C_done();
     }
+#if 0
     else if (ev == PROCESS_EVENT_TIMER)
     {
-      printf("enter sleep mode\n");
-      state = STATE_SLEEP;
+      I2C_addr(MPU6050_ADDR);
       watchdog_stop();
-      //mpu_lp_motion_interrupt(500, 1, 5);
+      if (!mpu_lp_motion_interrupt(500, 10, 5))
+      {
+        printf("enter sleep mode\n");
+        state = STATE_SLEEP;
+      }
+      else
+      {
+        printf("enter sleep mode failed\n");
+      }
       watchdog_start();
+      I2C_done();
     }
+#endif
   }
 
   PROCESS_END();
