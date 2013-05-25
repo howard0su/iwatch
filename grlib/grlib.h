@@ -1420,6 +1420,7 @@ extern void GrLineDrawH(const tContext *pContext, long lX1, long lX2, long lY);
 extern void GrLineDrawV(const tContext *pContext, long lX, long lY1, long lY2);
 extern void GrRectDraw(const tContext *pContext, const tRectangle *pRect);
 extern void GrRectFill(const tContext *pContext, const tRectangle *pRect);
+extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
 extern void GrStringDraw(const tContext *pContext, const char *pcString,
                          long lLength, long lX, long lY,
                          unsigned long bOpaque);

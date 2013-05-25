@@ -303,6 +303,47 @@ GrRectIntersectGet(tRectangle *psRect1, tRectangle *psRect2,
 
 //*****************************************************************************
 //
+//! Draws a filled round rectangle.
+//!
+//! \param pContext is a pointer to the drawing context to use.
+//! \param pRect is a pointer to the structure containing the extents of the
+//! rectangle.
+//!
+//! This function draws a filled rectangle.  The rectangle will extend from
+//! \e lXMin to \e lXMax and \e lYMin to \e lYMax, inclusive.  The clipping of
+//! the rectangle to the clipping rectangle is performed within this routine;
+//! the display driver's rectangle fill routine is used to perform the actual
+//! rectangle fill.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius)
+{
+  GrCircleFill(pContext, pRect->sXMin + lRadius, pRect->sYMin + lRadius, lRadius);
+  GrCircleFill(pContext, pRect->sXMin + lRadius, pRect->sYMax - lRadius, lRadius);
+  GrCircleFill(pContext, pRect->sXMax - lRadius, pRect->sYMin + lRadius, lRadius);
+  GrCircleFill(pContext, pRect->sXMax - lRadius, pRect->sYMax - lRadius, lRadius);
+
+  tRectangle rect;
+  rect.sYMin = pRect->sYMin;
+  rect.sYMax = pRect->sYMax;
+  rect.sXMin = pRect->sXMin + lRadius;
+  rect.sXMax = pRect->sXMax - lRadius;
+  GrRectFill(pContext, &rect);
+  rect.sYMin = pRect->sYMin + lRadius;
+  rect.sYMax = pRect->sYMax - lRadius;
+  rect.sXMin = pRect->sXMin;
+  rect.sXMax = pRect->sXMin + lRadius;
+  GrRectFill(pContext, &rect);
+  rect.sYMin = pRect->sYMin + lRadius;
+  rect.sYMax = pRect->sYMax - lRadius;
+  rect.sXMin = pRect->sXMax - lRadius;
+  rect.sXMax = pRect->sXMax;
+  GrRectFill(pContext, &rect);
+}
+//*****************************************************************************
+//
 // Close the Doxygen group.
 //! @}
 //
