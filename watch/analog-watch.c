@@ -19,6 +19,8 @@
 #include "Template_Driver.h"
 #include "cordic.h"
 #include <stdio.h>
+#include <string.h>
+
 /*
 * This implement the digit watch
 * Wake up every 1 second and update the watch
@@ -92,7 +94,7 @@ static void drawFace6(tContext *pContext)
 
     if (angle % 90 == 0)
     {
-      GrCircleFill(pContext, x, y, 4); 
+      GrCircleFill(pContext, x, y, 4);
     }
     else
     {
@@ -245,7 +247,7 @@ draw_function HandSelections[] =
   drawHand2,
   drawHand0,
   drawHand1,
-  drawHand2,  
+  drawHand2,
 };
 
 uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)

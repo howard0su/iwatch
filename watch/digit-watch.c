@@ -20,25 +20,26 @@
 #include "Template_Driver.h"
 
 #include <stdio.h> // for sprintf
+#include <string.h>
 
 static uint8_t hour, minute;
 static uint8_t selection;
 
-static const char *month_name[] = 
+static const char *month_name[] =
 {
   "January", "February", "March", "April", "May",
   "June", "July", "August", "September",
   "November", "December"
 };
 
-static const char* english_name[] = 
+static const char* english_name[] =
 {
   "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT",
-  "NINE", "TEN", "ELEVEN", "TWELEVE", "THIRTEEN", "FOURTEEN", 
+  "NINE", "TEN", "ELEVEN", "TWELEVE", "THIRTEEN", "FOURTEEN",
   "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"
 };
 
-static const char* english_name_prefix[] = 
+static const char* english_name_prefix[] =
 {
     "TWENTY", "THIRTY", "FOURTY", "FIVETY", "SIXTY",
     "SEVENTY", "EIGHTY", "NINTY"

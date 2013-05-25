@@ -49,7 +49,7 @@ static void OnDraw(tContext* pContext)
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
   char icon;
-  
+
   if (status & BLUETOOTH_STATUS)
   {
     icon = ICON_BT;
@@ -85,7 +85,7 @@ static void OnDraw(tContext* pContext)
     default:
       icon = 0;
   }
-  
+
   if (icon != 0)
     GrStringDraw(pContext, &icon, 1, BATTERY_X, 0, 0);
 }
@@ -124,6 +124,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     status = 0;
+    status_invalid();
     break;
   case EVENT_WINDOW_PAINT:
     OnDraw((tContext*)rparam);
