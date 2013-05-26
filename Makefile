@@ -5,7 +5,7 @@ CC      = $(MSPPATH)/msp430-gcc
 OBJCOPY = $(MSPPATH)/msp430-objcopy
 SIZE    = $(MSPPATH)/msp430-size
 NM		= $(MSPPATH)/msp430-nm
-MAKETXT = srec_cat
+MAKETXT = tools/srec_cat
 ECHO	= echo
 
 TARGET_CPU = msp430f5438a
@@ -87,7 +87,8 @@ GRLIB_FONTS = \
 	fontnova28.c \
 	fontnova28b.c \
 	fontnova38b.c \
-	fonticon16.c
+	fonticon16.c \
+	fontbicon48.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
@@ -144,8 +145,10 @@ WATCH = \
     watch/selftest.c \
     watch/status.c \
     watch/sportswatch.c \
+    watch/sportselect.c \
     watch/notification.c \
     watch/worldclock.c \
+    watch/today.c \
     watch/window.c
 
 OBJDIR = objs
@@ -182,7 +185,7 @@ $(OBJDIR)/%.d: %.c
 
 all: $(DEPFILES) $(OBJS) iwatch.hex iwatch.txt
 
-iwatch.elf: ${OBJS} $(OBJDIR)/main.o0 $(OBJDIR)/$(OBJDIR)/symbols.o
+iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
 

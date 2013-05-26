@@ -131,7 +131,7 @@ static int findDataGrid(uint8_t data)
 
 static void updateData(uint8_t datatype, uint16_t value)
 {
-  int slot = findDataGRid(datatype);
+  int slot = findDataGrid(datatype);
 
   if (slot == -1)
     return;
@@ -141,13 +141,13 @@ static void updateData(uint8_t datatype, uint16_t value)
   window_invalid(&regions[window_readconfig()->sports_grid][slot]);
 }
 
-int sportwatch_process(uint8_t event, uint16_t lparam, void* rparam)
+uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
     {
-      rtc_enable(SECOND_CHANGE);
+      rtc_enablechange(SECOND_CHANGE);
       for (int i = 0; i < 5; i++)
         data[i] = 0;
       workout_time = 0;
@@ -169,6 +169,7 @@ int sportwatch_process(uint8_t event, uint16_t lparam, void* rparam)
       break;
     }
   case EVENT_WINDOW_CLOSING:
+    process_post(ui_process, EVENT_NOTIFY_RESULT, NULL);
     break;
   default:
     return 0;
