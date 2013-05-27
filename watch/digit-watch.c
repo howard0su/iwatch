@@ -198,7 +198,7 @@ static void drawClock3(tContext *pContext)
   }
   else
   {
-    width = GrStringWidthGet(pContext, "In the Am", -1);
+    width = GrStringWidthGet(pContext, "In the AM", -1);
     GrStringDraw(pContext, "In the AM", -1, (LCD_X_SIZE - width) / 2, 120, 0);
   }
 }
