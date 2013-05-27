@@ -521,6 +521,11 @@ CCIF int process_is_running(struct process *p);
  */
 int process_nevents(void);
 
+/*
+ * \return if there is pending events for process p.
+*/
+int process_moreevent(struct process *p);
+
 /** @} */
 
 CCIF extern struct process *process_list;

@@ -318,6 +318,17 @@ process_nevents(void)
 {
   return nevents + poll_requested;
 }
+
+int process_moreevent(struct process *p)
+{
+  for(int i = 0; i < nevents; i++)
+  {
+    if ((events[fevent + i].p == p) || (events[fevent + i].p == PROCESS_BROADCAST))
+      return 1;
+  }
+
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
 int
 process_post(struct process *p, process_event_t ev, process_data_t data)
