@@ -67,6 +67,7 @@ static uint8_t stackptr = 0;
 
 void window_init()
 {
+  current_clip = client_clip;
   return;
 }
 
@@ -169,22 +170,26 @@ PROCESS_THREAD(system_process, ev, data)
       }
     }
 
-    if (ui_window_flag & WINDOW_FLAGS_REFRESH)
+    // check if there is more message in the queue
+    if (!process_moreevent(&system_process))
     {
-      ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
-      GrContextClipRegionSet(&context, &current_clip);
-      ui_window(EVENT_WINDOW_PAINT, 0, &context);
-      GrFlush(&context);
-    }
+      if (ui_window_flag & WINDOW_FLAGS_REFRESH)
+      {
+        ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
+        GrContextClipRegionSet(&context, &current_clip);
+        ui_window(EVENT_WINDOW_PAINT, 0, &context);
+        current_clip = client_clip;
+        GrFlush(&context);
+      }
 
-    if (ui_window_flag & WINDOW_FLAGS_STATUSUPDATE)
-    {
-      ui_window_flag &= ~WINDOW_FLAGS_STATUSUPDATE;
-      GrContextClipRegionSet(&context, &status_clip);
-      status_process(EVENT_WINDOW_PAINT, 0, &context);
-      GrFlush(&context);
+      if (ui_window_flag & WINDOW_FLAGS_STATUSUPDATE)
+      {
+        ui_window_flag &= ~WINDOW_FLAGS_STATUSUPDATE;
+        GrContextClipRegionSet(&context, &status_clip);
+        status_process(EVENT_WINDOW_PAINT, 0, &context);
+        GrFlush(&context);
+      }
     }
-
     PROCESS_WAIT_EVENT();
   }
 
