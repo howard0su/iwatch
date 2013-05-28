@@ -144,7 +144,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (initing)
       {
-        //avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
+        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
 
       state = lparam;

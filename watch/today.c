@@ -50,7 +50,7 @@ static void onDraw(tContext *pContext)
       break;
   }
 
-  for (int i = 0; i < 8; i++)
+  for (uint8_t i = 0; i < 8; i++)
   {
     tRectangle rect;
     rect.sXMin = 17 + i * 15;
@@ -84,9 +84,8 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     else if (lparam == KEY_UP)
     {
-      state--;
-      if (state == 0xff)
-        state = 0;
+      if (state != 0)
+        state--;
     }
     window_invalid(NULL);
     break;

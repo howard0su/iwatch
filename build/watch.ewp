@@ -2037,6 +2037,9 @@
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\sportselect.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\sportswatch.c</name>
     </file>
     <file>
@@ -2051,6 +2054,9 @@
         <configuration>Debug</configuration>
         <configuration>Retail</configuration>
       </excluded>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\today.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\watch.c</name>
@@ -2231,6 +2237,9 @@
     <name>grlib</name>
     <group>
       <name>fonts</name>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontbicon48.c</name>
+      </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fonticon16.c</name>
       </file>
