@@ -4,8 +4,8 @@
 * @author Matthias Ringwald
 */
 
+#include "contiki.h"
 #include "hal_compat.h"
-#include <msp430x54x.h>
 
 // __delay_cycles is limited
 void waitAboutOneSecond(void){
@@ -32,10 +32,12 @@ uint8_t FlashReadByte (uint32_t addr){
 
 // argument order matches memcpy
 void FlashReadBlock(uint8_t *buffer, uint32_t addr,  uint16_t len){
+  uint8_t x = splhigh();
   while (len){
     *buffer++ = FlashReadByte(addr++);
     len--;
   }
+  splx(x);
 }
 
 #endif
