@@ -16,8 +16,10 @@ CFLAGS0  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -mmemory-model=$
 LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
 
 
-CFLAGS = $(CFLAGS0) -flto
-LDFLAGS += -flto
+CFLAGS = $(CFLAGS0)
+# Support LTO, todo later
+# -flto
+#LDFLAGS += -flto
 
 ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
 ALL_INCLUDEDIRS = \
@@ -185,6 +187,7 @@ $(OBJDIR)/%.d: %.c
 
 all: $(DEPFILES) $(OBJS) iwatch.hex iwatch.txt
 
+# if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
 iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
@@ -193,8 +196,7 @@ size: all
 	msp430-size *.elf
 
 flash: iwatch.hex
-	~/bin/mspdebug tilib 'prog iwatch.elf'
-	~/bin/mspdebug tilib run
+	~/bin/mspdebug tilib 'prog iwatch.elf' run
 
 $(OBJDIR)/iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
 	@echo "Link $@ first pass"
@@ -204,8 +206,8 @@ $(OBJDIR)/symbols.c: $(OBJDIR)/iwatch.elf
 	@echo "Generate symbol table"
 	@echo "#include \"loader/symbols-def.h\"" > $@
 	@echo "const struct symbols symbols[] = {" >> $@
-	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{(void*)0x" $$1 ",\"" $$3 "\"}," }' | sort -f -k+2 -t ','>> $@
-	@echo "{(void*)0, 0}};" >> $@
+	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{\"" $$3 "\",(void*)0x" $$1 "}," }' | sort -f -t ','>> $@
+	@echo "{0, 0}};" >> $@
 
 $(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c
 	@$(CC) $(CFLAGS0) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
