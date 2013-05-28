@@ -59,9 +59,12 @@
 #define AVRCP_EVENT_BATT_STATUS_CHANGED 0x06
 #define AVRCP_EVENT_LAST		AVRCP_EVENT_TRACK_REACHED_START
 
-#define AVRCP_EVENT_CONNECTED           AVRCP_EVENT_LAST + 1
-#define AVRCP_EVENT_DISCONNECTED           AVRCP_EVENT_LAST + 2
-#define AVRCP_EVENT_ATTRIBUTE           AVRCP_EVENT_LAST + 3
+#define AVRCP_EVENT_CONNECTED           0xFF
+#define AVRCP_EVENT_DISCONNECTED        0xFE
+#define AVRCP_EVENT_ATTRIBUTE           0xFD
+#define AVRCP_EVENT_LENGTH              0xFC
+#define AVRCP_EVENT_STATUS              0xFB
+
 
 extern void avrcp_init();
 extern void avrcp_connect(bd_addr_t remote_addr);

@@ -62,7 +62,7 @@ static uint8_t avctp_resp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_RESP
 static uint16_t resp_size;
 static uint8_t id = 0;
 static uint8_t need_send_release = 0;
-static void (*packet_handler) (uint8_t *packet, uint16_t size);
+static void (*packet_handler) (uint8_t code, uint8_t *packet, uint16_t size);
 static uint16_t current_pid;
 
 void avctp_init()
@@ -111,7 +111,7 @@ static void avctp_try_respond(void){
   }
 }
 
-void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t *packet, uint16_t size))
+void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t code, uint8_t *packet, uint16_t size))
 {
   packet_handler = handler;
 
@@ -129,6 +129,7 @@ void avctp_disconnect()
   {
     l2cap_disconnect_internal(l2cap_cid, 0);
   }
+  l2cap_cid = 0;
 }
 
 static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -188,7 +189,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       }
 
       if (current_pid == pid)
-          (*packet_handler)(buf, size);
+        (*packet_handler)(avch->code, buf, size);
 
       break;
     }
@@ -219,7 +220,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         l2cap_cid = READ_BT_16(packet, 13);
         if (packet_handler)
         {
-          packet_handler(NULL, 1); // connected
+          packet_handler(0, NULL, 1); // connected
         }
       }
       break;
@@ -231,7 +232,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       if (channel == l2cap_cid){
         // reset
         l2cap_cid = 0;
-        packet_handler(NULL, 0); // disconnected
+        packet_handler(0, NULL, 0); // disconnected
         log_info("avctp disconnected\n");
       }
       break;

@@ -46,22 +46,48 @@ static void OnDraw(tContext *pContext)
 
   GrContextFontSet(pContext, &g_sFontNova28b);
   // draw length
-  if (length != 0)
+  if (position != 0)
   {
     uint8_t times[3];
-    times[2] = position % 60;
-    times[1] = (position / 60) % 60;
-    times[0] = position / 3600;
+    uint16_t left = position;
+    times[2] = left % 60;
+    times[1] = (left / 60) % 60;
+    times[0] = left / 3600;
 
-    window_drawtime(pContext, 65, times, 0);
+    GrContextForegroundSet(pContext, ClrWhite);
+    tRectangle rect = {12, 24, 132, 60};
+    GrRectFillRound(pContext, &rect, 3);
+
+    GrContextForegroundSet(pContext, ClrBlack);
+    window_drawtime(pContext, 24, times, 0);
+#if 0
+
+    // draw balls
+    long r;
+    long startx = -130 + (position * 143/ length);
+    for(int i = 0; i < 11; i++)
+    {
+      r = i/2 + 1;
+      GrCircleFill(pContext, startx, 22, r);
+      startx += r * 2 + 3;
+    }
+    for(int i = 10; i >0; i--)
+    {
+      r = i/2 + 1;
+      GrCircleFill(pContext, startx, 22, r);
+      startx += r * 2 + 3;
+    }
+#endif
   }
 
   // draw title
-  GrContextFontSet(pContext, &g_sFontNova12);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextBackgroundSet(pContext, ClrBlack);
-  GrStringDraw(pContext, title, -1, 25, 83, 0);
+  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrStringDraw(pContext, title, -1, 12, 118, 0);
 
+  GrContextFontSet(pContext, &g_sFontNova12);
+  GrStringDraw(pContext, artist, -1, 12, 135, 0);
+#if 0
   switch(state)
   {
   case AVRCP_PLAY_STATUS_ERROR:
@@ -85,6 +111,7 @@ static void OnDraw(tContext *pContext)
     window_button(pContext, KEY_ENTER, "PREV");
     break;
   }
+#endif
 }
 
 
@@ -99,7 +126,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
       if (initing)
       {
         strcpy(title, "Connected");
-        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
+        avrcp_get_playstatus();
       }
       break;
     }
@@ -109,13 +136,11 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (initing)
       {
-        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+        avrcp_enable_notification(AVRCP_EVENT_PLAYBACK_POS_CHANGED);
         initing = 0;
       }
-      else
-      {
-        avrcp_get_attributes(0);
-      }
+      position = 0;
+      avrcp_get_attributes(0);
       break;
     }
   case AVRCP_EVENT_ATTRIBUTE:
@@ -133,8 +158,8 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
         }
       case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
         {
-          strncpy(artist, rparam, sizeof(artist) - 1);
-          window_invalid(NULL);
+          sprintf(artist, "by %s", (char*)rparam);
+          avrcp_get_playstatus();
           break;
         }
       }
@@ -148,6 +173,21 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
       }
 
       state = lparam;
+      break;
+    }
+  case AVRCP_EVENT_LENGTH:
+    {
+      if (initing)
+      {
+        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+      }
+      length = (uint16_t)rparam;
+      break;
+    }
+  case AVRCP_EVENT_STATUS:
+    {
+      state = lparam;
+      position = (uint16_t)rparam;
       break;
     }
   }
@@ -181,9 +221,20 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else
       {
+        //avrcp_get_playstatus();
+        strcpy(title, "Connected");
         avrcp_get_playstatus();
       }
+      window_timer(CLOCK_SECOND);
+      break;
+    }
+  case PROCESS_EVENT_TIMER:
+    {
+      tRectangle rect = {12, 24, 144, 88};
+      if (position < length && state == 1)
+        position++;
 
+      window_invalid(&rect);
       break;
     }
   case EVENT_NOTIFY_RESULT:
@@ -221,6 +272,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       avrcp_register_handler(NULL);
       avctp_disconnect();
+      window_timer(0);
       break;
     }
   default:

@@ -92,8 +92,19 @@ struct avrcp_header {
 
 int avrcp_get_attributes(uint32_t id);
 
-static void handle_notification(struct avrcp_header *pdu )
+static void handle_notification(uint8_t code, struct avrcp_header *pdu )
 {
+  switch(code)
+  {
+  case AVC_CTYPE_INTERIM:
+    break;
+  case AVC_CTYPE_CHANGED:
+    avrcp_enable_notification(pdu->params[0]);
+    return;
+  default:
+    return;
+  }
+
   switch(pdu->params[0])
   {
   case AVRCP_EVENT_STATUS_CHANGED:
@@ -109,6 +120,14 @@ static void handle_notification(struct avrcp_header *pdu )
       callback_handler(AVRCP_EVENT_TRACK_CHANGED, 0, NULL);
     }
     break;
+  case AVRCP_EVENT_PLAYBACK_POS_CHANGED:
+    {
+      if (callback_handler)
+      {
+        callback_handler(AVRCP_EVENT_PLAYBACK_POS_CHANGED, 0, (void*)READ_NET_32(pdu->params, 1));
+      }
+      break;
+    }
   }
 }
 
@@ -141,23 +160,22 @@ static void handle_attributes(struct avrcp_header *pdu)
 static void handle_playstatus(struct avrcp_header* pdu)
 {
   uint32_t length = READ_NET_32(pdu->params, 0);
-  uint32_t pos = READ_NET_32(pdu->params, 4);
+  uint32_t pos  = READ_NET_32(pdu->params, 4);
 
   uint8_t status = pdu->params[8];
 
   log_info("play status : %ld of %ld, status: %d\n", pos, length, (uint16_t)status);
   if (callback_handler)
   {
-    callback_handler(AVRCP_EVENT_STATUS_CHANGED, (uint16_t)status, NULL);
-    //callback_handler(AVRCP_EVENT_TRACK_CHANGED, pdu->params, NULL);
+    callback_handler(AVRCP_EVENT_STATUS, (uint16_t)status, (void*)(pos/1000));
+    callback_handler(AVRCP_EVENT_LENGTH, 0, (void*)(length/1000));
   }
   return;
 }
 
-static void handle_pdu(uint8_t *data, uint16_t size)
+static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
 {
   struct avrcp_header *pdu = (struct avrcp_header *)data;
-
 
   if (data == NULL)
   {
@@ -181,11 +199,11 @@ static void handle_pdu(uint8_t *data, uint16_t size)
     }
   }
 
-  log_info("response pdu id=%d\n", pdu->pdu_id);
+  log_info("response pdu code=%d, id=%d\n", code, pdu->pdu_id);
   switch(pdu->pdu_id)
   {
   case AVRCP_REGISTER_NOTIFICATION:
-    handle_notification(pdu);
+    handle_notification(code, pdu);
     break;
   case AVRCP_GET_CAPABILITIES:
 

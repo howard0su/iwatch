@@ -221,6 +221,7 @@ void window_invalid(const tRectangle *rect)
   }
 
   ui_window_flag |= WINDOW_FLAGS_REFRESH;
+  process_post(ui_process, EVENT_WINDOW_PAINT, NULL);
 }
 
 void status_invalid()
