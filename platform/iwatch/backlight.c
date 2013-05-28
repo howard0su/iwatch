@@ -3,12 +3,13 @@
 
 #define LIGHTDIR P8DIR
 #define LIGHTOUT P8OUT
-#define LIGHTSEL P8OUT
+#define LIGHTSEL P8SEL
 #define LIGHT1   BIT6
 #define LIGHT2   BIT5
 
 #define MOTORDIR P4DIR
 #define MOTOROUT P4OUT
+#define MOTORSEL P4SEL
 #define MOTOR    BIT1
 
 void backlight_init()
@@ -16,8 +17,9 @@ void backlight_init()
   LIGHTDIR |= LIGHT1 + LIGHT2;
   LIGHTOUT &= ~(LIGHT1 + LIGHT2);
 
+  //MOTOROUT &= ~(MOTOR);
+  MOTORSEL |= MOTOR;
   MOTORDIR |= MOTOR;
-  MOTOROUT &= ~(MOTOR);
 }
 
 void backlight_on(uint8_t level)
@@ -53,10 +55,13 @@ void motor_on(uint8_t level)
 {
   if (level == 0)
   {
-    MOTOROUT &= ~MOTOR;
+    TB0CTL = 0;
   }
   else
   {
-    MOTOROUT |= MOTOR;
+    TB0CTL |= TBSSEL_1 + MC_1;
+    TB0CCTL1 = OUTMOD_7;
+    TB0CCR0 = 255;
+    TB0CCR1 = level;
   }
 }
