@@ -21,7 +21,7 @@ typedef struct connection_obex
 	uint8_t data[0];
 };
 
-typedef struct operation_obex;
+typedef struct operation_obex
 {
 	uint8_t opcode;
 	uint16_t length;
