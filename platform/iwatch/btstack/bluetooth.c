@@ -208,7 +208,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
-        log_info("Local supported features: %04X%04X\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
+        log_info("Local supported features: %04lX%04lX\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
         hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
         break;
       }
@@ -345,7 +345,7 @@ void bluetooth_discoverable(uint8_t onoff)
 
 uint8_t bluetooth_paired()
 {
-  return (*(uint32_t*)config_data.bd_addr != 0);
+  return config_data.bd_addr[0] && config_data.bd_addr[1] && config_data.bd_addr[2] && config_data.bd_addr[4];
 }
 
 bd_addr_t* bluetooth_paired_addr()
