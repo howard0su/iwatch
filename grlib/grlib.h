@@ -1124,11 +1124,15 @@ tContext;
 //*****************************************************************************
 extern const tFont g_sFontNova9b;
 extern const tFont g_sFontNova10;
+extern const tFont g_sFontNova13;
+extern const tFont g_sFontNova13b;
 extern const tFont g_sFontNova12;
 extern const tFont g_sFontNova12b;
 extern const tFont g_sFontNova28;
 extern const tFont g_sFontNova28b;
 extern const tFont g_sFontNova38b;
+extern const tFont g_sFontNova16;
+extern const tFont g_sFontNova16b;
 extern const tFontEx g_sFontExIcon16;
 extern const tFontEx g_sFontExBicon48;
 

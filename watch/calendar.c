@@ -13,7 +13,7 @@ static const char *month_name[] = {
 };
 
 static const char* week_name[] = {
-  "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
+  "SU", "MO", "TU", "WE", "TH", "FR", "SA"
 };
 
 static void OnDraw(tContext *pContext)
@@ -31,15 +31,15 @@ static void OnDraw(tContext *pContext)
   GrRectFill(pContext, &rect);
 
   // draw the title bar
-  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontNova16);
   sprintf(buf, "%s %d", month_name[month - 1], year);
   uint8_t width = GrStringWidthGet(pContext, buf, -1);
   GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 20, 0);
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova10);
-  for(int i = 0; i <= 7; i++)
+  GrContextFontSet(pContext, &g_sFontNova13);
+  for(int i = 0; i < 7; i++)
   {
     width = GrStringWidthGet(pContext, week_name[i], 3);
 

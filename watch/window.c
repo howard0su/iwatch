@@ -1,10 +1,10 @@
 #include "contiki.h"
 
 #include "window.h"
-#include "backlight.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include <stdio.h>
+
 #include "dev/flash.h"
 #include "backlight.h"
 
@@ -124,7 +124,6 @@ PROCESS_THREAD(system_process, ev, data)
       //codec_init();
       //ant_init();
       mpu6050_init();
-
       etimer_set(&status_timer, CLOCK_SECOND * 3);
     }
     else if (ev == PROCESS_EVENT_TIMER)
@@ -155,7 +154,6 @@ PROCESS_THREAD(system_process, ev, data)
     else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED)
     {
       backlight_on(255);
-
       etimer_set(&backlight_timer, CLOCK_SECOND * 3);
       // event converter to pass data as lparam
       uint8_t ret = ui_window(ev, (uint16_t)data, NULL);

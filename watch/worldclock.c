@@ -21,10 +21,10 @@ static void drawItem(tContext *pContext,
   else
     ampm = "AM";
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontNova12b);
+  GrContextFontSet(pContext, (tFont*)&g_sFontNova16b);
   GrStringDraw(pContext, name, -1, 12, y + 10, 0);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontNova12);
+  GrContextFontSet(pContext, (tFont*)&g_sFontNova16);
   sprintf(buf, "%02d:%02d%s", hour, minute, ampm);
   GrStringDraw(pContext, buf, -1, 12, y + 28, 0);
 

@@ -83,11 +83,11 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 
   if (selected)
   {
-    GrContextFontSet(pContext, &g_sFontNova12b);
+    GrContextFontSet(pContext, &g_sFontNova16b);
   }
   else
   {
-    GrContextFontSet(pContext, &g_sFontNova12);
+    GrContextFontSet(pContext, &g_sFontNova16);
   }
 
   GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
