@@ -519,6 +519,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
           break;
         }
       case RFCOMM_EVENT_CREDITS:
+      case DAEMON_EVENT_HCI_PACKET_SENT:
         {
           hfp_try_respond(rfcomm_channel_id);
           break;

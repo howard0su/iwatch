@@ -88,7 +88,7 @@ int mns_init()
   sdp_create_map_service( (uint8_t*)&mns_service_buffer[0], MNS_CHANNEL, "MAP MNS-iWatch");
   log_info("MNS service buffer size: %u\n", de_get_len(mns_service_record.service_record));
   //hexdump((void*)mns_service_buffer, de_get_len(mns_service_record.service_record));
-  de_dump_data_element(mns_service_record.service_record);
+  //de_dump_data_element(mns_service_record.service_record);
 #endif
   sdp_register_service_internal(NULL, &mns_service_record);
 
