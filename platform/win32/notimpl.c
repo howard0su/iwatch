@@ -76,11 +76,10 @@ void backlight_on(uint8_t level) {}
 void mpu6050_init() {}
 
 
-extern uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
-extern uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
-extern uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
-extern uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
-extern uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
+ uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
+ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
+ uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
+ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 
 
 void flash_setup(void) {}
@@ -89,3 +88,13 @@ void flash_write(uint16_t *addr, unsigned short word) {}
 void flash_clear(uint16_t *addr) {}
 
 void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size) {}
+
+
+int dmp_get_pedometer_step_count(unsigned long *count)
+{
+	*count = 132435;
+}
+int dmp_get_pedometer_walk_time(unsigned long *time)
+{
+	*time = 1257;
+}

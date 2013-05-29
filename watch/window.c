@@ -68,6 +68,9 @@ static uint8_t stackptr = 0;
 void window_init()
 {
   current_clip = client_clip;
+  memlcd_DriverInit();
+  GrContextInit(&context, &g_memlcd_Driver);
+
   return;
 }
 
@@ -83,23 +86,12 @@ void window_open(windowproc dialog, void* data)
   GrFlush(&context);
 }
 
-/*
-* This process is the startup process.
-* It first shows the logo
-* Like the whole dialog intrufstture.
-*/
-PROCESS_THREAD(system_process, ev, data)
+void window_handle_event(uint8_t ev, void* data)
 {
-  PROCESS_BEGIN();
-
-  while(1)
-  {
-    if (ev == PROCESS_EVENT_INIT)
+     if (ev == PROCESS_EVENT_INIT)
     {
       window_init();
       backlight_init();
-      memlcd_DriverInit();
-      GrContextInit(&context, &g_memlcd_Driver);
       GrContextForegroundSet(&context, ClrBlack);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
@@ -188,6 +180,20 @@ PROCESS_THREAD(system_process, ev, data)
         GrFlush(&context);
       }
     }
+}
+
+/*
+* This process is the startup process.
+* It first shows the logo
+* Like the whole dialog intrufstture.
+*/
+PROCESS_THREAD(system_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  while(1)
+  {
+    window_handle_event(ev, data);
     PROCESS_WAIT_EVENT();
   }
 

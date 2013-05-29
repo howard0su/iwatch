@@ -26,7 +26,8 @@ ALL_INCLUDEDIRS = \
 	. \
 	core \
 	core/lib \
-	platform/win32
+	platform/win32 \
+	platform/iwatch \
 
 #######################################
 # source files
@@ -86,13 +87,14 @@ WATCH = \
     watch/sportselect.c \
     watch/notification.c \
     watch/worldclock.c \
+    watch/today.c \
     watch/window.c
 
 SRCS = $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c
 
-OBJDIR = objs
+OBJDIR = objs.win
 OBJS0 = $(SRCS:.c=.o)
-OBJS = $(addprefix objs/, $(OBJS0))
+OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
 DEPFILES = $(OBJS:.o=.d)
 
 #####################
@@ -102,13 +104,13 @@ $(OBJDIR)/%.o: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
 
 $(OBJDIR)/%.d: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	$(CC) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -MM $< -MT $(patsubst %.d, %.o, $@)> $@
+	@$(CC) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -MM $< -MT $(patsubst %.d, %.o, $@)> $@
 
 
 # create .hex file from .elf
@@ -152,4 +154,4 @@ endif
 .PHONY:	clean
 clean:
 	rm -f $ *.elf *.hex
-	rm -Rf objs/
+	rm -Rf $(OBJDIR)
