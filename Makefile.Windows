@@ -1,0 +1,155 @@
+ifeq ($(MSPPATH),)
+MSPPATH = /home/junsu/mspgccx/bin
+endif
+CC      = gcc
+OBJCOPY = objcopy
+SIZE    = size
+NM	= nm
+MAKETXT = tools/srec_cat
+ECHO	= echo
+
+TARGET_CPU = msp430f5438a
+MEMORY_MODEL = medium
+WARNING_FLAGS = -W -Wall 
+CFLAGS0  = -g -std=c99 -Os $(WARNING_FLAGS)\
+	-ffunction-sections -fdata-sections
+LDFLAGS = -g -std=c99 -Os $(WARNING_FLAGS) -Wl,-gc-sections
+
+
+CFLAGS = $(CFLAGS0)
+# Support LTO, todo later
+# -flto
+#LDFLAGS += -flto
+
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1
+ALL_INCLUDEDIRS = \
+	. \
+	core \
+	core/lib \
+	platform/win32
+
+#######################################
+# source files
+CORE   = \
+    core/sys/autostart.c \
+    core/sys/ctimer.c \
+    core/sys/etimer.c \
+    core/sys/energest.c \
+    core/sys/process.c \
+    core/sys/rtimer.c \
+    core/sys/stimer.c \
+    core/sys/timer.c \
+    core/lib/assert.c \
+    core/lib/list.c
+
+PLATFORM = \
+	platform/win32/clock.c \
+	platform/win32/notimpl.c \
+	platform/win32/Template_Driver.c 
+
+GRLIB0 = \
+	circle.c \
+	context.c \
+	image.c \
+	line.c \
+	rectangle.c \
+	string.c
+
+GRLIB_FONTS = \
+	fontnova10.c \
+	fontnova9b.c \
+	fontnova13.c \
+	fontnova13b.c \
+	fontnova12.c \
+	fontnova12b.c \
+	fontnova28.c \
+	fontnova28b.c \
+	fontnova16.c \
+	fontnova16b.c \
+	fontnova38b.c \
+	fonticon16.c \
+	fontbicon48.c
+GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
+
+WATCH = \
+    watch/analog-watch.c \
+    watch/configtime.c \
+    watch/countdown.c \
+    watch/controls.c \
+    watch/digit-watch.c \
+    watch/stopwatch.c \
+    watch/menu.c \
+    watch/cordic.c \
+    watch/calendar.c \
+    watch/selftest.c \
+    watch/sportswatch.c \
+    watch/sportselect.c \
+    watch/notification.c \
+    watch/worldclock.c \
+    watch/window.c
+
+SRCS = $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c
+
+OBJDIR = objs
+OBJS0 = $(SRCS:.c=.o)
+OBJS = $(addprefix objs/, $(OBJS0))
+DEPFILES = $(OBJS:.o=.d)
+
+#####################
+# rules to build the object files
+$(OBJDIR)/%.o: %.c
+	@$(ECHO) "Compiling $<"
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
+	@test -d $(@D) || mkdir -pm 775 $(@D)
+	@-$(RM) $@
+	$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+
+$(OBJDIR)/%.d: %.c
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
+	@test -d $(@D) || mkdir -pm 775 $(@D)
+	@-$(RM) $@
+	$(CC) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -MM $< -MT $(patsubst %.d, %.o, $@)> $@
+
+
+# create .hex file from .elf
+%.hex: %.elf
+	@$(OBJCOPY) -O ihex $< $@
+	@$(SIZE) $<
+%.txt: %.hex
+	$(MAKETXT) -O $@ -TITXT $< -I
+	unix2dos $@
+
+# create firmware image from common objects and example source file
+
+all: $(DEPFILES) $(OBJS) iwatch.exe
+
+# if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
+iwatch.exe: ${OBJS}
+	@$(ECHO) "Linking $@ second pass"
+	@${CC} $^ ${LDFLAGS} -o $@
+
+size: all
+	msp430-size *.elf
+
+flash: iwatch.hex
+	~/bin/mspdebug tilib 'prog iwatch.elf' run
+
+$(OBJDIR)/iwatch.elf: ${OBJS}
+	@echo "Link $@ first pass"
+	@${CC} $^ ${LDFLAGS} -o $@
+
+$(OBJDIR)/symbols.c: $(OBJDIR)/iwatch.elf
+	@echo "Generate symbol table"
+	@echo "#include \"loader/symbols-def.h\"" > $@
+	@echo "const struct symbols symbols[] = {" >> $@
+	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{\"" $$3 "\",(void*)0x" $$1 "}," }' | sort -f -t ','>> $@
+	@echo "{0, 0}};" >> $@
+
+ifneq ($(MAKECMDGOALS), clean)
+-include $(DEPFILES)
+endif
+.SILENT:
+.PHONY:	clean
+clean:
+	rm -f $ *.elf *.hex
+	rm -Rf objs/
