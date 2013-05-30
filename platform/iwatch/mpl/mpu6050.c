@@ -29,14 +29,15 @@ static struct etimer timer;
 
 static void tap_cb(unsigned char direction, unsigned char count)
 {
-  printf("tab detected dir=%d, count=%d\n", direction, count);
-  etimer_restart(&timer);
+  if (count == 1)
+    process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_TAP);
+  else
+    process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_DOUBLETAP);
 }
 
 static void android_orient_cb(unsigned char orientation)
 {
   printf("orient changed %d\n", orientation);
-  etimer_restart(&timer);
 }
 
 /* The sensors can be mounted onto the board in any orientation. The mounting

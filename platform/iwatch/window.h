@@ -13,6 +13,9 @@ PROCESS_NAME(system_process);
 #define KEY_ENTER       0
 #define KEY_EXIT        1
 
+#define KEY_TAP         4
+#define KEY_DOUBLETAP   5
+
 
 // parameter is used as rparam
 #define EVENT_TIME_CHANGED            0x90
