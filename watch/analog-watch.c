@@ -255,7 +255,10 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   if (ev == EVENT_WINDOW_CREATED)
   {
     rtc_readtime(&hour, &minute, &sec);
-    selection = window_readconfig()->analog_clock;
+    if (rparam == NULL)
+      selection = window_readconfig()->analog_clock;
+    else
+      selection = (uint8_t)rparam - 1;
     rtc_enablechange(MINUTE_CHANGE);
   }
   else if (ev == EVENT_WINDOW_PAINT)

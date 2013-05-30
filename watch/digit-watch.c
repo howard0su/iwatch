@@ -216,7 +216,10 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   if (ev == EVENT_WINDOW_CREATED)
   {
     rtc_readtime(&hour, &minute, NULL);
-    selection = window_readconfig()->digit_clock;
+    if (rparam == NULL)
+      selection = window_readconfig()->digit_clock;
+    else
+      selection = (uint8_t)rparam - 1;
     rtc_enablechange(MINUTE_CHANGE);
   }
   else if (ev == EVENT_WINDOW_PAINT)
