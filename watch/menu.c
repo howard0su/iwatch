@@ -24,18 +24,28 @@
 struct MenuItem
 {
   char icon;
-  char *name;
+  const char *name;
   windowproc handler;
 };
 
+uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  __disable_interrupt();
+
+  ((void(*)())0x1000)();
+
+  return 0;
+}
+
 static const struct MenuItem SetupMenu[] =
 {
-  {0, "Date", configdate_process},
-  {0, "Time", configtime_process},
-  {0, "Bluetooth", btconfig_process},
+  {0, "Date", &configdate_process},
+  {0, "Time", &configtime_process},
+  {0, "Bluetooth", &btconfig_process},
   {0, "ANT+", NULL},
-  {0, "Self-test", selftest_process},
-  {0, NULL}
+  {0, "Self-test", &selftest_process},
+  {0, "Upgrade", &upgrade_process},
+  {0, NULL, NULL}
 };
 
 static const struct MenuItem MainMenu[] =
@@ -50,7 +60,7 @@ static const struct MenuItem MainMenu[] =
   {'l', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
   {'i', "Watch Setup", &menu_process},
-  {0, NULL}
+  {0, NULL, NULL}
 };
 
 #define NUM_MENU_A_PAGE 5
@@ -83,11 +93,11 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 
   if (selected)
   {
-    GrContextFontSet(pContext, &g_sFontNova16b);
+    GrContextFontSet(pContext, &g_sFontBaby16);
   }
   else
   {
-    GrContextFontSet(pContext, &g_sFontNova16);
+    GrContextFontSet(pContext, &g_sFontBaby16);
   }
 
   GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);

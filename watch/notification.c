@@ -32,7 +32,7 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrBlack);
 
   // draw title
-  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrContextFontSet(pContext, &g_sFontNova12b);    
   GrStringDraw(pContext, message_title, -1, 34, 43, 0);
   // draw the line
   GrLineDrawH(pContext, 5, 126, 63);

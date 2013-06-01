@@ -10,7 +10,7 @@
 //
 // Details of this font:
 //     Characters: 32 to 126 inclusive
-//     Style: nova
+//     Style: baby
 //     Size: 16 point
 //     Bold: no
 //     Italic: no
@@ -20,11 +20,11 @@
 
 //*****************************************************************************
 //
-// The compressed data for the 16 point Nova font.
+// The compressed data for the 16 point Baby font.
 // Contains characters 32 to 126 inclusive.
 //
 //*****************************************************************************
-static const unsigned char g_pucNova16Data[1598] =
+static const unsigned char g_pucBaby16Data[1598] =
 {
       5,   6,   0,  10,  64,  11,   2,  65,  17,  17,  17,  17,
      17,  17,  49, 112,  13,   4,  65,  17,  17,  17,  17,  17,
@@ -164,10 +164,10 @@ static const unsigned char g_pucNova16Data[1598] =
 
 //*****************************************************************************
 //
-// The font definition for the 16 point Nova font.
+// The font definition for the 16 point Baby font.
 //
 //*****************************************************************************
-const tFont g_sFontNova16 =
+const tFont g_sFontBaby16 =
 {
     //
     // The format of the font.
@@ -210,5 +210,5 @@ const tFont g_sFontNova16 =
     //
     // A pointer to the actual font data
     //
-    g_pucNova16Data
+    g_pucBaby16Data
 };

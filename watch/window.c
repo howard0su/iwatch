@@ -60,7 +60,7 @@ static struct etimer timer, status_timer, backlight_timer;
 //     uistack[1]
 //     uistack[0] <<== stackptr = ui_window
 
-#define MAX_STACK 6
+#define MAX_STACK 10
 #define ui_window (stack[stackptr])
 static windowproc stack[MAX_STACK]; // assume 6 is enough
 static uint8_t stackptr = 0;

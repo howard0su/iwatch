@@ -10,9 +10,9 @@
 //
 // Details of this font:
 //     Characters: 32 to 126 inclusive
-//     Style: nova
+//     Style: red
 //     Size: 13 point
-//     Bold: yes
+//     Bold: no
 //     Italic: no
 //     Memory usage: 1656 bytes
 //
@@ -20,11 +20,11 @@
 
 //*****************************************************************************
 //
-// The compressed data for the 13 point Nova bold font.
+// The compressed data for the 13 point Red font.
 // Contains characters 32 to 126 inclusive.
 //
 //*****************************************************************************
-static const unsigned char g_pucNova13bData[1453] =
+static const unsigned char g_pucRed13Data[1453] =
 {
       5,   5,   0,   7,  64,  11,   2,  33,  17,  17,  17,  17,
      17,  17,  49,  80,  11,   4,  65,  17,  17,  17,  17,  17,
@@ -152,10 +152,10 @@ static const unsigned char g_pucNova13bData[1453] =
 
 //*****************************************************************************
 //
-// The font definition for the 13 point Nova bold font.
+// The font definition for the 13 point Red font.
 //
 //*****************************************************************************
-const tFont g_sFontNova13b =
+const tFont g_sFontRed13 =
 {
     //
     // The format of the font.
@@ -198,5 +198,5 @@ const tFont g_sFontNova13b =
     //
     // A pointer to the actual font data
     //
-    g_pucNova13bData
+    g_pucRed13Data
 };

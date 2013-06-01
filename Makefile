@@ -84,15 +84,14 @@ GRLIB0 = \
 GRLIB_FONTS = \
 	fontnova10.c \
 	fontnova9b.c \
-	fontnova13.c \
-	fontnova13b.c \
 	fontnova12.c \
 	fontnova12b.c \
 	fontnova28.c \
 	fontnova28b.c \
-	fontnova16.c \
-	fontnova16b.c \
 	fontnova38b.c \
+	fontred13.c \
+	fontbaby12.c \
+	fontbaby16.c \
 	fonticon16.c \
 	fontbicon48.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))

@@ -16,25 +16,25 @@ static void onDraw(tContext *pContext)
   {
   	char buf = 'a' + i;
 
-	GrContextFontSet(pContext, (const tFont*)&g_sFontExBicon48);
+	  GrContextFontSet(pContext, (const tFont*)&g_sFontExBicon48);
   	if (i == selection)
   	{
-  		tRectangle rect = {14, 17 + i * 84, 115, 87 + i * 84};
+  		tRectangle rect = {14, 17 + i * 84, 130, 87 + i * 84};
   		GrContextForegroundSet(pContext, ClrWhite);
-		GrRectFillRound(pContext, &rect, 3);
+		  GrRectFillRound(pContext, &rect, 3);
 
-		GrContextForegroundSet(pContext, ClrBlack);
-		GrStringDraw(pContext, &buf, 1, 38, 17 + i * 84, 0);
+  		GrContextForegroundSet(pContext, ClrBlack);
+  		GrStringDraw(pContext, &buf, 1, 38, 17 + i * 84, 0);
 
-		GrContextFontSet(pContext, &g_sFontNova16b);
-		GrStringDraw(pContext, text[i], -1, 38, 67 + i * 84, 0);		
+  		GrContextFontSet(pContext, &g_sFontBaby16);
+  		GrStringDraw(pContext, text[i], -1, 38, 67 + i * 84, 0);		
   	}
   	else
   	{
-		GrContextForegroundSet(pContext, ClrWhite);
-		GrStringDraw(pContext, &buf, 1, 38, 17 + i * 84, 0);
-  		GrContextFontSet(pContext, &g_sFontNova16b);
-		GrStringDraw(pContext, text[i], -1, 38, 67 + i * 84, 0);
+  		GrContextForegroundSet(pContext, ClrWhite);
+  		GrStringDraw(pContext, &buf, 1, 38, 17 + i * 84, 0);
+  		GrContextFontSet(pContext, &g_sFontBaby16);
+  		GrStringDraw(pContext, text[i], -1, 38, 67 + i * 84, 0);
   	}
   }
 }

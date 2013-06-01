@@ -135,7 +135,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   case EVENT_BT_STATUS:
     if (lparam == BT_INITIALIZED)
       status |= BLUETOOTH_STATUS;
-    else
+    else if (lparam == BT_SHUTDOWN)
       status &= ~BLUETOOTH_STATUS;
     break;
   case EVENT_ANT_STATUS:

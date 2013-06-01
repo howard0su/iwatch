@@ -112,3 +112,27 @@ void codec_init()
   printf("initialize codec sucess\n");
   I2C_done();
 }
+
+void codec_shutdown()
+{
+  /*
+  Mute DAC  DACMT[6] = 1
+  Power Management  PWRM1 = 0x000
+  Output stages
+  MOUTEN[7]
+  NSPKEN[6]
+  PSPKEN[5]
+  */
+
+  
+}
+
+void code_setformat(uint8_t format)
+{
+
+}
+
+void codec_wakeup()
+{
+  
+}

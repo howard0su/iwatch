@@ -88,6 +88,7 @@ void flash_write(uint16_t *addr, unsigned short word) {}
 void flash_clear(uint16_t *addr) {}
 
 void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size) {}
+void __disable_interrupt() {}
 
 
 int dmp_get_pedometer_step_count(unsigned long *count)

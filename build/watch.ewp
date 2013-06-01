@@ -2238,6 +2238,12 @@
     <group>
       <name>fonts</name>
       <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontbaby12.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontbaby16.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontbicon48.c</name>
       </file>
       <file>
@@ -2263,6 +2269,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova9b.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontred13.c</name>
       </file>
     </group>
     <file>
