@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,43 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Oliver Schmidt <ol.sc@web.de>
- *
  */
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+/**
+ * \file
+ *         Clock implementation for Unix.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
 
-#include "contiki.h"
+#include "sys/clock.h"
+#include <time.h>
+#include <sys/time.h>
 
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 clock_time_t
 clock_time(void)
 {
-  unsigned long long time;
+  struct timeval tv;
 
-  GetSystemTimeAsFileTime((PFILETIME)&time);
-  return (clock_time_t)(time / 10000);
+  gettimeofday(&tv, NULL);
+
+  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
-  unsigned long long time;
+  struct timeval tv;
 
-  GetSystemTimeAsFileTime((PFILETIME)&time);
-  return (clock_time_t)(time / 10);
+  gettimeofday(&tv, NULL);
+
+  return tv.tv_sec;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+void
+clock_delay(unsigned int d)
+{
+  /* Does not do anything. */
+}
+/*---------------------------------------------------------------------------*/

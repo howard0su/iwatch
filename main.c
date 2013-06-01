@@ -66,7 +66,7 @@ int main()
 	window_init();
 
 	for(int i = 0; fonts[i]; i++)
-		test_window(&testfont, fonts[i]);
+		test_window(&testfont, (void*)fonts[i]);
 
     test_window(&worldclock_process, NULL);
 
@@ -79,16 +79,18 @@ int main()
     // test menu in the last
 	test_window(&menu_process, NULL);
 
-	for (int i = 1; i <= 6; ++i)
+	for (int i = 1; i < 6; ++i)
 	{
 		test_window(&analogclock_process, (void*)(i + (i << 4)));
 	}
 
-	for (int i = 1; i <= 5; ++i)
+	for (int i = 1; i < 5; ++i)
 	{
     	test_window(&digitclock_process, (void*)i);
 	}
 
 	window_notify("This is title", "this is message. blah", NOTIFY_OK, 0);
     window_close();
+
+    printf("test finished!\n");
 }

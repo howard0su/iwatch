@@ -24,7 +24,7 @@ AUTOSTART_PROCESSES(&system_process);
 static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && (__MSP430X__ > 0)
 __attribute__ ((section(".infoc")))
 #else
 #pragma constseg = INFOC

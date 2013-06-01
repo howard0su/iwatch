@@ -13,7 +13,7 @@ MEMORY_MODEL = medium
 WARNING_FLAGS = -W -Wall 
 CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections
-LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS) -Wl,-gc-sections
+LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS)
 
 
 CFLAGS = $(CFLAGS0)
@@ -26,7 +26,7 @@ ALL_INCLUDEDIRS = \
 	. \
 	core \
 	core/lib \
-	platform/win32 \
+	platform/native \
 	platform/iwatch \
 
 #######################################
@@ -44,9 +44,9 @@ CORE   = \
     core/lib/list.c
 
 PLATFORM = \
-	platform/win32/clock.c \
-	platform/win32/notimpl.c \
-	platform/win32/Template_Driver.c 
+	platform/native/clock.c \
+	platform/native/notimpl.c \
+	platform/native/Template_Driver.c 
 
 GRLIB0 = \
 	circle.c \
@@ -91,7 +91,7 @@ WATCH = \
 
 SRCS = $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c
 
-OBJDIR = objs.win
+OBJDIR = objs.native
 OBJS0 = $(SRCS:.c=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
 DEPFILES = $(OBJS:.o=.d)

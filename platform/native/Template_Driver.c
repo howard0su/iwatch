@@ -642,7 +642,7 @@ void screenshot()
   static int id;
   FILE* fp;
   watchdog_stop();
-  char name[10];
+  char name[30];
   sprintf(name, "unittest/image%d.pbm", id++);
   fp = fopen(name, "wb");
   fprintf(fp, "P1\n%d %d\n", LCD_X_SIZE, LCD_Y_SIZE);
