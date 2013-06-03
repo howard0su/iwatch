@@ -1122,14 +1122,14 @@ tContext;
 // computer modern sans-serif font.
 //
 //*****************************************************************************
-extern const tFont g_sFontNova9b;
-extern const tFont g_sFontNova10;
-extern const tFont g_sFontRed13;
-extern const tFont g_sFontNova12;
 extern const tFont g_sFontNova12b;
-extern const tFont g_sFontNova28;
-extern const tFont g_sFontNova28b;
+extern const tFont g_sFontNova13;
+extern const tFont g_sFontNova16;
+extern const tFont g_sFontNova16b;
+extern const tFont g_sFontNova38;
 extern const tFont g_sFontNova38b;
+extern const tFont g_sFontNova50b;
+extern const tFont g_sFontRed13;
 extern const tFont g_sFontBaby16;
 extern const tFont g_sFontBaby12;
 extern const tFontEx g_sFontExIcon16;

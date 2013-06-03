@@ -82,13 +82,13 @@ GRLIB0 = \
 	string.c
 
 GRLIB_FONTS = \
-	fontnova10.c \
-	fontnova9b.c \
-	fontnova12.c \
+	fontnova13.c \
 	fontnova12b.c \
-	fontnova28.c \
-	fontnova28b.c \
+	fontnova16.c \
+	fontnova16b.c \
+	fontnova38.c \
 	fontnova38b.c \
+	fontnova50b.c \
 	fontred13.c \
 	fontbaby12.c \
 	fontbaby16.c \

@@ -19,7 +19,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
 	GrRectFill(pContext, &client_clip);
 	GrContextForegroundSet(pContext, ClrWhite);
 	
-	GrContextFontSet(pContext, &g_sFontNova12);	
+	GrContextFontSet(pContext, &g_sFontNova16);	
 	const char* msg;
 	// draw the state
 	switch(battery_state())

@@ -32,13 +32,13 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrBlack);
 
   // draw title
-  GrContextFontSet(pContext, &g_sFontNova12b);    
+  GrContextFontSet(pContext, &g_sFontNova16b);    
   GrStringDraw(pContext, message_title, -1, 34, 43, 0);
   // draw the line
   GrLineDrawH(pContext, 5, 126, 63);
   //draw message
   // todo, how to wrap the text
-  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontRed13);
   GrStringDraw(pContext, message, -1, 12, 76, 0);
 
   switch(message_buttons)

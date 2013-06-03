@@ -10,9 +10,13 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
   char data[3];
   data[0] = data[1] = '0';
   data[2] = ':';
+  #define SPACING 3
   uint8_t height = GrStringHeightGet(pContext);
   uint8_t width_all = GrStringWidthGet(pContext, data, 3);
   uint8_t width_digit = GrStringWidthGet(pContext, data, 2);
+
+  long startx = (width_all + width_all + width_digit - LCD_X_SIZE) / 2 - 5;
+  if (startx < 0) startx = 0;
 
   for(int i = 0; i < 3; i++)
   {
@@ -25,7 +29,7 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
 
-      tRectangle rect = {5 + i * width_all, y - 3, 10 + i * width_all + 35, y + height + 3};
+      tRectangle rect = {startx + i * width_all, y - 3, startx + i * width_all + width_digit, y + height + 3};
       GrRectFill(pContext, &rect);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
@@ -36,13 +40,13 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextBackgroundSet(pContext, ClrBlack);
     }
 
-    GrStringDraw(pContext, data, 2, 10 + i * width_all, y, 0);
+    GrStringDraw(pContext, data, 2, startx + SPACING + i * width_all, y, 0);
 
     if (i != 2)
     {
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
-      GrStringDraw(pContext, ":", 1, 10 + width_digit + i * width_all, y, 0);
+      GrStringDraw(pContext, ":", 1, startx + SPACING + width_digit + i * width_all, y, 0);
     }
   }
 }
@@ -74,7 +78,7 @@ void window_button(tContext *pContext, uint8_t key, const char* text)
   uint8_t width, height;
   int x, y;
 
-  GrContextFontSet(pContext, &g_sFontBaby12);
+  GrContextFontSet(pContext, &g_sFontRed13);
   if (!text)
   {
     width = 100;
@@ -110,14 +114,14 @@ void window_button(tContext *pContext, uint8_t key, const char* text)
   if (text)
   {
     GrContextForegroundSet(pContext, ClrWhite);
-    GrRectFill(pContext, &rect);
+    GrRectFillRound(pContext, &rect, 2);
     GrContextForegroundSet(pContext, ClrBlack);
-    GrStringDraw(pContext, text, -1, x, y, 0);
+    GrStringDraw(pContext, text, -1, x, y + 1, 0);
   }
   else
   {
     GrContextForegroundSet(pContext, ClrBlack);
-    GrRectFill(pContext, &rect);
+    GrRectFillRound(pContext, &rect, 2);
   }
 
 #undef SPACE

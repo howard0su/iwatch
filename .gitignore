@@ -5,6 +5,8 @@
 *.elf
 *.ihex
 objs/
+objs.native/
+unittest/
 build/Debug
 build/Retail
 build/Settings

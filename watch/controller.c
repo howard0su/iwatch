@@ -44,7 +44,7 @@ static void OnDraw(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontNova38b);
   // draw length
   if (position != 0)
   {
@@ -82,10 +82,10 @@ static void OnDraw(tContext *pContext)
 
   // draw title
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrContextFontSet(pContext, &g_sFontNova16b);
   GrStringDraw(pContext, title, -1, 12, 118, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontNova16);
   GrStringDraw(pContext, artist, -1, 12, 135, 0);
 #if 0
   switch(state)

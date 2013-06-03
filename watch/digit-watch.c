@@ -88,13 +88,13 @@ static void drawClock0(tContext *pContext)
   width = GrStringWidthGet(pContext, buf, -1);
   GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 30, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontNova16b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, 90, 60, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontNova13);
   sprintf(buf, "%s %d, %d", month_name[month], day, year);
   width = GrStringWidthGet(pContext, buf, -1);
   GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 135, 0);
@@ -123,7 +123,7 @@ static void drawClock1(tContext *pContext)
   width = GrStringWidthGet(pContext, buf, -1);
   GrStringDraw(pContext, buf, 2, (LCD_X_SIZE - width) / 2, 70, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova28);
+  GrContextFontSet(pContext, &g_sFontNova16b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
@@ -144,16 +144,15 @@ static void drawClock2(tContext *pContext)
     hour -= 12;
   }
 
-  GrContextFontSet(pContext, &g_sFontNova28);
-
+  GrContextFontSet(pContext, &g_sFontNova50b);
   buffer = toEnglish(hour, buf);
   GrStringDraw(pContext, buffer, -1, 10, 30, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrContextFontSet(pContext, &g_sFontNova38b);
   buffer = toEnglish(minute, buf);
   GrStringDraw(pContext, buffer, -1, 10, 70, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontNova16b);
   if (ampm)
   {
     GrStringDraw(pContext, "In the PM", -1, 10, 100, 0);
@@ -179,18 +178,18 @@ static void drawClock3(tContext *pContext)
     hour -= 12;
   }
 
-  GrContextFontSet(pContext, &g_sFontNova28);
+  GrContextFontSet(pContext, &g_sFontNova38);
 
   buffer = toEnglish(hour, buf);
   width = GrStringWidthGet(pContext, buffer, -1);
   GrStringDraw(pContext, buffer, -1, (LCD_X_SIZE - width) / 2, 30, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrContextFontSet(pContext, &g_sFontNova16b);
   buffer = toEnglish(minute, buf);
   width = GrStringWidthGet(pContext, buffer, -1);
   GrStringDraw(pContext, buffer, -1, (LCD_X_SIZE - width) / 2, 70, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova12);
+  GrContextFontSet(pContext, &g_sFontNova16);
   if (!ampm)
   {
     width = GrStringWidthGet(pContext, "In the PM", -1);
@@ -202,6 +201,8 @@ static void drawClock3(tContext *pContext)
     GrStringDraw(pContext, "In the AM", -1, (LCD_X_SIZE - width) / 2, 120, 0);
   }
 }
+
+
 
 draw_function ClockSelections[] =
 {

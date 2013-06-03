@@ -18,7 +18,7 @@ static void onDraw(tContext *pContext)
   GrRectFill(pContext, &client_clip);
 
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova28);
+  GrContextFontSet(pContext, &g_sFontNova38);
 
   switch(state)
   {
@@ -26,26 +26,26 @@ static void onDraw(tContext *pContext)
       sprintf(buf, "%ld", steps);
       window_progress(pContext, 17, steps / 100);
       GrContextForegroundSet(pContext, ClrWhite);      
-      GrContextFontSet(pContext, &g_sFontNova28);
+      GrContextFontSet(pContext, &g_sFontNova38);
       GrStringDraw(pContext, buf, -1, 12, 65, 0);
-      GrContextFontSet(pContext, &g_sFontNova12);
+      GrContextFontSet(pContext, &g_sFontNova16);
       GrStringDraw(pContext, "Steps taken", -1, 10, 100, 0);
       break;
     case TIME:
       sprintf(buf, "%ld", time);
       window_progress(pContext, 17, time / 100);
       GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, &g_sFontNova28);
+      GrContextFontSet(pContext, &g_sFontNova38);
       GrStringDraw(pContext, buf, -1, 12, 65, 0);
-      GrContextFontSet(pContext, &g_sFontNova12);
+      GrContextFontSet(pContext, &g_sFontNova16);
       GrStringDraw(pContext, "Minutes Walk taken", -1, 10, 100, 0);
       break;
     case CALORIES:
       sprintf(buf, "%ld", time);
       GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, &g_sFontNova28);
+      GrContextFontSet(pContext, &g_sFontNova38);
       GrStringDraw(pContext, buf, -1, 12, 65, 0);
-      GrContextFontSet(pContext, &g_sFontNova12);
+      GrContextFontSet(pContext, &g_sFontNova16);
       GrStringDraw(pContext, "Calories Burned", -1, 10, 100, 0);
       break;
   }

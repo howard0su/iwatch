@@ -29,7 +29,7 @@ static enum _state{
 
 static void OnDraw(tContext *pContext)
 {
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontNova38b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);

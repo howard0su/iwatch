@@ -62,7 +62,7 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_PAINT:
     {
       tContext *pContext = (tContext*)rparam;
-      GrContextFontSet(pContext, &g_sFontNova28b);
+      GrContextFontSet(pContext, &g_sFontNova38);
       GrContextForegroundSet(pContext, ClrWhite);
       GrStringDraw(pContext, "iWatch", -1, 10, 58, 0);
 

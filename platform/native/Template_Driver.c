@@ -424,7 +424,7 @@ Template_DriverLineDrawH(void *pvDisplayData, int lX1, int lX2,
 
  while((lX1 + 15) <= lX2)
  {
-   *(unsigned int *)pucData = ulValue;
+   *(uint16_t*)pucData = ulValue;
    pucData += 2;
    lX1 += 16;
  }

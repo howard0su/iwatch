@@ -46,16 +46,16 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
 
 static const tFont *fonts[] =
 {
- &g_sFontNova9b,
- &g_sFontNova10,
- &g_sFontNova12,
  &g_sFontNova12b,
- &g_sFontNova28,
- &g_sFontNova28b,
+ &g_sFontNova13,
+ &g_sFontNova16,
+ &g_sFontNova16b,
+ &g_sFontNova38,
  &g_sFontNova38b,
- &g_sFontBaby16,
- &g_sFontBaby12,
- &g_sFontRed13,
+ &g_sFontNova50b,
+ //&g_sFontBaby16,
+ //&g_sFontBaby12,
+ //&g_sFontRed13,
  NULL
 };
 
@@ -75,16 +75,18 @@ int main()
     test_window(&calendar_process, NULL);
 
     test_window(&today_process, NULL);
+
+    test_window(&countdown_process, NULL);
     
     // test menu in the last
 	test_window(&menu_process, NULL);
 
-	for (int i = 1; i < 6; ++i)
+	for (int i = 1; i <= 6; ++i)
 	{
 		test_window(&analogclock_process, (void*)(i + (i << 4)));
 	}
 
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i <= 5; ++i)
 	{
     	test_window(&digitclock_process, (void*)i);
 	}

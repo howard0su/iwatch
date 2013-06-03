@@ -24,12 +24,12 @@ static void OnDraw(tContext* pContext)
   GrRectFill(pContext, &client_clip);
 
   // draw the countdown time
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontNova38b);
   window_drawtime(pContext, 35, times, 0);
 
   if (state != STATE_INIT)
   {
-    GrContextFontSet(pContext, &g_sFontNova12);
+    GrContextFontSet(pContext, &g_sFontNova16);
     // draw the stoped times
     for(int i = 0; i < state; i++)
     {
