@@ -87,8 +87,41 @@ static int codec_write(uint8_t reg, uint16_t data)
   return I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
 }
 
+#define AUDOUT P10OUT
+#define AUDDIR P10DIR
+#define AUDBIT BIT6
+
+static void codec_shutdown()
+{
+  /*
+  Mute DAC  DACMT[6] = 1
+  Power Management  PWRM1 = 0x000
+  Output stages
+  MOUTEN[7]
+  NSPKEN[6]
+  PSPKEN[5]
+  */
+  codec_write(REG_POWER_MANAGEMENT1, 0);
+  codec_write(REG_POWER_MANAGEMENT2, 0);
+  codec_write(REG_POWER_MANAGEMENT3, 0);
+}
+
+void code_setformat(uint8_t format)
+{
+
+}
+
+void codec_wakeup()
+{
+  codec_write(REG_POWER_MANAGEMENT1, 0x17d);
+  codec_write(REG_POWER_MANAGEMENT2, 0x15);
+  codec_write(REG_POWER_MANAGEMENT3, 0xfd);
+}
 void codec_init()
 {
+  AUDDIR |= BIT6;
+  AUDOUT |= BIT6; // output direction, value = H
+
   I2C_addr(CODEC_ADDRESS);
   //reset codec ?
   codec_write(REG_RESET, 0);
@@ -110,29 +143,9 @@ void codec_init()
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
   printf("initialize codec sucess\n");
+
+
+  codec_shutdown();
+
   I2C_done();
-}
-
-void codec_shutdown()
-{
-  /*
-  Mute DAC  DACMT[6] = 1
-  Power Management  PWRM1 = 0x000
-  Output stages
-  MOUTEN[7]
-  NSPKEN[6]
-  PSPKEN[5]
-  */
-
-  
-}
-
-void code_setformat(uint8_t format)
-{
-
-}
-
-void codec_wakeup()
-{
-  
 }
