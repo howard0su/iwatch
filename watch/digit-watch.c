@@ -144,11 +144,11 @@ static void drawClock2(tContext *pContext)
     hour -= 12;
   }
 
-  GrContextFontSet(pContext, &g_sFontNova50b);
+  GrContextFontSet(pContext, &g_sFontNova38b);
   buffer = toEnglish(hour, buf);
   GrStringDraw(pContext, buffer, -1, 10, 30, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova38b);
+  GrContextFontSet(pContext, &g_sFontNova38);
   buffer = toEnglish(minute, buf);
   GrStringDraw(pContext, buffer, -1, 10, 70, 0);
 

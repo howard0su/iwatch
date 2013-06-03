@@ -2250,25 +2250,28 @@
         <name>$PROJ_DIR$\..\grlib\fonts\fonticon16.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fontnova10.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fontnova12.c</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova12b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fontnova28.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova13.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fontnova28b.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova16.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova16b.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova38.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova38b.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fontnova9b.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova50b.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontred13.c</name>
