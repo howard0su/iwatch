@@ -10,8 +10,8 @@
 extern const tRectangle status_clip;
 
 #define ICON_RUN        'h'
-#define ICON_ALARM      'j'
-#define ICON_BT         'k'
+#define ICON_ALARM      'i'
+#define ICON_BT         'j'
 
 #define ICON_BATTERY_FULL 'm'
 #define ICON_BATTERY_MORE 'n'
