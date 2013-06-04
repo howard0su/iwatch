@@ -31,7 +31,7 @@
 #include <getopt.h>
 
 typedef unsigned char tBoolean;
-#include "../../grlib/grlib.h"
+#include "../grlib.h"
 
 #ifndef true
 #define true 1
@@ -4260,11 +4260,11 @@ int ConvertRasterFont(tConversionParameters *pParams)
     if (pParams->bVerbose)
     {
         printf("input image width = %d, height = %d, so font = %d from %c to %c\n",
-            ulWidth, ulHeight, ulHeight/ulWidth, 'a', 'a' + ulHeight / ulWidth);
+            ulWidth, ulHeight, ulHeight/ulWidth, 'a', 'a' + ulHeight / ulWidth - 1);
     }
 
     pParams->iFirst = 'a';
-    pParams->iLast = 'a' + ulHeight/ulWidth;
+    pParams->iLast = 'a' + ulHeight/ulWidth - 1;
 
     // move the data into each Glypse
     int uiChar;
