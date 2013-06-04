@@ -1133,7 +1133,7 @@ extern const tFont g_sFontRed13;
 extern const tFont g_sFontBaby16;
 extern const tFont g_sFontBaby12;
 extern const tFontEx g_sFontExIcon16;
-extern const tFontEx g_sFontExBicon48;
+extern const tFontEx g_sFontExIcon48;
 
 //*****************************************************************************
 //

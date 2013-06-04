@@ -93,7 +93,7 @@ GRLIB_FONTS = \
 	fontbaby12.c \
 	fontbaby16.c \
 	fonticon16.c \
-	fontbicon48.c
+	fonticon48.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \

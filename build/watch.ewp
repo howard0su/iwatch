@@ -2244,10 +2244,10 @@
         <name>$PROJ_DIR$\..\grlib\fonts\fontbaby16.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fontbicon48.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fonticon16.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\grlib\fonts\fonticon16.c</name>
+        <name>$PROJ_DIR$\..\grlib\fonts\fonticon48.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova12b.c</name>
