@@ -35,13 +35,13 @@ static const char *month_name[] =
 static const char* english_name[] =
 {
   "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT",
-  "NINE", "TEN", "ELEVEN", "TWELEVE", "THIRTEEN", "FOURTEEN",
+  "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN",
   "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"
 };
 
 static const char* english_name_prefix[] =
 {
-    "TWENTY", "THIRTY", "FOURTY", "FIVETY", "SIXTY",
+    "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY",
     "SEVENTY", "EIGHTY", "NINTY"
 };
 

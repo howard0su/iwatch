@@ -25,7 +25,7 @@ void draw_screen(tContext *pContext)
   {
     GrStringDraw(pContext, "Bluetooth is on", -1, 10, 68, 0);
     GrContextFontSet(pContext, &g_sFontNova16);
-    GrStringDraw(pContext, "device is disconverable now.", -1, 20, 90, 0);
+    GrStringDraw(pContext, "device is discoverable now.", -1, 20, 90, 0);
 
     window_button(pContext, KEY_DOWN, "OFF");
   }
