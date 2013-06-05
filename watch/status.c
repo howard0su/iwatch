@@ -124,6 +124,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     status = 0;
+    check_battery();
     status_invalid();
     break;
   case EVENT_WINDOW_PAINT:
