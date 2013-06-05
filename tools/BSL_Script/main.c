@@ -138,9 +138,6 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 	return 1;
   }
 
-  if (strcmp(argv[1], "watchprog") == 0)
-  {
-  	// revert rst
   	const char* comname = getPort();
   	if (comname == NULL)
   	{
@@ -148,6 +145,9 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
   		return -1;
   	}
 
+  if (strcmp(argv[1], "watchprog") == 0)
+  {
+  	// revert rst
   	UART_revert(TEST_PIN);
   	BSL_setFamily(FAMILY_FLASH);
   	BSL_setCom( COM_UART );
@@ -553,9 +553,9 @@ void setMode()
 		final_com = &token[0];
 	}
     BSL_setCom( COM_UART );
-    printf("COM: %s", token);
+    printf("COM: %s", portname);
 
-	if (BSL_initialize_BSL( final_com ))
+	if (BSL_initialize_BSL( portname ))
 	{
 		printf("\tERROR\n");
 		errorExit("Cannot open COM port.");
