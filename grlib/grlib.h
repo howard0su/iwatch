@@ -1126,6 +1126,8 @@ extern const tFont g_sFontNova12b;
 extern const tFont g_sFontNova13;
 extern const tFont g_sFontNova16;
 extern const tFont g_sFontNova16b;
+extern const tFont g_sFontNova28;
+extern const tFont g_sFontNova28b;
 extern const tFont g_sFontNova38;
 extern const tFont g_sFontNova38b;
 extern const tFont g_sFontNova50b;
@@ -1428,6 +1430,8 @@ extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, l
 extern void GrStringDraw(const tContext *pContext, const char *pcString,
                          long lLength, long lX, long lY,
                          unsigned long bOpaque);
+extern void GrStringDrawWrap(const tContext* pContext, const char* text, 
+    long startx, long starty, long width, long margin);
 extern long GrStringWidthGet(const tContext *pContext, const char *pcString,
                              long lLength);
 extern long GrRectOverlapCheck(tRectangle *psRect1, tRectangle *psRect2);

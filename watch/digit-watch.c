@@ -92,7 +92,7 @@ static void drawClock0(tContext *pContext)
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
-  GrStringDraw(pContext, buf, 2, 90, 60, 0);
+  GrStringDraw(pContext, buf, 2, 110, 60, 0);
 
   GrContextFontSet(pContext, &g_sFontNova13);
   sprintf(buf, "%s %d, %d", month_name[month], day, year);

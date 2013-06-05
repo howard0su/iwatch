@@ -736,3 +736,38 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
 //! @}
 //
 //*****************************************************************************
+
+void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin)
+{
+  int start, end, end0, w;
+
+    start = 0;
+    while(text[start] != '\0')
+    {
+      end0 = start;
+      do{
+      end0++;
+
+      if (text[end0] == ' ')
+        end = end0;
+
+       // find a spaace
+      //while((text[end0] != ' ' && text[end0] != '\n') && text[end0] != '\0')
+      //   end0++;
+ 
+      w = GrStringWidthGet(pContext, text + start, end0 - start + 1);
+    }while(w < width && text[end0] != '\0'&& text[end0] != '\n');
+ 
+    if (text[end0] == '\0' || text[end0] == '\n')
+     {
+         end = end0;
+     }
+
+    // now we need draw
+    GrStringDraw(pContext, text + start, end - start, startx, starty, 0);
+     if (text[end0] == '\0')
+       break;
+     start = end + 1;
+     starty += margin;
+   }
+}

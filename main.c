@@ -79,6 +79,8 @@ int main()
   test_window(&today_process, NULL);
   
   test_window(&sporttype_process, NULL);
+
+  test_window(&sportswatch_process, NULL);
   
   test_window(&calendar_process, NULL);
   
@@ -99,7 +101,7 @@ int main()
       test_window(&digitclock_process, (void*)i);
     }
   
-  window_notify("This is title", "this is message. blah", NOTIFY_OK, 0);
+  window_notify("Facebook", "From: Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
   window_close();
   
   printf("test finished!\n");

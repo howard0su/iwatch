@@ -39,14 +39,14 @@ static const struct _datapoints datapoints[] =
 {
   {DATA_WORKOUT, "Total Workout Time", NULL},
   {DATA_SPEED, "Speed", "mph"},
-  {DATA_HEARTRATE, "Heart\tRate", "bpm"},
+  {DATA_HEARTRATE, "Heart Rate", "bpm"},
   {DATA_DISTINCT, "Distinct", "mile"},
-  {DATA_CALS, "Burned\tCalories", "cal"},
+  {DATA_CALS, "Burned Calories", "cal"},
   {DATA_SPEED_AVG, "Avg Speed", "mph"},
   {DATA_SPEED, "Speed", "mph"},
   {DATA_ALTITUTE, "Altitude", "ft"},
-  {DATA_TIME, "Time of\tthe Day", NULL},
-  {DATA_SPEED_TOP, "Top\tSpeed", "mph"}
+  {DATA_TIME, "Time of the Day", NULL},
+  {DATA_SPEED_TOP, "Top Speed", "mph"}
 };
 
 static const tRectangle region_3grid[] =
@@ -77,8 +77,47 @@ static const tRectangle *regions[] =
   region_3grid, region_4grid, region_5grid
 };
 
+// Find which grid slot contains the specific data
+static int findDataGrid(uint8_t data)
+{
+  uint8_t totalgrid = window_readconfig()->sports_grid + 3;
+
+  for(uint8_t g = 0; g < totalgrid; g++)
+  {
+    if (window_readconfig()->sports_grid_data[g] == data)
+      return g;
+  }
+
+  return -1;
+}
+
 static void drawGridTime(tContext *pContext)
 {
+  char buf[20];
+  uint8_t time[3];
+  time[0] = workout_time % 60;
+  time[1] = (workout_time / 60 ) % 60;
+  time[2] = workout_time / 3600;
+
+  GrContextForegroundSet(pContext, ClrBlack);
+  switch(window_readconfig()->sports_grid)
+  {
+  case GRID_3:
+    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
+    GrStringDraw(pContext, "i", 1, 12, 20, 0);
+    GrContextFontSet(pContext, &g_sFontNova13);
+    GrStringDraw(pContext, datapoints[0].name, -1, 30, 20, 0);
+    GrContextFontSet(pContext, &g_sFontNova28b);
+    sprintf(buf, "%02d:%02d:%02d", time[2], time[1], time[0]);
+    GrStringDraw(pContext, buf, -1, 12, 40, 0);
+    break;
+  case GRID_4:
+    break;
+  case GRID_5:
+    break;
+  }
+
+
 
 }
 
@@ -92,10 +131,28 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint16_t data)
     return;
   }
 
+  int index = findDataGrid(grid);
+  if (index == -1)
+    return;
+  struct _datapoints *d = &datapoints[index];
+  
+  char buf[20];
+  sprintf(buf, "%d", data);
+
+  GrContextForegroundSet(pContext, ClrWhite);
   // other generic grid data
   switch(window_readconfig()->sports_grid)
   {
   case GRID_3:
+    GrContextFontSet(pContext, &g_sFontNova13);
+    GrStringDraw(pContext, d->name, -1,  region_3grid[index].sXMin + 8, region_3grid[index].sYMin, 0);
+    GrContextFontSet(pContext, &g_sFontNova28b);
+    GrStringDraw(pContext, buf, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 20, 0);
+    if (d->unit)
+    {
+      GrContextFontSet(pContext, &g_sFontNova13);
+      GrStringDraw(pContext, d->unit, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 50, 0);
+    }
     break;
   case GRID_4:
     break;
@@ -109,24 +166,25 @@ static void onDraw(tContext *pContext)
   // first draw the datetime
   uint8_t totalgrid = window_readconfig()->sports_grid + 3;
 
+  GrContextForegroundSet(pContext, ClrWhite);
+  switch(window_readconfig()->sports_grid)
+  {
+  case GRID_3:
+    GrRectFill(pContext, &region_3grid[0]);
+    break;
+  case GRID_4:
+    GrRectFill(pContext, &region_4grid[0]);
+    break;
+  case GRID_5:
+    GrRectFill(pContext, &region_5grid[0]);
+    break;
+  }
+
+  GrContextForegroundSet(pContext, ClrWhite);
   for(uint8_t g = 0; g < totalgrid; g++)
   {
     drawGridData(pContext, g, data[g]);
   }
-}
-
-// Find which grid slot contains the specific data
-static int findDataGrid(uint8_t data)
-{
-  uint8_t totalgrid = window_readconfig()->sports_grid + 3;
-
-  for(uint8_t g = 0; g < totalgrid; g++)
-  {
-    if (window_readconfig()->sports_grid_data[g] == data)
-      return g;
-  }
-
-  return -1;
 }
 
 static void updateData(uint8_t datatype, uint16_t value)
