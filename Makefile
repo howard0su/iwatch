@@ -70,6 +70,10 @@ GRLIB_FONTS = \
 	fontred13.c \
 	fontbaby12.c \
 	fontbaby16.c \
+	fontdigit44.c \
+	fontdigit44b.c \
+	fontdigit52b.c \
+	fontdigit56.c \
 	fonticon16.c \
 	fonticon48.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))

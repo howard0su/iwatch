@@ -1,6 +1,6 @@
 #!/bin/sh
 ../grlib/ftrasterize/ftrasterize -f Red -s 13  "C&C Red Alert [LAN].ttf"
-../grlib/ftrasterize/ftrasterize -f Baby -s 16  babyblue.ttf
+../grlib/ftrasterize/ftrasterize -f Baby -s 16  -e 255 babyblue.ttf
 ../grlib/ftrasterize/ftrasterize -f Baby -s 12  babyblue.ttf
 ../grlib/ftrasterize/ftrasterize -f Nova -s 13  ProximaNova-Regular.otf
 ../grlib/ftrasterize/ftrasterize -f Nova -s 16  ProximaNova-Regular.otf
@@ -13,3 +13,10 @@
 ../grlib/ftrasterize/ftrasterize -f Icon -s 48 -v icons_48x48_all.pbm
 ../grlib/ftrasterize/ftrasterize -f Nova -s 28  ProximaNova-Regular.otf
 ../grlib/ftrasterize/ftrasterize -f Nova -s 28 -b  ProximaNova-Bold.otf
+
+echo "Generate digit numbers"
+# generate digit clock fonts
+../grlib/ftrasterize/ftrasterize -f Digit -s 44 -v -p 32 -e 58 ProximaNova-Regular.otf
+../grlib/ftrasterize/ftrasterize -f Digit -s 44 -v -b -p 32 -e 58 ProximaNova-Bold.otf
+../grlib/ftrasterize/ftrasterize -f Digit -s 52 -v -b -p 32 -e 58 ProximaNova-Bold.otf
+../grlib/ftrasterize/ftrasterize -f Digit -s 56 -v -p 32 -e 58 ProximaNova-Regular.otf

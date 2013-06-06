@@ -96,7 +96,7 @@ int main()
       test_window(&analogclock_process, (void*)(i + (i << 4)));
     }
   
-  for (int i = 1; i <= 4; ++i)
+  for (int i = 1; i <= 5; ++i)
     {
       test_window(&digitclock_process, (void*)i);
     }
