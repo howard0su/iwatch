@@ -1,12 +1,13 @@
 #include "contiki.h"
-
 #include "window.h"
+#include "Template_Driver.h"
 
 static uint8_t selection;
 static const char *text[2] = {"Cycling", "Running"};
 
 static void onDraw(tContext *pContext)
 {
+  int width;
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
 
@@ -16,26 +17,22 @@ static void onDraw(tContext *pContext)
   {
   	char buf = 'a' + i;
 
-	  GrContextFontSet(pContext, (const tFont*)&g_sFontExIcon48);
+    GrContextForegroundSet(pContext, ClrWhite);
   	if (i == selection)
   	{
-  		tRectangle rect = {14, 17 + i * 84, 130, 87 + i * 84};
-  		GrContextForegroundSet(pContext, ClrWhite);
+  		tRectangle rect = {14, 20 + i * 75, LCD_X_SIZE - 14, 87 + i * 75};
 		  GrRectFillRound(pContext, &rect, 3);
 
   		GrContextForegroundSet(pContext, ClrBlack);
-  		GrStringDraw(pContext, &buf, 1, 38, 17 + i * 84, 0);
+  	}
 
-  		GrContextFontSet(pContext, &g_sFontNova16);
-  		GrStringDraw(pContext, text[i], -1, 38, 67 + i * 84, 0);
-  	}
-  	else
-  	{
-  		GrContextForegroundSet(pContext, ClrWhite);
-  		GrStringDraw(pContext, &buf, 1, 38, 17 + i * 84, 0);
-  		GrContextFontSet(pContext, &g_sFontNova16);
-  		GrStringDraw(pContext, text[i], -1, 38, 67 + i * 84, 0);
-  	}
+    GrContextFontSet(pContext, (const tFont*)&g_sFontExIcon48);
+    width = GrStringWidthGet(pContext, &buf, 1);
+    GrStringDraw(pContext, &buf, 1, (LCD_X_SIZE - width ) /2, 20 + i * 75, 0);
+
+    GrContextFontSet(pContext, &g_sFontNova16);
+    width = GrStringWidthGet(pContext, text[i], -1);
+    GrStringDraw(pContext, text[i], -1, (LCD_X_SIZE - width ) /2, 65 + i * 75, 0);
   }
 }
 
