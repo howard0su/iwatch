@@ -18,15 +18,15 @@ static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text,
   if (icon)
     {
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-      GrStringDraw(pContext, &icon, 1, 8, 30 + n * 40, 0);
+      GrStringDraw(pContext, &icon, 1, 8, 30 + n * 35, 0);
     }
 
   // draw text
   GrContextFontSet(pContext, &g_sFontNova13);
-  GrStringDrawWrap(pContext, text, 30, 30 + n * 45, LCD_X_SIZE/2 - 30, 16);
+  GrStringDrawWrap(pContext, text, 30, 30 + n * 35, LCD_X_SIZE / 2, 16);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
-  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * 45, 0);
+  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * 35, 0);
 }
 
 static void onDraw(tContext *pContext)
