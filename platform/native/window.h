@@ -99,6 +99,6 @@ typedef struct {
   // default
 }ui_config;
 
-extern const ui_config* window_readconfig();
-extern void window_writeconfig(ui_config* data);
+extern ui_config* window_readconfig();
+extern void window_writeconfig();
 #endif

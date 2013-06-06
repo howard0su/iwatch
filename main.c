@@ -80,8 +80,12 @@ int main()
   
   test_window(&sporttype_process, NULL);
 
-  test_window(&sportswatch_process, NULL);
-  
+  for(int i = 0; i < 3; i++)
+  {
+    window_readconfig()->sports_grid = i;
+    test_window(&sportswatch_process, NULL);
+  }
+
   test_window(&calendar_process, NULL);
   
   test_window(&today_process, NULL);

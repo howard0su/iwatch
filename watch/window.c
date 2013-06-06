@@ -29,7 +29,12 @@ __attribute__ ((section(".infoc")))
 #else
 #pragma constseg = INFOC
 #endif
-static const ui_config ui_config_data =
+static const ui_config ui_config_save;
+#ifndef __GNUC__
+#pragma constseg = default
+#endif
+
+static const ui_config ui_config_default = 
 {
   UI_CONFIG_SIGNATURE,
 
@@ -40,12 +45,11 @@ static const ui_config ui_config_data =
 
   2,
 
-  0,
-  0, 1, 2
+  1,
+  0, 1, 2, 3, 4
 };
-#ifndef __GNUC__
-#pragma constseg = default
-#endif
+
+static ui_config ui_config_data;
 
 const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
 const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
@@ -248,16 +252,22 @@ void window_close()
   GrFlush(&context);
 }
 
-const ui_config* window_readconfig()
+ui_config* window_readconfig()
 {
+  if (ui_config_data.signature != UI_CONFIG_SIGNATURE)
+  {
+    memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config_data));
+    window_writeconfig();
+  }
+
   return &ui_config_data;
 }
 
-void window_writeconfig(ui_config* data)
+void window_writeconfig()
 {
   // write to flash
   flash_setup();
-  flash_clear((uint16_t*)&ui_config_data);
-  flash_writepage((uint16_t*)&ui_config_data, (uint16_t*)&data, sizeof(ui_config_data));
+  flash_clear((uint16_t*)&ui_config_save);
+  flash_writepage((uint16_t*)&ui_config_save, (uint16_t*)&ui_config_data, sizeof(ui_config_data));
   flash_done();
 }
