@@ -1137,6 +1137,11 @@ extern const tFont g_sFontBaby12;
 extern const tFontEx g_sFontExIcon16;
 extern const tFontEx g_sFontExIcon48;
 
+extern const tFontEx g_sFontExDigit44;
+extern const tFontEx g_sFontExDigit44b;
+extern const tFontEx g_sFontExDigit56;
+extern const tFontEx g_sFontExDigit52b;
+
 //*****************************************************************************
 //
 // Language identifiers supported by the string table processing functions.
