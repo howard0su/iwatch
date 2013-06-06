@@ -43,11 +43,11 @@
 
 
 #if defined(__GNUC__)
-__attribute__ ((section(".infob"))) 
+__attribute__ ((section(".infob")))
 #else
 #pragma constseg = INFOB
 #endif
-const struct _configdata config_data;
+__no_init const struct _configdata config_data;
 #ifndef __GNUC__
 #pragma constseg = default
 #endif

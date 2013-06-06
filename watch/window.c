@@ -4,6 +4,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "dev/flash.h"
 #include "backlight.h"
@@ -29,12 +30,12 @@ __attribute__ ((section(".infoc")))
 #else
 #pragma constseg = INFOC
 #endif
-static const ui_config ui_config_save;
+__no_init static const ui_config ui_config_save;
 #ifndef __GNUC__
 #pragma constseg = default
 #endif
 
-static const ui_config ui_config_default = 
+static const ui_config ui_config_default =
 {
   UI_CONFIG_SIGNATURE,
 
