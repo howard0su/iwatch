@@ -127,6 +127,7 @@ void window_handle_event(uint8_t ev, void* data)
       else if (data == &status_timer)
       {
         status_process(ev, 0, data);
+        etimer_set(&status_timer, CLOCK_SECOND * 3);
       }
       else if (data == &backlight_timer)
       {

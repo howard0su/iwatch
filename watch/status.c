@@ -64,26 +64,26 @@ static void OnDraw(tContext* pContext)
 
   switch(status & BATTERY_STATUS)
   {
-    case BATTERY_EMPTY:
-      icon = ICON_BATTERY_EMPTY;
-      break;
-    case BATTERY_LESS:
-      icon = ICON_BATTERY_LESS;
-      break;
-    case BATTERY_MORE:
-      icon = ICON_BATTERY_MORE;
-      break;
-    case BATTERY_FULL:
-      icon = ICON_BATTERY_FULL;
-      break;
-    case BATTERY_LESS_CHARGE:
-      icon = ICON_BATTERY_CHARGE_LESS;
-      break;
-    case BATTERY_MORE_CHARGE:
-      icon = ICON_BATTERY_CHARGE_MORE;
-      break;
-    default:
-      icon = 0;
+  case BATTERY_EMPTY:
+    icon = ICON_BATTERY_EMPTY;
+    break;
+  case BATTERY_LESS:
+    icon = ICON_BATTERY_LESS;
+    break;
+  case BATTERY_MORE:
+    icon = ICON_BATTERY_MORE;
+    break;
+  case BATTERY_FULL:
+    icon = ICON_BATTERY_FULL;
+    break;
+  case BATTERY_LESS_CHARGE:
+    icon = ICON_BATTERY_CHARGE_LESS;
+    break;
+  case BATTERY_MORE_CHARGE:
+    icon = ICON_BATTERY_CHARGE_MORE;
+    break;
+  default:
+    icon = 0;
   }
 
   if (icon != 0)
@@ -95,26 +95,33 @@ static void check_battery()
   // update battery status
   uint8_t level = battery_level();
   uint8_t state = battery_state();
-  status &= ~BATTERY_STATUS;
 
   if (state == BATTERY_DISCHARGING)
   {
+    status &= ~BATTERY_STATUS;
     // not charging
-    if (level < 30)
+    if (level < 50)
       status |= BATTERY_EMPTY;
-    else if (level < 50)
+    else if (level < 120)
       status |= BATTERY_LESS;
-    else if (level < 80)
+    else if (level < 200)
       status |= BATTERY_MORE;
     else
       status |= BATTERY_FULL;
   }
   else if (state == BATTERY_CHARGING)
   {
-    status |= BATTERY_LESS_CHARGE;
+    if (status & BATTERY_STATUS == BATTERY_MORE_CHARGE)
+    {
+      status &= ~BATTERY_STATUS;
+      status |= BATTERY_LESS_CHARGE;
+    }
+    else
+    {
+      status &= ~BATTERY_STATUS;
+      status |= BATTERY_MORE_CHARGE;
+    }
   }
-  else
-    status |= BATTERY_MORE_CHARGE;
 }
 
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
