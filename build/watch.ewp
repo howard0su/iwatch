@@ -1045,7 +1045,7 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
@@ -1100,7 +1100,7 @@
         </option>
         <option>
           <name>RadioDataModelType</name>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>GHeap20Size</name>
@@ -2244,6 +2244,18 @@
         <name>$PROJ_DIR$\..\grlib\fonts\fontbaby16.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontdigit44.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontdigit44b.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontdigit52b.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontdigit56.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fonticon16.c</name>
       </file>
       <file>
@@ -2260,6 +2272,12 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova16b.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova28.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontnova28b.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontnova38.c</name>
@@ -2364,9 +2382,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\uart1-putchar.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\uart1x.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\watchdog.c</name>
