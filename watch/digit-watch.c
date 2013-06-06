@@ -145,7 +145,7 @@ static void drawClock2(tContext *pContext)
     hour -= 12;
   }
 
-  GrContextFontSet(pContext, &g_sFontNova38b);
+  GrContextFontSet(pContext, &g_sFontNova38);
   buffer = toEnglish(hour, buf);
   GrStringDraw(pContext, buffer, -1, 10, 50, 0);
 
@@ -183,8 +183,12 @@ static void drawClock3(tContext *pContext)
 
   buffer = toEnglish(hour, buf);
   width = GrStringWidthGet(pContext, buffer, -1);
+  tRectangle rect = {8, 28, LCD_X_SIZE-8, 65};
+  GrRectFillRound(pContext, &rect, 8);
+  GrContextForegroundSet(pContext, ClrBlack);
   GrStringDraw(pContext, buffer, -1, (LCD_X_SIZE - width) / 2, 30, 0);
-
+  GrContextForegroundSet(pContext, ClrWhite);
+  
   GrContextFontSet(pContext, &g_sFontNova16b);
   buffer = toEnglish(minute, buf);
   width = GrStringWidthGet(pContext, buffer, -1);
@@ -212,12 +216,137 @@ static void drawClock8(tContext *pContext)
     drawClock0(pContext);
 }
 
+static void drawClock4(tContext *pContext)
+{
+  uint16_t year;
+  uint8_t month, day, width;
+  char buf[20];
+
+  rtc_readdate(&year, &month, &day, NULL);
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
+
+  sprintf(buf, "%02d:%02d", hour, minute);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 50, 0);
+
+  GrContextFontSet(pContext, &g_sFontNova16);
+  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  width = GrStringWidthGet(pContext, buf, -1);
+  tRectangle rect = {8, 100, LCD_X_SIZE-8, 120};
+  GrRectFillRound(pContext, &rect, 6);
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 103, 0);
+}
+
+static void drawClock5(tContext *pContext)
+{
+  uint16_t year;
+  uint8_t month, day, width;
+  uint8_t ampm = 0;
+  char buf[20];
+
+  rtc_readdate(&year, &month, &day, NULL);
+
+  // draw time
+  if (hour > 12)
+  {
+    ampm = 1; // pm
+    hour -= 12;
+  }
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
+
+  sprintf(buf, "%02d:%02d", hour, minute);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 50, 0);
+
+  GrContextFontSet(pContext, &g_sFontNova16b);
+  if (ampm) buf[0] = 'P';
+    else buf[0] = 'A';
+  buf[1] = 'M';
+  GrStringDraw(pContext, buf, 2, 105, 90, 0);
+
+  GrContextFontSet(pContext, &g_sFontNova16);
+  sprintf(buf, "%02d-%02d-%02d", month, day, year - 2000);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 135, 0);
+}
+
+static void drawClock6(tContext *pContext)
+{
+  uint16_t year;
+  uint8_t month, day, width;
+  char buf[20];
+
+  rtc_readdate(&year, &month, &day, NULL);
+
+  tRectangle rect = {30, 20, LCD_X_SIZE - 30, LCD_Y_SIZE - 40};
+  GrRectFillRound(pContext, &rect, 8);
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit52b);
+  sprintf(buf, "%02d", hour);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, 2, (LCD_X_SIZE - width) / 2, 30, 0);
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
+  sprintf(buf, "%02d", minute);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, 2, (LCD_X_SIZE - width) / 2, 70, 0);
+
+  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextForegroundSet(pContext, ClrWhite);
+  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 135, 0);
+}
+
+
+static void drawClock7(tContext *pContext)
+{
+  uint16_t year;
+  uint8_t month, day, width;
+  uint8_t ampm = 0;
+  char buf[20];
+
+  rtc_readdate(&year, &month, &day, NULL);
+
+  // draw time
+  if (hour > 12)
+  {
+    ampm = 1; // pm
+    hour -= 12;
+  }
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
+
+  sprintf(buf, "%02d:%02d", hour, minute);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 70, 0);
+
+  GrContextFontSet(pContext, &g_sFontNova16b);
+  if (ampm) buf[0] = 'P';
+    else buf[0] = 'A';
+  buf[1] = 'M';
+  GrStringDraw(pContext, buf, 2, 105, 105, 0);
+
+  GrContextFontSet(pContext, &g_sFontNova13);
+  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  width = GrStringWidthGet(pContext, buf, -1);
+  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 35, 0);
+}
+
+
 draw_function ClockSelections[] =
 {
   drawClock0,
   drawClock1,
   drawClock2,
   drawClock3,
+  drawClock4,
+  drawClock5,
+  drawClock6,
+  drawClock7,
   drawClock8
 };
 
