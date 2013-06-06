@@ -330,7 +330,7 @@ void bluetooth_init()
 
 void bluetooth_shutdown()
 {
-  BT_SHUTDOWN_OUT &=  BT_SHUTDOWN_BIT;  // = 1 - Active low
+  BT_SHUTDOWN_OUT &= ~BT_SHUTDOWN_BIT;  // = 1 - Active low
 
   process_exit(&bluetooth_process);
 
