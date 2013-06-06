@@ -212,12 +212,12 @@ memlcd_DriverInit(void)
   SPIInit();
 
   // configure TA0.1 for COM switch
-  TA0CTL |= TASSEL_1 + ID_3 + MC_1;
-  TA0CCTL1 = OUTMOD_7;
-  TA0CCR0 = 4096;
-  TA0CCR1 = 1;
+  //TA0CTL |= TASSEL_1 + ID_3 + MC_1;
+  //TA0CCTL1 = OUTMOD_7;
+  //TA0CCR0 = 4096;
+  //TA0CCR1 = 1;
 
-  P8SEL |= BIT1;
+  P8SEL &= ~BIT1;
   P8DIR |= BIT1; // p8.1 is TA0.1
 
   // enable disply
