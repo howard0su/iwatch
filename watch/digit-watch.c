@@ -383,7 +383,7 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     if (lparam == KEY_ENTER)
     {
       selection += 0x1;
-      if (selection > 0x03)
+      if (selection > sizeof(ClockSelections)/sizeof(draw_function) - 1)
       {
         selection = 0x00;
       }
@@ -396,10 +396,8 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 
     if (selection != window_readconfig()->digit_clock)
     {
-      ui_config config;
-      memcpy(&config, window_readconfig(), sizeof(config));
-      config.digit_clock = selection;
-      window_writeconfig(&config);
+      window_readconfig()->digit_clock = selection;
+      window_writeconfig();
     }
   }
   else

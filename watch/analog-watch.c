@@ -230,24 +230,17 @@ static void drawHand2(tContext *pContext)
   drawHand0(pContext);
 }
 
-draw_function FaceSelections[] =
+struct clock_draw {
+  draw_function faceDraw;
+  draw_function handDraw;
+}FaceSelections[] =
 {
-  drawFace0,
-  drawFace1,
-  drawFace3,
-  drawFace4,
-  drawFace6,
-  drawFace7
-};
-
-draw_function HandSelections[] =
-{
-  drawHand0,
-  drawHand1,
-  drawHand2,
-  drawHand0,
-  drawHand1,
-  drawHand2,
+  {drawFace0, drawHand0},
+  {drawFace1, drawHand1},
+  {drawFace3, drawHand2},
+  {drawFace4, drawHand0},
+  {drawFace6, drawHand1},
+  {drawFace7, drawHand2},
 };
 
 uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -258,7 +251,7 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     if (rparam == NULL)
       selection = window_readconfig()->analog_clock;
     else
-      selection = (uint8_t)rparam - 0x11;
+      selection = (uint8_t)rparam - 0x1;
     rtc_enablechange(MINUTE_CHANGE);
   }
   else if (ev == EVENT_WINDOW_PAINT)
@@ -269,8 +262,8 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 
     GrContextForegroundSet(pContext, ClrWhite);
 
-    FaceSelections[selection >> 4](pContext);
-    HandSelections[selection & 0x0f](pContext);
+    FaceSelections[selection].faceDraw(pContext);
+    FaceSelections[selection].handDraw(pContext);
   }
   else if (ev == EVENT_TIME_CHANGED)
   {
@@ -285,7 +278,7 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     if (lparam == KEY_ENTER)
     {
       selection += 0x11;
-      if (selection > 0x55)
+      if (selection > sizeof(FaceSelections)/sizeof(struct clock_draw) - 1)
       {
         selection = 0x00;
       }
@@ -298,10 +291,8 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 
     if (selection != window_readconfig()->analog_clock)
     {
-      ui_config config;
-      memcpy(&config, window_readconfig(), sizeof(config));
-      config.analog_clock = selection;
-      window_writeconfig(&config);
+      window_readconfig()->analog_clock = selection;
+      window_writeconfig();
     }
   }
   else
