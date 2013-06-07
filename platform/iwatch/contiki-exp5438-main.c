@@ -48,6 +48,7 @@
 #include "node-id.h"
 #include "power.h"
 #include "battery.h"
+#include "btstack/bluetooth.h"
 
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
@@ -70,6 +71,13 @@ print_processes(struct process * const processes[])
   }
   putchar('\n');
 }
+
+extern void mpu6050_init();
+extern void ant_init();
+extern void button_init();
+extern void I2C_Init();
+extern void rtc_init();
+extern void backlight_init();
 
 /*--------------------------------------------------------------------------*/
 int
@@ -103,6 +111,21 @@ main(int argc, char **argv)
 
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
+
+  backlight_init();
+  button_init();
+  rtc_init();
+  I2C_Init();
+
+  //codec_init();
+  //ant_init();
+  mpu6050_init();
+  //if (bluetooth_paired())
+  {
+    bluetooth_init();
+    bluetooth_discoverable(1);
+  }
+
 
   /*
   * This is the scheduler loop.

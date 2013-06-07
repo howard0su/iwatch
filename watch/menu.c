@@ -16,19 +16,27 @@
 #include "window.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "rtc.h"
 
+#include <stdio.h>
 /*
 * This implement the menu
 */
 
+#define DATA_DATE -1
+#define DATA_TIME -2
+#define DATA_ANT  -3
+#define DATA_BT   -4
+
+
 struct MenuItem
 {
-  char icon;
+  signed char icon;
   const char *name;
   windowproc handler;
 };
 
-uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
+static uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   __disable_interrupt();
 
@@ -39,13 +47,13 @@ uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 
 static const struct MenuItem SetupMenu[] =
 {
-  {0, "Date", &configdate_process},
-  {0, "Time", &configtime_process},
-  {0, "Bluetooth", &btconfig_process},
-  {0, "ANT+", NULL},
+  {DATA_DATE, "Date", &configdate_process},
+  {DATA_TIME, "Time", &configtime_process},
+  {DATA_BT, "Bluetooth", &btconfig_process},
+  {DATA_ANT, "ANT+", NULL},
   {0, "Self-test", &selftest_process},
   {0, "Upgrade", &upgrade_process},
-  {0, NULL, NULL}
+  {-1, NULL, NULL}
 };
 
 static const struct MenuItem MainMenu[] =
@@ -85,15 +93,52 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 
   GrContextForegroundSet(pContext, !selected);
   GrContextBackgroundSet(pContext, selected);
-  if (item->icon != 0)
+  if (item->icon > 0)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
     GrStringDraw(pContext, &item->icon, 1, 10, 14 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
   GrContextFontSet(pContext, &g_sFontBaby16);
+  if (item->icon > 0)
+  {
+    GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+  }
+  else
+  {
+    char buf[20];
+    int width;
+    // <= 0
+    GrStringDraw(pContext, item->name, -1, 12, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 
-  GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    switch(item->icon)
+    {
+      case 0:
+        return;
+      case DATA_DATE:
+      {
+        uint8_t month, day;
+        rtc_readdate(NULL, &month, &day, NULL);
+        sprintf(buf, "%d:%d", month, day);
+        break;
+      }
+      case DATA_TIME:
+      {
+        uint8_t hour, minute;
+        rtc_readtime(&hour, &minute, NULL);
+        sprintf(buf, "%d:%d", hour, minute);
+        break;
+      }
+      case DATA_BT:
+      sprintf(buf, "%s", "ON");
+      break;
+      case DATA_ANT:
+      sprintf(buf, "%s", "OFF");
+      break;
+    }
+    width = GrStringWidthGet(pContext, buf, -1);
+    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+  }
 }
 
 static const struct MenuItem *Items;
@@ -135,6 +180,10 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     if (Items == NULL)
     {
       Items = MainMenu;
+    }
+    if (rparam == (void*)1)
+    {
+      Items = SetupMenu;
     }
     current = currentTop = 0;
   }

@@ -111,7 +111,7 @@ static void check_battery()
   }
   else if (state == BATTERY_CHARGING)
   {
-    if (status & BATTERY_STATUS == BATTERY_MORE_CHARGE)
+    if ((status & BATTERY_STATUS) == BATTERY_MORE_CHARGE)
     {
       status &= ~BATTERY_STATUS;
       status |= BATTERY_LESS_CHARGE;

@@ -5,16 +5,8 @@
 #include "Template_Driver.h"
 #include <stdio.h>
 #include <string.h>
-
-#include "dev/flash.h"
 #include "backlight.h"
-
-extern void mpu6050_init();
-extern void ant_init();
-extern void rtc_init();
-extern void bluetooth_init();
-extern void button_init();
-extern void I2C_Init();
+#include "dev/flash.h"
 
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
@@ -88,15 +80,11 @@ void window_handle_event(uint8_t ev, void* data)
      if (ev == PROCESS_EVENT_INIT)
     {
       window_init();
-      backlight_init();
       GrContextForegroundSet(&context, ClrBlack);
       tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
       GrRectFill(&context, &rect);
 
       // give time to starts
-      button_init();
-      rtc_init();
-      I2C_Init();
 
       // welcome dialog depends on backlight/lcd/i2c
       //window_open(&watch_process, NULL);
@@ -110,9 +98,6 @@ void window_handle_event(uint8_t ev, void* data)
 
       status_process(EVENT_WINDOW_CREATED, 0, data);
 
-      //codec_init();
-      //ant_init();
-      mpu6050_init();
       etimer_set(&status_timer, CLOCK_SECOND * 3);
     }
     else if (ev == PROCESS_EVENT_TIMER)

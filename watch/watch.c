@@ -26,11 +26,6 @@
 #include "btstack/bluetooth.h"
 #include "backlight.h"
 
-extern void mpu6050_init();
-extern void ant_init();
-extern void button_init();
-extern void I2C_Init();
-
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
@@ -49,13 +44,6 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CREATED:
     {
       backlight_on(255);
-
-      //if (bluetooth_paired())
-      {
-        bluetooth_init();
-        bluetooth_discoverable(1);
-      }
-
       window_timer(CLOCK_SECOND);
       break;
     }
