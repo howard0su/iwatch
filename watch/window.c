@@ -25,22 +25,14 @@ AUTOSTART_PROCESSES(&system_process);
 static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
-#if defined(__GNUC__) && (__MSP430X__ > 0)
-__attribute__ ((section(".infoc")))
-#else
-#pragma constseg = INFOC
-#endif
-__no_init static const ui_config ui_config_save;
-#ifndef __GNUC__
-#pragma constseg = default
-#endif
+#define INFOC (uint16_t*)0x1880
 
 static const ui_config ui_config_default =
 {
   UI_CONFIG_SIGNATURE,
 
-  "Yukon", "Honolulu", "Anchorage",
-  +3, +4, -9,
+  "Shanghai", "London", "New York",
+  +16, +8, +3,
 
   4,
 
@@ -50,7 +42,7 @@ static const ui_config ui_config_default =
   0, 1, 2, 3, 4
 };
 
-static ui_config ui_config_data;
+ui_config ui_config_data;
 
 const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
 const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
@@ -253,12 +245,19 @@ void window_close()
   GrFlush(&context);
 }
 
+CASSERT(sizeof(ui_config) <= 128, ui_config_less_than_infoc);
+
 ui_config* window_readconfig()
 {
   if (ui_config_data.signature != UI_CONFIG_SIGNATURE)
   {
-    memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config_data));
-    window_writeconfig();
+    memcpy(&ui_config_data, INFOC, sizeof(ui_config_data));
+
+    // still not valid?
+    if (ui_config_data.signature != UI_CONFIG_SIGNATURE)
+    {
+      memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config_data));
+    }
   }
 
   return &ui_config_data;
@@ -268,7 +267,7 @@ void window_writeconfig()
 {
   // write to flash
   flash_setup();
-  flash_clear((uint16_t*)&ui_config_save);
-  flash_writepage((uint16_t*)&ui_config_save, (uint16_t*)&ui_config_data, sizeof(ui_config_data));
+  flash_clear(INFOC);
+  flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
   flash_done();
 }

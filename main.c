@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
@@ -63,12 +64,31 @@ static const tFont *fonts[] =
  NULL
 };
 
+static const ui_config ui_config_default =
+{
+  UI_CONFIG_SIGNATURE,
+
+  "Shanghai", "London", "New York",
+  +16, +8, +3,
+
+  4,
+
+  2,
+
+  1,
+  0, 1, 2, 3, 4
+};
+
+extern ui_config ui_config_data;
+
 int main()
 {
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
   window_init();
   
+  memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
+
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
   
   for(int i = 0; fonts[i]; i++)
@@ -94,7 +114,9 @@ int main()
   
   // test menu in the last
   test_window(&menu_process, NULL);
-  
+
+  test_window(&menu_process, 1);
+
   for (int i = 1; i <= 6; ++i)
     {
       test_window(&analogclock_process, (void*)i);

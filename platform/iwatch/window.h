@@ -104,4 +104,8 @@ typedef struct {
 
 extern ui_config* window_readconfig();
 extern void window_writeconfig();
+
+#ifndef CASSERT
+#define CASSERT(exp, name) typedef int dummy##name [(exp) ? 1 : -1];
+#endif
 #endif
