@@ -80,7 +80,7 @@ void deviceid_init()
   sdp_create_did_service((uint8_t*)did_service_record.service_record);
   log_info("SDP service buffer size: %u\n", de_get_len(did_service_record.service_record));
   //hexdump((void*)did_service_buffer, de_get_len(did_service_record.service_record));
-  de_dump_data_element(did_service_record.service_record);
+  //de_dump_data_element(did_service_record.service_record);
 #endif
   sdp_register_service_internal(NULL, &did_service_record);
 }
