@@ -6,6 +6,9 @@
 #include "Template_Driver.h"
 #include "btstack/bluetooth.h"
 #include "battery.h"
+#include "rtc.h"
+
+#include <stdio.h>
 
 extern const tRectangle status_clip;
 
@@ -28,6 +31,7 @@ extern const tRectangle status_clip;
 #define BLUETOOTH_STATUS 0x08
 #define ANTPLUS_STATUS 0x10
 #define ALARM_STATUS  0x20
+#define MID_STATUS    0x40
 
 #define BATTERY_EMPTY 1
 #define BATTERY_LESS  2
@@ -88,6 +92,41 @@ static void OnDraw(tContext* pContext)
 
   if (icon != 0)
     GrStringDraw(pContext, &icon, 1, BATTERY_X, 0, 0);
+
+  if (status & MID_STATUS)
+  {
+    uint8_t hour, minute;
+    char buf[20];
+    rtc_readtime(&hour, &minute, NULL);
+    sprintf(buf, "%02d:%02d", hour, minute);
+    GrContextFontSet(pContext, &g_sFontNova12b);
+    int width = GrStringWidthGet(pContext, buf, -1);
+    GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);
+  }
+  else
+  {
+    char icon = ICON_RUN;
+    // draw activity
+    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
+    GrStringDraw(pContext, &icon, 1, 54, 0, 0);
+    unsigned long steps;
+    // todo: fetch goal
+    int part = 12000 / 5;
+    dmp_get_pedometer_step_count(&steps);
+    for(int i = 1; i < 6; i++)
+    {
+      tRectangle rect = {67 + i * 5, 6, 70 + i * 5, 9};
+      if (i * part <= steps)
+      {
+        GrRectFill(pContext, &rect);
+      }
+      else
+      {
+        GrRectDraw(pContext, &rect); 
+      }
+    }
+  }
+  status ^= MID_STATUS;
 }
 
 static void check_battery()
@@ -130,7 +169,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
-    status = 0;
+    status = MID_STATUS;
     check_battery();
     status_invalid();
     break;

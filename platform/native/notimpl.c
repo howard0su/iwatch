@@ -94,7 +94,7 @@ void __disable_interrupt() {}
 
 int dmp_get_pedometer_step_count(unsigned long *count)
 {
-	*count = 132435;
+	*count = 1435;
 }
 int dmp_get_pedometer_walk_time(unsigned long *time)
 {

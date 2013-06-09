@@ -88,6 +88,7 @@ WATCH = \
     watch/menu.c \
     watch/cordic.c \
     watch/calendar.c \
+    watch/stopwatch.c \
     watch/sportswatch.c \
     watch/sportselect.c \
     watch/notification.c \

@@ -15,7 +15,7 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
   uint8_t width_all = GrStringWidthGet(pContext, data, 3);
   uint8_t width_digit = GrStringWidthGet(pContext, data, 2);
 
-  long startx = (width_all + width_all + width_digit - LCD_X_SIZE) / 2 - 5;
+  long startx = (LCD_X_SIZE - width_all - width_all - width_digit) / 2;
   if (startx < 0) startx = 0;
 
   for(int i = 0; i < 3; i++)
@@ -29,7 +29,7 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
 
-      tRectangle rect = {startx + i * width_all, y - 3, startx + i * width_all + width_digit, y + height + 3};
+      tRectangle rect = {startx + i * width_all, y, startx + i * width_all + width_digit, y + height};
       GrRectFill(pContext, &rect);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);

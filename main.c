@@ -11,15 +11,30 @@ void window_handle_event(uint8_t ev, void* data);
 
 static void test_window(windowproc window, void* data)
 {
-	GrContextFontSet(&context, (const tFont*)NULL);
- 	window(EVENT_WINDOW_CREATED, 0, data);
-        GrContextClipRegionSet(&context, &status_clip);
-        status_process(EVENT_WINDOW_PAINT, 0, &context);
-  	GrContextClipRegionSet(&context, &client_clip);
-	window(EVENT_WINDOW_PAINT, 0, &context);
-  	GrFlush(&context);
+  GrContextFontSet(&context, (const tFont*)NULL);
+  window(EVENT_WINDOW_CREATED, 0, data);
+  GrContextClipRegionSet(&context, &status_clip);
+  status_process(EVENT_WINDOW_PAINT, 0, &context);
+  GrContextClipRegionSet(&context, &client_clip);
+  window(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
 
-  	window(EVENT_WINDOW_CLOSING, 0, 0);
+  window(EVENT_WINDOW_CLOSING, 0, 0);
+}
+
+static void test_window_stopwatch(windowproc window, void* data)
+{
+  GrContextFontSet(&context, (const tFont*)NULL);
+  window(EVENT_WINDOW_CREATED, 0, data);
+  GrContextClipRegionSet(&context, &status_clip);
+  status_process(EVENT_WINDOW_PAINT, 0, &context);
+  for(int i = 3; i >= 0; i--)
+    window(EVENT_KEY_PRESSED, KEY_ENTER, (void*)0);
+  GrContextClipRegionSet(&context, &client_clip);
+  window(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
+  window(EVENT_WINDOW_CLOSING, 0, 0);
 }
 
 static void* font;
@@ -114,6 +129,8 @@ int main()
   
   // test menu in the last
   test_window(&menu_process, NULL);
+
+  test_window_stopwatch(&stopwatch_process, NULL);
 
   test_window(&menu_process, 1);
 

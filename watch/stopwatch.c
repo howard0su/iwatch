@@ -24,16 +24,30 @@ static void OnDraw(tContext* pContext)
   GrRectFill(pContext, &client_clip);
 
   // draw the countdown time
-  GrContextFontSet(pContext, &g_sFontNova38b);
+  GrContextFontSet(pContext, &g_sFontNova28b);
   window_drawtime(pContext, 35, times, 0);
 
   if (state != STATE_INIT)
   {
-    GrContextFontSet(pContext, &g_sFontNova16);
+    GrContextFontSet(pContext, &g_sFontNova16b);
+    
+    char buf[20];
+
     // draw the stoped times
     for(int i = 0; i < state; i++)
     {
-      window_drawtime(pContext, i * 20 + 90, saved_times[i], 0);
+      sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
+      GrStringDraw(pContext, buf, -1, 12, i * 20 + 90, 0);
+      GrLineDrawH(pContext, 0, LCD_X_SIZE, i * 20 + 110);
+    }
+
+    for(int i = 1; i < state; i++)
+    {
+      int delta = (saved_times[i][0] * 3600 + saved_times[i][1] * 60 + saved_times[i][2]) - 
+        (saved_times[i - 1][0] * 3600 + saved_times[i - 1][1] * 60 + saved_times[i - 1][2]);
+      sprintf(buf, "-%02d:%02d:%02d", delta / 3600 , (delta / 60) % 60, delta % 3600);
+      GrContextFontSet(pContext, &g_sFontNova12b);
+      GrStringDraw(pContext, buf, -1, 80, i * 20 + 93, 0);
     }
   }
 }
