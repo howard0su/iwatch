@@ -18,6 +18,7 @@ static enum
   WAIT_BRSF,
   WAIT_CIND0,
   WAIT_CIND,
+  WAIT_CMEROK,
   WAIT_OK,
   IDLE,
   WAIT_RESP,
@@ -29,15 +30,17 @@ static void*    hfp_response_buffer;
 static uint16_t rfcomm_channel_id = 0;
 
 static void hfp_try_respond(uint16_t rfcomm_channel_id){
-    if (!hfp_response_size ) return;
+    if (!hfp_response_size) return;
     if (!rfcomm_channel_id) return;
 
+    printf("hfp: sending %s\n", hfp_response_buffer);
     // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
     uint16_t size = hfp_response_size;
     hfp_response_size = 0;
     if (rfcomm_send_internal(rfcomm_channel_id, hfp_response_buffer, size) != 0)
     {
       // if error, we need retry
+      printf("hfp: send failed.\n");
       hfp_response_size = size;
     }
 }
@@ -54,7 +57,6 @@ static const uint8_t   hfp_service_buffer[85] =
 };
 
 static void hfp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
-
 
 static void sdp_create_hfp_service(uint8_t *service, int service_id, const char *name){
 
@@ -146,45 +148,26 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
     return;
 
   rfcomm_create_channel_internal(NULL, hfp_handler, (bd_addr_t*)remote_addr, port);
+  state = INITIALIZING;
 }
 
 #define AT_BRSF  "AT+BRSF=4\r"
 #define AT_CIND0 "AT+CIND=?\r"
 #define AT_CIND  "AT+CIND?\r"
 #define AT_CMER  "AT+CMER=3,0,0,1\r"
+#define AT_CLIP  "AT+CLIP=1\r"
+#define AT_BVRA  "AT+BVRA=1\r"
 
 #define R_NONE 0
 #define R_OK   0
 #define R_BRSF 1
 #define R_CIND 2
 #define R_CIEV 3
+#define R_RING 4
+#define R_CLIP 5
 #define R_UNKNOWN 0xFE
 #define R_ERROR 0xFF
 #define R_CONTINUE 0xFC
-
-#define HFP_CIND_UNKNOWN	-1
-#define HFP_CIND_NONE		0
-#define HFP_CIND_SERVICE	1
-#define HFP_CIND_CALL		2
-#define HFP_CIND_CALLSETUP	3
-#define HFP_CIND_CALLHELD	4
-#define HFP_CIND_SIGNAL		5
-#define HFP_CIND_ROAM		6
-#define HFP_CIND_BATTCHG	7
-
-/* call indicator values */
-#define HFP_CIND_CALL_NONE	0
-#define HFP_CIND_CALL_ACTIVE	1
-
-/* callsetup indicator values */
-#define HFP_CIND_CALLSETUP_NONE		0
-#define HFP_CIND_CALLSETUP_INCOMING	1
-#define HFP_CIND_CALLSETUP_OUTGOING	2
-#define HFP_CIND_CALLSETUP_ALERTING	3
-
-/* service indicator values */
-#define HFP_CIND_SERVICE_NONE		0
-#define HFP_CIND_SERVICE_AVAILABLE	1
 
 static char* parse_return(char* result, int* code)
 {
@@ -210,6 +193,10 @@ static char* parse_return(char* result, int* code)
   else if (strncmp(result, "+CIEV", 5) == 0)
   {
     *code = R_CIEV;
+  }
+  else if (strncmp(result, "+CLIP", 5) == 0)
+  {
+    *code = R_CLIP;
   }
   else if (strncmp(result, "OK", 2) == 0)
   {
@@ -244,16 +231,43 @@ static char* parse_return(char* result, int* code)
 }
 
 struct hfp_cind {
-	int service;	/*!< whether we have service or not */
-	int call;	/*!< call state */
-	int callsetup;	/*!< bluetooth call setup indications */
-	int callheld;	/*!< bluetooth call hold indications */
-	int signal;	/*!< signal strength */
-	int roam;	/*!< roaming indicator */
-	int battchg;	/*!< battery charge indicator */
+	uint8_t service;	/*!< whether we have service or not */
+	uint8_t call;	/*!< call state */
+	uint8_t callsetup;	/*!< bluetooth call setup indications */
+	uint8_t callheld;	/*!< bluetooth call hold indications */
+	uint8_t signal;	/*!< signal strength */
+	uint8_t roam;	/*!< roaming indicator */
+	uint8_t battchg;	/*!< battery charge indicator */
 }cind_map;
 static uint8_t cind_index[16];
 static uint8_t cind_state[16];
+
+
+static void handle_CIEV(char *buf)
+{
+  uint8_t ind, value;
+  // handle +CIEV: 3,0
+  // handle +CIEV: 3,1
+  if (sscanf(buf, "\r+CIEV: %d, %d", ind, value))
+  {
+    printf("CIEV: ind:%d index:%d value:%d\n", ind, cind_index[ind], value);
+    cind_state[ind] = value;
+  }
+}
+
+static void handle_RING()
+{
+
+}
+
+static void handle_CLIP(char* buf)
+{
+  char phone[20];
+  if (sscanf("\r+CLIP: \"%s\"", phone))
+  {
+    printf("CLIP: %s\n", phone);
+  }
+}
 
 static void handle_CIND0(char* buf)
 {
@@ -405,6 +419,7 @@ static void hfp_state_handler(int code, char* buf)
     hfp_response_buffer = AT_CIND0;
     hfp_response_size = sizeof(AT_CIND0);
     state = WAIT_CIND0;
+    hfp_try_respond(rfcomm_channel_id);
   }
   else if (state == WAIT_CIND0 && code == R_CIND)
   {
@@ -412,29 +427,49 @@ static void hfp_state_handler(int code, char* buf)
     hfp_response_buffer = AT_CIND;
     hfp_response_size = sizeof(AT_CIND);
     state = WAIT_CIND;
+    hfp_try_respond(rfcomm_channel_id);
   }
   else if (state == WAIT_CIND && code == R_CIND)
   {
     handle_CIND(buf);
     hfp_response_buffer = AT_CMER;
     hfp_response_size = sizeof(AT_CMER);
+    state = WAIT_CMEROK;
+    hfp_try_respond(rfcomm_channel_id);
+  }
+  else if (state == WAIT_CMEROK && code == R_OK)
+  {
+    hfp_response_buffer = AT_CLIP;
+    hfp_response_size = sizeof(AT_CLIP);
+    hfp_try_respond(rfcomm_channel_id);
     state = WAIT_OK;
   }
-  else if (code == R_OK)
+  else if (code == R_CIEV)
+  {
+    handle_CIEV(buf);
+  }
+  else if (code == R_RING)
+  {
+    handle_RING();
+  }
+  else if (code == R_CLIP)
+  {
+    handle_CLIP(buf);
+  }
+  else if (code == R_OK || code == R_ERROR)
   {
   }
   else
   {
     state = ERROR;
   }
-
 }
 
 static uint8_t textbuf[255];
 static uint8_t textbufptr = 0;
 static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint16_t len)
 {
-  log_info("hfp_handler state %d event %d\n", state, type);
+  log_info("hfp_handler state %d event %d[%d]\n", state, type, packet[0]);
   switch(type)
   {
   case RFCOMM_DATA_PACKET:
@@ -444,6 +479,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
       memcpy(textbuf + textbufptr, packet, len);
       textbufptr+=len;
       textbuf[textbufptr] = 0;
+      printf("hfp: recv so far: %s\n", textbuf);
       char* current = textbuf;
       do
       {
@@ -537,4 +573,11 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
       }
     }
   }
+}
+
+void hfp_enable_voicerecog()
+{
+  hfp_response_buffer = AT_BVRA;
+  hfp_response_size = sizeof(AT_BVRA);
+  hfp_try_respond(rfcomm_channel_id);
 }
