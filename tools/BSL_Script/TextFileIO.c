@@ -12,6 +12,17 @@
 FILE* file;
 unsigned int currentAddr = NO_DATA_READ;
 
+struct datablock
+{
+  unsigned int currentAddr;
+  unsigned int size;
+  unsigned int offset;
+  unsigned char *data;
+};
+
+struct datablock blocks[20];
+int current_block;
+
 /*******************************************************************************
 *Function:    openTI_TextForRead
 *Description: Opens a TXT file for reading
@@ -28,10 +39,49 @@ int openTI_TextForRead( char *filename )
    {
       return ERROR_OPENING_FILE;
    }
-   else
+ 
+  int bytesRead = 0;
+  char string[50];
+  int block = -1;
+   while(1)
    {
-      return OPERATION_SUCCESSFUL;
+      int status = fgets( string, sizeof string, file );
+      if (status == 0)
+         break;
+      if (string[0] == '@')
+      {
+        block++;
+        sscanf(&string[1], "%x\n", &blocks[block].currentAddr);
+        blocks[block].offset = 0;
+        blocks[block].size = 0;
+        blocks[block].data = malloc(128 * 1024);
+        bytesRead = 0;
+        continue;
+      }
+      else if (string[0] == 'q' || string[0] == 'Q')
+      {
+        for(int i = block + 1; i < 20; i++)
+          blocks[i].currentAddr = -1;
+        break;
+      }
+      else{
+        int stringLength = strlen( string );
+        // this is data
+        for( int stringPosition = 0; stringPosition < (stringLength-3); stringPosition+=3 )
+        {
+          sscanf( &string[stringPosition], "%2x", &blocks[block].data[bytesRead]);
+          bytesRead++;
+        }
+        blocks[block].size = bytesRead;
+      }
    }
+
+   printf("find %d blocks\n", block);
+   for(int i = 0; i < block; i++)
+   {
+      printf("block %d: addr=%x, size=%d\n", i, blocks[i].currentAddr, blocks[i].size);
+   }
+
 }
 
 /*******************************************************************************
@@ -94,7 +144,7 @@ void closeTI_Text()
 *******************************************************************************/
 int moreDataToRead()
 {
-  return !(currentAddr == TXT_EOF);
+  return !(blocks[current_block].currentAddr == -1);
 }
 
 /*******************************************************************************
@@ -184,46 +234,29 @@ void writeTI_TextFile( int addr, unsigned char *data, int length )
 DataBlock readTI_TextFile(int bytesToRead)
 {
   DataBlock returnBlock;
-  int bytesRead = 0;
-  char string[50];
-  int status;
-  if( currentAddr == NO_DATA_READ )
+  
+  if (blocks[current_block].currentAddr == -1)
   {
-    fgets( string, sizeof string, file );
-    sscanf(&string[1], "%x\n", &currentAddr);
+    returnBlock.startAddr = EOF;
+    returnBlock.numberOfBytes = 0;
+    return returnBlock; 
   }
-  returnBlock.startAddr = currentAddr;
-  do
+
+  returnBlock.startAddr = blocks[current_block].currentAddr + blocks[current_block].offset;
+  if (bytesToRead >= blocks[current_block].size - blocks[current_block].offset)
   {
-	int stringLength=0;
-	int stringPosition=0;
-    status = fgets( string, sizeof string, file );
-	stringLength = strlen( string );
-	if( status == 0 )
-	{
-      currentAddr = EOF;
-	}
-    else if( string[0] == '@' )
-	{
-      sscanf(&string[1], "%x\n", &currentAddr);
-	  status = 0;
-	}
-	else if ( string[0] == 'q' || string[0] == 'Q' )
-	{
-      status = 0;
-	  currentAddr = EOF;
-	}
-    else
-	{
-	  for( stringPosition = 0; stringPosition < (stringLength-3); stringPosition+=3 )
-	  {
-        sscanf( &string[stringPosition], "%2x", &returnBlock.data[bytesRead] );
-	    bytesRead++;
-		currentAddr++;
-	  }
-	}
+    returnBlock.numberOfBytes = blocks[current_block].size - blocks[current_block].offset;
+    // not enough bytes to read
+    memcpy(returnBlock.data, blocks[current_block].data + blocks[current_block].offset, returnBlock.numberOfBytes);
+    current_block++;
   }
-  while( (status != 0) && (bytesRead < bytesToRead) );
-  returnBlock.numberOfBytes = bytesRead;
+  else
+  {
+    returnBlock.numberOfBytes = bytesToRead;
+    // there is more bytes
+    memcpy(returnBlock.data, blocks[current_block].data + blocks[current_block].offset, bytesToRead);
+    blocks[current_block].offset += bytesToRead;
+  }
+
   return returnBlock;
 }

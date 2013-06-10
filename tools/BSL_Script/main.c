@@ -196,7 +196,7 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 	if( line[strlen(line)-2] == '\r' ){
 		line[strlen(line)-2] =' ';
 	}
-    if( (memcmp( line, "//", 2 )==0) )
+    if( (memcmp( line, "//", 2 )==0) || line[0] == '#')
 	{
 		// skip comments
 	}
@@ -496,6 +496,20 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 	{
 		printf("Reset \t\t\t");
 		BSL_Reset();
+		printf("Done\n");
+	}
+/*********DUMP**************************************************************/
+	else if ( memcmp( line, "DUMP", 4)==0 )
+	{
+	  unsigned int rate;
+      sscanf( line, "%*s %u", &rate);
+      printf("Changing Baud Rate to %u\n", rate);
+		changeCommBaudRate(rate);
+		char c;
+		while((c = readByte()) != 0xEE)
+		{
+			putchar(c);
+		}
 		printf("Done\n");
 	}
 	else

@@ -6,7 +6,7 @@
 
 typedef struct {
   unsigned long int size;
-  unsigned char data [MAX_BUFFER_SIZE];
+  unsigned char data [50 + MAX_BUFFER_SIZE];
 } dataBuffer;
 
 typedef struct DataBlock_ {

@@ -201,8 +201,20 @@ void writeByte( unsigned char byte  )
   {
     printf( "[%2.2x] ", (byte&0xFF));
   }
-  PurgeComm(hComPort, PURGE_RXCLEAR | PURGE_RXABORT);
+  //PurgeComm(hComPort, PURGE_RXCLEAR | PURGE_RXABORT);
   WriteFile(hComPort, &byte, 1, &dwWrite, NULL);
+}
+
+void writeBytes( unsigned char *byte, int size )
+{
+  unsigned int dwWrite;
+  if( UART_verbose )
+  {
+    for(int i = 0; i < size; i++)
+      printf( "[%2.2x] ", (*(byte+i)&0xFF));
+  }
+  //PurgeComm(hComPort, PURGE_RXCLEAR | PURGE_RXABORT);
+  WriteFile(hComPort, byte, size, &dwWrite, NULL);
 }
 
 /*******************************************************************************

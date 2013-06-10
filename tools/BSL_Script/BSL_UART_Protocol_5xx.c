@@ -97,18 +97,29 @@ unsigned char UART_5xx_TXPacket( dataBuffer db )
   Flash_crcInit( 0xFFFF );
   if( UART_GetVerbose() == 1 )
   {
-    printf("\n-------------------------------------------------\n");
+    printf("\n-------------------------------------------------%d\n", db.size);
+    for(int i = 0; i < db.size; i++)
+      printf( "{%2.2x} ", db.data[i]);
+
   }
-  writeByte( (unsigned char)0x80 );
-  writeByte( (unsigned char)(db.size&0xFF) );
-  writeByte( (unsigned char)(db.size>>8&0xFF) );
   for( i = 0; i < db.size; i++ )
   {
-    writeByte( db.data[i] );
     Flash_crcInput( db.data[i] );
   }
-  writeByte( Flash_getLowByte() );
-  writeByte( Flash_getHighByte() );
+  if( UART_GetVerbose() == 1 )
+  {
+    printf( "{%2.2x} ", Flash_getLowByte());
+    printf( "{%2.2x} ", Flash_getHighByte());
+    printf("\n");
+  }
+  memmove(db.data + 3, db.data, db.size);
+  db.data[0] = 0x80;
+  db.data[1] = (unsigned char)(db.size&0xFF);
+  db.data[2] = (unsigned char)(db.size>>8&0xFF);
+  db.data[db.size + 3] = Flash_getLowByte();
+  db.data[db.size + 4] = Flash_getHighByte();
+
+  writeBytes( db.data, db.size + 3 + 2);
   answer = readByte();
   if( answer != FLASH_ACK )
   {
