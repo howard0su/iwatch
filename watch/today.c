@@ -1,7 +1,7 @@
 #include "contiki.h"
 
 #include "window.h"
-#include "mpl/inv_mpu_dmp_motion_driver.h"
+#include "mpu.h"
 #include <stdio.h>
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
@@ -58,8 +58,8 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
-    dmp_get_pedometer_step_count(&steps);
-    dmp_get_pedometer_walk_time(&time);
+    steps = mpu_getsteps();
+    time = mpu_getsteptime();
     cal = 130;
     break;
   case EVENT_WINDOW_PAINT:

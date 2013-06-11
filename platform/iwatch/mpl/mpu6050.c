@@ -23,7 +23,7 @@
 PROCESS(mpu6050_process, "MPU6050 Driver");
 
 /* Starting sampling rate. */
-#define DEFAULT_MPU_HZ  (5)
+#define DEFAULT_MPU_HZ  (30)
 
 static struct etimer timer;
 
@@ -122,9 +122,11 @@ void mpu6050_init()
   MPU_INT_IES &= ~MPU_INT_BIT;  // IRQ on 0->1 transition
   MPU_INT_IE  |=  MPU_INT_BIT;  // enable IRQ for P1.6
 
+  /*
   long gyro[3], accel[3];
   int r = mpu_run_self_test(gyro, accel);
   printf("self test result %x\n", r);
+  */
 
   /* Get/set hardware configuration. Start gyro. */
   /* Wake up all sensors. */
@@ -297,4 +299,24 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   }
 
   PROCESS_END();
+}
+
+unsigned long mpu_getsteps()
+{
+  unsigned long steps;
+  I2C_addr(MPU6050_ADDR);
+   dmp_get_pedometer_step_count(&steps);
+  I2C_done();
+
+  return steps;
+}
+
+unsigned long mpu_getsteptime()
+{
+  unsigned long time;
+  I2C_addr(MPU6050_ADDR);
+  dmp_get_pedometer_walk_time(&time);
+  I2C_done();
+
+  return time;
 }

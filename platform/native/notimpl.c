@@ -92,11 +92,7 @@ void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size) {}
 void __disable_interrupt() {}
 
 
-int dmp_get_pedometer_step_count(unsigned long *count)
-{
-	*count = 1435;
-}
-int dmp_get_pedometer_walk_time(unsigned long *time)
-{
-	*time = 1257;
-}
+unsigned long mpu_getsteptime()
+{return 1257;}
+unsigned long mpu_getsteps()
+{return 1435;}
