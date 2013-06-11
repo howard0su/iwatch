@@ -75,13 +75,6 @@ int openTI_TextForRead( char *filename )
         blocks[block].size = bytesRead;
       }
    }
-
-   printf("find %d blocks\n", block);
-   for(int i = 0; i < block; i++)
-   {
-      printf("block %d: addr=%x, size=%d\n", i, blocks[i].currentAddr, blocks[i].size);
-   }
-
 }
 
 /*******************************************************************************
