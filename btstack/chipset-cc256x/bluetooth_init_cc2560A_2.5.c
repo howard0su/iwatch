@@ -5,7 +5,6 @@
 __attribute__((section (".fartext")))
 #endif
 const uint8_t cc256x_init_script[] = {
-
     // #--------------------------------------------------------------------------------
     // # Description : Trio Orca 5500 L ROM Initialization Script
     // #
@@ -1027,5 +1026,4 @@ const uint8_t cc256x_init_script[] = {
     // #################################################################
 };
 
-const uint32_t cc256x_init_script_size = 12601;
-
+const uint32_t cc256x_init_script_size = sizeof(cc256x_init_script);
