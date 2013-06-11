@@ -198,15 +198,12 @@ static int bt_control_cc256x_next_cmd(void *config, uint8_t *hci_cmd_buffer){
     FlashReadBlock(&hci_cmd_buffer[3], init_script_addr + init_script_offset, payload_len);  // cmd payload
 
 #else
-
     // use memcpy with pointer
-    uint8_t const __data20* init_script_ptr = &cc256x_init_script[0];
-    for(int i = 0; i < 3; i++)
-      hci_cmd_buffer[i]= init_script_ptr[init_script_offset + i];  // cmd header
-    int payload_len = hci_cmd_buffer[2];
-    for(int i = 3; i < payload_len + 3; i++)
-      hci_cmd_buffer[i] = init_script_ptr[init_script_offset + i];
+    uint8_t * init_script_ptr = (uint8_t*) &cc256x_init_script[0];
+    memcpy(&hci_cmd_buffer[0], init_script_ptr + init_script_offset, 3);  // cmd header
     init_script_offset += 3;
+    int payload_len = hci_cmd_buffer[2];
+    memcpy(&hci_cmd_buffer[3], init_script_ptr + init_script_offset, payload_len);  // cmd payload
 #endif
 
     // support for cc256x power commands and ehcill

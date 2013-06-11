@@ -47,6 +47,8 @@ putchar(int c)
   if ((x & GIE) == 0)
     return c;
 
+  splx(x);
+
   TXByte = c;
 
   TA0CCTL0 = OUT; 							// TXD Idle as Mark
@@ -60,7 +62,6 @@ putchar(int c)
 
   TA0CCTL0 = CCIS_0 + OUTMOD_0 + CCIE + OUT; // Set signal, intial value, enable interrupts
   TA0CTL = TASSEL_2 + MC_2; 				// SMCLK, continuous mode
-  splx(x);
 
   while ( TA0CCTL0 & CCIE ); 				// Wait for previous TX completion
   return c;
@@ -77,9 +78,9 @@ ISR(TIMER0_A0, timer0_a0_interrupt)
     TA0CCTL0 &= ~ CCIE ; 					// Disable interrupt
   } else {
     if (TXByte & 0x01) {
-      TA0CCTL0 = ((TA0CCTL0 & ~OUTMOD_7 ) | OUTMOD_1);  //OUTMOD_7 defines the 'window' of the field.
+      TA0CCTL0 = CCIS_0 + OUTMOD_1 + CCIE + OUT;  //OUTMOD_7 defines the 'window' of the field.
     } else {
-      TA0CCTL0 = ((TA0CCTL0 & ~OUTMOD_7 ) | OUTMOD_5);  //OUTMOD_7 defines the 'window' of the field.
+      TA0CCTL0 = CCIS_0 + OUTMOD_5 + CCIE + OUT;  //OUTMOD_7 defines the 'window' of the field.
     }
 
     TXByte = TXByte >> 1;
