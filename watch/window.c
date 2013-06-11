@@ -116,7 +116,7 @@ void window_handle_event(uint8_t ev, void* data)
         backlight_on(0);
       }
     }
-    else if (ev == EVENT_TIME_CHANGED)
+    else if (ev == EVENT_TIME_CHANGED || ev == EVENT_ANT_DATA)
     {
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
@@ -251,8 +251,8 @@ ui_config* window_readconfig()
 void window_writeconfig()
 {
   // write to flash
-  flash_setup();
-  flash_clear(INFOC);
-  flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
-  flash_done();
+//  flash_setup();
+//  flash_clear(INFOC);
+//  flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
+//  flash_done();
 }

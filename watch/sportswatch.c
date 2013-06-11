@@ -3,7 +3,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "rtc.h"
-
+#include "ant/ant.h"
 #include <stdio.h>
 
 #define GRID_3 			0
@@ -145,7 +145,15 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint16_t data)
 
   char buf[20];
   // todo: format the input data
-  sprintf(buf, "%d", data);
+  switch(d->format)
+  {
+    case FORMAT_TIME:
+      sprintf(buf, "%02d:%02d", data/60, data%60);
+      break;
+    default:
+      sprintf(buf, "%d", data);
+      break;
+  }
 
   GrContextForegroundSet(pContext, ClrWhite);
   // other generic grid data
@@ -164,12 +172,12 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint16_t data)
     break;
   case GRID_4:
     GrContextFontSet(pContext, &g_sFontRed13);
-    GrStringDrawWrap(pContext, d->name, region_4grid[index].sXMin + 8, region_4grid[index].sYMin + 8, 
+    GrStringDrawWrap(pContext, d->name, region_4grid[index].sXMin + 8, region_4grid[index].sYMin + 8,
                     (region_4grid[index].sXMax - region_4grid[index].sXMin) / 3, 16);
 
     GrContextFontSet(pContext, &g_sFontNova28b);
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, (region_4grid[index].sXMax - region_4grid[index].sXMin) * 3 / 4 - width, 
+    GrStringDraw(pContext, buf, -1, (region_4grid[index].sXMax - region_4grid[index].sXMin) * 3 / 4 - width,
       region_4grid[index].sYMin + 10, 0);
     if (d->unit)
     {
@@ -187,7 +195,7 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint16_t data)
     {
       GrContextFontSet(pContext, &g_sFontNova13);
       GrStringDraw(pContext, d->unit, -1, region_5grid[index].sXMin + 8, region_5grid[index].sYMin + 40, 0);
-    }  
+    }
     break;
   }
 }
@@ -241,10 +249,24 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     {
+      if (rparam == (void*)1)
+      {
+        ant_init(MODE_HRM);
+      }
+      else
+      {
+        ant_init(MODE_CBSC);
+      }
       rtc_enablechange(SECOND_CHANGE);
       for (int i = 0; i < 5; i++)
         data[i] = 0;
-      workout_time = 0;     
+      workout_time = 0;
+      break;
+    }
+  case EVENT_ANT_DATA:
+    {
+      printf("got ant data\n");
+      updateData(DATA_HEARTRATE, (uint16_t)rparam);
       break;
     }
   case EVENT_TIME_CHANGED:
@@ -264,6 +286,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_CLOSING:
     rtc_enablechange(0);
+    ant_shutdown();
     break;
   default:
     return 0;

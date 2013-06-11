@@ -35,7 +35,7 @@
 #include "timer.h"
 #include "hrm_rx.h"
 #include "cbsc_rx.h"
-
+#include "ant.h"
 #include "serial.h"
 
 #include "contiki.h"
@@ -57,11 +57,7 @@ static void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_);
 static void ProcessAntEvents(UCHAR* pucEventBuffer_);
 static void ProcessANTCBSCRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_);
 
-static enum {
-  MODE_PAIR = 0,
-  MODE_HRM = 1,
-  MODE_CBSC = 2
-}mode;
+ModeEnum mode;
 /*----------Bicyle ------------------*/
 //local variables
 typedef struct
@@ -88,9 +84,9 @@ void ant_process_poll()
   process_poll(&ant_process);
 }
 
-void ant_init()
+void ant_init(ModeEnum m)
 {
-  mode = MODE_CBSC;
+  mode = m;
   ANTInterface_Init();
 
   process_start(&ant_process, NULL);
@@ -350,6 +346,7 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
       }
       if(bCommonPage)
       {
+        process_post(ui_process, EVENT_ANT_DATA, (void*)pstPage0Data->ucComputedHeartRate);
         printf("Time of last heart beat event: %u.", (ULONG)(pstPage0Data->usBeatTime/1024));
         printf("%03u s\n", (ULONG)((((pstPage0Data->usBeatTime % 1024) * HRM_PRECISION) + 512) / 1024));
         printf("Heart beat count: %u\n", pstPage0Data->ucBeatCount);
@@ -508,5 +505,3 @@ static void ComputeSpeed(CBSCPage0_Data* pstPresent, CBSCPage0_Data* pstPast)
 
    return;
 }
-
-

@@ -20,6 +20,7 @@ PROCESS_NAME(system_process);
 // parameter is used as rparam
 #define EVENT_TIME_CHANGED            0x90
 #define EVENT_NOTIFICATION            0x91
+#define EVENT_ANT_DATA                0x92
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xa0
