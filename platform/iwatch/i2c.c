@@ -10,16 +10,6 @@ static uint8_t payloadlen;
 static const uint8_t *txdata;
 static uint8_t txlen;
 
-#define BUSYWAIT_UNTIL(cond, max_time)                                  \
-  do {                                                                  \
-    rtimer_clock_t t0;                                                  \
-    t0 = RTIMER_NOW();                                                  \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {  \
-      __bis_SR_register(LPM0_bits + GIE);                               \
-      __no_operation();                                                 \
-    }                                                                   \
-  } while(0)
-
 static enum { STATE_IDL, STATE_RUNNING, STATE_DONE, STATE_ERROR} state;
 
 void I2C_Init()

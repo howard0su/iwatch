@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "sys/ctimer.h"
-
+#include "mpu.h"
 #include "grlib/grlib.h"
 #include "window.h"
 #include "Template_Driver.h"
@@ -92,18 +92,7 @@ static void OnDraw(tContext* pContext)
 
   if (icon != 0)
     GrStringDraw(pContext, &icon, 1, BATTERY_X, 0, 0);
-
   if (status & MID_STATUS)
-  {
-    uint8_t hour, minute;
-    char buf[20];
-    rtc_readtime(&hour, &minute, NULL);
-    sprintf(buf, "%02d:%02d", hour, minute);
-    GrContextFontSet(pContext, &g_sFontNova12b);
-    int width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);
-  }
-  else
   {
     char icon = ICON_RUN;
     // draw activity
@@ -112,7 +101,7 @@ static void OnDraw(tContext* pContext)
     unsigned long steps;
     // todo: fetch goal
     int part = 12000 / 5;
-    dmp_get_pedometer_step_count(&steps);
+    steps = 100;
     for(int i = 1; i < 6; i++)
     {
       tRectangle rect = {67 + i * 5, 6, 70 + i * 5, 9};
@@ -122,9 +111,19 @@ static void OnDraw(tContext* pContext)
       }
       else
       {
-        GrRectDraw(pContext, &rect); 
+        GrRectDraw(pContext, &rect);
       }
     }
+  }
+  else
+  {
+    uint8_t hour, minute;
+    char buf[20];
+    rtc_readtime(&hour, &minute, NULL);
+    sprintf(buf, "%02d:%02d", hour, minute);
+    GrContextFontSet(pContext, &g_sFontNova12b);
+    int width = GrStringWidthGet(pContext, buf, -1);
+    GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);
   }
   status ^= MID_STATUS;
 }
@@ -169,7 +168,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
-    status = MID_STATUS;
+    status = 0;
     check_battery();
     status_invalid();
     break;
