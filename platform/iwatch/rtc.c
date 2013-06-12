@@ -13,7 +13,7 @@ void rtc_init()
 {
   // Configure RTC_A
   RTCCTL01 |= RTCHOLD + RTCMODE;
-  // RTC enable, BCD mode, RTC hold
+  // RTC enable, HEX mode, RTC hold
   // enable RTC time event interrupt
 
   RTCYEAR = 2013;                         // Year = 0x2010
@@ -105,7 +105,7 @@ void rtc_setalarm()
 
 void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 {
-  while (!(RTCCTL01&RTCRDY));
+  BUSYWAIT_UNTIL((RTCCTL01&RTCRDY), CLOCK_SECOND/8);
 
   if (hour) *hour = RTCHOUR;
   if (min) *min = RTCMIN;
@@ -114,7 +114,7 @@ void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday)
 {
-  while (!(RTCCTL01&RTCRDY));
+  BUSYWAIT_UNTIL((RTCCTL01&RTCRDY), CLOCK_SECOND/8);
 
   if (year) *year = RTCYEAR;
   if (month) *month = RTCMON;

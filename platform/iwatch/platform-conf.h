@@ -95,6 +95,15 @@ typedef unsigned long off_t;
 
 #define CFS_RAM_CONF_SIZE 4096
 
-#define ENERGEST_CONF_ON 1
+#define ENERGEST_CONF_ON 0
+
+#define BUSYWAIT_UNTIL(cond, max_time)                                  \
+  do {                                                                  \
+    rtimer_clock_t t0;                                                  \
+    t0 = RTIMER_NOW();                                                  \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {  \
+      __no_operation();                                                 \
+    }                                                                   \
+  } while(0)
 
 #endif /* __PLATFORM_CONF_H__ */
