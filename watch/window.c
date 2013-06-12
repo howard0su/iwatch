@@ -251,8 +251,8 @@ ui_config* window_readconfig()
 void window_writeconfig()
 {
   // write to flash
-//  flash_setup();
-//  flash_clear(INFOC);
-//  flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
-//  flash_done();
+  flash_setup();
+  flash_clear(INFOC);
+  flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
+  flash_done();
 }
