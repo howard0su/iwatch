@@ -47,7 +47,7 @@ __attribute__ ((section(".infob")))
 #else
 #pragma constseg = INFOB
 #endif
-__no_init const struct _configdata config_data;
+const struct _configdata config_data;
 #ifndef __GNUC__
 #pragma constseg = default
 #endif
