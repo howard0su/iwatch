@@ -3,6 +3,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "rtc.h"
+#include <stdio.h>
 
 static uint8_t times[3]; // minute, second, 10ms
 static uint8_t counter;
@@ -30,7 +31,7 @@ static void OnDraw(tContext* pContext)
   if (state != STATE_INIT)
   {
     GrContextFontSet(pContext, &g_sFontNova16b);
-    
+
     char buf[20];
 
     // draw the stoped times
@@ -43,7 +44,7 @@ static void OnDraw(tContext* pContext)
 
     for(int i = 1; i < state; i++)
     {
-      int delta = (saved_times[i][0] * 3600 + saved_times[i][1] * 60 + saved_times[i][2]) - 
+      int delta = (saved_times[i][0] * 3600 + saved_times[i][1] * 60 + saved_times[i][2]) -
         (saved_times[i - 1][0] * 3600 + saved_times[i - 1][1] * 60 + saved_times[i - 1][2]);
       sprintf(buf, "-%02d:%02d:%02d", delta / 3600 , (delta / 60) % 60, delta % 3600);
       GrContextFontSet(pContext, &g_sFontNova12b);
