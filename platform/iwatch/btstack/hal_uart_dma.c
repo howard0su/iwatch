@@ -266,7 +266,18 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
   }
 }
 
-void hal_uart_dma_set_sleep(uint8_t sleep){
+void hal_uart_dma_set_sleep(uint8_t sleep)
+{
+  printf("uart sleep %d\n", (int)sleep);
+  if (sleep)
+  {
+      UCA0CTL1 |= UCSWRST;             // continue
+      __delay_cycles(100);
+  }
+  else
+  {
+      UCA0CTL1 &= ~UCSWRST;             // continue
+  }
 }
 
 // block-wise "DMA" RX/TX UART driver
@@ -313,5 +324,5 @@ int port1_pin3()
   if (cts_irq_handler)
     (*cts_irq_handler)();
 
-  return 0;
+  return 1;
 }
