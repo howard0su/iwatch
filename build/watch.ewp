@@ -1049,7 +1049,7 @@
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xmfn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -1092,11 +1092,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>400</state>
+          <state>900</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>400</state>
+          <state>0</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1104,7 +1104,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>80</state>
+          <state>0</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>
@@ -1781,11 +1781,11 @@
         </option>
         <option>
           <name>IncludeSuppressed</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ModuleSummary</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XlinkStackSize</name>
@@ -1859,7 +1859,7 @@
         </option>
         <option>
           <name>ListOutputFormat</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>BufferedTermOutput</name>
@@ -1875,7 +1875,7 @@
         </option>
         <option>
           <name>OverlaySystemMap</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>RawBinaryFile</name>
@@ -2078,6 +2078,12 @@
     </group>
     <group>
       <name>cc2564</name>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.10.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
+      </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.5.c</name>
       </file>
