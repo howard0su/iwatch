@@ -277,7 +277,7 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
     if (lparam == KEY_ENTER)
     {
-      selection += 0x11;
+      selection += 0x1;
       if (selection > sizeof(FaceSelections)/sizeof(struct clock_draw) - 1)
       {
         selection = 0x00;
