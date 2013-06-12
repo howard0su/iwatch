@@ -87,11 +87,19 @@ static int codec_write(uint8_t reg, uint16_t data)
   return I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
 }
 
+static uint16_t codec_read(uint8_t reg)
+{
+  uint16_t data = 0;
+  I2C_readbytes(reg << 1, (unsigned char*)&data, 2);
+
+  return data;
+}
+
 #define AUDOUT P10OUT
 #define AUDDIR P10DIR
 #define AUDBIT BIT6
 
-static void codec_shutdown()
+void codec_shutdown()
 {
   /*
   Mute DAC  DACMT[6] = 1
@@ -104,6 +112,13 @@ static void codec_shutdown()
   codec_write(REG_POWER_MANAGEMENT1, 0);
   codec_write(REG_POWER_MANAGEMENT2, 0);
   codec_write(REG_POWER_MANAGEMENT3, 0);
+
+  codec_write(REG_CLK_GEN_CTRL, 0x148);
+
+  printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT1, codec_read(REG_POWER_MANAGEMENT1));
+  printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT2, codec_read(REG_POWER_MANAGEMENT2));
+  printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT3, codec_read(REG_POWER_MANAGEMENT3));
+  printf("Codec reg: %x = %d\n", REG_CLK_GEN_CTRL, codec_read(REG_CLK_GEN_CTRL));
 }
 
 void code_setformat(uint8_t format)
@@ -113,10 +128,13 @@ void code_setformat(uint8_t format)
 
 void codec_wakeup()
 {
+  codec_write(REG_CLK_GEN_CTRL, 0x149);
+
   codec_write(REG_POWER_MANAGEMENT1, 0x17d);
   codec_write(REG_POWER_MANAGEMENT2, 0x15);
   codec_write(REG_POWER_MANAGEMENT3, 0xfd);
 }
+
 void codec_init()
 {
   AUDDIR |= BIT6;
@@ -127,6 +145,7 @@ void codec_init()
   codec_write(REG_RESET, 0);
   __delay_cycles(5000);
 
+/*
   for(uint8_t i = 1; i <= 0x38; i++)
   {
     if (config[i] == 0xffff)
@@ -140,12 +159,11 @@ void codec_init()
       return;
     }
   }
+*/
+  codec_shutdown();
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
   printf("initialize codec sucess\n");
-
-
-  codec_shutdown();
-
+  
   I2C_done();
 }

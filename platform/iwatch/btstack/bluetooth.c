@@ -90,6 +90,8 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
   }
 }
 
+static uint16_t handle_audio = 0;
+
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
@@ -127,13 +129,27 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       log_info("connection request\n");
       break;
     }
+  case HCI_EVENT_CONNECTION_COMPLETE:
+  {
+    if (packet[11] == 2)
+    {
+      handle_audio = READ_BT_16(packet, 3);
+      codec_wakeup();
+    }
+    break;
+  }
   case HCI_EVENT_DISCONNECTION_COMPLETE:
     {
       att_response_handle =0;
       att_response_size = 0;
 
+      if (READ_BT_16(packet, 3) == handle_audio)
+      {
+        handle_audio = 0;
+        codec_shutdown();
+      }
       // restart advertising
-      hci_send_cmd(&hci_le_set_advertise_enable, 1);
+      // hci_send_cmd(&hci_le_set_advertise_enable, 1);
       break;
     }
   case HCI_EVENT_PIN_CODE_REQUEST:
@@ -352,3 +368,5 @@ bd_addr_t* bluetooth_paired_addr()
 {
   return (bd_addr_t*)&config_data.bd_addr;
 }
+
+
