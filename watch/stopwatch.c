@@ -16,6 +16,7 @@ static enum
   STATE_INIT
 }state;
 static uint8_t saved_times[3][3]; // saved time
+static uint8_t delta_times[2][3]; // delta
 
 static void OnDraw(tContext* pContext)
 {
@@ -44,9 +45,7 @@ static void OnDraw(tContext* pContext)
 
     for(int i = 1; i < state; i++)
     {
-      int delta = (saved_times[i][0] * 3600 + saved_times[i][1] * 60 + saved_times[i][2]) -
-        (saved_times[i - 1][0] * 3600 + saved_times[i - 1][1] * 60 + saved_times[i - 1][2]);
-      sprintf(buf, "-%02d:%02d:%02d", delta / 3600 , (delta / 60) % 60, delta % 3600);
+      sprintf(buf, "+%02d:%02d:%02d", delta_times[i - 1][0], delta_times[i - 1][1],delta_times[i - 1][2]);
       GrContextFontSet(pContext, &g_sFontNova12b);
       GrStringDraw(pContext, buf, -1, 80, i * 20 + 93, 0);
     }
@@ -108,6 +107,16 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
             saved_times[state][0] = times[0];
             saved_times[state][1] = times[1];
             saved_times[state][2] = times[2];
+
+            if (state > 0)
+            {
+              int delta = (saved_times[state][0] * 3600 + saved_times[state][1] * 60 + saved_times[state][2]) -
+                 (saved_times[state - 1][0] * 3600 + saved_times[state - 1][1] * 60 + saved_times[state - 1][2]);
+              delta_times[state - 1][0] = delta / 3600;
+              delta_times[state - 1][1] = (delta / 60) % 60;
+              delta_times[state - 1][2] = delta / 3600;
+            }
+
             state++;
           }
 
