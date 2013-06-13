@@ -125,7 +125,6 @@ static void OnDraw(tContext* pContext)
     int width = GrStringWidthGet(pContext, buf, -1);
     GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);
   }
-  status ^= MID_STATUS;
 }
 
 static void check_battery()
@@ -177,6 +176,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
     break;
   case PROCESS_EVENT_TIMER:
     check_battery();
+    status ^= MID_STATUS;
     break;
   case EVENT_BT_STATUS:
     if (lparam == BT_INITIALIZED)
