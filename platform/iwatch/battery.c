@@ -42,11 +42,13 @@ void battery_init(void)
 
   BATINSEL |= BATLEVEL;
 
+  ADC12CTL0 = ADC12ON;
   ADC12CTL1 = ADC12SHP;                     // Use sampling timer
   ADC12IE = 0x01;                           // Enable interrupt
-  ADC12MCTL0 = ADC12SREF_1 + 4;             // A4 as input
-  ADC12CTL0 |= ADC12ENC;
+  ADC12MCTL0 = ADC12SREF_1 + ADC12INCH_4;   // A4 as input
 
+  ADC12CTL0 |= ADC12ENC;
+  __delay_cycles(100);
   ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
 
   setoutputfloat();
