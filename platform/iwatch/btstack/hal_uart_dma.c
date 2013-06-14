@@ -28,16 +28,6 @@
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
-#define BUSYWAIT_UNTIL(cond, max_time)                                  \
-  do {                                                                  \
-    rtimer_clock_t t0;                                                  \
-    t0 = RTIMER_NOW();                                                  \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) {  \
-      __bis_SR_register(LPM0_bits + GIE);                               \
-      __no_operation();                                                 \
-    }                                                                   \
-  } while(0)
-
 // rx state
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
