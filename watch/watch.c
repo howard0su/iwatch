@@ -13,24 +13,14 @@
 ****************************************************************/
 
 #include "contiki.h"
-#include "string.h"
-#include "lib/print-stats.h"
-#include "sys/clock.h"
-#include "lib/sensors.h"
-#include "button.h"
-#include "rtc.h"
 #include "window.h"
 
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
-#include "btstack/bluetooth.h"
 #include "backlight.h"
 
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
-/*---------------------------------------------------------------------------*/
-
-extern tContext context;
 
 /*
 * This process is the startup process.
