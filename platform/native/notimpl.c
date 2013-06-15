@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "contiki.h"
 #include "rtc.h"
 #include "battery.h"
@@ -38,7 +39,7 @@ uint8_t rtc_getmaxday(uint16_t year, uint8_t month)
     {
       return 31;
     }
-  
+
   if (month % 2 == 0)
     {
       return 30;
@@ -80,7 +81,6 @@ void mpu6050_init() {}
 
 
 uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
-uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 
@@ -93,6 +93,7 @@ void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size) {}
 void __disable_interrupt() {}
 
 
+
 unsigned long mpu_getsteptime()
 {return 1257;}
 unsigned long mpu_getsteps()
@@ -100,3 +101,10 @@ unsigned long mpu_getsteps()
 
 void ant_init(ModeEnum mode) {}
 void ant_shutdown(void) {}
+
+
+void nanosleep(int millisecond)
+{
+    Sleep(millisecond);
+}
+

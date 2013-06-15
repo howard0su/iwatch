@@ -17,7 +17,6 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "rtc.h"
-
 #include <stdio.h>
 /*
 * This implement the menu
@@ -27,7 +26,6 @@
 #define DATA_TIME -2
 #define DATA_ANT  -3
 #define DATA_BT   -4
-
 
 struct MenuItem
 {
@@ -143,6 +141,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 
 static const struct MenuItem *Items;
 static uint8_t currentTop, current;
+static uint8_t menuLength;
 
 static void OnDraw(tContext *pContext)
 {
@@ -174,6 +173,7 @@ static void OnDraw(tContext *pContext)
 
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
+  static struct etimer timer;
   if (ev == EVENT_WINDOW_CREATED)
   {
     Items = (struct MenuItem*)rparam;
@@ -185,7 +185,24 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       Items = SetupMenu;
     }
+    
+    menuLength = 0;
+    while(Items[menuLength].name != NULL)
+      menuLength++;
+
     current = currentTop = 0;
+    etimer_set(&timer, CLOCK_SECOND * 30);
+  }
+  else if (ev == PROCESS_EVENT_TIMER)
+  {
+    if (rparam == &timer)
+    {
+      // check analog or digit
+      if (!window_readconfig()->default_clock)
+        window_open(&analogclock_process, NULL);
+      else
+        window_open(&digitclock_process, NULL);
+    }
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {
@@ -194,6 +211,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   else if (ev == EVENT_KEY_PRESSED)
   {
+    etimer_set(&timer, CLOCK_SECOND * 30);
     if (lparam == KEY_UP)
     {
       if (current > 0)
@@ -203,10 +221,15 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           currentTop--;
         }
-
-        ///TODO: optimize this
-        window_invalid(NULL);
       }
+      else
+      {
+        current = menuLength - 1;
+        currentTop = current - NUM_MENU_A_PAGE + 1;
+      }
+
+      ///TODO: optimize this
+      window_invalid(NULL);
     }
     else if (lparam == KEY_DOWN)
     {
@@ -217,10 +240,13 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           currentTop++;
         }
-
-        ///TODO: optimize this
-        window_invalid(NULL);
       }
+      else
+      {
+        current = currentTop = 0;
+      }
+      ///TODO: optimize this
+      window_invalid(NULL);
     }
     else if (lparam == KEY_ENTER)
     {

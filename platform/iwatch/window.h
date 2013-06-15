@@ -84,16 +84,16 @@ extern uint8_t worldclock_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam);
 
-#define UI_CONFIG_SIGNATURE 0xABADFACE
+#define UI_CONFIG_SIGNATURE 0xABADFACF
 typedef struct {
   uint32_t signature;
   // world clock config
-  char worldclock_name[3][10];
-  int8_t worldclock_offset[3];
+  char worldclock_name[6][10];
+  int8_t worldclock_offset[6];
 
+  uint8_t default_clock;
   // analog clock config
-  uint8_t analog_clock; // high 4 bits for face, low 4 bits for hand
-
+  uint8_t analog_clock;
   // digit clock config
   uint8_t digit_clock;
 

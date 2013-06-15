@@ -101,6 +101,7 @@ void  I2C_addr(unsigned char address)
   UCB1CTL1 |= UCSWRST;
   UCB1I2CSA = address;
   UCB1CTL1 &= ~UCSWRST;
+  __delay_cycles(100);
 }
 
 void I2C_done()
@@ -109,6 +110,7 @@ void I2C_done()
 
 ISR(USCI_B1, USCI_B1_ISR)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   switch(__even_in_range(UCB1IV,12))
   {
   case  0: break;                           // Vector  0: No interrupts
@@ -182,4 +184,5 @@ ISR(USCI_B1, USCI_B1_ISR)
     break;
   default: break;
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }

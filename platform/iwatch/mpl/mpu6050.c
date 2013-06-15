@@ -304,9 +304,9 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 unsigned long mpu_getsteps()
 {
   unsigned long steps;
-  I2C_addr(MPU6050_ADDR);
-   dmp_get_pedometer_step_count(&steps);
-  I2C_done();
+  //I2C_addr(MPU6050_ADDR);
+  dmp_get_pedometer_step_count(&steps);
+  //I2C_done();
 
   return steps;
 }
@@ -314,9 +314,9 @@ unsigned long mpu_getsteps()
 unsigned long mpu_getsteptime()
 {
   unsigned long time;
-  I2C_addr(MPU6050_ADDR);
+  //I2C_addr(MPU6050_ADDR);
   dmp_get_pedometer_walk_time(&time);
-  I2C_done();
+  //I2C_done();
 
   return time;
 }

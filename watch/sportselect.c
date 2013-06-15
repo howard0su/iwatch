@@ -3,7 +3,15 @@
 #include "Template_Driver.h"
 
 static uint8_t selection;
-static const char *text[2] = {"Cycling", "Running"};
+static const struct 
+{
+  char icon;
+  const char* text;
+}selections[] = 
+{
+  {'b', "Running"},
+  {'a', "Cycling"},
+};
 
 static void onDraw(tContext *pContext)
 {
@@ -15,7 +23,7 @@ static void onDraw(tContext *pContext)
 
   for(int i = 0; i < 2; i++)
   {
-  	char buf = 'a' + i;
+  	char buf = selections[i].icon;
 
     GrContextForegroundSet(pContext, ClrWhite);
   	if (i == selection)
@@ -31,8 +39,8 @@ static void onDraw(tContext *pContext)
     GrStringDraw(pContext, &buf, 1, (LCD_X_SIZE - width ) /2, 20 + i * 75, 0);
 
     GrContextFontSet(pContext, &g_sFontNova16);
-    width = GrStringWidthGet(pContext, text[i], -1);
-    GrStringDraw(pContext, text[i], -1, (LCD_X_SIZE - width ) /2, 65 + i * 75, 0);
+    width = GrStringWidthGet(pContext, selections[i].text, -1);
+    GrStringDraw(pContext, selections[i].text, -1, (LCD_X_SIZE - width ) /2, 65 + i * 75, 0);
   }
 }
 

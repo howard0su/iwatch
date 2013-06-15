@@ -119,13 +119,13 @@ main(int argc, char **argv)
 
   //codec_init();
   //ant_init();
-  mpu6050_init();
   //if (bluetooth_paired())
   {
     bluetooth_init();
     bluetooth_discoverable(1);
   }
 
+  mpu6050_init();
 
   /*
   * This is the scheduler loop.

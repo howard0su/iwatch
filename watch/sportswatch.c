@@ -249,7 +249,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     {
-      if (rparam == (void*)1)
+      if (rparam == (void*)0)
       {
         ant_init(MODE_HRM);
       }
