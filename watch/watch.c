@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
 
+extern tImage g_logoImage;
 /*
 * This process is the startup process.
 * It first shows the logo
@@ -40,10 +41,8 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_PAINT:
     {
       tContext *pContext = (tContext*)rparam;
-      GrContextFontSet(pContext, &g_sFontNova38);
       GrContextForegroundSet(pContext, ClrWhite);
-      GrStringDraw(pContext, "KREYOS", -1, 10, 58, 0);
-
+      GrImageDraw(pContext, &g_logoImage, 0, 60);
       break;
     }
   case PROCESS_EVENT_TIMER:
