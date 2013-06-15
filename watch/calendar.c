@@ -12,6 +12,10 @@ static const char *month_name[] = {
   "JANUARY","FEBRUARY","MARCH","APRIL", "MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
 };
 
+static const char *month_shortname[] = {
+  "JAN","FEB","MAR","APR", "MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"
+};
+
 static const char* week_name[] = {
   "SU", "MO", "TU", "WE", "TH", "FR", "SA"
 };
@@ -89,15 +93,15 @@ static void OnDraw(tContext *pContext)
 
   // draw the buttons
   if (month == 1)
-    sprintf(buf, "%s %d", month_name[11], year - 1);
+    sprintf(buf, "%s %d", month_shortname[11], year - 1);
   else
-    sprintf(buf, "%s %d", month_name[month - 1], year);
+    sprintf(buf, "%s %d", month_shortname[month - 1], year);
   window_button(pContext, KEY_ENTER, buf);
 
   if (month == 12)
-    sprintf(buf, "%s %d", month_name[0], year + 1);
+    sprintf(buf, "%s %d", month_shortname[0], year + 1);
   else
-    sprintf(buf, "%s %d", month_name[month+1], year);
+    sprintf(buf, "%s %d", month_shortname[month+1], year);
   window_button(pContext, KEY_DOWN, buf);
 }
 
@@ -113,7 +117,7 @@ uint8_t calendar_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   else if (ev == EVENT_KEY_PRESSED)
   {
-    if (lparam == KEY_DOWN)
+    if (lparam == KEY_ENTER)
     {
       if (month == 1)
       {
@@ -126,7 +130,7 @@ uint8_t calendar_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       window_invalid(NULL);
     }
-    else if (lparam == KEY_ENTER)
+    else if (lparam == KEY_DOWN)
     {
       if (month == 12)
       {

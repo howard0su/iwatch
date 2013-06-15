@@ -112,9 +112,10 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
             {
               int delta = (saved_times[state][0] * 3600 + saved_times[state][1] * 60 + saved_times[state][2]) -
                  (saved_times[state - 1][0] * 3600 + saved_times[state - 1][1] * 60 + saved_times[state - 1][2]);
-              delta_times[state - 1][0] = delta / 3600;
-              delta_times[state - 1][1] = (delta / 60) % 60;
-              delta_times[state - 1][2] = delta / 3600;
+              delta_times[state - 1][0] = delta % 60;
+              delta = delta / 60;
+              delta_times[state - 1][1] = delta % 60;
+              delta_times[state - 1][2] = delta / 60;
             }
 
             state++;

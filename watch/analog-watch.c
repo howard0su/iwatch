@@ -27,8 +27,8 @@
 * If in 10 minutes, no key or other things
 * if get system key in non-suspend state, post event to system.
 */
-#define CENTER_X 72
-#define CENTER_Y 84
+#define CENTER_X LCD_X_SIZE/2
+#define CENTER_Y (LCD_Y_SIZE-16)/2 + 16
 
 #define MIN_HAND_LEN 50
 #define HOUR_HAND_LEN 36
@@ -275,12 +275,21 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   else if (ev == EVENT_KEY_PRESSED)
   {
-    if (lparam == KEY_ENTER)
+    if (lparam == KEY_DOWN)
     {
       selection += 0x1;
       if (selection > sizeof(FaceSelections)/sizeof(struct clock_draw) - 1)
       {
         selection = 0x00;
+      }
+      window_invalid(NULL);
+    }
+    else if (lparam == KEY_UP)
+    {
+      selection -= 0x1;
+      if (selection == 0xff)
+      {
+        selection = sizeof(FaceSelections)/sizeof(struct clock_draw) - 1;
       }
       window_invalid(NULL);
     }

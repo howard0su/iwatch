@@ -380,12 +380,21 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   else if (ev == EVENT_KEY_PRESSED)
   {
-    if (lparam == KEY_ENTER)
+    if (lparam == KEY_DOWN)
     {
       selection += 0x1;
       if (selection > sizeof(ClockSelections)/sizeof(draw_function) - 1)
       {
         selection = 0x00;
+      }
+      window_invalid(NULL);
+    }
+    else if (lparam == KEY_UP)
+    {
+      selection -= 0x1;
+      if (selection == 0xff)
+      {
+        selection = sizeof(ClockSelections)/sizeof(draw_function) - 1;
       }
       window_invalid(NULL);
     }

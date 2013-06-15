@@ -28,22 +28,30 @@ static void drawItem(tContext *pContext,
   sprintf(buf, "%02d:%02d %s", hour, minute, ampm);
   GrStringDraw(pContext, buf, -1, 12, y + 28, 0);
 
-  GrContextForegroundSet(pContext, ClrBlack);
-  GrContextBackgroundSet(pContext, ClrWhite);
+  const char* str;
   switch(today)
   {
   case 0:
-    GrStringDraw(pContext, "today", -1, 88, y + 28, 1);
+    str = "today";
     break;
   case 1:
-    GrStringDraw(pContext, "tomorrow", -1, 88, y + 28, 1);
+    str = "tomorrow";
     break;
   case 2:
-    GrStringDraw(pContext, "yesterday", -1, 88, y + 28, 1);
+    str = "yesterday";
     break;
   }
+
+  int height = GrStringHeightGet(pContext);
+  int width = GrStringWidthGet(pContext, str, -1);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextBackgroundSet(pContext, ClrBlack);
+  tRectangle rect = {86, y + 28, 86 + width + 2, y + 28 + height};
+  GrRectFillRound(pContext, &rect, 2);
+
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrStringDraw(pContext, str, -1, 88, y + 28, 0);
+
+  GrContextForegroundSet(pContext, ClrWhite);
 }
 
 static void onDraw(tContext *pContext)

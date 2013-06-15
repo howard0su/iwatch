@@ -48,7 +48,7 @@ static void onDraw(tContext *pContext)
   drawItem(pContext, 2, 0, "Caloris", buf);
 
   sprintf(buf, "%d mi", 12);
-  drawItem(pContext, 3, 0, "Distinct", buf);
+  drawItem(pContext, 3, 0, "Distance", buf);
 
   // draw progress
 }
