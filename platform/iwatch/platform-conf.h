@@ -49,7 +49,7 @@
 #define F_CPU 8000000uL // 8MHz by default
 
 /* Our clock resolution, this is the same as Unix HZ. */
-#define CLOCK_CONF_SECOND 8
+#define CLOCK_CONF_SECOND 128
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
@@ -95,7 +95,7 @@ typedef unsigned long off_t;
 
 #define CFS_RAM_CONF_SIZE 4096
 
-#define ENERGEST_CONF_ON 0
+#define ENERGEST_CONF_ON 1
 
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
   do {                                                                  \

@@ -280,10 +280,13 @@ ISR(USCI_A0, usbRxTxISR)
 
   case 2: // RXIFG
     if (bytes_to_read == 0) {
+      BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
+      UCA0IE &= ~UCRXIE;
+
       // put the data into buffer to avoid race condition
       rx_temp_buffer = UCA0RXBUF;
       rx_temp_size = 1;
-      break;
+      return;
     }
     *rx_buffer_ptr = UCA0RXBUF;
     ++rx_buffer_ptr;
@@ -292,6 +295,7 @@ ISR(USCI_A0, usbRxTxISR)
       break;
     }
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
+    UCA0IE &= ~UCRXIE;
 
     if (rx_done_handler)
       (*rx_done_handler)();
