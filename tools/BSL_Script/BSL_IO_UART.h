@@ -4,6 +4,7 @@
 
 int UART_initialize_BSL_5438(unsigned char* comPort);
 int UART_initialize_BSL(unsigned char* comPort);
+unsigned char readByte_s(int timeout);
 unsigned char readByte();
 void writeBytes( unsigned char *byte, int size );
 void writeByte( unsigned char byte );

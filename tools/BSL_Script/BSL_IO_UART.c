@@ -227,19 +227,26 @@ void writeBytes( unsigned char *byte, int size )
 *******************************************************************************/
 unsigned char readByte()
 {
+  readByte_s(TIMEOUT_MS);
+}
+
+unsigned char readByte_s(int timeoutMS)
+{
   unsigned char byte = TIMEOUT_ERROR;
   unsigned int dwRead;
   unsigned int errors;
   unsigned int error_flag = 0;
-  unsigned int timeout = GetTickCount()+ TIMEOUT_MS;
+  unsigned int timeout = GetTickCount()+ timeoutMS;
+  
+  if (timeoutMS != -1)
+  {
   do
   {
     ClearCommError(hComPort, &errors, &comState);
 	  error_flag = ( GetTickCount() > timeout );
-    if (comState.cbInQue == 0 && error_flag == 0)
-      Sleep(10);
   }
   while(comState.cbInQue == 0 && error_flag == 0);
+  }
 
   if( error_flag == 0 )
   {

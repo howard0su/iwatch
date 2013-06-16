@@ -505,10 +505,12 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
       sscanf( line, "%*s %u", &rate);
       printf("Changing Baud Rate to %u\n", rate);
 		changeCommBaudRate(rate);
-		char c;
-		while((c = readByte()) != 0xEE)
+		unsigned char c;
+		while(1)
 		{
-			putchar(c);
+			c = readByte_s(-1);
+			if (c != 0xEE)
+				putchar(c);
 		}
 		printf("Done\n");
 	}
