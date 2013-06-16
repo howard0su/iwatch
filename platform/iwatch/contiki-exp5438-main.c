@@ -59,25 +59,15 @@
 #define PRINTF(...)
 #endif
 
-/*---------------------------------------------------------------------------*/
-static void
-print_processes(struct process * const processes[])
-{
-  /*  const struct process * const * p = processes;*/
-  printf("Starting");
-  while(*processes != NULL) {
-    printf(" %s", (*processes)->name);
-    processes++;
-  }
-  putchar('\n');
-}
-
 extern void mpu6050_init();
 extern void ant_init();
 extern void button_init();
 extern void I2C_Init();
 extern void rtc_init();
 extern void backlight_init();
+extern void window_init();
+extern void battery_init();
+
 
 /*--------------------------------------------------------------------------*/
 int
@@ -88,7 +78,6 @@ main(int argc, char **argv)
   */
   msp430_cpu_init();
   clock_init();
-  battery_init();
 
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 
@@ -109,10 +98,10 @@ main(int argc, char **argv)
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
-  print_processes(autostart_processes);
-  autostart_start(autostart_processes);
-
   backlight_init();
+  window_init();
+
+  battery_init();
   button_init();
   rtc_init();
   I2C_Init();
@@ -127,10 +116,12 @@ main(int argc, char **argv)
 
   mpu6050_init();
 
+  autostart_start(autostart_processes);
+
   /*
   * This is the scheduler loop.
   */
-  watchdog_start();
+  watchdog_stop();
 
   while(1) {
     int r;

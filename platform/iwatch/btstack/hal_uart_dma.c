@@ -262,7 +262,6 @@ void hal_uart_dma_set_sleep(uint8_t sleep)
   if (sleep)
   {
       UCA0CTL1 |= UCSWRST;             // continue
-      __delay_cycles(100);
   }
   else
   {

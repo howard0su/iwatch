@@ -53,13 +53,22 @@ static struct etimer timer, status_timer, backlight_timer;
 #define ui_window (stack[stackptr])
 static windowproc stack[MAX_STACK]; // assume 6 is enough
 static uint8_t stackptr = 0;
+extern tImage g_logoImage;
 
 void window_init()
 {
+  backlight_on(255);
   current_clip = client_clip;
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
+  GrContextForegroundSet(&context, ClrBlack);
+  tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+  GrRectFill(&context, &rect);
 
+  GrContextForegroundSet(&context, ClrWhite);
+  GrImageDraw(&context, &g_logoImage, 0, 60);
+
+  GrFlush(&context);
   return;
 }
 
@@ -69,33 +78,19 @@ void window_open(windowproc dialog, void* data)
   ui_window = dialog;
   ui_window(EVENT_WINDOW_CREATED, 0, data);
 
-  ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
-  GrContextClipRegionSet(&context, &client_clip);
-  ui_window(EVENT_WINDOW_PAINT, 0, &context);
-  GrFlush(&context);
+  ui_window_flag |= ~WINDOW_FLAGS_REFRESH;
 }
 
 void window_handle_event(uint8_t ev, void* data)
 {
     if (ev == PROCESS_EVENT_INIT)
     {
-      window_init();
-      GrContextForegroundSet(&context, ClrBlack);
-      tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-      GrRectFill(&context, &rect);
+      backlight_on(0);
+      //window_open(&menu_process, NULL);
+      ui_window = menu_process;
+      ui_window(EVENT_WINDOW_CREATED, 0, NULL);
 
-      // give time to starts
-
-      // welcome dialog depends on backlight/lcd/i2c
-      //window_open(&watch_process, NULL);
-      ui_window = watch_process;
-      ui_window(EVENT_WINDOW_CREATED, 0, data);
-
-      ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
-      GrContextClipRegionSet(&context, &client_clip);
-      ui_window(EVENT_WINDOW_PAINT, 0, &context);
-      GrFlush(&context);
-
+      ui_window_flag |= WINDOW_FLAGS_REFRESH;
       status_process(EVENT_WINDOW_CREATED, 0, data);
 
       etimer_set(&status_timer, CLOCK_SECOND * 10);

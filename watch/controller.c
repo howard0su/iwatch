@@ -50,15 +50,16 @@ static void OnDraw(tContext *pContext)
   {
     uint8_t times[3];
     uint16_t left = position;
-    times[2] = left % 60;
-    times[1] = (left / 60) % 60;
-    times[0] = left / 3600;
+    times[0] = left % 60;
+    left /= 60;
+    times[1] = left % 60;
+    times[2] = left / 60;
+
+    //GrContextForegroundSet(pContext, ClrWhite);
+    //tRectangle rect = {12, 24, 132, 60};
+    //GrRectFillRound(pContext, &rect, 3);
 
     GrContextForegroundSet(pContext, ClrWhite);
-    tRectangle rect = {12, 24, 132, 60};
-    GrRectFillRound(pContext, &rect, 3);
-
-    GrContextForegroundSet(pContext, ClrBlack);
     window_drawtime(pContext, 24, times, 0);
 #if 0
 

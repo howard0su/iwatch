@@ -247,16 +247,24 @@ int hci_can_send_packet_now(uint8_t packet_type){
 int hci_send_acl_packet(uint8_t *packet, int size){
 
     // check for free places on BT module
-    if (!hci_number_free_acl_slots()) return BTSTACK_ACL_BUFFERS_FULL;
+    if (!hci_number_free_acl_slots()) 
+    {
+        log_info("hci_send_acl_packet - BTSTACK_ACL_BUFFERS_FULL\n");
+        return BTSTACK_ACL_BUFFERS_FULL;
+    }
 
     hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
     hci_connection_t *connection = connection_for_handle( con_handle);
-    if (!connection) return 0;
+    if (!connection) 
+    {
+        log_info("hci_send_acl_packet - connection not found\n");
+        return 0;
+    }
     hci_connection_timestamp(connection);
 
     // count packet
     connection->num_acl_packets_sent++;
-    // log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
+    log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
     hci_dump_packet( HCI_ACL_DATA_PACKET, 0, packet, size);
 
     // send packet
@@ -1117,7 +1125,10 @@ void hci_run(){
                         int valid_cmd = (*hci_stack.control->next_cmd)(hci_stack.config, hci_stack.hci_packet_buffer);
                         if (valid_cmd){
                             int size = 3 + hci_stack.hci_packet_buffer[2];
-                            hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, hci_stack.hci_packet_buffer, size);
+                            if (hci_stack.hci_transport->can_send_packet_now(HCI_COMMAND_DATA_PACKET))
+                                hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, hci_stack.hci_packet_buffer, size);
+                            else
+                                log_error("Fail to send another cmd\n");
                             hci_stack.substate = 4; // more init commands
                             break;
                         }

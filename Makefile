@@ -10,7 +10,7 @@ ECHO	= echo
 
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
-WARNING_FLAGS = -W -Wall 
+WARNING_FLAGS = -W -Wall
 CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections
 LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS)
@@ -47,7 +47,7 @@ CORE   = \
 PLATFORM = \
 	platform/native/clock.c \
 	platform/native/notimpl.c \
-	platform/native/Template_Driver.c 
+	platform/native/Template_Driver.c
 
 GRLIB0 = \
 	circle.c \
@@ -75,7 +75,8 @@ GRLIB_FONTS = \
 	fontdigit52b.c \
 	fontdigit56.c \
 	fonticon16.c \
-	fonticon48.c
+	fonticon48.c \
+	logoimg.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 WATCH = \
@@ -93,6 +94,7 @@ WATCH = \
     watch/sportselect.c \
     watch/notification.c \
     watch/worldclock.c \
+    watch/watch.c \
     watch/today.c \
     watch/status.c \
     watch/window.c
