@@ -56,7 +56,7 @@ static const struct _datapoints datapoints[] =
 
 static const tRectangle region_3grid[] =
 {
-  {0, 0, LCD_X_SIZE, 83},
+  {0, 16, LCD_X_SIZE, 83},
   {0, 84, 74, LCD_Y_SIZE},
   {75, 85, LCD_X_SIZE, LCD_Y_SIZE}
 };
@@ -64,7 +64,7 @@ static const tRectangle region_3grid[] =
 
 static const tRectangle region_4grid[] =
 {
-  {0, 0, LCD_X_SIZE, 44},
+  {0, 16, LCD_X_SIZE, 44},
   {0, 45, LCD_X_SIZE, 84},
   {0, 85, LCD_X_SIZE, 124},
   {0, 125, LCD_X_SIZE, LCD_Y_SIZE},
@@ -72,7 +72,7 @@ static const tRectangle region_4grid[] =
 
 static const tRectangle region_5grid[] =
 {
-  {0, 0, LCD_X_SIZE, 44},
+  {0, 16, LCD_X_SIZE, 44},
   {0, 45, 72, 104},
   {72, 45, LCD_X_SIZE, 104},
   {0, 105, 72, LCD_Y_SIZE},
