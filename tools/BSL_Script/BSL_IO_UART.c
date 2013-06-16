@@ -235,7 +235,9 @@ unsigned char readByte()
   do
   {
     ClearCommError(hComPort, &errors, &comState);
-	error_flag = ( GetTickCount() > timeout );
+	  error_flag = ( GetTickCount() > timeout );
+    if (comState.cbInQue == 0 && error_flag == 0)
+      Sleep(10);
   }
   while(comState.cbInQue == 0 && error_flag == 0);
 
