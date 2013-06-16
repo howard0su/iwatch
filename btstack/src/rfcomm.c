@@ -406,7 +406,11 @@ static rfcomm_service_t * rfcomm_service_for_channel(uint8_t server_channel){
 */
 static int rfcomm_send_packet_for_multiplexer(rfcomm_multiplexer_t *multiplexer, uint8_t address, uint8_t control, uint8_t credits, uint8_t *data, uint16_t len){
 
-  if (!l2cap_can_send_packet_now(multiplexer->l2cap_cid)) return BTSTACK_ACL_BUFFERS_FULL;
+  if (!l2cap_can_send_packet_now(multiplexer->l2cap_cid))
+  {
+    log_info("rfcomm_send_packet_for_multiplexer BTSTACK_ACL_BUFFERS_FULL");
+    return BTSTACK_ACL_BUFFERS_FULL;
+  }
 
   uint8_t * rfcomm_out_buffer = l2cap_get_outgoing_buffer();
 
@@ -1733,6 +1737,7 @@ void rfcomm_disconnect_internal(uint16_t rfcomm_cid){
   if (channel) {
     channel->state = RFCOMM_CHANNEL_SEND_DISC;
   }
+  rfcomm_run();
 }
 
 
@@ -1856,4 +1861,5 @@ void rfcomm_close_connection(void *connection){
       it = it->next;
     }
   }
+  rfcomm_run();
 }

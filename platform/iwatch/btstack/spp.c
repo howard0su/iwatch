@@ -20,9 +20,53 @@ static const uint8_t   spp_service_buffer[100] = {
   0x20,0x43,0x6F,0x6E,0x66,0x69,0x67,0x75,0x72,0x65
 };
 
+#define HEARTBEAT_PERIOD_MS 1000
+
 #define SPP_CHANNEL 1
+static int real_counter = 0;
+static int counter_to_send = 0;
+static timer_source_t heartbeat;
 
 static uint16_t spp_channel_id = 0;
+
+static void tryToSend(void){
+    if (!spp_channel_id) return;
+    if (real_counter <= counter_to_send) return;
+               
+    char lineBuffer[30];
+    sprintf(lineBuffer, "BTstack counter %04u\n\r", counter_to_send);
+    printf(lineBuffer);
+    int err = rfcomm_send_internal(spp_channel_id, (uint8_t*) lineBuffer, strlen(lineBuffer));
+
+    switch (err){
+        case 0:
+            counter_to_send++;
+            break;
+        case BTSTACK_ACL_BUFFERS_FULL:
+            break;
+        default:
+           printf("rfcomm_send_internal() -> err %d\n\r", err);
+        break;
+    }
+}
+
+static void run_loop_register_timer(timer_source_t *timer, uint16_t period){
+    run_loop_set_timer(timer, period);
+    run_loop_add_timer(timer);
+}
+
+static void timer_handler(timer_source_t *ts){
+    real_counter++;
+    // re-register timer
+    run_loop_register_timer(ts, HEARTBEAT_PERIOD_MS);
+    tryToSend();
+}
+
+static void timer_setup(){
+    // set one-shot timer
+    heartbeat.process = &timer_handler;
+    run_loop_register_timer(&heartbeat, HEARTBEAT_PERIOD_MS);
+}
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
@@ -65,17 +109,17 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
           log_info("RFCOMM channel open failed, status %u\n", packet[2]);
           spp_channel_id = 0;
         } else {
-          rfcomm_id = READ_BT_16(packet, 12);
+          spp_channel_id = READ_BT_16(packet, 12);
           uint16_t mtu = READ_BT_16(packet, 14);
           log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
+          timer_setup();
         }
         break;
       }
+    case DAEMON_EVENT_HCI_PACKET_SENT:
     case RFCOMM_EVENT_CREDITS:
       {
-        // data: event(8), len(8), rfcomm_cid(16), credits(8)
-        //rfcomm_id = READ_BT_16(packet, 2);
-        //uint8_t credits = packet[4];
+        tryToSend();
         break;
       }
     case RFCOMM_EVENT_CHANNEL_CLOSED:

@@ -33,14 +33,14 @@ static void hfp_try_respond(uint16_t rfcomm_channel_id){
     if (!hfp_response_size) return;
     if (!rfcomm_channel_id) return;
 
-    printf("hfp: sending %s\n", hfp_response_buffer);
+    printf("HFP: sending %s\n", hfp_response_buffer);
     // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
     uint16_t size = hfp_response_size;
     hfp_response_size = 0;
     if (rfcomm_send_internal(rfcomm_channel_id, hfp_response_buffer, size) != 0)
     {
       // if error, we need retry
-      printf("hfp: send failed.\n");
+      printf("HFP: send failed.\n");
       hfp_response_size = size;
     }
 }
@@ -245,7 +245,7 @@ static uint8_t cind_state[16];
 
 static void handle_CIEV(char *buf)
 {
-  uint8_t ind, value;
+  int ind, value;
   // handle +CIEV: 3,0
   // handle +CIEV: 3,1
   if (sscanf(buf, "\r+CIEV: %d, %d", ind, value))
@@ -469,7 +469,7 @@ static uint8_t textbuf[255];
 static uint8_t textbufptr = 0;
 static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint16_t len)
 {
-  log_info("hfp_handler state %d event %d[%d]\n", state, type, packet[0]);
+  log_info("HFP: state %d event %d[%d]\n", state, type, packet[0]);
   switch(type)
   {
   case RFCOMM_DATA_PACKET:
@@ -479,7 +479,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
       memcpy(textbuf + textbufptr, packet, len);
       textbufptr+=len;
       textbuf[textbufptr] = 0;
-      printf("hfp: recv so far: %s\n", textbuf);
+      //printf("HFP: recv so far: %s\n", textbuf);
       char* current = textbuf;
       do
       {
@@ -519,7 +519,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
           bt_flip_addr(event_addr, &packet[2]);
           rfcomm_channel_nr = packet[8];
           uint16_t rfcomm_id = READ_BT_16(packet, 9);
-          log_info("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
+          log_info("HFP channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
           if (rfcomm_channel_id == 0)
           {
             rfcomm_channel_id = rfcomm_id;
@@ -555,7 +555,6 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
           break;
         }
       case RFCOMM_EVENT_CREDITS:
-      case DAEMON_EVENT_HCI_PACKET_SENT:
         {
           hfp_try_respond(rfcomm_channel_id);
           break;
