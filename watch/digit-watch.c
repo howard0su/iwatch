@@ -22,7 +22,7 @@
 #include <stdio.h> // for sprintf
 #include <string.h>
 
-static uint8_t hour, minute;
+static uint8_t hour0, minute;
 static uint8_t selection;
 
 static const char *month_name[] =
@@ -69,6 +69,7 @@ typedef void (*draw_function)(tContext *pContext);
 static void drawClock0(tContext *pContext)
 {
   uint16_t year;
+  uint8_t hour = hour0;
   uint8_t month, day, width;
   uint8_t ampm = 0;
   char buf[20];
@@ -103,6 +104,7 @@ static void drawClock0(tContext *pContext)
 static void drawClock1(tContext *pContext)
 {
   uint8_t ampm = 0;
+  uint8_t hour = hour0;
   uint8_t width;
   char buf[20];
 
@@ -135,6 +137,7 @@ static void drawClock1(tContext *pContext)
 static void drawClock2(tContext *pContext)
 {
   uint8_t ampm = 0;
+  uint8_t hour = hour0;
   char buf[20];
   const char* buffer;
 
@@ -168,6 +171,7 @@ static void drawClock2(tContext *pContext)
 static void drawClock3(tContext *pContext)
 {
   uint8_t ampm = 0;
+  uint8_t hour = hour0;
   uint8_t width;
   char buf[20];
   const char* buffer;
@@ -219,6 +223,7 @@ static void drawClock8(tContext *pContext)
 static void drawClock4(tContext *pContext)
 {
   uint16_t year;
+  uint8_t hour = hour0;
   uint8_t month, day, width;
   char buf[20];
 
@@ -242,6 +247,7 @@ static void drawClock4(tContext *pContext)
 static void drawClock5(tContext *pContext)
 {
   uint16_t year;
+  uint8_t hour = hour0;
   uint8_t month, day, width;
   uint8_t ampm = 0;
   char buf[20];
@@ -276,6 +282,7 @@ static void drawClock5(tContext *pContext)
 static void drawClock6(tContext *pContext)
 {
   uint16_t year;
+  uint8_t hour = hour0;
   uint8_t month, day, width;
   char buf[20];
 
@@ -305,6 +312,7 @@ static void drawClock6(tContext *pContext)
 static void drawClock7(tContext *pContext)
 {
   uint16_t year;
+  uint8_t hour = hour0;
   uint8_t month, day, width;
   uint8_t ampm = 0;
   char buf[20];
@@ -354,7 +362,7 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   if (ev == EVENT_WINDOW_CREATED)
   {
-    rtc_readtime(&hour, &minute, NULL);
+    rtc_readtime(&hour0, &minute, NULL);
     if (rparam == NULL)
       selection = window_readconfig()->digit_clock;
     else
@@ -374,7 +382,7 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   else if (ev == EVENT_TIME_CHANGED)
   {
     struct datetime* dt = (struct datetime*)rparam;
-    hour = dt->hour;
+    hour0 = dt->hour;
     minute = dt->minute;
     window_invalid(NULL);
   }
