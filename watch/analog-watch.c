@@ -298,9 +298,9 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
     rtc_enablechange(0);
 
+    window_readconfig()->default_clock = 0;
     if (selection != window_readconfig()->analog_clock)
     {
-      window_readconfig()->default_clock = 0;
       window_readconfig()->analog_clock = selection;
       window_writeconfig();
     }

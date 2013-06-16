@@ -69,6 +69,7 @@ void window_init()
   GrImageDraw(&context, &g_logoImage, 0, 60);
 
   GrFlush(&context);
+  stackptr = 0;
   return;
 }
 
@@ -78,7 +79,7 @@ void window_open(windowproc dialog, void* data)
   ui_window = dialog;
   ui_window(EVENT_WINDOW_CREATED, 0, data);
 
-  ui_window_flag |= ~WINDOW_FLAGS_REFRESH;
+  window_invalid(NULL);
 }
 
 void window_handle_event(uint8_t ev, void* data)
@@ -97,11 +98,7 @@ void window_handle_event(uint8_t ev, void* data)
     }
     else if (ev == PROCESS_EVENT_TIMER)
     {
-      if (data == &timer)
-      {
-        ui_window(ev, 0, data);
-      }
-      else if (data == &status_timer)
+      if (data == &status_timer)
       {
         status_process(ev, 0, data);
         etimer_set(&status_timer, CLOCK_SECOND * 10);
@@ -109,6 +106,10 @@ void window_handle_event(uint8_t ev, void* data)
       else if (data == &backlight_timer)
       {
         backlight_on(0);
+      }
+      else
+      {
+        ui_window(ev, 0, data);
       }
     }
     else if (ev == EVENT_TIME_CHANGED || ev == EVENT_ANT_DATA)
@@ -202,7 +203,14 @@ void window_invalid(const tRectangle *rect)
 {
   if (rect != NULL)
   {
-    current_clip = *rect;
+    if (rect->sXMin < current_clip.sXMin)
+      current_clip.sXMin = rect->sXMin;
+    if (rect->sYMin < current_clip.sYMin)
+      current_clip.sYMin = rect->sYMin;
+    if (rect->sXMax > current_clip.sXMax)
+      current_clip.sXMax = rect->sXMax;
+    if (rect->sYMax > current_clip.sYMax)
+      current_clip.sYMax = rect->sYMax;
   }
   else
   {

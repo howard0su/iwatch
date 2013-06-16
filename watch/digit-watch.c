@@ -403,9 +403,9 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
     rtc_enablechange(0);
 
+    window_readconfig()->default_clock = 1;
     if (selection != window_readconfig()->digit_clock)
     {
-      window_readconfig()->default_clock = 1;
       window_readconfig()->digit_clock = selection;
       window_writeconfig();
     }
