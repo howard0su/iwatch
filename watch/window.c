@@ -221,7 +221,7 @@ void status_invalid()
 
 void window_close()
 {
-  if (stackptr <= 1)
+  if (stackptr == 0)
     return;
 
   ui_window(EVENT_WINDOW_CLOSING, 0, NULL);
