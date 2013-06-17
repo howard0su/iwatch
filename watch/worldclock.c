@@ -4,6 +4,8 @@
 #include "rtc.h"
 #include <stdio.h>
 
+static uint8_t index;
+
 static void drawItem(tContext *pContext,
                      uint8_t y,
                      const char* name,
@@ -12,6 +14,9 @@ static void drawItem(tContext *pContext,
 {
   const char *ampm;
   char buf[20];
+
+  if (name[0] == '\0')
+    return;
 
   if (hour > 12)
   {
@@ -69,7 +74,7 @@ static void onDraw(tContext *pContext)
     rtc_readtime((uint8_t*)&hour, &minute, NULL);
 
     uint8_t today = 0;
-    int8_t offset = window_readconfig()->worldclock_offset[i];
+    int8_t offset = window_readconfig()->worldclock_offset[i + index];
     hour += offset;
     if (hour > 24)
     {
@@ -82,7 +87,7 @@ static void onDraw(tContext *pContext)
       hour += 24;
     }
 
-    drawItem(pContext, 16 + i * 50,  window_readconfig()->worldclock_name[i],
+    drawItem(pContext, 16 + i * 50,  window_readconfig()->worldclock_name[i + index],
              hour, minute, today);
   }
 }
@@ -92,13 +97,22 @@ uint8_t worldclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
+    index = 0;
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;
   case EVENT_KEY_PRESSED:
-    if (lparam == KEY_EXIT)
-      window_close();
+    if (lparam == KEY_UP && index == 3)
+    {
+      index = 0;
+      window_invalid(NULL);
+    }
+    else if (lparam == KEY_DOWN && index == 0)
+    {
+      index = 3;
+      window_invalid(NULL);
+    }
     break;
   default:
     return 0;
