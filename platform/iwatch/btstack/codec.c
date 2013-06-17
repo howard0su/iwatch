@@ -138,7 +138,7 @@ void codec_wakeup()
 void codec_init()
 {
   AUDDIR |= BIT6;
-  AUDOUT |= BIT6; // output direction, value = H
+  AUDOUT &= ~BIT6; // output direction, value = H
 
   I2C_addr(CODEC_ADDRESS);
   //reset codec ?
