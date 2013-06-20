@@ -358,6 +358,7 @@ extern const hci_cmd_t hci_le_transmitter_test;
 extern const hci_cmd_t hci_vs_write_codec_config;
 extern const hci_cmd_t hci_vs_write_codec_config_enhanced;
 extern const hci_cmd_t hci_vs_le_enable;
+extern const hci_cmd_t hci_vs_write_sco_config;
 
 extern const hci_cmd_t l2cap_accept_connection;
 extern const hci_cmd_t l2cap_create_channel;

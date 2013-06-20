@@ -258,6 +258,10 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+        hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
         hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, 8000, 1, 1, 0, 0,
                        16, 1, 0, 16, 1, 1, 0,
                        16, 17, 0, 16, 17, 1, 0
@@ -265,6 +269,14 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
+        hci_send_cmd(&hci_vs_write_codec_config_enhanced, 
+          0x00, 0x00, 0x00, 0x00, 
+          0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00
+          );
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config_enhanced)){
         hci_send_cmd(&hci_write_voice_setting, 0x0140);
         break;
       }
@@ -323,7 +335,7 @@ static void btstack_setup(){
   sdp_init();
 
   // register device id record
-  deviceid_init();
+  //deviceid_init();
 
   spp_init();
 

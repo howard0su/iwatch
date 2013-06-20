@@ -706,3 +706,7 @@ OPCODE(OGF_VENDOR, 0xFD07), "122111114111111411"
 const hci_cmd_t hci_vs_le_enable = {
 OPCODE(OGF_VENDOR, 0xFD5B), "11"
 };
+
+const hci_cmd_t hci_vs_write_sco_config = {
+OPCODE(OGF_VENDOR, 0xFE10), "1121"
+};
