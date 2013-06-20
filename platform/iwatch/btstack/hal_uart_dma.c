@@ -28,6 +28,8 @@
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
+PROCESS(uart_process, "UART Driver");
+
 // rx state
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
@@ -72,6 +74,7 @@ void hal_uart_dma_init(void)
 
   UCA0CTL1 &= ~UCSWRST;             // continue
 
+  process_start(&uart_process, NULL);
   hal_uart_dma_set_baud(115200);
   UCA0IE |= UCRXIE ;  // enable RX interrupts
 }
@@ -156,6 +159,40 @@ int hal_uart_dma_set_baud(uint32_t baud){
   return result;
 }
 
+#define TXDONE 0x01
+#define RXDONE 0x02
+#define CTSUP  0x03
+
+volatile uint8_t flags = 0; 
+
+PROCESS_THREAD(uart_process, ev, data)
+{
+  int txDone;
+  int rxDone;
+  int ctsDone;
+  PROCESS_BEGIN();
+
+  while(1)
+  {
+    PROCESS_WAIT_EVENT();
+  __disable_interrupt();
+  txDone = (flags & TXDONE) != 0;
+  rxDone = (flags & RXDONE) != 0;
+  ctsDone = (flags & CTSUP) != 0;
+  flags = 0;
+  __enable_interrupt();
+
+  if (txDone && tx_done_handler)
+    (*tx_done_handler)();
+
+  if (rxDone && rx_done_handler)
+    (*rx_done_handler)();
+
+  if (ctsDone && cts_irq_handler)
+    (*cts_irq_handler)();
+  }
+  PROCESS_END();
+}
 
 void hal_uart_dma_set_block_received( void (*the_block_handler)(void)){
   rx_done_handler = the_block_handler;
@@ -203,8 +240,8 @@ void hal_uart_dma_shutdown(void) {
 
 int dma_channel_1()
 {
-  if (tx_done_handler)
-    (*tx_done_handler)();
+  flags |= TXDONE;
+  process_poll(&uart_process);
 
   return 1;
 }
@@ -258,15 +295,6 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
 void hal_uart_dma_set_sleep(uint8_t sleep)
 {
-  printf("uart sleep %d\n", (int)sleep);
-  if (sleep)
-  {
-      UCA0CTL1 |= UCSWRST;             // continue
-  }
-  else
-  {
-      UCA0CTL1 &= ~UCSWRST;             // continue
-  }
 }
 
 // block-wise "DMA" RX/TX UART driver
@@ -296,8 +324,8 @@ ISR(USCI_A0, usbRxTxISR)
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
     UCA0IE &= ~UCRXIE;
 
-    if (rx_done_handler)
-      (*rx_done_handler)();
+    flags |= RXDONE;
+    process_poll(&uart_process);
 
     // force exit low power mode
     LPM4_EXIT;
@@ -314,8 +342,8 @@ ISR(USCI_A0, usbRxTxISR)
 // CTS ISR
 int port1_pin3()
 {
-  if (cts_irq_handler)
-    (*cts_irq_handler)();
+  flags |= CTSUP;
+  process_poll(&uart_process);
 
   return 1;
 }
