@@ -461,7 +461,7 @@ static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
 
     if (!ehcill_sleep_mode_active()){
         tx_state = TX_W4_HEADER_SENT;
-        hal_uart_dma_send_block(&packet_type, 1);
+        hal_uart_dma_send_block(&tx_packet_type, 1);
         return 0;
     }
 
