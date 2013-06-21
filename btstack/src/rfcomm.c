@@ -587,14 +587,22 @@ static void rfcomm_send_uih_credits(rfcomm_multiplexer_t *multiplexer, uint8_t d
 }
 
 // MARK: RFCOMM MULTIPLEXER
+static void rfcomm_multiplexer_stop_timer(rfcomm_multiplexer_t * multiplexer){
+    if (multiplexer->timer_active) {
+        run_loop_remove_timer(&multiplexer->timer);
+        multiplexer->timer_active = 0;
+    }
+}
+
+static void rfcomm_multiplexer_free(rfcomm_multiplexer_t * multiplexer){
+  linked_list_remove( &rfcomm_multiplexers, (linked_item_t *) multiplexer);
+  btstack_memory_rfcomm_multiplexer_free(multiplexer);
+}
 
 static void rfcomm_multiplexer_finalize(rfcomm_multiplexer_t * multiplexer){
 
   // remove (potential) timer
-  if (multiplexer->timer_active) {
-    run_loop_remove_timer(&multiplexer->timer);
-    multiplexer->timer_active = 0;
-  }
+  rfcomm_multiplexer_stop_timer(multiplexer);
 
   // close and remove all channels
   linked_item_t *it = (linked_item_t *) &rfcomm_channels;
@@ -620,8 +628,7 @@ static void rfcomm_multiplexer_finalize(rfcomm_multiplexer_t * multiplexer){
   uint16_t l2cap_cid = multiplexer->l2cap_cid;
 
   // remove mutliplexer
-  linked_list_remove( &rfcomm_multiplexers, (linked_item_t *) multiplexer);
-  btstack_memory_rfcomm_multiplexer_free(multiplexer);
+  rfcomm_multiplexer_free(multiplexer);
 
   // close l2cap multiplexer channel, too
   l2cap_disconnect_internal(l2cap_cid, 0x13);
@@ -718,6 +725,8 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
   case L2CAP_EVENT_CHANNEL_OPENED:
     if (READ_BT_16(packet, 11) != PSM_RFCOMM) break;
     log_info("L2CAP_EVENT_CHANNEL_OPENED for PSM_RFCOMM\n");
+    
+    uint8_t status = packet[2];
     // get multiplexer for remote addr
     con_handle = READ_BT_16(packet, 9);
     l2cap_cid = READ_BT_16(packet, 13);
@@ -727,6 +736,32 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
       log_error("L2CAP_EVENT_CHANNEL_OPENED but no multiplexer prepared\n");
       return 1;
     }
+    
+    // on l2cap open error discard everything
+    if (status){
+      log_info("L2CAP_EVENT_CHANNEL_OPENED: failed with %d\n", status);
+
+        // remove (potential) timer
+        rfcomm_multiplexer_stop_timer(multiplexer);
+
+        // emit rfcomm_channel_opened with status and free channel
+        linked_item_t * it = (linked_item_t *) &rfcomm_channels;
+        while (it->next) {
+            rfcomm_channel_t * channel = (rfcomm_channel_t *) it->next;
+            if (channel->multiplexer == multiplexer){
+                rfcomm_emit_channel_opened(channel, status);
+                it->next = it->next->next;
+                btstack_memory_rfcomm_channel_free(channel);
+            } else {
+                it = it->next;
+            }
+        }
+
+        // free multiplexer
+        rfcomm_multiplexer_free(multiplexer);
+        return 1;
+    }            
+
     if (multiplexer->state == RFCOMM_MULTIPLEXER_W4_CONNECT) {
       log_info("L2CAP_EVENT_CHANNEL_OPENED: outgoing connection\n");
       // wrong remote addr
