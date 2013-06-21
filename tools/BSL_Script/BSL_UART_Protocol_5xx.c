@@ -1,9 +1,12 @@
+#include <stdint.h>
 #include "BSL_UART_Protocol_5xx.h"
 #include "BSL_Command_Definitions_5xx.h"
 #include "BSL_IO_UART.h"
 #include "BSL_Definitions.h"
 #include "CRC.h"
 
+#define BYTE uint8_t
+#define DWORD uint32_t
 unsigned char UART_5xx_RXPacket( dataBuffer *db )
 {
   unsigned int i;

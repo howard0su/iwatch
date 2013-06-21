@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdio.h>
-#include <windows.h>
 
 int UART_initialize_BSL_5438(unsigned char* comPort);
 int UART_initialize_BSL(unsigned char* comPort);

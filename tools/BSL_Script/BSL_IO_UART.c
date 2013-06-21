@@ -8,6 +8,7 @@
 \*==========================================================================*/
 #include "BSL_IO_UART.h"
 #include "BSL_Interface.h"
+#include <windows.h>
 
 void SetRSTpin(BOOL level);
 void SetTESTpin(BOOL level);
