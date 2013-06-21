@@ -83,6 +83,7 @@ extern uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 extern uint8_t worldclock_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xABADFACF
 typedef struct {

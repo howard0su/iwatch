@@ -34,23 +34,13 @@ struct MenuItem
   windowproc handler;
 };
 
-static uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
-{
-  __disable_interrupt();
-
-  ((void(*)())0x1000)();
-
-  return 0;
-}
-
 static const struct MenuItem SetupMenu[] =
 {
   {DATA_DATE, "Date", &configdate_process},
   {DATA_TIME, "Time", &configtime_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
-  {DATA_ANT, "ANT+", NULL},
+  {0, "Upgrade Firmware", &upgrade_process},
   {0, "Self-test", &selftest_process},
-  {0, "Upgrade", &upgrade_process},
   {-1, NULL, NULL}
 };
 

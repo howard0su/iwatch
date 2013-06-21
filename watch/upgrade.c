@@ -1,0 +1,72 @@
+/****************************************************************
+*  Description: Implementation for upgrade firmware
+*    History:
+*      Jun Su          2013/6/21        Created
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
+
+#include "contiki.h"
+#include "window.h"
+#include "grlib/grlib.h"
+#include "Template_Driver.h"
+#include "rtc.h"
+#include <stdio.h>
+
+static uint8_t enter_bsl()
+{
+  // enable RESET as real reset
+  SFRRPCR &= ~SYSNMI;
+
+  __disable_interrupt();
+
+  ((void(*)())0x1000)();
+}
+
+static enum {W4CONFIRM, CONFIRMED} state = W4CONFIRM;
+
+static void onDraw(tContext *pContext)
+{
+	GrContextForegroundSet(pContext, ClrBlack);
+	GrRectFill(pContext, &client_clip);
+	GrContextForegroundSet(pContext, ClrWhite);
+
+	GrContextFontSet(pContext, &g_sFontNova16);
+	if (state == W4CONFIRM)
+	  GrStringDrawWrap(pContext, "Plug watch to PC and press any key to continue", 0, 30, 150, 30);
+	else
+	{
+	   GrStringDraw(pContext, "Run the flash program.", -1, 0, 30, 0);
+	   GrStringDraw(pContext, "DO NOT UNPLUG", -1, 0, 90, 0);
+	}
+}
+
+uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  // enable 
+  switch(ev)
+  {
+  case EVENT_WINDOW_PAINT:
+  	onDraw((tContext*)rparam);
+
+  	if (state == CONFIRMED)
+  		window_timer(CLOCK_SECOND);
+  	break;
+  case EVENT_KEY_PRESSED:
+  	state = CONFIRMED;
+  	window_invalid(NULL);
+  	break;
+  case PROCESS_EVENT_TIMER:
+  	enter_bsl();
+  	break;
+  default:
+  	return 0;
+  }
+  return 1;
+}

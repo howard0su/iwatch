@@ -17,6 +17,12 @@
 
 extern int dma_channel_0();
 extern int dma_channel_1();
+#define NMI_VECTOR 2
+
+ISR(NMI, _NMIISR)
+{
+
+}
 
 ISR(DMA, _DMA0ISR)
 {
