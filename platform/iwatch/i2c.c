@@ -43,7 +43,7 @@ int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
 
   UCB1IE &= ~(UCTXIE + UCRXIE);
 
@@ -66,7 +66,7 @@ int I2C_writebytes(unsigned char reg, const unsigned char *data, uint8_t len)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
 
   UCB1IE &= ~UCTXIE;
 
@@ -89,7 +89,7 @@ int I2C_write(unsigned char reg, unsigned char data)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
 
   UCB1IE &= ~UCTXIE;
 
