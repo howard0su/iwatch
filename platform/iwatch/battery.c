@@ -43,9 +43,10 @@ void battery_init(void)
   BATINSEL |= BATLEVEL;
 
   ADC12CTL0 = ADC12ON;
-  ADC12CTL1 = ADC12SHP;                     // Use sampling timer
+  ADC12CTL1 = ADC12CSTARTADD_0 + ADC12SHP + ADC12SSEL_0 + ADC12DIV_7; 
+  ADC12CTL2 = ADC12TCOFF + ADC12RES_2 + ADC12REFBURST;
   ADC12IE = 0x01;                           // Enable interrupt
-  ADC12MCTL0 = ADC12SREF_1 + ADC12INCH_4;   // A4 as input
+  ADC12MCTL0 = ADC12INCH_4 + ADC12EOS;      // A4 as input
 
   ADC12CTL0 |= ADC12ENC;
   __delay_cycles(100);
@@ -77,7 +78,6 @@ uint8_t battery_level(void)
   ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
 
   ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
-  printf("Battery Level: %d\n", (int)level);
   return level;
 }
 
@@ -97,7 +97,7 @@ ISR(ADC12, _ADC12_ISR)
   case 12: break;                           // Vector 12:  ADC12IFG3
   case 14: break;                           // Vector 14:  ADC12IFG4
   case 16: break;                           // Vector 16:  ADC12IFG5
-  case 18: break;                                  // Vector 18:  ADC12IFG6
+  case 18: break;                           // Vector 18:  ADC12IFG6
   case 20: break;                           // Vector 20:  ADC12IFG7
   case 22: break;                           // Vector 22:  ADC12IFG8
   case 24: break;                           // Vector 24:  ADC12IFG9
