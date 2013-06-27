@@ -392,8 +392,8 @@ static void StartCrystalOscillator(void)
    }
 }
 
-const unsigned char VCORE_Level = PMMCOREV_0;
-const unsigned int DCO_Multiplier = 244;
+const unsigned char VCORE_Level = PMMCOREV_1;
+const unsigned int DCO_Multiplier = 488;
 
 #if 0
   {PMMCOREV_0, 244},  /* cf8MHZ_t.                          */
@@ -539,10 +539,10 @@ msp430_cpu_init(void)
   watchdog_init();
   init_ports();
 
-   /* Call the MSP430F5438 Experimentor Board Hardware Abstraction Layer*/
-   /* to setup the system clock.                                        */
-   StartCrystalOscillator();
-   SetSystemClock();
+  /* Call the MSP430F5438 Experimentor Board Hardware Abstraction Layer*/
+  /* to setup the system clock.                                        */
+  StartCrystalOscillator();
+  SetSystemClock();
 
   eint();
 #ifndef __IAR_SYSTEMS_ICC__

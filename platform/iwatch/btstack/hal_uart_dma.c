@@ -24,7 +24,6 @@
 #include "sys/clock.h"
 #include "sys/rtimer.h"
 
-#include <msp430x54x.h>
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
@@ -102,51 +101,16 @@ int hal_uart_dma_set_baud(uint32_t baud){
   switch (baud){
 
   case 4000000:
-    UCA0BR0 = 2;
+    UCA0BR0 = 4;
     UCA0BR1 = 0;
-    UCA0MCTL= 0 << 1;  // + 0.000
+    UCA0MCTL= UCBRS_0;  // + 0.000
     break;
 
-  case 3000000:
-    UCA0BR0 = 3;
-    UCA0BR1 = 0;
-    UCA0MCTL= 3 << 1;  // + 0.375
-    break;
-
-  case 2400000:
-    UCA0BR0 = 6;
-    UCA0BR1 = 0;
-    UCA0MCTL= 5 << 1;  // + 0.625
-    break;
-
-  case 2000000:
-    UCA0BR0 = 8;
-    UCA0BR1 = 0;
-    UCA0MCTL= 0 << 1;  // + 0.000
-    break;
-
-  case 1000000:
-    UCA0BR0 = 16;
-    UCA0BR1 = 0;
-    UCA0MCTL= 0 << 1;  // + 0.000
-    break;
-
-  case 921600:
-    UCA0BR0 = 17;
-    UCA0BR1 = 0;
-    UCA0MCTL= 7 << 1;  // 3 << 1;  // + 0.375
-    break;
 
   case 115200:
-    UCA0BR0 = 69;  // from family user guide
+    UCA0BR0 = 138;  // from family user guide
     UCA0BR1 = 0;
-    UCA0MCTL= 7 << 1;  // + 0.875
-    break;
-
-  case 57600:
-    UCA0BR0 = 21;
-    UCA0BR1 = 1;
-    UCA0MCTL= 7 << 1;  // + 0.875
+    UCA0MCTL= UCBRS_7;  // + 0.875
     break;
 
   default:

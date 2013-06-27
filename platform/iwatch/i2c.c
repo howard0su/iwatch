@@ -14,12 +14,13 @@ static enum { STATE_IDL, STATE_RUNNING, STATE_DONE, STATE_ERROR} state;
 
 void I2C_Init()
 {
+  printf("I2C: Initialize...");
   // initialize i2c UCB1
   UCB1CTL1 |= UCSWRST;
 
   UCB1CTL0 = UCMODE_3 + UCMST + UCSYNC; // master, I2c mode, LSB
   UCB1CTL1 = UCSSEL__SMCLK + UCSWRST; // SMCLK for now
-  UCB1BR0 = 80; // 8MHZ / 80 = 100Khz
+  UCB1BR0 = 160; // 8MHZ / 80 = 100Khz
   UCB1BR1 = 0;
 
   //Configure ports.
@@ -27,6 +28,7 @@ void I2C_Init()
   P5SEL |= BIT4;
 
   UCB1CTL1 &= ~UCSWRST;
+  printf("Done\n");
 }
 
 int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)

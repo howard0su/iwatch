@@ -203,6 +203,7 @@ void
 memlcd_DriverInit(void)
 {
   unsigned int i;
+  printf("LCD: Initialize...");
   for(i = 0; i < LCD_Y_SIZE; i++)
   {
     lines[i].linenum = i + 1;
@@ -232,6 +233,7 @@ memlcd_DriverInit(void)
   data.end = 0;
 
   process_start(&lcd_process, NULL);
+  printf("Done\n");
 }
 
 static void halLcdRefresh(int start, int end)
