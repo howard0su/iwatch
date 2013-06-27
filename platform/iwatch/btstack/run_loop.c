@@ -98,7 +98,7 @@ PROCESS_THREAD(bluetooth_process, ev, data)
   //BUSYWAIT_UNTIL(0, RTIMER_SECOND);
 
   // wait about 100ms for bluetooth to start
-  etimer_set(&timer, CLOCK_SECOND * 2);
+  etimer_set(&timer, CLOCK_SECOND / 10);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
 
   // turn on!
