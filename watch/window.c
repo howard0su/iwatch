@@ -159,7 +159,10 @@ void window_handle_event(uint8_t ev, void* data)
         GrContextForegroundSet(&context, ClrWhite);
         GrContextClipRegionSet(&context, &current_clip);
         ui_window(EVENT_WINDOW_PAINT, 0, &context);
-        current_clip = client_clip;
+        current_clip.sXMin = 255;
+        current_clip.sXMax = 0;
+        current_clip.sYMin = 255;
+        current_clip.sYMax = 0;
       }
 
       if (ui_window_flag & WINDOW_FLAGS_STATUSUPDATE)
@@ -219,7 +222,6 @@ void window_invalid(const tRectangle *rect)
   }
   else
   {
-    // todo, merge two rect
     current_clip = client_clip;
   }
 
