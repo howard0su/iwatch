@@ -136,17 +136,16 @@ void window_handle_event(uint8_t ev, void* data)
       backlight_on(255);
       etimer_set(&backlight_timer, CLOCK_SECOND * 3);
 
-      if ((uint16_t)data == KEY_EXIT && stackptr != 0 && (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED))
+      if (ev == EVENT_KEY_PRESSED && (uint16_t)data == KEY_EXIT)
       {
+          uint8_t ret = ui_window(EVENT_EXIT_PRESSED, 0, NULL);
+          if (!ret)
         window_close();
       }
-
-      // event converter to pass data as lparam
-      uint8_t ret = ui_window(ev, (uint16_t)data, NULL);
-
-      if (!ret)
+      else
       {
-        // default handler for long pressed
+        // event converter to pass data as lparam
+        ui_window(ev, (uint16_t)data, NULL);
       }
     }
 

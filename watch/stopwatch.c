@@ -10,13 +10,14 @@ static uint8_t counter;
 static enum
 {
   STATE_RUNNING = 0,
-  STATE_STATE1,
-  STATE_STATE2, // have to be that order
   STATE_STOP,
   STATE_INIT
 }state;
-static uint8_t saved_times[3][3]; // saved time
-static uint8_t delta_times[2][3]; // delta
+#define MAX_STOP 15
+static uint8_t currentStop;
+static uint8_t topView;
+static uint8_t saved_times[MAX_STOP][3]; // saved time
+static uint8_t delta_times[MAX_STOP - 1][3]; // delta
 
 static void OnDraw(tContext* pContext)
 {
@@ -29,68 +30,98 @@ static void OnDraw(tContext* pContext)
   GrContextFontSet(pContext, &g_sFontNova28b);
   window_drawtime(pContext, 35, times, 0);
 
-  if (state != STATE_INIT)
+  if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 65))
   {
     GrContextFontSet(pContext, &g_sFontNova16b);
-
+    printf("stop: %d current: %d\n", currentStop, topView);
     char buf[20];
 
     // draw the stoped times
-    for(int i = 0; i < state; i++)
+    for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
       sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
-      GrStringDraw(pContext, buf, -1, 12, i * 20 + 90, 0);
-      GrLineDrawH(pContext, 0, LCD_X_SIZE, i * 20 + 110);
+      GrStringDraw(pContext, buf, -1, 2, (i - topView) * 20 + 90, 0);
+      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + 110);
     }
 
-    for(int i = 1; i < state; i++)
+    GrContextFontSet(pContext, &g_sFontNova12b);
+    for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
-      sprintf(buf, "+%02d:%02d:%02d", delta_times[i - 1][0], delta_times[i - 1][1],delta_times[i - 1][2]);
-      GrContextFontSet(pContext, &g_sFontNova12b);
-      GrStringDraw(pContext, buf, -1, 80, i * 20 + 93, 0);
+      if (i == 0)
+        continue;
+
+      if (delta_times[i - 1][0] != 0)
+      {
+        sprintf(buf, "+%02d:%02d:%02d", delta_times[i - 1][0], delta_times[i - 1][1],delta_times[i - 1][2]);
+        GrStringDraw(pContext, buf, -1, 80, (i - topView) * 20 + 93, 0);
+      }
+      else
+      {
+        sprintf(buf, "+%02d:%02d", delta_times[i - 1][1],delta_times[i - 1][2]);
+        GrStringDraw(pContext, buf, -1, 100, (i - topView) * 20 + 93, 0);
+      }
+      
     }
   }
+}
+
+static void watch_stop()
+{
+  state = STATE_STOP;
+  rtc_enablechange(0);  
 }
 
 uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   switch(event)
   {
-  case EVENT_WINDOW_CREATED:
+    case EVENT_WINDOW_CREATED:
     state = STATE_INIT;
+    topView = currentStop = 0;
     break;
-  case EVENT_WINDOW_PAINT:
+    case EVENT_WINDOW_PAINT:
     OnDraw((tContext*)rparam);
     break;
-  case EVENT_TIME_CHANGED:
+    case EVENT_TIME_CHANGED:
     {
       // 32Hz interrupt
       tRectangle rect = {0, 30, LCD_Y_SIZE, 64};
       counter+=2;
       if (counter >= 32)
-        {
-          times[1]++;
-          counter -= 32;
-        }
+      {
+        times[1]++;
+        counter -= 32;
+      }
       times[2] = counter * 3;
       if (times[1] == 60)
-        {
-          times[1] = 0;
-          times[0]++;
-        }
+      {
+        times[1] = 0;
+        times[0]++;
+      }
 
       if (times[0] == 60)
-        {
+      {
           // overflow
-          state = STATE_STOP;
-          rtc_enablechange(0);
-        }
+        watch_stop();
+      }
       window_invalid(&rect);
       break;
     }
-  case EVENT_KEY_PRESSED:
+    case EVENT_KEY_PRESSED:
     {
-      if (lparam == KEY_ENTER)
+      if (lparam == KEY_DOWN)
+      {
+        if (topView < currentStop + 3)
+          topView++;
+        window_invalid(NULL);
+      }
+      else if (lparam == KEY_UP)
+      {
+        if (topView > 0)
+          topView--;
+        window_invalid(NULL);
+      }
+      else if (lparam == KEY_ENTER)
       {
         if (state == STATE_STOP || state == STATE_INIT)
         {
@@ -98,43 +129,55 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
           rtc_enablechange(TENMSECOND_CHANGE);
           state = STATE_RUNNING;
           times[0] = times[1] = times[2] = 0;
+          topView = currentStop = 0;
           counter = 0;
         }
         else
         {
           if (state != STATE_STOP)
           {
-            saved_times[state][0] = times[0];
-            saved_times[state][1] = times[1];
-            saved_times[state][2] = times[2];
+            saved_times[currentStop][0] = times[0];
+            saved_times[currentStop][1] = times[1];
+            saved_times[currentStop][2] = times[2];
 
-            if (state > 0)
+            if (currentStop > 0)
             {
-              int delta = (saved_times[state][0] * 3600 + saved_times[state][1] * 60 + saved_times[state][2]) -
-                 (saved_times[state - 1][0] * 3600 + saved_times[state - 1][1] * 60 + saved_times[state - 1][2]);
-              delta_times[state - 1][0] = delta % 60;
+              int delta = (saved_times[currentStop][0] * 3600 + saved_times[currentStop][1] * 60 + saved_times[currentStop][2]) -
+              (saved_times[currentStop - 1][0] * 3600 + saved_times[currentStop - 1][1] * 60 + saved_times[currentStop - 1][2]);
+              delta_times[currentStop - 1][2] = delta % 60;
               delta = delta / 60;
-              delta_times[state - 1][1] = delta % 60;
-              delta_times[state - 1][2] = delta / 60;
+              delta_times[currentStop - 1][1] = delta % 60;
+              delta_times[currentStop - 1][0] = delta / 60;
             }
 
-            state++;
+            currentStop++;
+            if ((topView + 4 == currentStop) && (currentStop > 3))
+            {
+              topView++;
+            }
           }
 
-          if (state == STATE_STOP)
+          if (currentStop >= MAX_STOP)
           {
-            rtc_enablechange(0);
+            watch_stop();
           }
         }
+
         window_invalid(NULL);
       }
       break;
     }
-  case EVENT_WINDOW_CLOSING:
+    case EVENT_EXIT_PRESSED:
+    if (state == STATE_STOP)
+      window_close();
+    else
+      watch_stop();
+    break;
+    case EVENT_WINDOW_CLOSING:
     {
       rtc_enablechange(0);
     }
-  default:
+    default:
     return 0;
   }
 

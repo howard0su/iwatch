@@ -164,113 +164,118 @@ static void OnDraw(tContext *pContext)
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   static struct etimer timer;
-  if (ev == EVENT_WINDOW_CREATED)
+  switch(ev)
   {
-    Items = (struct MenuItem*)rparam;
-    if (Items == NULL)
+    case EVENT_WINDOW_CREATED:
     {
-      Items = MainMenu;
-    }
-    if (rparam == (void*)1)
-    {
-      Items = SetupMenu;
-    }
-    
-    menuLength = 0;
-    while(Items[menuLength].name != NULL)
-      menuLength++;
+      Items = (struct MenuItem*)rparam;
+      if (Items == NULL)
+      {
+        Items = MainMenu;
+      }
+      if (rparam == (void*)1)
+      {
+        Items = SetupMenu;
+      }
 
-    current = currentTop = 0;
-    etimer_set(&timer, CLOCK_SECOND * 30);
-  }
-  else if (ev == PROCESS_EVENT_TIMER)
-  {
-    if (rparam == &timer)
+      menuLength = 0;
+      while(Items[menuLength].name != NULL)
+        menuLength++;
+
+      current = currentTop = 0;
+      etimer_set(&timer, CLOCK_SECOND * 30);
+      break;
+    }
+    case PROCESS_EVENT_TIMER:
     {
+      if (rparam == &timer)
+      {
       // check analog or digit
-      if (!window_readconfig()->default_clock)
-        window_open(&analogclock_process, NULL);
-      else
-        window_open(&digitclock_process, NULL);
+        if (!window_readconfig()->default_clock)
+          window_open(&analogclock_process, NULL);
+        else
+          window_open(&digitclock_process, NULL);
+      }
+      break;
     }
-  }
-  else if (ev == EVENT_WINDOW_PAINT)
-  {
-    OnDraw((tContext*)rparam);
-    return 1;
-  }
-  else if (ev == EVENT_KEY_PRESSED)
-  {
-    etimer_set(&timer, CLOCK_SECOND * 30);
-    if (lparam == KEY_UP)
+    case EVENT_WINDOW_PAINT:
     {
-      if (current > 0)
-      {
-        current--;
-        if (currentTop > current)
-        {
-          currentTop--;
-        }
-      }
-      else
-      {
-        current = menuLength - 1;
-        currentTop = current - NUM_MENU_A_PAGE + 1;
-      }
-
-      ///TODO: optimize this
-      window_invalid(NULL);
+      OnDraw((tContext*)rparam);
+      return 1;
     }
-    else if (lparam == KEY_DOWN)
+    case EVENT_KEY_PRESSED:
     {
-      if (Items[current+1].name != NULL)
+      etimer_set(&timer, CLOCK_SECOND * 30);
+      if (lparam == KEY_UP)
       {
-        current++;
-        if (currentTop + NUM_MENU_A_PAGE <= current)
+        if (current > 0)
         {
-          currentTop++;
-        }
-      }
-      else
-      {
-        current = currentTop = 0;
-      }
-      ///TODO: optimize this
-      window_invalid(NULL);
-    }
-    else if (lparam == KEY_ENTER)
-    {
-      if (Items[current].handler)
-      {
-        if (Items[current].handler == &menu_process)
-        {
-          if (current == 9)
+          current--;
+          if (currentTop > current)
           {
-            Items = SetupMenu;
-            current = currentTop = 0;
-            window_invalid(NULL);
+            currentTop--;
           }
         }
         else
         {
-          window_open(Items[current].handler, NULL);
+          current = menuLength - 1;
+          currentTop = current - NUM_MENU_A_PAGE + 1;
+        }
+
+      ///TODO: optimize this
+        window_invalid(NULL);
+      }
+      else if (lparam == KEY_DOWN)
+      {
+        if (Items[current+1].name != NULL)
+        {
+          current++;
+          if (currentTop + NUM_MENU_A_PAGE <= current)
+          {
+            currentTop++;
+          }
+        }
+        else
+        {
+          current = currentTop = 0;
+        }
+      ///TODO: optimize this
+        window_invalid(NULL);
+      }
+      else if (lparam == KEY_ENTER)
+      {
+        if (Items[current].handler)
+        {
+          if (Items[current].handler == &menu_process)
+          {
+            if (current == 9)
+            {
+              Items = SetupMenu;
+              current = currentTop = 0;
+              window_invalid(NULL);
+            }
+          }
+          else
+          {
+            window_open(Items[current].handler, NULL);
+          }
         }
       }
+      break;
     }
-    else if (lparam == KEY_EXIT)
+    case EVENT_EXIT_PRESSED:
     {
-        if (Items != MainMenu)
-        {
-          Items = MainMenu;
-          currentTop = 5;
-          current = 9;
-          window_invalid(NULL);
-        }
+      if (Items != MainMenu)
+      {
+        Items = MainMenu;
+        currentTop = 5;
+        current = 9;
+        window_invalid(NULL);
+      }
+      break;
     }
-  }
-  else
-  {
-    return 0;
+    default:
+      return 0;
   }
 
   return 1;

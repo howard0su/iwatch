@@ -28,6 +28,9 @@ PROCESS_NAME(system_process);
 #define EVENT_WINDOW_CLOSED           0xa2
 #define EVENT_KEY_PRESSED             0xa3
 #define EVENT_KEY_LONGPRESSED         0xa4
+// move exit key into another message, so any application want to handle this
+// message, have to be more explict
+#define EVENT_EXIT_PRESSED            0xa5
 #define EVENT_BT_STATUS               0xa6 // parameters BIT0:ENABLE, BIT1:CONNECT
 #define EVENT_ANT_STATUS              0xa7 // parameters BIT0:EnABLE, BIT1:CONNECT
 #define EVENT_MPU_STATUS              0xa8 // parameters BIT0:EnABLE
