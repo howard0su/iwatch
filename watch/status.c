@@ -119,8 +119,14 @@ static void OnDraw(tContext* pContext)
   {
     uint8_t hour, minute;
     char buf[20];
+    uint8_t ampm = 0;
     rtc_readtime(&hour, &minute, NULL);
-    sprintf(buf, "%02d:%02d", hour, minute);
+    if (hour > 12)
+    {
+      hour -= 12;
+      ampm = 1;
+    }
+    sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontNova12b);
     int width = GrStringWidthGet(pContext, buf, -1);
     GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);

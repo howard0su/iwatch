@@ -107,14 +107,14 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       {
         uint8_t month, day;
         rtc_readdate(NULL, &month, &day, NULL);
-        sprintf(buf, "%d:%d", month, day);
+        sprintf(buf, "%s %d", month_shortname[month], day);
         break;
       }
       case DATA_TIME:
       {
         uint8_t hour, minute;
         rtc_readtime(&hour, &minute, NULL);
-        sprintf(buf, "%d:%d", hour, minute);
+        sprintf(buf, "%02d:%02d", hour, minute);
         break;
       }
       case DATA_BT:
@@ -161,6 +161,13 @@ static void OnDraw(tContext *pContext)
   }
 }
 
+static void getMenuLength()
+{
+  menuLength = 0;
+  while(Items[menuLength].name != NULL)
+    menuLength++;
+}
+
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   static struct etimer timer;
@@ -177,10 +184,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = SetupMenu;
       }
-
-      menuLength = 0;
-      while(Items[menuLength].name != NULL)
-        menuLength++;
+      getMenuLength();
 
       current = currentTop = 0;
       etimer_set(&timer, CLOCK_SECOND * 30);
@@ -251,6 +255,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
             if (current == 9)
             {
               Items = SetupMenu;
+              getMenuLength();
               current = currentTop = 0;
               window_invalid(NULL);
             }

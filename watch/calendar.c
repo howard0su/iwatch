@@ -8,18 +8,6 @@
 uint8_t month, now_month, day, now_day;
 uint16_t year, now_year;
 
-static const char *month_name[] = {
-  "JANUARY","FEBRUARY","MARCH","APRIL", "MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
-};
-
-static const char *month_shortname[] = {
-  "JAN","FEB","MAR","APR", "MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"
-};
-
-static const char* week_name[] = {
-  "SU", "MO", "TU", "WE", "TH", "FR", "SA"
-};
-
 static void OnDraw(tContext *pContext)
 {
   char buf[20];
@@ -45,9 +33,9 @@ static void OnDraw(tContext *pContext)
   GrContextFontSet(pContext, &g_sFontNova12b);
   for(int i = 0; i < 7; i++)
   {
-    width = GrStringWidthGet(pContext, week_name[i], 3);
+    width = GrStringWidthGet(pContext, week_shortname[i], 3);
 
-    GrStringDraw( pContext, week_name[i], 3, i * 20 + (20 - width) / 2, 40, 0);
+    GrStringDraw( pContext, week_shortname[i], 3, i * 20 + (20 - width) / 2, 40, 0);
     // draw line in title bar
     //GrLineDrawV(pContext, i * 20, 40, 52);
   }
