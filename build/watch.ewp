@@ -2031,9 +2031,6 @@
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\upgrade.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\watch\notification.c</name>
     </file>
     <file>
@@ -2062,10 +2059,16 @@
       <name>$PROJ_DIR$\..\watch\today.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\upgrade.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\watch.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\names.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\worldclock.c</name>
