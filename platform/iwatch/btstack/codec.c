@@ -67,7 +67,7 @@
 static const uint16_t config[] =
 {
   0, 0x17d, 0x15, 0xfd, //Power Management
-  0x118, 0x0, 0x149, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0x0, 0x108, 0x1ff, // Audio Control
+  0x018, 0x0, 0x149, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0x0, 0x108, 0x1ff, // Audio Control
   0xFFFF, 0xFFFF, // skip 2
   0x12c, 0x2c, 0x2c, 0x2c, 0x2c, //Equalizer
   0xFFFF, // skip 1
@@ -79,7 +79,7 @@ static const uint16_t config[] =
   0x8, 0xc, 0x93, 0xe9, //PLL Control
   0x0, // BYP Control
   0xFFFF, 0xFFFF, 0xFFFF, // skip 3
-  0x2, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xb9, 0x40, 0x1, //Input Output Mixer
+  0x3, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xb9, 0x40, 0x1, //Input Output Mixer
 };
 
 static int codec_write(uint8_t reg, uint16_t data)
@@ -109,6 +109,7 @@ void codec_shutdown()
   NSPKEN[6]
   PSPKEN[5]
   */
+  #if 0
   codec_write(REG_POWER_MANAGEMENT1, 0);
   codec_write(REG_POWER_MANAGEMENT2, 0);
   codec_write(REG_POWER_MANAGEMENT3, 0);
@@ -119,6 +120,7 @@ void codec_shutdown()
   printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT2, codec_read(REG_POWER_MANAGEMENT2));
   printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT3, codec_read(REG_POWER_MANAGEMENT3));
   printf("Codec reg: %x = %d\n", REG_CLK_GEN_CTRL, codec_read(REG_CLK_GEN_CTRL));
+  #endif
 }
 
 void code_setformat(uint8_t format)
@@ -128,24 +130,26 @@ void code_setformat(uint8_t format)
 
 void codec_wakeup()
 {
+  #if 0
   codec_write(REG_CLK_GEN_CTRL, 0x149);
 
   codec_write(REG_POWER_MANAGEMENT1, 0x17d);
   codec_write(REG_POWER_MANAGEMENT2, 0x15);
   codec_write(REG_POWER_MANAGEMENT3, 0xfd);
+  #endif
 }
 
 void codec_init()
 {
-  AUDDIR |= BIT6;
-  AUDOUT &= ~BIT6; // output direction, value = H
+  AUDDIR |= AUDBIT;
+  AUDOUT &= ~AUDBIT; // output direction, value = H
 
   I2C_addr(CODEC_ADDRESS);
   //reset codec ?
   codec_write(REG_RESET, 0);
   __delay_cycles(5000);
 
-/*
+
   for(uint8_t i = 1; i <= 0x38; i++)
   {
     if (config[i] == 0xffff)
@@ -156,14 +160,15 @@ void codec_init()
     if (codec_write(i, config[i]))
     {
       I2C_done();
+      printf("initialize codec failed %d\n", i);
       return;
     }
   }
-*/
-  codec_shutdown();
+
+//  codec_shutdown();
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
   printf("initialize codec sucess\n");
-  
+
   I2C_done();
 }
