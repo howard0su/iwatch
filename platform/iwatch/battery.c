@@ -14,7 +14,7 @@
 #define BATOUTOUT P7OUT
 #define BATOUTPIN BIT5
 
-static uint8_t level = 70;
+static uint8_t level;
 
 static void setoutputfloat()
 {
@@ -42,14 +42,16 @@ void battery_init(void)
 
   BATINSEL |= BATLEVEL;
 
-  ADC12CTL0 = ADC12ON;
-  ADC12CTL1 = ADC12CSTARTADD_0 + ADC12SHP + ADC12SSEL_0 + ADC12DIV_7; 
-  ADC12CTL2 = ADC12TCOFF + ADC12RES_2 + ADC12REFBURST;
-  ADC12IE = 0x01;                           // Enable interrupt
-  ADC12MCTL0 = ADC12INCH_4 + ADC12EOS;      // A4 as input
+  REFCTL0 |= REFMSTR + REFVSEL_2 + REFON;
+  ADC12CTL0 = ADC12ON + ADC12SHT0_12;
+  //ADC12CTLADC12SHP1 = ADC12SSEL_0 + ADC12SHP;
+  ADC12CTL1 = ADC12CSTARTADD_0 + ADC12SHP + ADC12SSEL_1; 
+  //ADC12CTL2 = ADC12TCOFF + ADC12RES_2 + ADC12REFBURST;
+  ADC12IE = ADC12IE0;                           // Enable interrupt
+  ADC12MCTL0 = ADC12SREF_1 + ADC12INCH_4 + ADC12EOS;      // A4 as input
 
   ADC12CTL0 |= ADC12ENC;
-  __delay_cycles(100);
+  __delay_cycles(75 * 8);
   ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
 
   setoutputfloat();
@@ -75,9 +77,9 @@ BATTERY_STATE battery_state(void)
 
 uint8_t battery_level(void)
 {
-  ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
-
-  ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
+  printf("battery level : %d\n", level);
+  if (!(ADC12CTL1 & ADC12BUSY))
+    ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
   return level;
 }
 
@@ -89,8 +91,7 @@ ISR(ADC12, _ADC12_ISR)
   case  2: break;                           // Vector  2:  ADC overflow
   case  4: break;                           // Vector  4:  ADC timing overflow
   case  6:                                  // Vector  6:  ADC12IFG0
-    level = ADC12MEM0 >> 4;
-    ADC12CTL0 = 0;
+    level = (uint8_t)(ADC12MEM0 >> 3);
     break;
   case  8: break;                           // Vector  8:  ADC12IFG1
   case 10: break;                           // Vector 10:  ADC12IFG2
