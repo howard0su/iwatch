@@ -194,7 +194,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (rparam == &timer)
       {
-      // check analog or digit
+        // check analog or digit
         if (!window_readconfig()->default_clock)
           window_open(&analogclock_process, NULL);
         else
@@ -276,6 +276,15 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         currentTop = 5;
         current = 9;
         window_invalid(NULL);
+      }
+      else
+      {
+        // this is main menu
+        // check analog or digit
+        if (!window_readconfig()->default_clock)
+          window_open(&analogclock_process, NULL);
+        else
+          window_open(&digitclock_process, NULL);
       }
       break;
     }
