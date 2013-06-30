@@ -10,6 +10,7 @@
 #include "config.h"
 #include "debug.h"
 
+#include "window.h"
 #define HFP_CHANNEL 6
 
 static enum
@@ -245,27 +246,29 @@ static uint8_t cind_state[16];
 
 static void handle_CIEV(char *buf)
 {
-  int ind, value;
+  uint8_t ind, value;
   // handle +CIEV: 3,0
   // handle +CIEV: 3,1
-  if (sscanf(buf, "\r+CIEV: %d, %d", ind, value))
+  log_info("%s\n", buf);
+  if (sscanf(buf, "\r\n+CIEV: %d,%d", &ind, &value) == 2)
   {
-    printf("CIEV: ind:%d index:%d value:%d\n", ind, cind_index[ind], value);
+    log_info("CIEV: ind:%d index:%d value:%d\n", ind, cind_index[ind], value);
     cind_state[ind] = value;
   }
 }
 
 static void handle_RING()
 {
-
+  process_post(ui_process, EVENT_RING, NULL);
 }
 
 static void handle_CLIP(char* buf)
 {
   char phone[20];
-  if (sscanf("\r+CLIP: \"%s\"", phone))
+  if (sscanf("\r\n+CLIP: \"%s\"", phone))
   {
-    printf("CLIP: %s\n", phone);
+    log_info("CLIP: %s\n", phone);
+    process_post(ui_process, EVENT_RING_NUM, NULL);
   }
 }
 

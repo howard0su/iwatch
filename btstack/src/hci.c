@@ -507,6 +507,7 @@ static void event_handler(uint8_t *packet, int size){
             }
             break;
         case HCI_EVENT_SYNCHRONOUS_CONNECTION_COMPLETE:
+            log_info("eSCO Connection air mode: %d\n", packet[18]);
         case HCI_EVENT_CONNECTION_COMPLETE:
             // Connection management
             bt_flip_addr(addr, &packet[5]);
@@ -1065,12 +1066,12 @@ void hci_run(){
         connection = (hci_connection_t *) it;
 
         if (connection->state == RECEIVED_CONNECTION_REQUEST){
-          if (connection->type == 1 || connection->type == 0)
+          if (connection->type == 1)
           {
             log_info("sending hci_accept_connection_request\n");
             hci_send_cmd(&hci_accept_connection_request, connection->address, 1);
           }
-          else if (connection->type == 2) // SCO or eSCO
+          else if (connection->type == 2 || connection->type == 0) // SCO or eSCO
           {
             log_info("hci_accept_synchronous_connection\n");
             hci_send_cmd(&hci_accept_synchronous_connection, connection->address, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF,

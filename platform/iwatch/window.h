@@ -21,6 +21,8 @@ PROCESS_NAME(system_process);
 #define EVENT_TIME_CHANGED            0x90
 #define EVENT_NOTIFICATION            0x91
 #define EVENT_ANT_DATA                0x92
+#define EVENT_RING_NUM                0x93
+#define EVENT_RING                    0x94
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xa0
@@ -28,7 +30,7 @@ PROCESS_NAME(system_process);
 #define EVENT_WINDOW_CLOSED           0xa2
 #define EVENT_KEY_PRESSED             0xa3
 #define EVENT_KEY_LONGPRESSED         0xa4
-// move exit key into another message, so any application want to handle this
+// move exit key into another message, so any application want to handle this 
 // message, have to be more explict
 #define EVENT_EXIT_PRESSED            0xa5
 #define EVENT_BT_STATUS               0xa6 // parameters BIT0:ENABLE, BIT1:CONNECT
