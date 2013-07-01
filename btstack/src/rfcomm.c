@@ -683,6 +683,7 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
   bd_addr_t event_addr;
   uint16_t  psm;
   uint16_t l2cap_cid;
+  uint8_t status;
   hci_con_handle_t con_handle;
   rfcomm_multiplexer_t *multiplexer = NULL;
   switch (packet[0]) {
@@ -726,7 +727,7 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
     if (READ_BT_16(packet, 11) != PSM_RFCOMM) break;
     log_info("L2CAP_EVENT_CHANNEL_OPENED for PSM_RFCOMM\n");
     
-    uint8_t status = packet[2];
+    status = packet[2];
     // get multiplexer for remote addr
     con_handle = READ_BT_16(packet, 9);
     l2cap_cid = READ_BT_16(packet, 13);

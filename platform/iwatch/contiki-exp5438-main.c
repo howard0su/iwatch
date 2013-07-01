@@ -49,6 +49,8 @@
 #include "power.h"
 #include "battery.h"
 #include "btstack/bluetooth.h"
+#include "backlight.h"
+#include "window.h"
 
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
@@ -60,12 +62,9 @@
 #endif
 
 extern void mpu6050_init();
-extern void ant_init();
 extern void button_init();
 extern void I2C_Init();
 extern void rtc_init();
-extern void backlight_init();
-extern void window_init();
 extern void battery_init();
 
 

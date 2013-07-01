@@ -22,14 +22,14 @@
 * This implement the menu
 */
 
-#define DATA_DATE -1
-#define DATA_TIME -2
-#define DATA_ANT  -3
-#define DATA_BT   -4
+#define DATA_DATE 0xF1
+#define DATA_TIME 0xF2
+#define DATA_ANT  0xF3
+#define DATA_BT   0xF4
 
 struct MenuItem
 {
-  signed char icon;
+  char icon;
   const char *name;
   windowproc handler;
 };

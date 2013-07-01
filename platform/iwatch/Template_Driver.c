@@ -101,7 +101,8 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include <string.h>
-
+#include <stdio.h>
+ 
 #define SPIOUT  P3OUT
 #define SPIDIR  P3DIR
 #define SPISEL  P3SEL

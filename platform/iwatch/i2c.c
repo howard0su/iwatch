@@ -2,6 +2,7 @@
 #include "i2c.h"
 #include "isr_compat.h"
 #include "sys/rtimer.h"
+#include <stdio.h>
 
 static uint8_t *rxdata;
 static uint8_t rxlen;

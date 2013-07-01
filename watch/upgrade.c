@@ -27,6 +27,8 @@ static uint8_t enter_bsl()
   __disable_interrupt();
 
   ((void(*)())0x1000)();
+
+  return 0;
 }
 
 static enum {W4CONFIRM, CONFIRMED} state = W4CONFIRM;

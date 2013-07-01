@@ -1,5 +1,6 @@
 #include "contiki.h"
 #include "window.h"
+#include <string.h>
 
 const char *month_name[] =
 {

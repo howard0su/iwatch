@@ -3,6 +3,7 @@
 
 #include "battery.h"
 #include "hfp.h"
+#include <stdio.h>
 
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -10,8 +11,8 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
     case EVENT_WINDOW_CREATED:
       {
-	window_timer(CLOCK_SECOND);
-	break;
+		window_timer(CLOCK_SECOND * 5);
+		break;
       }
     case EVENT_WINDOW_PAINT:
       {
@@ -36,6 +37,27 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
 	    break;
 	  }
 	GrStringDraw(pContext, msg, -1, 10, 20, 0);
+	char buf[50];
+	uint8_t level = battery_level();
+	sprintf(buf, "battery level is %d\n", level);
+	GrStringDraw(pContext, buf, -1, 10, 40, 0);
+
+#if ENERGEST_CONF_ON
+	sprintf(buf, "cpu %lu lpm %lu irq %lu serial %lu\n",
+	 energest_total_time[ENERGEST_TYPE_CPU].current,
+	 energest_total_time[ENERGEST_TYPE_LPM].current,
+	 energest_total_time[ENERGEST_TYPE_IRQ].current,
+	 energest_total_time[ENERGEST_TYPE_SERIAL].current);
+
+  printf("cpu %lu lpm %lu irq %lu serial %lu\n",
+	 energest_total_time[ENERGEST_TYPE_CPU].current,
+	 energest_total_time[ENERGEST_TYPE_LPM].current,
+	 energest_total_time[ENERGEST_TYPE_IRQ].current,
+	 energest_total_time[ENERGEST_TYPE_SERIAL].current);
+
+	GrStringDrawWrap(pContext, buf, 0, 55, 100, 15);
+#endif
+	window_timer(CLOCK_SECOND * 5);
 	break;
       }
     case PROCESS_EVENT_TIMER:

@@ -468,7 +468,7 @@ static void hfp_state_handler(int code, char* buf)
   }
 }
 
-static uint8_t textbuf[255];
+static char textbuf[255];
 static uint8_t textbufptr = 0;
 static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint16_t len)
 {
