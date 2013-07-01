@@ -25,21 +25,25 @@ PROCESS_NAME(system_process);
 #define EVENT_RING                    0x94
 
 // parameter is used as lparam
-#define EVENT_WINDOW_CREATED          0xa0
-#define EVENT_WINDOW_CLOSING          0xa1
-#define EVENT_WINDOW_CLOSED           0xa2
-#define EVENT_KEY_PRESSED             0xa3
-#define EVENT_KEY_LONGPRESSED         0xa4
+#define EVENT_WINDOW_CREATED          0xc0
+#define EVENT_WINDOW_CLOSING          0xc1
+#define EVENT_WINDOW_CLOSED           0xc2
+#define EVENT_KEY_PRESSED             0xc3
+#define EVENT_KEY_LONGPRESSED         0xc4
+#define EVENT_WINDOW_ACTIVE           0xc5
+#define EVENT_WINDOW_DEACTIVE         0xc6
+
 // move exit key into another message, so any application want to handle this 
 // message, have to be more explict
-#define EVENT_EXIT_PRESSED            0xa5
-#define EVENT_BT_STATUS               0xa6 // parameters BIT0:ENABLE, BIT1:CONNECT
-#define EVENT_ANT_STATUS              0xa7 // parameters BIT0:EnABLE, BIT1:CONNECT
-#define EVENT_MPU_STATUS              0xa8 // parameters BIT0:EnABLE
-#define EVENT_CODEC_STATUS            0xa9 // parameters BIT0:EnABLE
-#define EVENT_WINDOW_PAINT            0xaa // no parameter
-#define EVENT_NOTIFICATION_DONE       0xab
-#define EVENT_NOTIFY_RESULT           0xad // the notification result
+#define EVENT_EXIT_PRESSED            0xa0
+#define EVENT_BT_STATUS               0xa1 // parameters BIT0:ENABLE, BIT1:CONNECT
+#define EVENT_ANT_STATUS              0xa2 // parameters BIT0:EnABLE, BIT1:CONNECT
+#define EVENT_MPU_STATUS              0xa3 // parameters BIT0:EnABLE
+#define EVENT_CODEC_STATUS            0xa4 // parameters BIT0:EnABLE
+#define EVENT_WINDOW_PAINT            0xa5 // no parameter
+#define EVENT_NOTIFICATION_DONE       0xa6
+#define EVENT_NOTIFY_RESULT           0xa7 // the notification result
+
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 

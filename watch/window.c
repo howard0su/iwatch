@@ -70,14 +70,20 @@ void window_init()
 
   GrFlush(&context);
   stackptr = 0;
+  //window_open(&menu_process, NULL);
+  ui_window = menu_process;
+
   return;
 }
 
 void window_open(windowproc dialog, void* data)
 {
+  ui_window(EVENT_WINDOW_DEACTIVE, 0, NULL);
+
   stackptr++;
   ui_window = dialog;
   ui_window(EVENT_WINDOW_CREATED, 0, data);
+  ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
 
   window_invalid(NULL);
 }
@@ -87,9 +93,10 @@ void window_handle_event(uint8_t ev, void* data)
     if (ev == PROCESS_EVENT_INIT)
     {
       backlight_on(0);
-      //window_open(&menu_process, NULL);
-      ui_window = menu_process;
+
+      // continue create menu window
       ui_window(EVENT_WINDOW_CREATED, 0, NULL);
+      ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
 
       ui_window_flag |= WINDOW_FLAGS_REFRESH;
       status_process(EVENT_WINDOW_CREATED, 0, data);
@@ -244,6 +251,7 @@ void window_close()
   ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
   GrContextForegroundSet(&context, ClrWhite);
   GrContextClipRegionSet(&context, &client_clip);
+  ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
   ui_window(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
 }

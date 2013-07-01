@@ -18,6 +18,8 @@
 #include "Template_Driver.h"
 #include "rtc.h"
 #include <stdio.h>
+#include <string.h>
+
 /*
 * This implement the menu
 */
@@ -26,10 +28,14 @@
 #define DATA_TIME 0xF2
 #define DATA_ANT  0xF3
 #define DATA_BT   0xF4
+#define DATA_VERSION 0xF5
+#define DATA_BTADDR 0xF6
+#define DATA_LEGAL 0xF7
+#define NO_DATA   0xFF
 
 struct MenuItem
 {
-  char icon;
+  unsigned char icon;
   const char *name;
   windowproc handler;
 };
@@ -39,9 +45,18 @@ static const struct MenuItem SetupMenu[] =
   {DATA_DATE, "Date", &configdate_process},
   {DATA_TIME, "Time", &configtime_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
-  {0, "Upgrade Firmware", &upgrade_process},
-  {0, "Self-test", &selftest_process},
+  {NO_DATA, "Upgrade Firmware", &upgrade_process},
+  {NO_DATA, "Self-test", &selftest_process},
   {-1, NULL, NULL}
+};
+
+static const struct MenuItem AboutMenu[] = 
+{
+  {DATA_VERSION, "Version", NULL},
+  {NO_DATA, "BT Address", NULL},
+  {DATA_BTADDR, "", NULL},
+  {NO_DATA, "Legal", NULL},
+  {DATA_LEGAL, "", NULL}
 };
 
 static const struct MenuItem MainMenu[] =
@@ -56,6 +71,7 @@ static const struct MenuItem MainMenu[] =
   {'k', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
   {'l', "Watch Setup", &menu_process},
+  {0,   "About", &menu_process},
   {0, NULL, NULL}
 };
 
@@ -81,14 +97,14 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 
   GrContextForegroundSet(pContext, !selected);
   GrContextBackgroundSet(pContext, selected);
-  if (item->icon > 0)
+  if (item->icon < 0x80)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
     GrStringDraw(pContext, &item->icon, 1, 10, 14 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
   GrContextFontSet(pContext, &g_sFontBaby16);
-  if (item->icon > 0)
+  if (item->icon < 0x80)
   {
     GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
@@ -101,7 +117,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
 
     switch(item->icon)
     {
-      case 0:
+      case 0xFF:
         return;
       case DATA_DATE:
       {
@@ -122,6 +138,18 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       break;
       case DATA_ANT:
       sprintf(buf, "%s", "OFF");
+      break;
+      case DATA_LEGAL:
+      strcpy(buf, "legal.kreyos.com");
+      break;
+      case DATA_VERSION:
+      strcpy(buf, "1.0.0.1");
+      break;
+      case DATA_BTADDR:
+      strcpy(buf, "12:34:56:78:FE:FF");
+      break;
+      default:
+      strcpy(buf, "TODO");
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
@@ -175,19 +203,33 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
     case EVENT_WINDOW_CREATED:
     {
-      Items = (struct MenuItem*)rparam;
-      if (Items == NULL)
+      
+      if (rparam == NULL)
       {
         Items = MainMenu;
       }
-      if (rparam == (void*)1)
+      else if (strcmp(rparam, "Watch Setup") == 0)
       {
         Items = SetupMenu;
       }
+      else if (strcmp(rparam, "About") == 0)
+      {
+        Items = AboutMenu;
+      }
+
       getMenuLength();
 
       current = currentTop = 0;
+      break;
+    }
+    case EVENT_WINDOW_ACTIVE:
+    {
       etimer_set(&timer, CLOCK_SECOND * 30);
+      break;
+    }
+    case EVENT_WINDOW_DEACTIVE:
+    {
+      etimer_stop(&timer);
       break;
     }
     case PROCESS_EVENT_TIMER:
@@ -255,10 +297,14 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
             if (current == 9)
             {
               Items = SetupMenu;
-              getMenuLength();
-              current = currentTop = 0;
-              window_invalid(NULL);
             }
+            else if (current == 10)
+            {
+              Items = AboutMenu;              
+            }
+            getMenuLength();
+            current = currentTop = 0;
+            window_invalid(NULL);
           }
           else
           {
@@ -270,12 +316,21 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     case EVENT_EXIT_PRESSED:
     {
-      if (Items != MainMenu)
+      if (Items == SetupMenu)
       {
         Items = MainMenu;
         currentTop = 5;
         current = 9;
+        getMenuLength();
         window_invalid(NULL);
+      }
+      else if (Items == AboutMenu)
+      {
+        Items = MainMenu;
+        currentTop = 6;
+        current = 10;
+        getMenuLength();
+        window_invalid(NULL);        
       }
       else
       {
