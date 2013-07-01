@@ -303,6 +303,8 @@ int main()
 
   // test menu in the last
   test_window(&menu_process, NULL);
+  test_window(&menu_process, "Watch Setup");
+  test_window(&menu_process, "About");
 
   test_window_stopwatch(&stopwatch_process, NULL);
 
