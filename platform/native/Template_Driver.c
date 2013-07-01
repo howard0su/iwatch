@@ -621,19 +621,17 @@ const tDisplay g_memlcd_Driver =
 //
 //*****************************************************************************
 
+static uint8_t lookup[16] = {
+   0x0, 0x8, 0x4, 0xC,
+   0x2, 0xA, 0x6, 0xE,
+   0x1, 0x9, 0x5, 0xD,
+   0x3, 0xB, 0x7, 0xF };
 
-static void byte_to_binary(int x, char *b)
+static uint8_t flip( uint8_t n )
 {
-    b[8] = '\0';
-
-    int z;
-    for(z = 0; z < 8; z++)
-    {
-      b[z] = (x & 0x01)?'0':'1';
-      x >>= 1;
-    }
-
-    return;
+   //This should be just as fast and it is easier to understand.
+   //return (lookup[n%16] << 4) | lookup[n/16];
+   return (lookup[n&0x0F] << 4) | lookup[n>>4];
 }
 
 #include <stdio.h>
@@ -645,17 +643,16 @@ void screenshot()
   char name[30];
   sprintf(name, "unittest/image%03d.pbm", id++);
   fp = fopen(name, "wb");
-  fprintf(fp, "P1\n%d %d\n", LCD_X_SIZE, LCD_Y_SIZE);
+  fprintf(fp, "P4\n%d %d\n", LCD_X_SIZE, LCD_Y_SIZE);
 
   for(int i = 0; i < LCD_Y_SIZE; i++)
   {
+    uint8_t buf[LCD_X_SIZE/8];
     for(int j = 0; j < LCD_X_SIZE/8; j++)
     {
-      char buf[9];
-      byte_to_binary(lines[i].pixels[j], buf);
-      fprintf(fp, "%s", buf);
+     buf[j] = flip(lines[i].pixels[j]);
     }
-    fprintf(fp, "\n");
+    fwrite(buf, LCD_X_SIZE/8, 1, fp);
   }
 
   fclose(fp);
