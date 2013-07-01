@@ -6,6 +6,7 @@
 #include "Template_Driver.h"
 #include <unistd.h>
 #include "sys/timer.h"
+#include "sys/etimer.h"
 
 static tContext context;
 extern const tRectangle status_clip;
@@ -87,8 +88,8 @@ static const ui_config ui_config_default =
 {
   UI_CONFIG_SIGNATURE,
 
-  "Shanghai", "London", "New York", "", "", "",
-  +16, +8, +3, 1, 2, 3,
+  "Shanghai", "London", "New York", "Place A", "Place B", "Place C",
+  +16, +8, +3, -1, -2, -3,
 
   1,
   4,
@@ -107,41 +108,47 @@ static struct
    void* data
 } test_events[] = {
     // today's activity
-   {5, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
 
     // analog watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
 
     // digit watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
 
    // world clock
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
 
    // calendar 
@@ -149,7 +156,10 @@ static struct
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
 
    // stop watch
@@ -158,9 +168,20 @@ static struct
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
 
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+
+   // 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
@@ -180,6 +201,33 @@ static struct
    {-1}
 };
 
+PROCESS(event_process, "Test Event Driver");
+
+PROCESS_THREAD(event_process, ev, data)
+{
+  static int event = 0;
+  static struct etimer trigger;
+  PROCESS_BEGIN();
+  etimer_set(&trigger, test_events[event].delta * CLOCK_SECOND/10);
+  while(1)
+  {
+    if (ev == PROCESS_EVENT_TIMER)
+    {
+       process_post(ui_process, test_events[event].event, test_events[event].data);
+       event++;
+       if (test_events[event].delta == -1)
+       {
+         exit(0);
+       }
+       etimer_set(&trigger, test_events[event].delta * CLOCK_SECOND / 100);
+    }
+    PROCESS_WAIT_EVENT();
+  }
+
+  PROCESS_END();
+}
+
+
 void SimluateRun()
 {
 
@@ -193,10 +241,11 @@ void SimluateRun()
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
+  window_init();
+
   autostart_start(autostart_processes);
-  struct timer trigger;
-  int event = 0;
-  timer_set(&trigger, test_events[event].delta * CLOCK_SECOND/2);
+
+  process_start(&event_process, NULL);
   while(1) {
     int r;
     do {
@@ -204,16 +253,19 @@ void SimluateRun()
       r = process_run();
     } while(r > 0);
 
-    if (timer_expired(&trigger))
+    int n = etimer_next_expiration_time();
+    if (n > 0)
     {
-       process_post(ui_process, test_events[event].event, test_events[event].data);
-       event++;
-       if (test_events[event].delta == -1)
-           return -1;
-       timer_set(&trigger, test_events[event].delta * CLOCK_SECOND);
+      int p = n - clock_time();
+      printf("expre in %d\n", p);
+      if (p > 0)
+      nanosleep(p);
+    }
+    else
+    {
+      nanosleep(1000);
     }
     etimer_request_poll();
-    nanosleep(1);
   }
 }
 
@@ -221,10 +273,10 @@ int main()
 {
   memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
 
+#if 1
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
   window_init();
-
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
 /*
@@ -254,7 +306,7 @@ int main()
 
   test_window_stopwatch(&stopwatch_process, NULL);
 
-  test_window(&menu_process, 1);
+  //test_window(&menu_process, 1);
 
   for (int i = 1; i <= 6; ++i)
     {
@@ -267,7 +319,9 @@ int main()
     }
 
   window_notify("Facebook", "From: Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
-  window_close();
+  //window_close();
 
   printf("test finished!\n");
+#endif
+  SimluateRun();
 }

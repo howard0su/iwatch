@@ -11,9 +11,9 @@ ECHO	= echo
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
 WARNING_FLAGS = -W -Wall
-CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
+CFLAGS0  = -g -std=c99 -O2 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections
-LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS)
+LDFLAGS = -g -std=c99 -O2 $(WARNING_FLAGS)
 
 
 CFLAGS = $(CFLAGS0)
@@ -86,6 +86,7 @@ WATCH = \
     watch/controls.c \
     watch/digit-watch.c \
     watch/stopwatch.c \
+    watch/names.c \
     watch/menu.c \
     watch/cordic.c \
     watch/calendar.c \
