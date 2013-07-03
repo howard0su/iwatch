@@ -13,6 +13,7 @@ extern void bluetooth_shutdown();
 extern void bluetooth_discoverable(uint8_t onoff);
 extern uint8_t bluetooth_paired();
 extern bd_addr_t* bluetooth_paired_addr();
+extern const char* bluetooth_address();
 
 PROCESS_NAME(bluetooth_process);
 

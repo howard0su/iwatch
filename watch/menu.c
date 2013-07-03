@@ -17,6 +17,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "rtc.h"
+#include "bluetooth.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -147,7 +148,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       strcpy(buf, "1.0.0.1");
       break;
       case DATA_BTADDR:
-      strcpy(buf, "12:34:56:78:FE:FF");
+      strcpy(buf, bluetooth_address());
       break;
       default:
       strcpy(buf, "TODO");

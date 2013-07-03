@@ -53,6 +53,8 @@ static uint16_t         att_response_handle = 0;
 static uint16_t         att_response_size   = 0;
 static uint8_t          att_response_buffer[28];
 
+
+
 static void att_try_respond(void){
   if (!att_response_size) return;
   if (!att_response_handle) return;
@@ -91,6 +93,7 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
 }
 
 static uint16_t handle_audio = 0;
+static bd_addr_t host_addr;
 
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -219,8 +222,8 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
-        bt_flip_addr(event_addr, &packet[6]);
-        log_info("BD ADDR: %s\n", bd_addr_to_str(event_addr));
+        bt_flip_addr(host_addr, &packet[6]);
+        log_info("BD ADDR: %s\n", bd_addr_to_str(host_addr));
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
@@ -383,4 +386,7 @@ bd_addr_t* bluetooth_paired_addr()
   return (bd_addr_t*)&config_data.bd_addr;
 }
 
-
+const char* bluetooth_address()
+{
+  return bd_addr_to_str(host_addr);
+}
