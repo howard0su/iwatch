@@ -56,7 +56,8 @@ static const struct MenuItem AboutMenu[] =
   {NO_DATA, "BT Address", NULL},
   {DATA_BTADDR, "", NULL},
   {NO_DATA, "Legal", NULL},
-  {DATA_LEGAL, "", NULL}
+  {DATA_LEGAL, "", NULL},
+  {-1, NULL, NULL}
 };
 
 static const struct MenuItem MainMenu[] =
