@@ -133,6 +133,11 @@ static void OnDraw(tContext* pContext)
   }
 }
 
+/*
+ battery is between 3.7 to 4.2
+  4.2 => 2.1 / 2.5 * 255 = 214
+  3.7 => 1.86 / 2.5 * 255 = 189
+*/
 static void check_battery()
 {
   // update battery status
@@ -143,11 +148,13 @@ static void check_battery()
   {
     status &= ~BATTERY_STATUS;
     // not charging
-    if (level < 50)
+    if (level < 190)
+    {
       status |= BATTERY_EMPTY;
-    else if (level < 120)
-      status |= BATTERY_LESS;
+    }
     else if (level < 200)
+      status |= BATTERY_LESS;
+    else if (level < 212)
       status |= BATTERY_MORE;
     else
       status |= BATTERY_FULL;

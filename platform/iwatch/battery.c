@@ -91,7 +91,7 @@ ISR(ADC12, _ADC12_ISR)
   case  2: break;                           // Vector  2:  ADC overflow
   case  4: break;                           // Vector  4:  ADC timing overflow
   case  6:                                  // Vector  6:  ADC12IFG0
-    level = (uint8_t)(ADC12MEM0 >> 3);
+    level = (uint8_t)(ADC12MEM0 >> 4);
     break;
   case  8: break;                           // Vector  8:  ADC12IFG1
   case 10: break;                           // Vector 10:  ADC12IFG2
