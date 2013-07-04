@@ -158,6 +158,10 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define AT_CMER  "AT+CMER=3,0,0,1\r"
 #define AT_CLIP  "AT+CLIP=1\r"
 #define AT_BVRA  "AT+BVRA=1\r"
+#define AT_BTRH1 "AT+BTRH=1\r"
+#define AT_BTRH2 "AT+BTRH=2\r"
+#define AT_CHUP  "AT+CHUP\r"
+#define AT_ATA   "ATA\r"
 
 #define R_NONE 0
 #define R_OK   0
@@ -166,6 +170,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define R_CIEV 3
 #define R_RING 4
 #define R_CLIP 5
+#define R_BTRH 6
 #define R_UNKNOWN 0xFE
 #define R_ERROR 0xFF
 #define R_CONTINUE 0xFC
@@ -198,6 +203,10 @@ static char* parse_return(char* result, int* code)
   else if (strncmp(result, "+CLIP", 5) == 0)
   {
     *code = R_CLIP;
+  }
+  else if (strncmp(result, "+BTRH", 5) == 0)
+  {
+    *code = R_BTRH;
   }
   else if (strncmp(result, "OK", 2) == 0)
   {
@@ -253,7 +262,8 @@ static void handle_CIEV(char *buf)
   if (sscanf(buf, "\r\n+CIEV: %d,%d", &ind, &value) == 2)
   {
     log_info("CIEV: ind:%d index:%d value:%d\n", ind, cind_index[ind], value);
-    cind_state[ind] = value;
+    cind_state[cind_index[ind]] = value;
+    process_post(ui_process, EVENT_RING, (void*)(cind_index[ind] << 8 | value));
   }
 }
 
@@ -268,7 +278,7 @@ static void handle_CLIP(char* buf)
   if (sscanf("\r\n+CLIP: \"%s\"", phone))
   {
     log_info("CLIP: %s\n", phone);
-    process_post(ui_process, EVENT_RING_NUM, NULL);
+    process_post_synch(ui_process, EVENT_RING_NUM, phone);
   }
 }
 
@@ -577,9 +587,36 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
   }
 }
 
-void hfp_enable_voicerecog()
+uint8_t hfp_enable_voicerecog()
 {
+  if (hfp_response_size)
+    return -1;
+
   hfp_response_buffer = AT_BVRA;
   hfp_response_size = sizeof(AT_BVRA);
   hfp_try_respond(rfcomm_channel_id);
+
+  return 0;
 }
+
+uint8_t hfp_accept_call(uint8_t accept)
+{
+  if (hfp_response_size)
+    return -1;
+
+  if (accept)
+  {
+    hfp_response_buffer = AT_ATA;
+    hfp_response_size = sizeof(AT_ATA);
+    hfp_try_respond(rfcomm_channel_id);    
+  }
+  else
+  {
+    hfp_response_buffer = AT_CHUP;
+    hfp_response_size = sizeof(AT_CHUP);
+    hfp_try_respond(rfcomm_channel_id);
+  }
+
+  return 0;
+}
+

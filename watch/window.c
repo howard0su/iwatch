@@ -134,6 +134,17 @@ void window_handle_event(uint8_t ev, void* data)
       status_process(ev, (uint16_t)data, NULL);
       ui_window(ev, (uint16_t)data, NULL);
     }
+    else if (ev == EVENT_RING)
+    {
+      if ((uint16_t)data == 0x0201) // callsetup = 1
+      {
+        window_open(&phone_process, NULL);
+      }
+      else
+      {
+        ui_window(ev, (uint16_t)data, NULL);
+      }
+    }
     else if (ev == EVENT_NOTIFY_RESULT)
     {
       ui_window(ev, (uint16_t)data, NULL);

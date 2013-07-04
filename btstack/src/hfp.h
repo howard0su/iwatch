@@ -4,7 +4,8 @@
 extern void hfp_init();
 extern void hfp_open(const bd_addr_t *remote_addr, uint8_t port);
 
-extern void hfp_enable_voicerecog();
+extern uint8_t hfp_enable_voicerecog();
+extern uint8_t hfp_accept_call(uint8_t);
 
 #define HFP_T_CIEV 1
 #define HFP_T_RING 2
