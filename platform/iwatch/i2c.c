@@ -99,10 +99,14 @@ int I2C_write(unsigned char reg, unsigned char data)
   return state != STATE_DONE;
 }
 
-void  I2C_addr(unsigned char address)
+void  I2C_addr(unsigned char address, uint8_t msb)
 {
   UCB1CTL1 |= UCSWRST;
   UCB1I2CSA = address;
+  if (msb)
+    UCB1CTL0 |= UCMSB;
+  else
+    UCB1CTL0 &= ~UCMSB;
   UCB1CTL1 &= ~UCSWRST;
   __delay_cycles(100);
 }

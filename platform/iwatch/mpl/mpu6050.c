@@ -101,7 +101,7 @@ static inline unsigned short inv_orientation_matrix_to_scalar(
 void mpu6050_init()
 {
   // initialize I2C bus
-  I2C_addr(MPU6050_ADDR);
+  I2C_addr(MPU6050_ADDR, 0);
 
   int result;
   unsigned char accel_fsr;
@@ -258,7 +258,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       * registered). The more parameter is non-zero if there are
       * leftover packets in the FIFO.
       */
-      I2C_addr(MPU6050_ADDR);
+      I2C_addr(MPU6050_ADDR, 0);
       uint8_t c = 0;
       do
       {
@@ -267,15 +267,9 @@ PROCESS_THREAD(mpu6050_process, ev, data)
         unsigned long sensor_timestamp;
         long quat[4];
 
-//        mpu_read_fifo(gyro, accel, &sensor_timestamp, &sensors,
-//                      &more);
-        c++;
         dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
                       &more);
-        //printf("read one data\n");
-//        PROCESS_YIELD();
       }while(more);
-      printf("read %d data\n", c);
       I2C_done();
     }
 #if 0

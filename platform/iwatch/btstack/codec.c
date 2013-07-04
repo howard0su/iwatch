@@ -144,7 +144,7 @@ void codec_init()
   AUDDIR |= AUDBIT;
   AUDOUT &= ~AUDBIT; // output direction, value = H
 
-  I2C_addr(CODEC_ADDRESS);
+  I2C_addr(CODEC_ADDRESS, 1);
   //reset codec ?
   codec_write(REG_RESET, 0);
   __delay_cycles(5000);
