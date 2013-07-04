@@ -11,7 +11,7 @@
 #define OBEX_RESPCODE_OK	200
 
 
-typedef struct connection_obex
+typedef struct _connection_obex
 {
 	uint8_t opcode;
 	uint16_t length;
@@ -19,13 +19,13 @@ typedef struct connection_obex
 	uint8_t flags;
 	uint16_t max_packet_length;
 	uint8_t data[0];
-};
+}connection_obex;
 
-typedef struct operation_obex
+typedef struct _operation_obex
 {
 	uint8_t opcode;
 	uint16_t length;
 	uint8_t data[0];
-};
+}operation_obex;
 
 #endif
