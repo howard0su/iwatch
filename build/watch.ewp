@@ -2371,6 +2371,9 @@
       <name>$PROJ_DIR$\..\platform\iwatch\flash.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\spiflash.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\i2c.c</name>
     </file>
     <file>
