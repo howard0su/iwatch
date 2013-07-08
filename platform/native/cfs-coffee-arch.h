@@ -44,16 +44,16 @@
 #include "dev/xmem.h"
  
 /* Coffee configuration parameters. */
-#define COFFEE_SECTOR_SIZE		(4*1024UL)
+#define COFFEE_SECTOR_SIZE		(64*1024UL)
 #define COFFEE_PAGE_SIZE		(256UL)
 #define COFFEE_START			0
-#define COFFEE_SIZE				256 * COFFEE_SECTOR_SIZE
+#define COFFEE_SIZE				16 * COFFEE_SECTOR_SIZE
 #define COFFEE_NAME_LENGTH		16
 #define COFFEE_MAX_OPEN_FILES	6
 #define COFFEE_FD_SET_SIZE		8
 #define COFFEE_LOG_TABLE_LIMIT	256
-#define COFFEE_DYN_SIZE			32*1024UL
-#define COFFEE_LOG_SIZE			8*1024UL
+#define COFFEE_DYN_SIZE			4*1024UL
+#define COFFEE_LOG_SIZE			1024UL
 #define COFFEE_MICRO_LOGS		1
 
 /* Flash operations. */
@@ -67,11 +67,7 @@
 		xmem_erase(COFFEE_SECTOR_SIZE,   COFFEE_START   +   (sector)   *   COFFEE_SECTOR_SIZE)
 
 /* Coffee types. */
-#if COFFEE_PAGES <= 127
-typedef int8_t coffee_page_t;
-#elif COFFEE_PAGES <= 0x7FFF
 typedef int16_t coffee_page_t;
-#endif
-typedef int32_t coffee_offset_t;
+//typedef int32_t coffee_offset_t;
 
 #endif /* !COFFEE_ARCH_H */
