@@ -17,7 +17,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "rtc.h"
-#include "bluetooth.h"
+#include "btstack/bluetooth.h"
 #include <stdio.h>
 #include <string.h>
 

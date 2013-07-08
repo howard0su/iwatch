@@ -84,6 +84,7 @@ uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
+uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 
 void flash_setup(void) {}
 void flash_done(void) {}
@@ -93,7 +94,10 @@ void flash_clear(uint16_t *addr) {}
 void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size) {}
 void __disable_interrupt() {}
 
-
+const char* bluetooth_address()
+{
+  return "01:23:45:67:89:ab";
+}
 
 unsigned long mpu_getsteptime()
 {return 1257;}

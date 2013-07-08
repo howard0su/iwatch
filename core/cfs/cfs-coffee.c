@@ -46,7 +46,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -714,7 +714,7 @@ get_record_index(coffee_page_t log_page, uint16_t search_records,
   match_index = -1;
 
   {
-  uint16_t indices[batch_size];
+  uint16_t indices[COFFEE_LOG_TABLE_LIMIT];
 
   while(processed < search_records && match_index < 0) {
     if(batch_size + processed > search_records) {
@@ -826,7 +826,7 @@ merge_log(coffee_page_t file_page, int extend)
 
   offset = 0;
   do {
-    char buf[hdr.log_record_size == 0 ? COFFEE_PAGE_SIZE : hdr.log_record_size];
+    char buf[COFFEE_PAGE_SIZE];
     n = cfs_read(fd, buf, sizeof(buf));
     if(n < 0) {
       remove_by_page(new_file->page, !REMOVE_LOG, !CLOSE_FDS, ALLOW_GC);
@@ -881,7 +881,7 @@ find_next_record(struct file *file, coffee_page_t log_page,
 			 COFFEE_LOG_TABLE_LIMIT : log_records;
   {
     /* The next log record is unknown at this point; search for it. */
-    uint16_t indices[preferred_batch_size];
+    uint16_t indices[COFFEE_LOG_TABLE_LIMIT];
     uint16_t processed;
     uint16_t batch_size;
 
@@ -946,7 +946,7 @@ write_log_page(struct file *file, struct log_param *lp)
   }
 
   {
-    char copy_buf[log_record_size];
+    char copy_buf[COFFEE_PAGE_SIZE];
 
     lp_out.offset = offset = region * log_record_size;
     lp_out.buf = copy_buf;

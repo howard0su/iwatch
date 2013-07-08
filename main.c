@@ -8,9 +8,98 @@
 #include "sys/timer.h"
 #include "sys/etimer.h"
 
+#include "cfs/cfs.h"
+#include "cfs/cfs-coffee.h"
+
 static tContext context;
 extern const tRectangle status_clip;
 void window_handle_event(uint8_t ev, void* data);
+
+#if 1
+void test_cfs()
+{
+   /*        */
+  /* step 1 */
+  /*        */
+  char message[32];
+  char buf[100];
+  strcpy(message,"#1.hello world.");
+  strcpy(buf,message);
+  printf("step 1: %s\n", buf );
+  /* End Step 1. We will add more code below this comment later */    
+  /*        */
+  /* step 2 */
+  /*        */
+  /* writing to cfs */
+  char *filename = "msg_file";
+  int fd_write, fd_read;
+  int n;
+  fd_write = cfs_open(filename, CFS_WRITE);
+  if(fd_write != -1) {
+    n = cfs_write(fd_write, message, sizeof(message));
+    cfs_close(fd_write);
+    printf("step 2: successfully written to cfs. wrote %i bytes\n", n);
+  } else {
+    printf("ERROR: could not write to memory in step 2.\n");
+  } 
+  /*        */
+  /* step 3 */
+  /*        */
+  /* reading from cfs */
+  strcpy(buf,"empty string");
+  fd_read = cfs_open(filename, CFS_READ);
+  if(fd_read!=-1) {
+    cfs_read(fd_read, buf, sizeof(message));
+    printf("step 3: %s\n", buf);
+    cfs_close(fd_read);
+  } else {
+    printf("ERROR: could not read from memory in step 3.\n");
+  }
+  /*        */
+  /* step 4 */
+  /*        */
+  /* adding more data to cfs */
+  strcpy(buf,"empty string");
+  strcpy(message,"#2.contiki is amazing!");
+  fd_write = cfs_open(filename, CFS_WRITE | CFS_APPEND);
+  if(fd_write != -1) {
+    n = cfs_write(fd_write, message, sizeof(message));
+    cfs_close(fd_write);
+    printf("step 4: successfully appended data to cfs. wrote %i bytes  \n",n);
+  } else {
+    printf("ERROR: could not write to memory in step 4.\n");
+  }
+  /*        */
+  /* step 5 */
+  /*        */
+  /* seeking specific data from cfs */
+  strcpy(buf,"empty string");
+  fd_read = cfs_open(filename, CFS_READ);
+  if(fd_read != -1) {
+    cfs_read(fd_read, buf, sizeof(message));
+    printf("step 5: #1 - %s\n", buf);
+    cfs_seek(fd_read, sizeof(message), CFS_SEEK_SET);
+    cfs_read(fd_read, buf, sizeof(message));
+    printf("step 5: #2 - %s\n", buf);
+    cfs_close(fd_read);
+  } else {
+    printf("ERROR: could not read from memory in step 5.\n");
+  }
+  /*        */
+  /* step 6 */
+  /*        */
+  /* remove the file from cfs */
+  cfs_remove(filename);
+  fd_read = cfs_open(filename, CFS_READ);
+  if(fd_read == -1) {
+    printf("Successfully removed file\n");
+  } else {
+    printf("ERROR: could read from memory in step 6.\n");
+  }
+
+}
+#endif
+
 
 static void test_window(windowproc window, void* data)
 {
@@ -241,7 +330,7 @@ void SimluateRun()
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
-  window_init();
+  window_init();  
 
   autostart_start(autostart_processes);
 
@@ -274,6 +363,10 @@ int main()
   memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
 
 #if 1
+
+  cfs_coffee_format();
+  test_cfs();
+
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
   window_init();
