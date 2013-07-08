@@ -621,8 +621,12 @@ splx_(int sr)
 #endif
 }
 
+__no_init uint8_t SysRstIv;
 #ifdef __IAR_SYSTEMS_ICC__
 int __low_level_init(void)
+#else
+int _system_pre_init(void)
+#endif
 {
   /* turn off watchdog so that C-init will run */
   WDTCTL = WDTPW + WDTHOLD;
@@ -632,10 +636,11 @@ int __low_level_init(void)
    *  1 - Perform data segment initialization.
    *  0 - Skip data segment initialization.
    */
+  SysRstIv = SYSRSTIV;
 
   return 1;
 }
-#endif
+
 /*---------------------------------------------------------------------------*/
 void
 msp430_sync_dco(void)
