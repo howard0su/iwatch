@@ -67,7 +67,7 @@
 static const uint16_t config[] =
 {
   0, 0x17d, 0x15, 0xfd, //Power Management
-  0x018, 0x0, 0x149, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0x0, 0x108, 0x1ff, // Audio Control
+  0x090, 0x0, 0x1E0, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0x0, 0x108, 0x1ff, // Audio Control
   0xFFFF, 0xFFFF, // skip 2
   0x12c, 0x2c, 0x2c, 0x2c, 0x2c, //Equalizer
   0xFFFF, // skip 1
@@ -76,7 +76,8 @@ static const uint16_t config[] =
   0x0, 0x0, 0x0, 0x0, //Notch Filter
   0xffff, // skip 1
   0x38, 0xb, 0x32, 0x0, //ALC Control
-  0x8, 0xc, 0x93, 0xe9, //PLL Control
+  0x6, 0x9, 0x6E, 0x12F, //PLL Control for 16mhz
+//  0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz
   0x0, // BYP Control
   0xFFFF, 0xFFFF, 0xFFFF, // skip 3
   0x3, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xb9, 0x40, 0x1, //Input Output Mixer
@@ -89,10 +90,10 @@ static int codec_write(uint8_t reg, uint16_t data)
 
 static uint16_t codec_read(uint8_t reg)
 {
-  uint16_t data = 0;
-  I2C_readbytes(reg << 1, (unsigned char*)&data, 2);
-
-  return data;
+  uint8_t data[2];
+  I2C_readbytes(reg << 1, data, 2);
+  
+  return (data[0] << 8) | data[1];
 }
 
 #define AUDOUT P10OUT
@@ -144,6 +145,9 @@ void codec_init()
   AUDDIR |= AUDBIT;
   AUDOUT &= ~AUDBIT; // output direction, value = H
 
+  P11DIR |= BIT2;
+  P11SEL |= BIT2;     // output SMCLK
+
   I2C_addr(CODEC_ADDRESS, 1);
   //reset codec ?
   codec_write(REG_RESET, 0);
@@ -154,9 +158,17 @@ void codec_init()
   {
     if (config[i] == 0xffff)
       continue;
-
-    //log_info("write to %x with %x\n", i, config[i]);
-
+#if 0
+    printf("write to %x with 0x%x ", i, config[i]);
+    uint32_t d = config[i];
+    for(int i = 0; i <= 8; i++)
+    {
+      if (d & 0x01)
+        printf("BIT%d ", i);
+      d = d >> 1;
+    }
+    printf("\n");
+#endif
     if (codec_write(i, config[i]))
     {
       I2C_done();
@@ -170,5 +182,19 @@ void codec_init()
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
   printf("initialize codec sucess\n");
 
+#if 0
+  for(int i = 1; i <= 0x38; i++)
+  {
+    uint32_t d = codec_read(i);
+    printf("Codec reg: %x = 0x%lx ", i, d);
+    for(int i = 0; i <= 8; i++)
+    {
+      if (d & 0x01)
+        printf("BIT%d ", i);
+      d = d >> 1;
+    }
+    printf("\n");
+  }
+#endif
   I2C_done();
 }
