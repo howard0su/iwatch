@@ -2031,7 +2031,13 @@
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\names.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\notification.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\phone.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
@@ -2059,9 +2065,6 @@
       <name>$PROJ_DIR$\..\watch\today.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\phone.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\watch\upgrade.c</name>
     </file>
     <file>
@@ -2069,9 +2072,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\watch\names.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\worldclock.c</name>
@@ -2193,6 +2193,18 @@
   </group>
   <group>
     <name>core</name>
+    <group>
+      <name>cfs</name>
+      <file>
+        <name>$PROJ_DIR$\..\core\cfs\cfs-coffee.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\core\cfs\cfs-coffee.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\core\cfs\cfs.h</name>
+      </file>
+    </group>
     <group>
       <name>dev</name>
     </group>
@@ -2371,9 +2383,6 @@
       <name>$PROJ_DIR$\..\platform\iwatch\flash.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\spiflash.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\i2c.c</name>
     </file>
     <file>
@@ -2397,6 +2406,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtimer-arch.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\spiflash.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\uart1-putchar.c</name>

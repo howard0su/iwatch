@@ -60,7 +60,12 @@ xmem_pwrite(const void *buf, int size, unsigned long offset)
   
   //printf("xmem_write(offset 0x%02x, buf %p, size %l);\n", offset, buf, size);
   
-  memcpy(&xmem[offset], buf, size);
+  //memcpy(&xmem[offset], buf, size);
+  for(int i = 0; i < size; i++)
+  {
+    xmem[offset + i] = ~((char*)buf)[i];
+  }
+
   return size;
 }
 /*---------------------------------------------------------------------------*/
@@ -68,7 +73,11 @@ int
 xmem_pread(void *buf, int size, unsigned long offset)
 {
   //printf("xmem_read(offset 0x%02x, buf %p, size %d);\n", offset, buf, size);
-  memcpy(buf, &xmem[offset], size);
+  //memcpy(buf, &xmem[offset], size);
+  for(int i = 0; i < size; i++)
+  {
+    ((char*)buf)[i] = ~xmem[offset + i];
+  }
   return size;
 }
 /*---------------------------------------------------------------------------*/
@@ -76,7 +85,7 @@ int
 xmem_erase(long nbytes, unsigned long offset)
 {
   //printf("xmem_erase(offset 0x%02x, size %d);\n", offset, nbytes);
-  memset(&xmem[offset], 0, nbytes);
+  memset(&xmem[offset], 0xff, nbytes);
   return nbytes;
 }
 /*---------------------------------------------------------------------------*/

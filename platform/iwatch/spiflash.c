@@ -63,27 +63,7 @@ void SPI_FLASH_Init(void)
 
   UCA1CTL1 &= ~UCSWRST;
 
-  SPI_Flash_Reset();
-
-  // test spiflash
-  #if 0
-
-  char buf[16];
-  int i;
-  for(i = 0; i < 16; i++)
-    buf[i] = i;
-
-  SPI_FLASH_SectorErase(0);
-  SPI_FLASH_BufferWrite(buf, 0, 16);
-  for(i = 0; i < 16; i++);
-    buf[i] = 64;
-  SPI_FLASH_BufferRead(buf, 0, 16);
-  for(i = 0; i < 16; i++)
-  {
-    printf("%d ", buf[i]);
-  }
-  printf("\n");
-  #endif
+  //SPI_Flash_Reset();
 }
 
 inline void SPI_FLASH_CS_LOW()
@@ -174,7 +154,7 @@ void SPI_FLASH_PageWrite(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
   while (NumByteToWrite--)
   {
     /*发送数据*/
-    SPI_FLASH_SendByte(*pBuffer);
+    SPI_FLASH_SendByte(~(*pBuffer));
     /* 指针移到下一个写入数据 */
     pBuffer++;
   }
@@ -293,7 +273,7 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
   while (NumByteToRead--) /* 循环读取数据*/
   {
     /*读取一个字节数据*/
-    *pBuffer = SPI_FLASH_SendByte(Dummy_Byte);
+    *pBuffer = ~SPI_FLASH_SendByte(Dummy_Byte);
     /*数据指针加1*/
     pBuffer++;
   }
@@ -348,37 +328,6 @@ u32 SPI_FLASH_ReadDeviceID(void)
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
   return Temp;
-}
-/******************************************************************************************
-*函数名：SPI_FLASH_StartReadSequence()
-* 参数：u32 ReadAddr 24位读地址
-* 返回值：void
-* 功能：SPIFLASH读开始函数，外部调用
-*********************************************************************************************/
-void SPI_FLASH_StartReadSequence(u32 ReadAddr)
-{
-   /* 使能片选 */
-  SPI_FLASH_CS_LOW();
-  /* 发送读数据指令*/
-  SPI_FLASH_SendByte(W25X_ReadData);
-  /*发送24位数据地址*/
-  /* 发送高8位数据地址 */
-  SPI_FLASH_SendByte((ReadAddr & 0xFF0000) >> 16);
-  /*发送中8位数据地址*/
-  SPI_FLASH_SendByte((ReadAddr& 0xFF00) >> 8);
-  /*发送低8位数据地址*/
-  SPI_FLASH_SendByte(ReadAddr & 0xFF);
-}
-
-/******************************************************************************************
-*函数名：SPI_FLASH_ReadByte()
-* 参数：void
-* 返回值：u8 8位数据
-* 功能：SPIFLASH读一个字节函数，外部调用
-*********************************************************************************************/
-u8 SPI_FLASH_ReadByte(void)
-{
-  return (SPI_FLASH_SendByte(Dummy_Byte));
 }
 
 /******************************************************************************************

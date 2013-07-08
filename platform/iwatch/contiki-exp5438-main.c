@@ -44,10 +44,13 @@
 #include "sys/autostart.h"
 #include "sys/profile.h"
 #include "sys/ctimer.h"
+#include "cfs/cfs.h"
+#include "cfs/cfs-coffee.h"
 
 #include "node-id.h"
 #include "power.h"
 #include "battery.h"
+#include "spiflash.h"
 #include "btstack/bluetooth.h"
 #include "backlight.h"
 #include "window.h"
@@ -105,11 +108,15 @@ main(int argc, char **argv)
   rtc_init();
   I2C_Init();
 
+  SPI_FLASH_Init();
+  //cfs_coffee_format();
+  //test_cfs();
   //codec_init();
   //ant_init();
-  //if (bluetooth_paired())
-  {
     bluetooth_init();
+
+  if (!bluetooth_paired())
+  {
     bluetooth_discoverable(1);
   }
 

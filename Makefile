@@ -33,6 +33,7 @@ ALL_INCLUDEDIRS = \
 #######################################
 # source files
 CORE   = \
+	core/cfs/cfs-coffee.c \
     core/sys/autostart.c \
     core/sys/ctimer.c \
     core/sys/etimer.c \
@@ -47,6 +48,7 @@ CORE   = \
 PLATFORM = \
 	platform/native/clock.c \
 	platform/native/notimpl.c \
+	platform/native/dev/xmem.c \
 	platform/native/Template_Driver.c
 
 GRLIB0 = \
@@ -133,15 +135,12 @@ $(OBJDIR)/%.d: %.c
 
 # create firmware image from common objects and example source file
 
-all: $(DEPFILES) $(OBJS) iwatch.exe
+all: $(DEPFILES) $(OBJS) iwatch
 
 # if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
-iwatch.exe: ${OBJS}
+iwatch: ${OBJS}
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
-
-size: all
-	msp430-size *.elf
 
 flash: iwatch.hex
 	~/bin/mspdebug tilib 'prog iwatch.elf' run
