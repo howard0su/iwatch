@@ -5,15 +5,17 @@
 #define SPI_FLASH_PerWritePageSize      256                          //每页大小
 
 /*W25X指令定义*/
-#define W25X_WriteEnable		      0x06                            //写使能指令
+#define W25X_WriteStatusReg		      0x01                            //写状态寄存器
+#define W25X_PageProgram		      0x02                            //页写入指令
+#define W25X_ReadData			      0x03                            //读数据指令
 #define W25X_WriteDisable		      0x04                            //写失能指令
 #define W25X_ReadStatusReg		      0x05                            //读状态寄存器
-#define W25X_WriteStatusReg		      0x01                            //写状态寄存器
-#define W25X_ReadData			      0x03                            //读数据指令
+#define W25X_WriteEnable		      0x06                            //写使能指令
+
 #define W25X_FastReadData		      0x0B                            //快速读模式指令
 #define W25X_FastReadDual		      0x3B                            //快读双输出指令    
-#define W25X_PageProgram		      0x02                            //页写入指令
-#define W25X_BlockErase			      0xD8                            //块擦除指令
+#define W25X_BlockErase64		      0xD8                            //64KB块擦除指令
+#define W25X_BlockErase32		      0x52                            //32KB块擦除指令
 #define W25X_SectorErase		      0x20                            //扇区擦除指令
 #define W25X_ChipErase			      0xC7                            //片擦除指令
 #define W25X_PowerDown			      0xB9                            //进入掉电模式指令
@@ -22,10 +24,11 @@
 #define W25X_ManufactDeviceID   	  0x90                            //读取制造ID
 #define W25X_JedecDeviceID		      0x9F 
 #define W25X_EnableReset			  0x66
-#define W25X_Reset			  0x99
-
+#define W25X_Reset			  		  0x99
+#define W25X_ReadStatusReg2		      0x35
 
 #define WIP_Flag                      0x01                            //写入忙标志位
+#define WEL_Flag					  0x02                            //Write Enable
 #define Dummy_Byte                    0xFF                            //空数据
 
 /******************************************************************************************
@@ -41,7 +44,7 @@ void SPI_FLASH_Init(void);
 * 返回值：void
 * 功能：SPIFLASH扇区擦除函数，外部调用
 *********************************************************************************************/
-void SPI_FLASH_SectorErase(uint32_t SectorAddr);
+void SPI_FLASH_SectorErase(uint32_t SectorAddr, uint32_t size);
 /******************************************************************************************
 *函数名：SPI_FLASH_BulkErase()
 * 参数：void

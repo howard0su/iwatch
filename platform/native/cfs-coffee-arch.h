@@ -44,7 +44,7 @@
 #include "dev/xmem.h"
  
 /* Coffee configuration parameters. */
-#define COFFEE_SECTOR_SIZE		(64*1024UL)
+#define COFFEE_SECTOR_SIZE		(32*1024UL)
 #define COFFEE_PAGE_SIZE		(256UL)
 #define COFFEE_START			0
 #define COFFEE_SIZE				16 * COFFEE_SECTOR_SIZE

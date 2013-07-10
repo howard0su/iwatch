@@ -47,14 +47,14 @@
 #define COFFEE_SECTOR_SIZE		(4*1024UL)
 #define COFFEE_PAGE_SIZE		(256UL)
 #define COFFEE_START			0
-#define COFFEE_SIZE				256 * COFFEE_SECTOR_SIZE
+#define COFFEE_SIZE				16 * COFFEE_SECTOR_SIZE
 #define COFFEE_NAME_LENGTH		16
 #define COFFEE_MAX_OPEN_FILES	6
 #define COFFEE_FD_SET_SIZE		8
 #define COFFEE_LOG_TABLE_LIMIT	256
-#define COFFEE_DYN_SIZE			32*1024UL
-#define COFFEE_LOG_SIZE			8*1024UL
-#define COFFEE_MICRO_LOGS		0
+#define COFFEE_DYN_SIZE			4*1024UL
+#define COFFEE_LOG_SIZE			1024UL
+#define COFFEE_MICRO_LOGS		1
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
@@ -64,8 +64,12 @@
   		SPI_FLASH_BufferRead((char *)(buf), COFFEE_START + (offset), (size))
 
 #define COFFEE_ERASE(sector)					\
-		SPI_FLASH_SectorErase(sector)
+		SPI_FLASH_SectorErase(sector * COFFEE_SECTOR_SIZE, COFFEE_SECTOR_SIZE)
 
+#if 0
+#define COFFEE_ERASEALL() \
+		SPI_FLASH_BulkErase()
+#endif
 /* Coffee types. */
 typedef int16_t coffee_page_t;
 typedef int32_t coffee_offset_t;

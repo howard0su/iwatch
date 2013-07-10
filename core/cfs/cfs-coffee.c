@@ -1343,11 +1343,15 @@ cfs_coffee_format(void)
 
   *next_free = 0;
 
+#ifdef COFFEE_ERASEALL
+  COFFEE_ERASEALL();
+  PRINTF(" ALL ");
+#else
   for(i = 0; i < COFFEE_SECTOR_COUNT; i++) {
     COFFEE_ERASE(i);
     PRINTF(".");
   }
-
+#endif
   /* Formatting invalidates the file information. */
   memset(&protected_mem, 0, sizeof(protected_mem));
 

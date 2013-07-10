@@ -20,6 +20,14 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
+#define DEBUG 1
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*
 * Exchanges data on SPI connection
 * - Busy waits until entire shift is complete
@@ -34,36 +42,19 @@ typedef uint32_t u32;
 *********************************************************************************************/
 static uint8_t SPI_FLASH_SendByte( uint8_t data )
 {
+  PRINTF("%02x ", data);
   UCA1TXBUF = data;
   while(( UCA1IFG & UCRXIFG ) == 0x00 ); // Wait for Rx completion (implies Tx is also complete)
   return( UCA1RXBUF );
 }
 
-void SPI_FLASH_Init(void)
+static inline void SPI_FLASH_SendCommandAddress(uint8_t opcode, uint32_t address)
 {
-  // init SPI
-  UCA1CTL1 = UCSWRST;
+  uint32_t data = address << 8 | opcode;
+  uint8_t *pData = (uint8_t*)&data;
 
-  UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPH + UCCKPL; // master, 3-pin SPI mode, LSB
-  UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCA1BR0 = 80; // 16MHZ / 8 = 2Mhz
-  UCA1BR1 = 0;
-  UCA1MCTL = 0;
-
-  //Configure ports.
-  CLKDIR |= CLKPIN;
-  CLKSEL |= CLKPIN;
-  CLKOUT &= ~CLKPIN;
-
-  SPIDIR |= SIPIN | CSPIN;
-  SPIDIR &= ~SOPIN; // SO is input
-  SPISEL |= SIPIN | SOPIN;
-  SPIOUT &= ~SIPIN;
-  SPIOUT |= CSPIN; // pull CS high to disable chip
-
-  UCA1CTL1 &= ~UCSWRST;
-
-  //SPI_Flash_Reset();
+  for(int i = 3; i>=0 ; i--) 
+    SPI_FLASH_SendByte(pData[i]);
 }
 
 inline void SPI_FLASH_CS_LOW()
@@ -83,22 +74,35 @@ inline void SPI_FLASH_CS_HIGH()
 * 返回值：void
 * 功能：SPIFLASH扇区擦除函数，外部调用
 *********************************************************************************************/
-void SPI_FLASH_SectorErase(u32 SectorAddr)
+void SPI_FLASH_SectorErase(u32 SectorAddr, u32 size)
 {
+  uint8_t opcode;
+  if (size == 4 * 1024UL)
+  {
+    opcode = W25X_SectorErase;
+  }
+  else if (size == 32 * 1024UL)
+  {
+    opcode = W25X_BlockErase32;
+  }
+  else if (size == 64 * 1024UL)
+  {
+    opcode = W25X_BlockErase64;
+  }
+  else
+  {
+    PRINTF("Error in erase size: %lx\n", size);
+    return;
+  }
+
+  PRINTF("Erase offset: %lx\n", SectorAddr);
+ 
   /*发送写数据使能指令*/
   SPI_FLASH_WriteEnable();
-  /*等待数据写完，保证写操作是空闲的*/
-  SPI_FLASH_WaitForWriteEnd();
   /* 使能片选 */
   SPI_FLASH_CS_LOW();
   /*发送扇区擦除指令*/
-  SPI_FLASH_SendByte(W25X_SectorErase);
-  /*发送块地址高8位*/
-  SPI_FLASH_SendByte((SectorAddr & 0xFF0000) >> 16);
-  /*发送块地址中8位*/
-  SPI_FLASH_SendByte((SectorAddr & 0xFF00) >> 8);
-  /*发送块地址低8位*/
-  SPI_FLASH_SendByte(SectorAddr & 0xFF);
+  SPI_FLASH_SendCommandAddress(opcode, SectorAddr);
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
   /* 等待写完毕*/
@@ -133,18 +137,16 @@ void SPI_FLASH_BulkErase(void)
 *********************************************************************************************/
 void SPI_FLASH_PageWrite(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
 {
+  PRINTF("Write to Disk: offset:%lx size:%d\n", WriteAddr, NumByteToWrite);
+  hexdump(pBuffer, NumByteToWrite);
+
    /*使能写入*/
   SPI_FLASH_WriteEnable();
   /*使能片选*/
   SPI_FLASH_CS_LOW();
   /* 发送页写入指令*/
-  SPI_FLASH_SendByte(W25X_PageProgram);
-  /*发送高8位数据地址*/
-  SPI_FLASH_SendByte((WriteAddr & 0xFF0000) >> 16);
-  /*发送中8位数据地址*/
-  SPI_FLASH_SendByte((WriteAddr & 0xFF00) >> 8);
-  /*发送低8位数据地址*/
-  SPI_FLASH_SendByte(WriteAddr & 0xFF);
+  SPI_FLASH_SendCommandAddress(W25X_PageProgram, WriteAddr);
+
   /*检测写入的数据是否超出页的容量大小*/
   if(NumByteToWrite > SPI_FLASH_PerWritePageSize)
   {
@@ -259,17 +261,16 @@ void SPI_FLASH_BufferWrite(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
 *********************************************************************************************/
 void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 {
+  PRINTF("Read from Disk: offset:%lx size:%d\n", ReadAddr, NumByteToRead);
+  u16 n = NumByteToRead;
+  for(int i = 0; i < NumByteToRead; i++)
+    pBuffer[i] = 0;
+
    /* 使能片选 */
   SPI_FLASH_CS_LOW();
   /*发送读数据指令*/
   SPI_FLASH_SendByte(W25X_ReadData);
-  /*发送24位数据地址*/
-  /* 发送高8位数据地址*/
-  SPI_FLASH_SendByte((ReadAddr & 0xFF0000) >> 16);
-  /*发送中8位数据地址*/
-  SPI_FLASH_SendByte((ReadAddr& 0xFF00) >> 8);
-  /*发送低8位数据地址*/
-  SPI_FLASH_SendByte(ReadAddr & 0xFF);
+  SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
   while (NumByteToRead--) /* 循环读取数据*/
   {
     /*读取一个字节数据*/
@@ -279,6 +280,8 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
   }
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
+
+  hexdump(pBuffer, n);
 }
 
 /******************************************************************************************
@@ -319,15 +322,30 @@ u32 SPI_FLASH_ReadDeviceID(void)
    /* 使能片选 */
   SPI_FLASH_CS_LOW();
   /*发送读取ID指令*/
-  SPI_FLASH_SendByte(W25X_DeviceID);
-  SPI_FLASH_SendByte(Dummy_Byte);
-  SPI_FLASH_SendByte(Dummy_Byte);
-  SPI_FLASH_SendByte(Dummy_Byte);
+  SPI_FLASH_SendCommandAddress(W25X_DeviceID, 0UL);
   /*读取8位数据*/
   Temp = SPI_FLASH_SendByte(Dummy_Byte);
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
   return Temp;
+}
+
+static void SPI_FLASH_WaitForFlag(uint8_t flag)
+{
+  u8 FLASH_Status = 0;
+   /* 使能片选 */
+  SPI_FLASH_CS_LOW();
+  /*发送读状态指令 */
+  SPI_FLASH_SendByte(W25X_ReadStatusReg);
+  /*循环发送空数据直到FLASH芯片空闲*/
+  do
+  {
+    /* 发送空字节 */
+    FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
+  }
+  while (((FLASH_Status & flag) == flag) && (FLASH_Status != 0xff)); /* 检测是否空闲*/
+  /*失能片选*/
+  SPI_FLASH_CS_HIGH();
 }
 
 /******************************************************************************************
@@ -344,6 +362,9 @@ void SPI_FLASH_WriteEnable(void)
   SPI_FLASH_SendByte(W25X_WriteEnable);
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
+
+  /*check WEL */
+  SPI_FLASH_WaitForFlag(WEL_Flag);
 }
 
 /******************************************************************************************
@@ -354,20 +375,7 @@ void SPI_FLASH_WriteEnable(void)
 *********************************************************************************************/
 void SPI_FLASH_WaitForWriteEnd(void)
 {
-  u8 FLASH_Status = 0;
-   /* 使能片选 */
-  SPI_FLASH_CS_LOW();
-  /*发送读状态指令 */
-  SPI_FLASH_SendByte(W25X_ReadStatusReg);
-  /*循环发送空数据直到FLASH芯片空闲*/
-  do
-  {
-    /* 发送空字节 */
-    FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
-  }
-  while ((FLASH_Status & WIP_Flag) == WIP_Flag); /* 检测是否空闲*/
-  /*失能片选*/
-  SPI_FLASH_CS_HIGH();
+  SPI_FLASH_WaitForFlag(WIP_Flag);
 }
 
 /******************************************************************************************
@@ -424,3 +432,49 @@ void SPI_Flash_Reset(void)
   SPI_FLASH_CS_HIGH();
   
 }  
+
+void SPI_FLASH_Init(void)
+{
+  // init SPI
+  UCA1CTL1 = UCSWRST;
+
+  UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPH + UCCKPL; // master, 3-pin SPI mode, LSB
+  UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
+  UCA1BR0 = 80; // 16MHZ / 8 = 2Mhz
+  UCA1BR1 = 0;
+  UCA1MCTL = 0;
+
+  //Configure ports.
+  CLKDIR |= CLKPIN;
+  CLKSEL |= CLKPIN;
+  CLKOUT &= ~CLKPIN;
+
+  SPIDIR |= SIPIN | CSPIN;
+  SPIDIR &= ~SOPIN; // SO is input
+  SPISEL |= SIPIN | SOPIN;
+  SPIOUT &= ~SIPIN;
+  SPIOUT |= CSPIN; // pull CS high to disable chip
+
+  UCA1CTL1 &= ~UCSWRST;
+
+  //SPI_Flash_Reset();
+
+  uint8_t FLASH_Status;
+  SPI_FLASH_CS_LOW();
+  /*发送读状态指令 */
+  SPI_FLASH_SendByte(W25X_ReadStatusReg);
+  /* 发送空字节 */
+  FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
+  /*失能片选*/
+  SPI_FLASH_CS_HIGH();
+  printf("status register 1 = %x ", FLASH_Status);
+
+  SPI_FLASH_CS_LOW();
+  /*发送读状态指令 */
+  SPI_FLASH_SendByte(W25X_ReadStatusReg2);
+  /* 发送空字节 */
+  FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
+  /*失能片选*/
+  SPI_FLASH_CS_HIGH();
+  printf("status register 2 = %x ", FLASH_Status);  
+}
