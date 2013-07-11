@@ -66,8 +66,8 @@
 
 static const uint16_t config[] =
 {
-  0, 0x17d, 0x15, 0xfd, //Power Management
-  0x090, 0x0, 0x1E0, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0x0, 0x108, 0x1ff, // Audio Control
+  0, 0x17d, 0x15, 0x75, //Power Management
+  0x090, 0x0, 0x1E0, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0xFF, 0x108, 0x1ff, // Audio Control
   0xFFFF, 0xFFFF, // skip 2
   0x12c, 0x2c, 0x2c, 0x2c, 0x2c, //Equalizer
   0xFFFF, // skip 1
@@ -76,11 +76,11 @@ static const uint16_t config[] =
   0x0, 0x0, 0x0, 0x0, //Notch Filter
   0xffff, // skip 1
   0x38, 0xb, 0x32, 0x0, //ALC Control
-  0x6, 0x9, 0x6E, 0x12F, //PLL Control for 16mhz
-//  0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz
+  0x6, 0x9, 0x6E, 0x12F, //PLL Control for 16mhz MCLK
+//  0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz MCLK
   0x0, // BYP Control
   0xFFFF, 0xFFFF, 0xFFFF, // skip 3
-  0x3, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xb9, 0x40, 0x1, //Input Output Mixer
+  0x3, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40, 0x1, //Input Output Mixer
 };
 
 static int codec_write(uint8_t reg, uint16_t data)
@@ -110,18 +110,16 @@ void codec_shutdown()
   NSPKEN[6]
   PSPKEN[5]
   */
-  #if 0
+  printf("codec_shutdown\n");
+  P11SEL &= ~BIT2;     // disable SMCLK
+
+  I2C_addr(CODEC_ADDRESS, 1);
   codec_write(REG_POWER_MANAGEMENT1, 0);
   codec_write(REG_POWER_MANAGEMENT2, 0);
   codec_write(REG_POWER_MANAGEMENT3, 0);
 
   codec_write(REG_CLK_GEN_CTRL, 0x148);
-
-  printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT1, codec_read(REG_POWER_MANAGEMENT1));
-  printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT2, codec_read(REG_POWER_MANAGEMENT2));
-  printf("Codec reg: %x = %d\n", REG_POWER_MANAGEMENT3, codec_read(REG_POWER_MANAGEMENT3));
-  printf("Codec reg: %x = %d\n", REG_CLK_GEN_CTRL, codec_read(REG_CLK_GEN_CTRL));
-  #endif
+  I2C_done();
 }
 
 void code_setformat(uint8_t format)
@@ -131,13 +129,16 @@ void code_setformat(uint8_t format)
 
 void codec_wakeup()
 {
-  #if 0
-  codec_write(REG_CLK_GEN_CTRL, 0x149);
+  printf("codec_wakeup\n");
+  P11SEL |= BIT2;     // output SMCLK
 
-  codec_write(REG_POWER_MANAGEMENT1, 0x17d);
-  codec_write(REG_POWER_MANAGEMENT2, 0x15);
-  codec_write(REG_POWER_MANAGEMENT3, 0xfd);
-  #endif
+  I2C_addr(CODEC_ADDRESS, 1);
+  codec_write(REG_POWER_MANAGEMENT1, config[REG_POWER_MANAGEMENT1]);
+  codec_write(REG_POWER_MANAGEMENT2, config[REG_POWER_MANAGEMENT2]);
+  codec_write(REG_POWER_MANAGEMENT3, config[REG_POWER_MANAGEMENT3]);
+
+  codec_write(REG_CLK_GEN_CTRL, config[REG_CLK_GEN_CTRL]);
+  I2C_done();
 }
 
 void codec_init()
@@ -177,12 +178,10 @@ void codec_init()
     }
   }
 
-//  codec_shutdown();
-
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
   printf("initialize codec sucess\n");
 
-#if 0
+#if 1
   for(int i = 1; i <= 0x38; i++)
   {
     uint32_t d = codec_read(i);
@@ -197,4 +196,6 @@ void codec_init()
   }
 #endif
   I2C_done();
+
+  codec_shutdown();
 }

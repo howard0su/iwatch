@@ -137,7 +137,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     if (packet[11] == 2)
     {
       handle_audio = READ_BT_16(packet, 3);
-      //codec_wakeup();
+      codec_wakeup();
     }
     break;
   }
@@ -149,7 +149,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       if (READ_BT_16(packet, 3) == handle_audio)
       {
         handle_audio = 0;
-        //codec_shutdown();
+        codec_shutdown();
       }
       // restart advertising
       // hci_send_cmd(&hci_le_set_advertise_enable, 1);
