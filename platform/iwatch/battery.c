@@ -77,7 +77,7 @@ BATTERY_STATE battery_state(void)
 
 uint8_t battery_level(void)
 {
-  printf("battery level : %d\n", level);
+//  printf("battery level : %d\n", level);
   if (!(ADC12CTL1 & ADC12BUSY))
     ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
   return level;
