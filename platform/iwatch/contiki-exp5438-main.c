@@ -70,6 +70,7 @@ extern void I2C_Init();
 extern void rtc_init();
 extern void battery_init();
 
+uint8_t SMCLK_NEED = 0;
 
 /*--------------------------------------------------------------------------*/
 int
