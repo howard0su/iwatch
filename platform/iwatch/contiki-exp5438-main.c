@@ -108,14 +108,11 @@ main(int argc, char **argv)
   rtc_init();
   I2C_Init();
 
-  SPI_FLASH_Init();
-  //cfs_coffee_format();
-  //test_cfs();
   //codec_init();
   //ant_init();
     bluetooth_init();
 
-  if (!bluetooth_paired())
+//  if (!bluetooth_paired())
   {
     bluetooth_discoverable(1);
   }
@@ -124,10 +121,13 @@ main(int argc, char **argv)
 
   autostart_start(autostart_processes);
 
+  SPI_FLASH_Init();
+
   /*
   * This is the scheduler loop.
   */
-  watchdog_stop();
+  SMCLK_NEED = 0;
+  watchdog_start();
 
   while(1) {
     int r;
@@ -156,7 +156,14 @@ main(int argc, char **argv)
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
 
+      if (SMCLK_NEED)
+      {
+        __bis_SR_register(GIE | CPUOFF);
+      }
+      else
+      {
       __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
+      }
 
       /* We get the current processing time for interrupts that was
          done during the LPM and store it for next time around.  */

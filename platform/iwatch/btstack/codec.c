@@ -64,6 +64,8 @@
 #define REG_OUT3_MIXER_CTRL             (0x038)
 #define REG_OUT4_MIXER_CTRL             (0x039)
 
+extern uint8_t SMCLK_NEED;
+
 static const uint16_t config[] =
 {
   0, 0x17d, 0x15, 0x75, //Power Management
@@ -111,6 +113,7 @@ void codec_shutdown()
   PSPKEN[5]
   */
   printf("codec_shutdown\n");
+  SMCLK_NEED--;
   P11SEL &= ~BIT2;     // disable SMCLK
 
   I2C_addr(CODEC_ADDRESS, 1);
@@ -131,6 +134,7 @@ void codec_wakeup()
 {
   printf("codec_wakeup\n");
   P11SEL |= BIT2;     // output SMCLK
+  SMCLK_NEED++;
 
   I2C_addr(CODEC_ADDRESS, 1);
   codec_write(REG_POWER_MANAGEMENT1, config[REG_POWER_MANAGEMENT1]);
@@ -148,6 +152,7 @@ void codec_init()
 
   P11DIR |= BIT2;
   P11SEL |= BIT2;     // output SMCLK
+  SMCLK_NEED++;
 
   I2C_addr(CODEC_ADDRESS, 1);
   //reset codec ?
