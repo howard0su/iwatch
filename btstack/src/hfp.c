@@ -258,13 +258,46 @@ static void handle_CIEV(char *buf)
   uint8_t ind, value;
   // handle +CIEV: 3,0
   // handle +CIEV: 3,1
+
+  int i, state;
+  size_t s;
+  char *indicator = NULL;
+
   log_info("%s\n", buf);
-  if (sscanf(buf, "\r\n+CIEV: %d,%d", &ind, &value) == 2)
-  {
-    log_info("CIEV: ind:%d index:%d value:%d\n", ind, cind_index[ind], value);
-    cind_state[cind_index[ind]] = value;
-    process_post(ui_process, EVENT_RING, (void*)(cind_index[ind] << 8 | value));
+
+  /* parse current state of all of our indicators.  The list is in the
+  * following format:
+  * +CIND: 1,0,2,0,0,0,0
+  */
+  state = 0;
+  for (i = 0; buf[i] != '\0'; i++) {
+    switch (state) {
+    case 0: /* search for start of the status indicators (a space) */
+      if (buf[i] == ' ') {
+        state++;
+      }
+      break;
+    case 1: /* mark this indicator */
+      indicator = &buf[i];
+      state++;
+      break;
+    case 2: /* search for the start of the next indicator (a comma) */
+      if (buf[i] == ',') {
+        buf[i] = '\0';
+        ind = atoi(indicator);
+        state = 1;
+      }
+      break;
+    }
   }
+
+  value = atoi(indicator);
+
+  log_info("CIEV: ind:%d index:%d value:%d\n", ind, cind_index[ind], value);
+  cind_state[cind_index[ind]] = value;
+  process_post(ui_process, EVENT_RING, (void*)(cind_index[ind] << 8 | value));
+ 
+  return;
 }
 
 static void handle_RING()
@@ -393,8 +426,7 @@ static int handle_CIND(char *buf)
   */
   group = 0;
   state = 0;
-  s = strlen(buf);
-  for (i = 0; i < s; i++) {
+  for (i = 0; buf[i] != '\0'; i++) {
     switch (state) {
     case 0: /* search for start of the status indicators (a space) */
       if (buf[i] == ' ') {
