@@ -125,9 +125,12 @@ void codec_shutdown()
   I2C_done();
 }
 
-void code_setformat(uint8_t format)
+/* set volume, levle is from 0 - 255 */
+void codec_setvolume(uint8_t level)
 {
-
+  uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
+  value &= ~0x3F;
+  value |= level >> 2;
 }
 
 void codec_wakeup()
@@ -186,7 +189,7 @@ void codec_init()
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
   printf("initialize codec sucess\n");
 
-#if 1
+#if 0
   for(int i = 1; i <= 0x38; i++)
   {
     uint32_t d = codec_read(i);

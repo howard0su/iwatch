@@ -15,6 +15,11 @@ extern uint8_t bluetooth_paired();
 extern bd_addr_t* bluetooth_paired_addr();
 extern const char* bluetooth_address();
 
+extern void codec_setvolume(uint8_t level);
+extern void codec_wakeup();
+extern void codec_init();
+extern void codec_shutdown();
+
 PROCESS_NAME(bluetooth_process);
 
 #endif
