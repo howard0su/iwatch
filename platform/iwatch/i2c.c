@@ -101,6 +101,9 @@ int I2C_write(unsigned char reg, unsigned char data)
 
 void  I2C_addr(unsigned char address, uint8_t msb)
 {
+  if (UCB1I2CSA == address)
+    return;
+
   UCB1CTL1 |= UCSWRST;
   UCB1I2CSA = address;
   if (msb)
@@ -108,7 +111,6 @@ void  I2C_addr(unsigned char address, uint8_t msb)
   else
     UCB1CTL0 &= ~UCMSB;
   UCB1CTL1 &= ~UCSWRST;
-  __delay_cycles(100);
 }
 
 void I2C_done()
