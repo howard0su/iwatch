@@ -23,24 +23,31 @@ static const uint8_t   spp_service_buffer[100] = {
 #define HEARTBEAT_PERIOD_MS 1000
 
 #define SPP_CHANNEL 1
-static int real_counter = 0;
-static int counter_to_send = 0;
-static timer_source_t heartbeat;
-
 static uint16_t spp_channel_id = 0;
+
+static char spp_buffer[1024];
+static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
 static void tryToSend(void){
     if (!spp_channel_id) return;
-    if (real_counter <= counter_to_send) return;
+    if (spp_read_ptr == spp_write_ptr) return;
                
-    char lineBuffer[30];
-    sprintf(lineBuffer, "BTstack counter %04u\n\r", counter_to_send);
-    printf(lineBuffer);
-    int err = rfcomm_send_internal(spp_channel_id, (uint8_t*) lineBuffer, strlen(lineBuffer));
+    int err;
+    uint16_t new_read_ptr;
+    if (spp_read_ptr > spp_write_ptr)
+    {
+      err = rfcomm_send_internal(spp_channel_id, spp_buffer + spp_read_ptr, sizeof(spp_buffer) - spp_read_ptr);
+      new_read_ptr = 0;
+    }
+    else
+    {
+      err = rfcomm_send_internal(spp_channel_id, spp_buffer + spp_read_ptr, spp_write_ptr - spp_read_ptr); 
+      new_read_ptr = spp_write_ptr;
+    }
 
     switch (err){
         case 0:
-            counter_to_send++;
+            spp_read_ptr = new_read_ptr;
             break;
         case BTSTACK_ACL_BUFFERS_FULL:
             break;
@@ -48,24 +55,6 @@ static void tryToSend(void){
            printf("rfcomm_send_internal() -> err %d\n\r", err);
         break;
     }
-}
-
-static void run_loop_register_timer(timer_source_t *timer, uint16_t period){
-    run_loop_set_timer(timer, period);
-    run_loop_add_timer(timer);
-}
-
-static void timer_handler(timer_source_t *ts){
-    real_counter++;
-    // re-register timer
-    run_loop_register_timer(ts, HEARTBEAT_PERIOD_MS);
-    tryToSend();
-}
-
-static void timer_setup(){
-    // set one-shot timer
-    heartbeat.process = &timer_handler;
-    run_loop_register_timer(&heartbeat, HEARTBEAT_PERIOD_MS);
 }
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -112,7 +101,7 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
           spp_channel_id = READ_BT_16(packet, 12);
           uint16_t mtu = READ_BT_16(packet, 14);
           log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
-          timer_setup();
+          spp_write_ptr = spp_read_ptr = 0;
         }
         break;
       }
@@ -223,4 +212,52 @@ void spp_init()
   sdp_register_service_internal(NULL, &spp_service_record);
 
   rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
+}
+
+int spp_send(char* buf, int count)
+{
+  uint16_t leftbuf;
+
+  if (!spp_channel_id) return -2;
+
+  if ((spp_write_ptr >= spp_read_ptr))
+  {
+    if (spp_write_ptr + count > spp_read_ptr + sizeof(spp_buffer))
+    {
+      // too little buffer
+      return -1;
+    }
+    else
+    {
+      leftbuf = sizeof(spp_buffer) - spp_write_ptr;
+      // if there is enough buffer
+      if (count <= leftbuf)
+      {
+        // if don't wrap around
+        memcpy(spp_buffer+spp_write_ptr, buf, count);
+        spp_write_ptr += count;
+      }
+      else
+      {
+        memcpy(spp_buffer+spp_write_ptr, buf, leftbuf);
+        count -= leftbuf;
+        memcpy(spp_buffer, buf + leftbuf, count);
+        spp_write_ptr = count;
+      }     
+    }
+  } 
+  else
+  {
+    if (spp_write_ptr + count > spp_read_ptr)
+    {
+      return -1;
+    }
+    else
+    {
+      memcpy(spp_buffer + spp_write_ptr, buf, count);
+    }
+  }
+
+  tryToSend();
+  return 0;
 }
