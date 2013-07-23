@@ -2068,6 +2068,9 @@
       <name>$PROJ_DIR$\..\watch\upgrade.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\gesture.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\watch.c</name>
     </file>
     <file>

@@ -37,7 +37,7 @@ static const int8_t GestureDataLength[NUM_GESTURES] =
 
 static uint16_t distances[NUM_GESTURES][MAX_GESTURES];
 static uint16_t count;
-static uint8_t recoding;
+static enum{STATE_NONE, STATE_RECORDING, STATE_RECON} state;
 
 void gesture_init(int8_t _recording)
 {
@@ -47,7 +47,10 @@ void gesture_init(int8_t _recording)
 	memset(currentsum, 0, sizeof(currentsum));
 	datap = 0;
 	count = 0;
-	recoding = _recording;
+	if (_recording)
+		state = STATE_RECORDING;
+	else
+		state = STATE_RECON;
 }
 
 static uint16_t Dist(const int8_t* p1, const int8_t *p2)
@@ -60,7 +63,7 @@ static uint16_t Dist(const int8_t* p1, const int8_t *p2)
 	return t;
 }
 
-#define SCALE_2G 20
+#define SCALE_2G 16384
 #define SCALE_1G (SCALE_2G/2)
 
 static int8_t Normalize(int16_t data)
@@ -80,11 +83,11 @@ static int8_t Normalize(int16_t data)
 	}
 	else if (value < SCALE_1G)
 	{
-		ret = value / SCALE_1G * 10;
+		ret = value * 10 / SCALE_1G;
 	}
 	else
 	{
-		ret = 10 + (value - SCALE_1G) / (SCALE_1G) * 5;
+		ret = 10 + (value - SCALE_1G) * 5/ (SCALE_1G);
 	}
 
 	if (data > 0)
@@ -134,7 +137,6 @@ static void gesture_caculate(int index, const int8_t* point)
 		if (weight < 10)
 		{
 			PRINTF("Match Gesture %d\n", index);
-			gesture_init();
 		}
 	}
 
@@ -154,6 +156,10 @@ void gesture_processdata(int16_t *input)
 {
 	int16_t current[3];
 	int8_t result[3];
+
+	if (state == STATE_NONE)
+		return;
+
 	count++;
 
 	// integrate into move window average
@@ -178,7 +184,7 @@ void gesture_processdata(int16_t *input)
 	datap &= (MOVE_WINDOW - 1);
 	if ((datap % MOVE_STEP == 0) && (count >=  MOVE_WINDOW))
 	{
-		if (recoding)
+		if (state == STATE_RECORDING)
 		{
 			printf("%d,%d,%d ", result[0], result[1], result[2]);
 		}

@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "window.h"
-
+#include "gesture.h"
 #include "battery.h"
 #include "hfp.h"
 #include <stdio.h>
@@ -64,7 +64,18 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       window_invalid(NULL);
       break;
     case EVENT_KEY_PRESSED:
-      hfp_enable_voicerecog();
+    	if (lparam == KEY_ENTER)
+      		hfp_enable_voicerecog();
+      	else if (lparam == KEY_UP)
+      	{
+      		printf("\nStart Recoding...\n");
+      		gesture_init(1); // recording
+      	}
+      	else if (lparam == KEY_DOWN)
+      	{
+      		printf("\nStart Recongize...\n");
+      		gesture_init(0); // recording	
+      	}
       break;
     case EVENT_WINDOW_CLOSING:
       window_timer(0);

@@ -11,6 +11,8 @@
 #include "inv_mpu.h"
 #include "inv_mpu_dmp_motion_driver.h"
 
+extern void gesture_processdata(int16_t *input);
+
 #define MPU6050_ADDR 0x69
 
 #define MPU_INT_SEL P1SEL
@@ -23,7 +25,7 @@
 PROCESS(mpu6050_process, "MPU6050 Driver");
 
 /* Starting sampling rate. */
-#define DEFAULT_MPU_HZ  (30)
+#define DEFAULT_MPU_HZ  (200)
 
 static struct etimer timer;
 
@@ -108,6 +110,7 @@ void mpu6050_init()
   unsigned short gyro_rate, gyro_fsr;
   unsigned long timestamp;
 
+  printf("Initialize MPU6050...");
   result = mpu_init(NULL);
   if (result)
   {
@@ -134,12 +137,13 @@ void mpu6050_init()
   /* Push both gyro and accel data into the FIFO. */
   mpu_configure_fifo(INV_XYZ_ACCEL); //INV_XYZ_GYRO
   mpu_set_sample_rate(DEFAULT_MPU_HZ);
-
+  
 #if 1
   /* Read back configuration in case it was set improperly. */
   mpu_get_sample_rate(&gyro_rate);
   mpu_get_gyro_fsr(&gyro_fsr);
   mpu_get_accel_fsr(&accel_fsr);
+  mpu_set_accel_fsr(4);
 
   /* To initialize the DMP:
   * 1. Call dmp_load_motion_driver_firmware(). This pushes the DMP image in
@@ -176,12 +180,12 @@ void mpu6050_init()
                       inv_orientation_matrix_to_scalar(gyro_orientation));
   dmp_register_tap_cb(tap_cb);
   dmp_register_android_orient_cb(android_orient_cb);
-  uint8_t dmp_features = DMP_FEATURE_TAP | DMP_FEATURE_ANDROID_ORIENT;
+  uint8_t dmp_features = DMP_FEATURE_TAP | DMP_FEATURE_ANDROID_ORIENT|DMP_FEATURE_SEND_RAW_ACCEL;
   dmp_enable_feature(dmp_features);
   dmp_set_fifo_rate(DEFAULT_MPU_HZ);
   mpu_set_dmp_state(1);
 
-  dmp_set_interrupt_mode(DMP_INT_GESTURE);
+//  dmp_set_interrupt_mode(DMP_INT_GESTURE);
 #endif
 
   I2C_done();
@@ -192,7 +196,7 @@ void mpu6050_init()
   }
 }
 
-extern int i2c_write(unsigned char slave_addr, unsigned char reg_addr,
+int i2c_write(unsigned char slave_addr, unsigned char reg_addr,
                      unsigned char length, unsigned char const *data)
 {
   return I2C_writebytes(reg_addr, data, length);
@@ -202,19 +206,17 @@ int i2c_read(unsigned char slave_addr, unsigned char reg_addr, unsigned char len
 {
   return I2C_readbytes(reg_addr, data, length);
 }
-extern void delay_ms(unsigned long num_ms)
+
+void delay_ms(unsigned long num_ms)
 {
-  rtimer_clock_t t0;
-  t0 = RTIMER_NOW();
-  while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + num_ms * RTIMER_SECOND / 1000)) {
-    __bis_SR_register(LPM0_bits + GIE);
-    __no_operation();
-  }
+  BUSYWAIT_UNTIL(0, num_ms * RTIMER_SECOND / 1000);
 }
+
 void get_ms(unsigned long *count)
 {
   *count = RTIMER_NOW() * RTIMER_SECOND / 1000;
 }
+
 int msp430_reg_int_cb(void (*cb)(void))
 {
   return 1;
@@ -260,16 +262,21 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       */
       I2C_addr(MPU6050_ADDR, 0);
       uint8_t c = 0;
-      do
-      {
-        short gyro[3], accel[3];
-        short sensors;
-        unsigned long sensor_timestamp;
-        long quat[4];
+        do
+        {
+          short gyro[3], accel[3];
+          short sensors;
+          unsigned long sensor_timestamp;
+          long quat[4];
 
-        dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
+          dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors,
                       &more);
-      }while(more);
+
+          if (sensors & INV_XYZ_ACCEL)
+          {
+            gesture_processdata(accel);
+          }
+        }while(more);
       I2C_done();
     }
 #if 0
