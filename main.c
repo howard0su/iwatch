@@ -384,7 +384,9 @@ int main()
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
   // test gesture
-  gesture_init();
+  gesture_init(0);
+  for(int i = 0; i <sizeof(inputpoints); i++)
+    inputpoints[i] = inputpoints[i] * 1638.4;
   for(int i = 0; i < sizeof(inputpoints) / 3; i+=3)
   {
     gesture_processdata(&inputpoints[i * 3]);
