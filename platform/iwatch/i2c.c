@@ -24,6 +24,18 @@ void I2C_Init()
   UCB1BR0 = 160; // 8MHZ / 80 = 100Khz
   UCB1BR1 = 0;
 
+  // give clk signal to all slaves and wait SDA go back to high
+  P3DIR &= ~BIT7; // SDA -> INPUT
+  P5DIR |= BIT4;
+  while((P3IN & BIT7) == 0)
+  {
+    printf(".");
+    P5OUT |= BIT4;
+    printf("=");
+    P5OUT &= ~BIT4;
+  }
+
+  __delay_cycles(300);
   //Configure ports.
   P3SEL |= BIT7;
   P5SEL |= BIT4;
