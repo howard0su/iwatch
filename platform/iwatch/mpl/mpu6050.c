@@ -276,7 +276,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
             accel[0] /= 128;
             accel[1] /= 128;
             accel[2] /= 128;
-            gesture_processdata(data);
+            gesture_processdata(accel);
           }
         }while(more);
       I2C_done();
