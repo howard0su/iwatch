@@ -261,7 +261,6 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       * leftover packets in the FIFO.
       */
       I2C_addr(MPU6050_ADDR, 0);
-      uint8_t c = 0;
         do
         {
           short gyro[3], accel[3];
@@ -274,7 +273,10 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 
           if (sensors & INV_XYZ_ACCEL)
           {
-            gesture_processdata(accel);
+            accel[0] /= 128;
+            accel[1] /= 128;
+            accel[2] /= 128;
+            gesture_processdata(data);
           }
         }while(more);
       I2C_done();

@@ -3,6 +3,7 @@
  *
  */
 #include "contiki.h"
+#include "window.h"
 #include <string.h>
 #include <assert.h>
 
@@ -14,9 +15,10 @@
 #define PRINTF(...)
 #endif
 
+#define MAX_DATAPOINTS 400
 // must be 2^n. 1, 2, 4, 8, 16
-#define MOVE_WINDOW 8
-#define MOVE_STEP 4
+#define MOVE_WINDOW 4
+#define MOVE_STEP 2
 
 static int16_t data[MOVE_WINDOW][3];
 static uint8_t datap = 0;
@@ -29,7 +31,8 @@ static const int8_t Gesture1[] = {0,0,16, 0,0,15, 0,0,15, -1,0,10, -2,2,10, -2,2
 , 7,10,8, 6,10,8, 5,10,10, -2,10,10, -9,10,16, -9,10,16, -6,10,16, -4,10,16, -3,10,16};
 static const int8_t Gesture2[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
 , 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 7,0,10, 6,0,10, 5,-1,10};
-static const int8_t Gesture3[] = {0, 0, 0};
+static const int8_t Gesture3[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
+, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
 static const int8_t *GestureData[NUM_GESTURES] =
 {Gesture1, Gesture2, Gesture3};
 static const int8_t GestureDataLength[NUM_GESTURES] =
@@ -63,7 +66,7 @@ static uint16_t Dist(const int8_t* p1, const int8_t *p2)
 	return t;
 }
 
-#define SCALE_2G 16384
+#define SCALE_2G 128 //16384
 #define SCALE_1G (SCALE_2G/2)
 
 static int8_t Normalize(int16_t data)
@@ -97,7 +100,7 @@ static int8_t Normalize(int16_t data)
 }
 
 extern int spp_send(char* buf, int count);
-static void gesture_caculate(int index, const int8_t* point)
+static uint16_t gesture_caculate(int index, const int8_t* point)
 {
 	const int8_t *gestureData = GestureData[index];
 	int8_t gestureLength = GestureDataLength[index];
@@ -105,7 +108,7 @@ static void gesture_caculate(int index, const int8_t* point)
 	// caculate with template
 	uint16_t lastvalue = Dist(&gestureData[0], point);
 
-	if (count == 0)
+	if (count == MOVE_WINDOW)
 	{
 		distance[0] = lastvalue;
 		for(int tindex = 1; tindex < gestureLength; tindex++)
@@ -132,15 +135,7 @@ static void gesture_caculate(int index, const int8_t* point)
 		}
 		distance[gestureLength - 1] = lastvalue;
 	}
-	if (count > gestureLength)
-	{
-		uint16_t weight = lastvalue / (gestureLength + count);
-		if (weight < 10)
-		{
-			PRINTF("Match Gesture %d\n", index);
-		}
-	}
-
+#if 0
 	for(int i = 0; i < gestureLength; i++)
 	{
 		PRINTF("%d ",distance[i]);
@@ -151,6 +146,8 @@ static void gesture_caculate(int index, const int8_t* point)
 		PRINTF("%d ",distance[i] - distance[i-1]);
 	}
 	PRINTF("\n");
+#endif
+	return distance[gestureLength - 1]/(gestureLength + count/MOVE_STEP - 1);
 }
 
 void gesture_processdata(int16_t *input)
@@ -160,6 +157,17 @@ void gesture_processdata(int16_t *input)
 
 	if (state == STATE_NONE)
 		return;
+
+	if (state == STATE_RECON && count > MAX_DATAPOINTS)
+	{
+		PRINTF("No MATCH\n");
+		state = STATE_NONE;
+		process_post(ui_process, EVENT_GESTURE_MATCHED, (void*)0);
+		return;
+	}
+
+
+	PRINTF("%d %d %d\n", input[0], input[1], input[2]);
 
 	count++;
 
@@ -192,8 +200,41 @@ void gesture_processdata(int16_t *input)
 			spp_send(buf, length);
 		}
 		else
-			for(int k = 0; k < 2; k++)
-				gesture_caculate(k, result);
-		count++;
+		{
+			PRINTF("%d %d %d\n", result[0], result[1], result[2]);
+			uint16_t shortestDistance = 0xffff;
+  			uint16_t longestDistance = 0;
+  			uint8_t bestMatch;
+  			uint32_t totalDistance = 0;
+			for(int k = 0; k < NUM_GESTURES; k++)
+			{
+				uint16_t distance = gesture_caculate(k, result);
+
+			    if (distance < shortestDistance) {
+			      shortestDistance = distance;
+			      bestMatch = k;
+			    }
+
+			    if (distance > longestDistance) {
+			      longestDistance = distance;
+			    }
+ 				totalDistance += distance;
+			}
+
+			uint16_t averageDistance = totalDistance/NUM_GESTURES;
+			PRINTF("averageDistance: %d, shortestDistance: %d, longestDistance: %d, variance: %d\n", 
+				averageDistance, shortestDistance, longestDistance, longestDistance - shortestDistance);
+
+			if (shortestDistance > averageDistance / 2)
+			{
+				PRINTF("almost matched %d\n", bestMatch);
+				return;
+			}
+			// matched
+			PRINTF("Matched %d\n", bestMatch);
+			process_post(ui_process, EVENT_GESTURE_MATCHED, (void*)(bestMatch + 1));
+			state = STATE_NONE;
+			return;
+		}
 	}
 }
