@@ -357,7 +357,6 @@ void SimluateRun()
     if (n > 0)
     {
       int p = n - clock_time();
-      printf("expre in %d\n", p);
       if (p > 0)
       nanosleep(p);
     }
@@ -386,7 +385,7 @@ int main()
   // test gesture
   gesture_init(0);
   for(int i = 0; i <sizeof(inputpoints); i++)
-    inputpoints[i] = inputpoints[i] * 1638.4;
+    inputpoints[i] = inputpoints[i] * 6.4;
   for(int i = 0; i < sizeof(inputpoints) / 3; i+=3)
   {
     gesture_processdata(&inputpoints[i * 3]);
