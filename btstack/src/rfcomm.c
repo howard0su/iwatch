@@ -408,7 +408,6 @@ static int rfcomm_send_packet_for_multiplexer(rfcomm_multiplexer_t *multiplexer,
 
   if (!l2cap_can_send_packet_now(multiplexer->l2cap_cid))
   {
-    log_info("rfcomm_send_packet_for_multiplexer BTSTACK_ACL_BUFFERS_FULL");
     return BTSTACK_ACL_BUFFERS_FULL;
   }
 
