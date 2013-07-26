@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include "config.h"
+#include "stlv.h"
 #include "debug.h"
 
 static service_record_item_t spp_service_record;
@@ -64,6 +65,7 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
     hexdump(packet, size);
+    handle_stlv_packet(packet);
     return;
   }
 

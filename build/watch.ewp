@@ -2028,6 +2028,9 @@
       <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\gesture.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>
@@ -2066,9 +2069,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\upgrade.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\watch\gesture.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\watch.c</name>
@@ -2192,6 +2192,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\spp.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv.c</name>
     </file>
   </group>
   <group>
