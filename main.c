@@ -384,9 +384,13 @@ int main()
 
   // test gesture
   gesture_init(0);
-  for(int i = 0; i <sizeof(inputpoints); i++)
+  for(int i = 0; i <sizeof(inputpoints)/sizeof(int16_t); i++)
+  {
+    int16_t k = inputpoints[i];
     inputpoints[i] = inputpoints[i] * 6.4;
-  for(int i = 0; i < sizeof(inputpoints) / 3; i+=3)
+    printf("%d(%d) ", inputpoints[i], k);
+  }
+  for(int i = 0; i < sizeof(inputpoints) /sizeof(int16_t)/ 3; i+=3)
   {
     gesture_processdata(&inputpoints[i * 3]);
   }
