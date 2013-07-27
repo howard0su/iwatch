@@ -32,6 +32,7 @@ PROCESS_NAME(system_process);
 #define EVENT_KEY_LONGPRESSED         0xc4
 #define EVENT_WINDOW_ACTIVE           0xc5
 #define EVENT_WINDOW_DEACTIVE         0xc6
+#define EVENT_GESTURE_MATCHED         0xc7
 
 // move exit key into another message, so any application want to handle this 
 // message, have to be more explict

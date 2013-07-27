@@ -21,8 +21,6 @@ static const uint8_t   spp_service_buffer[100] = {
   0x20,0x43,0x6F,0x6E,0x66,0x69,0x67,0x75,0x72,0x65
 };
 
-#define HEARTBEAT_PERIOD_MS 1000
-
 #define SPP_CHANNEL 1
 static uint16_t spp_channel_id = 0;
 
@@ -53,7 +51,6 @@ static void tryToSend(void){
         case BTSTACK_ACL_BUFFERS_FULL:
             break;
         default:
-           printf("rfcomm_send_internal() -> err %d\n\r", err);
         break;
     }
 }

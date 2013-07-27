@@ -113,3 +113,7 @@ void nanosleep(int millisecond)
     Sleep(millisecond);
 }
 
+int spp_send(char* buf, int count)
+{
+  return 0;
+}
