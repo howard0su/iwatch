@@ -14,7 +14,7 @@
 #define DATA_SPEED 		1
 #define DATA_HEARTRATE 	2
 #define DATA_CALS		3
-#define DATA_DISTINCT	4
+#define DATA_DISTANCE	4
 #define DATA_SPEED_AVG	5
 #define DATA_ALTITUTE	6
 #define DATA_TIME		7
@@ -45,7 +45,7 @@ static const struct _datapoints datapoints[] =
   {DATA_WORKOUT, "Total Workout Time", NULL},
   {DATA_SPEED, "Speed", "mph"},
   {DATA_HEARTRATE, "Heart Rate", "bpm"},
-  {DATA_DISTINCT, "Distinct", "mile"},
+  {DATA_DISTANCE, "Distance", "mile"},
   {DATA_CALS, "Burned Calories", "cal"},
   {DATA_SPEED_AVG, "Avg Speed", "mph"},
   {DATA_SPEED, "Speed", "mph"},
