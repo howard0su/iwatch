@@ -48,10 +48,10 @@ element_handle get_first_sub_element(stlv_packet pack, element_handle parent)
 
 element_handle get_next_sub_element(stlv_packet pack, element_handle parent, element_handle handle)
 {
-    int parent_head_len = get_element_type(pack, parent, 0, 0);
+    int parent_head_len = get_element_type(pack, parent, 0, 0) + 1;
     int parent_body_len = get_element_data_size(pack, parent, NULL, 0);
 
-    int element_head_len = get_element_type(pack, handle, 0, 0);
+    int element_head_len = get_element_type(pack, handle, 0, 0) + 1;
     int element_body_len = get_element_data_size(pack, handle, NULL, 0);
 
     element_handle parent_end  = parent + parent_head_len  + parent_body_len;
@@ -71,11 +71,14 @@ int get_element_type(stlv_packet pack, element_handle handle, char* buf, int buf
     while ((*ptr & 0x80) != 0)
     {
         if (cursor < buf_size && buf != NULL)
-            buf[cursor++] = (*ptr++ & ~0x80);
+            buf[cursor] = (*ptr & ~0x80);
+        ptr++;
+        cursor++;
     }
     if (cursor < buf_size && buf != NULL)
-        buf[cursor++] = (*ptr++ & ~0x80);
-    return cursor;
+        buf[cursor] = (*ptr & ~0x80);
+
+    return cursor + 1;
 }
 
 int get_element_data_size(stlv_packet pack, element_handle handle, char* buf, int buf_size)
@@ -93,6 +96,40 @@ unsigned char* get_element_data_buffer(stlv_packet pack, element_handle handle, 
     else
         return handle + get_element_type(pack, handle, buf, buf_size) + 1;
 }
+
+static void print_stlv_string(unsigned char* data, int len)
+{
+    unsigned char back = data[len];
+    data[len] = '\0';
+    printf((char*)data);
+    data[len] = back;
+}
+
+static void handle_msg_element(stlv_packet pack, element_handle handle)
+{
+    element_handle begin = get_first_sub_element(pack, handle);
+    char filter[2] = { SUB_TYPE_MESSAGE_IDENTITY, SUB_TYPE_MESSAGE_MESSAGE, };
+    element_handle sub_handles[2] = {0};
+    int sub_element_count = filter_elements(pack, handle, begin, filter, 2, sub_handles);
+    if (sub_element_count != 0x03)
+    {
+        printf("Cannot find expected sub-elements: %c, %c\n", filter[0], filter[1]);
+        return;
+    }
+
+    int identity_len = get_element_data_size(pack, sub_handles[0], NULL, 0);
+    unsigned char* identity_data = get_element_data_buffer(pack, sub_handles[0], NULL, 0);
+    printf("From:");
+    print_stlv_string(identity_data, identity_len);
+    printf("\n");
+
+    int message_len = get_element_data_size(pack, sub_handles[1], NULL, 0);
+    unsigned char* message_data = get_element_data_buffer(pack, sub_handles[1], NULL, 0);
+    printf("Message:");
+    print_stlv_string(message_data, message_len);
+    printf("\n");
+    
+}
    
 void handle_stlv_packet(unsigned char* packet)
 {
@@ -109,7 +146,9 @@ void handle_stlv_packet(unsigned char* packet)
             {
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                printf("echo: %s\n", (char*)data);
+                printf("echo: ");
+                print_stlv_string(data, data_len);
+                printf("\n");
             }
             break;
             
@@ -128,22 +167,17 @@ void handle_stlv_packet(unsigned char* packet)
                 switch (type_buf[1])
                 {
                 case ELEMENT_TYPE_MESSAGE_SMS:
-                    printf("Notification: SMS:\n");
+                    printf("notification(SMS):\n");
+                    handle_msg_element(pack, handle);
+                    break;
                 case ELEMENT_TYPE_MESSAGE_FB:
-                    printf("Notification: Facebook:\n");
+                    printf("notification(Facebook):\n");
+                    handle_msg_element(pack, handle);
+                    break;
                 case ELEMENT_TYPE_MESSAGE_TW:
-                    printf("Notification: Twitter:\n");
-                    {
-                        element_handle begin = get_first_sub_element(pack, handle);
-                        char filter[2] = { SUB_TYPE_MESSAGE_IDENTITY, SUB_TYPE_MESSAGE_MESSAGE, };
-                        element_handle sub_handles[2] = {0};
-                        int sub_element_count = filter_elements(pack, handle, begin, filter, 2, sub_handles);
-                        if (sub_element_count != 0x03)
-                            break;
-
-                        printf("From    : %s\n", get_element_data_buffer(pack, sub_handles[0], NULL, 0));
-                        printf("Content : %s\n", get_element_data_buffer(pack, sub_handles[1], NULL, 0));
-                    }
+                    printf("notification(Twitter):\n");
+                    handle_msg_element(pack, handle);
+                    break;
                 default:
                     break;
                 }
