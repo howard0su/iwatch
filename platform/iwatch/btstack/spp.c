@@ -27,32 +27,70 @@ static uint16_t spp_channel_id = 0;
 static char spp_buffer[1024];
 static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
+typedef void (*proc_t)(char*, int);
+
+#define SPP_SENDER_NULL   0
+#define SPP_SENDER_READY  1
+#define SPP_SENDER_SENT   2
+
+typedef struct tag_spp_sender
+{
+    char* buffer;
+    short buffer_size;
+    short status;
+    proc_t sent_complete;
+}spp_sender;
+
+#define TASK_QUEUE_SIZE 10
+static spp_sender task_queue[TASK_QUEUE_SIZE] = {0};
+static short task_queue_pos = 0;
+
+int spp_register_task(char* buf, int size, void (*callback)(char*, int))
+{
+    short cursor = task_queue_pos + 1;
+    for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
+    {
+        if (cursor >= TASK_QUEUE_SIZE)
+            cursor = 0;
+
+        spp_sender* task = &task_queue[cursor];
+        if (task->status == SPP_SENDER_NULL)
+        {
+            task->buffer        = buf;
+            task->buffer_size   = size;
+            task->sent_complete = callback;
+            task->status        = SPP_SENDER_READY;
+            return 0;
+        }
+        cursor++;
+    }
+    return -1;
+}
+
 static void tryToSend(void){
     if (!spp_channel_id) return;
-    if (spp_read_ptr == spp_write_ptr) return;
-               
-    int err;
-    uint16_t new_read_ptr;
-    if (spp_read_ptr > spp_write_ptr)
-    {
-      err = rfcomm_send_internal(spp_channel_id, spp_buffer + spp_read_ptr, sizeof(spp_buffer) - spp_read_ptr);
-      new_read_ptr = 0;
-    }
-    else
-    {
-      err = rfcomm_send_internal(spp_channel_id, spp_buffer + spp_read_ptr, spp_write_ptr - spp_read_ptr); 
-      new_read_ptr = spp_write_ptr;
-    }
 
-    switch (err){
-        case 0:
-            spp_read_ptr = new_read_ptr;
-            break;
-        case BTSTACK_ACL_BUFFERS_FULL:
-            break;
-        default:
-        break;
+    for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
+    {
+        if (task_queue_pos >= TASK_QUEUE_SIZE)
+            task_queue_pos = 0;
+        spp_sender* task = &task_queue[task_queue_pos];
+        if (task->status == SPP_SENDER_READY)
+        {
+            int err = rfcomm_send_internal(
+                spp_channel_id, task->buffer, task->buffer_size);
+            if (err == 0)
+            {
+                if (task->sent_complete != NULL)
+                    task->sent_complete(task->buffer, task->buffer_size);
+                task->status = SPP_SENDER_NULL;
+                task_queue_pos++;
+            }
+            return;
+        }
     }
+    return;
+
 }
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -213,49 +251,8 @@ void spp_init()
   rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
 }
 
-int spp_send(char* buf, int count)
+int spp_send(char* buf, int count, proc_t callback)
 {
-  uint16_t leftbuf;
-
-  if (!spp_channel_id) return -2;
-
-  if ((spp_write_ptr >= spp_read_ptr))
-  {
-    if (spp_write_ptr + count > spp_read_ptr + sizeof(spp_buffer))
-    {
-      // too little buffer
-      return -1;
-    }
-    else
-    {
-      leftbuf = sizeof(spp_buffer) - spp_write_ptr;
-      // if there is enough buffer
-      if (count <= leftbuf)
-      {
-        // if don't wrap around
-        memcpy(spp_buffer+spp_write_ptr, buf, count);
-        spp_write_ptr += count;
-      }
-      else
-      {
-        memcpy(spp_buffer+spp_write_ptr, buf, leftbuf);
-        count -= leftbuf;
-        memcpy(spp_buffer, buf + leftbuf, count);
-        spp_write_ptr = count;
-      }     
-    }
-  } 
-  else
-  {
-    if (spp_write_ptr + count > spp_read_ptr)
-    {
-      return -1;
-    }
-    else
-    {
-      memcpy(spp_buffer + spp_write_ptr, buf, count);
-    }
-  }
 
   tryToSend();
   return 0;
