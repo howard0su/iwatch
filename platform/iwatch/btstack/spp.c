@@ -90,6 +90,7 @@ static void tryToSend(void){
             }
             return;
         }
+        task_queue_pos++;
     }
     return;
 
