@@ -45,6 +45,7 @@ typedef struct tag_spp_sender
 static spp_sender task_queue[TASK_QUEUE_SIZE] = {0};
 static short task_queue_pos = 0;
 
+void tryToSend(void);
 int spp_register_task(char* buf, int size, void (*callback)(char*, int))
 {
     short cursor = task_queue_pos + 1;
@@ -60,6 +61,7 @@ int spp_register_task(char* buf, int size, void (*callback)(char*, int))
             task->buffer_size   = size;
             task->sent_complete = callback;
             task->status        = SPP_SENDER_READY;
+            tryToSend();
             return 0;
         }
         cursor++;
