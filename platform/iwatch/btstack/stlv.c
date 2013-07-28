@@ -159,6 +159,12 @@ void handle_stlv_packet(unsigned char* packet)
                 printf("echo: ");
                 print_stlv_string(data, data_len);
                 printf("\n");
+                stlv_packet p = create_packet();
+                if (p == NULL)
+                    return;
+                element_handle h = append_element(p, NULL, "E", 1);
+                element_append_data(p, h, data, data_len);
+                send_packet(p);
             }
             break;
             
@@ -309,7 +315,7 @@ stlv_packet create_packet()
     return _packet[_packet_writer].packet_data;
 }
 
-//extern int spp_register_task(char* buf, int size, void (*callback)(char*, int));
+extern int spp_register_task(char* buf, int size, void (*callback)(char*, int));
 static void sent_complete(char* buf, int len)
 {
     if (_packet_reader == _packet_writer)
@@ -322,8 +328,8 @@ static void sent_complete(char* buf, int len)
 
 int send_packet(stlv_packet p)
 {
-    return -1;
-    //return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete);
+    //return -1;
+    return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete);
 }
 
 int  set_version(stlv_packet p, int version)
