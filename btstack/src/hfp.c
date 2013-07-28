@@ -307,12 +307,29 @@ static void handle_RING()
 
 static void handle_CLIP(char* buf)
 {
-  char phone[20];
-  if (sscanf("\r\n+CLIP: \"%s\"", phone))
+  char *phone;
+  while(*buf != 0 && *buf == '\"')
   {
-    log_info("CLIP: %s\n", phone);
-    process_post_synch(ui_process, EVENT_RING_NUM, phone);
+    buf++;
   }
+  // find buf
+  if (*buf == 0)
+    return;
+  
+  phone = buf;
+
+  buf++;
+  while (*buf != 0 && *buf != '\"')
+  {
+    buf++;
+  }
+
+  if (*buf != 0) 
+    *buf = 0;
+  else 
+    return;
+  log_info("CLIP: %s\n", phone);
+  process_post_synch(ui_process, EVENT_RING_NUM, phone);
 }
 
 static void handle_CIND0(char* buf)
