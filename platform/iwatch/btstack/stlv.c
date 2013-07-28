@@ -238,3 +238,180 @@ int filter_elements(
     return mask;
 }
 
+
+typedef struct _stlv_packet_builder
+{
+    unsigned char packet_data[STLV_PACKET_MAX_SIZE];
+
+    element_handle stack[MAX_ELEMENT_NESTED_LAYER];
+    int            stack_ptr;
+    int            slot_id;
+}stlv_packet_builder;
+
+#define BUILDER_COUNT (1024 / sizeof(stlv_packet_builder))
+static stlv_packet_builder _packet[BUILDER_COUNT];
+static short _packet_reader = 0;
+static short _packet_writer = 0;
+
+#define GET_PACKET_BUILDER(p)     ((stlv_packet_builder*)p)
+#define CAN_ADD_NEW_LAYER(bulder) (builder->stack_ptr < MAX_ELEMENT_NESTED_LAYER)
+
+static int find_element(element_handle* vec, int size, element_handle val)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (vec[i] == val)
+            return i;
+    }
+    return size;
+}
+
+static int inc_element_length(stlv_packet p, element_handle h, int size)
+{
+    int type_size = get_element_type(p, h, NULL, 0);
+    h[type_size] += size;
+    return type_size + 1;
+}
+
+static void inc_parent_elements_length(stlv_packet p, int size)
+{
+    stlv_packet_builder* builder = GET_PACKET_BUILDER(p);
+    for (int i = 0; i < builder->stack_ptr; i++)
+        inc_element_length(p, builder->stack[i], size);
+}
+
+stlv_packet create_packet()
+{
+    if (_packet_reader <= _packet_writer)
+    {
+        if (_packet_writer + 1 >= _packet_reader + BUILDER_COUNT)
+            return NULL;
+    }
+    else
+    {
+        if (_packet_writer + 1 >= _packet_reader)
+            return NULL;
+    }
+
+    _packet_writer++;
+    if (_packet_writer == BUILDER_COUNT)
+        _packet_writer = 0;
+
+    stlv_packet_builder* builder = &_packet[_packet_writer];
+    builder->packet_data[HEADFIELD_VERSION]     = 1;
+    builder->packet_data[HEADFIELD_FLAG]        = 0x80;
+    builder->packet_data[HEADFIELD_BODY_LENGTH] = 0;
+    builder->packet_data[HEADFIELD_SEQUENCE]    = 0;
+
+    builder->stack_ptr = 0;
+    builder->slot_id   = _packet_writer;
+
+    return _packet[_packet_writer].packet_data;
+}
+
+//extern int spp_register_task(char* buf, int size, void (*callback)(char*, int));
+static void sent_complete(char* buf, int len)
+{
+    if (_packet_reader == _packet_writer)
+        return;
+    _packet_reader++;
+    if (_packet_reader == BUILDER_COUNT)
+        _packet_reader = 0;
+    send_packet(_packet[_packet_reader].packet_data);
+}
+
+int send_packet(stlv_packet p)
+{
+    return -1;
+    //return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete);
+}
+
+int  set_version(stlv_packet p, int version)
+{
+    p[HEADFIELD_VERSION] = (unsigned char)version;
+    return 1;
+}
+
+int  set_body_length(stlv_packet p, int len)
+{
+    p[HEADFIELD_BODY_LENGTH] = (unsigned char)len;
+    return 1;
+}
+
+int  set_sequence(stlv_packet p, int sn)
+{
+    p[HEADFIELD_SEQUENCE] = (unsigned char)sn;
+    return 1;
+}
+
+int  set_flag(stlv_packet p, int flag)
+{
+    p[HEADFIELD_FLAG] = (unsigned char)flag;
+    return 1;
+}
+
+static void set_element_type(stlv_packet p, element_handle h, char* type_buf, int buf_len)
+{
+    for (int i = 0; i < buf_len - 1; i++)
+        h[i] = (unsigned char)(type_buf[i] | 0x80);
+    h[buf_len - 1] = (unsigned char)(type_buf[buf_len - 1]);
+
+    p[HEADFIELD_BODY_LENGTH] += (buf_len + 1);
+    inc_parent_elements_length(p, buf_len + 1); 
+}
+
+element_handle append_element(stlv_packet p, element_handle parent, char* type_buf, int buf_len)
+{
+    stlv_packet_builder* builder = GET_PACKET_BUILDER(p);
+    if (IS_VALID_STLV_HANDLE(parent))
+    {
+        int pos = find_element(builder->stack, builder->stack_ptr, parent);
+        if (pos != builder->stack_ptr)
+        {
+            builder->stack_ptr = pos + 1;
+        }
+        else
+        {
+            if (!CAN_ADD_NEW_LAYER(builder))
+                return STLV_INVALID_HANDLE;
+            else
+                builder->stack[builder->stack_ptr++] = parent;
+        }
+    }
+    else
+    {
+        builder->stack_ptr = 0;
+    }
+
+    int len = get_body_length(p) + STLV_HEAD_SIZE;
+    if (len >= STLV_PACKET_MAX_BODY_SIZE)
+        return STLV_INVALID_HANDLE;
+
+    element_handle h = p + len;
+
+    set_element_type(p, h, type_buf, buf_len);
+
+    return h;
+}
+
+int element_append_data(stlv_packet p, element_handle h, unsigned char* data_buf, int buf_len)
+{
+    unsigned char* body_start = get_element_data_buffer(p, h, NULL, 0);
+    for (int i = 0; i < buf_len; i++)
+        body_start[i] = data_buf[i];
+
+    inc_element_length(p, h, buf_len);
+    p[HEADFIELD_BODY_LENGTH] += buf_len;
+    inc_parent_elements_length(p, buf_len);
+    return buf_len;
+}
+
+//int element_append_char  (stlv_packet p, element_handle h, char  data);
+//int element_append_short (stlv_packet p, element_handle h, short data);
+//int element_append_int   (stlv_packet p, element_handle h, int   data);
+int element_append_string(stlv_packet p, element_handle h, char* data)
+{
+    int len = strlen(data);
+    return element_append_data(p, h, (unsigned char*)data, len);
+}
+
