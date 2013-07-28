@@ -1,8 +1,15 @@
-
+#include "contiki.h"
+#include "window.h"
 #include "stlv.h"
 #include <stdio.h>
+#include "rtc.h"
 
 #define GET_PACKET_END(pack) (pack + STLV_HEAD_SIZE + get_body_length(pack))
+
+#define ICON_FACEBOOK 's'
+#define ICON_TWITTER  't'
+#define ICON_MSG      'u'
+
 
 int get_version(stlv_packet pack)
 {
@@ -105,7 +112,7 @@ static void print_stlv_string(unsigned char* data, int len)
     data[len] = back;
 }
 
-static void handle_msg_element(stlv_packet pack, element_handle handle)
+static void handle_msg_element(uint8_t icon, stlv_packet pack, element_handle handle)
 {
     element_handle begin = get_first_sub_element(pack, handle);
     char filter[2] = { SUB_TYPE_MESSAGE_IDENTITY, SUB_TYPE_MESSAGE_MESSAGE, };
@@ -119,16 +126,19 @@ static void handle_msg_element(stlv_packet pack, element_handle handle)
 
     int identity_len = get_element_data_size(pack, sub_handles[0], NULL, 0);
     unsigned char* identity_data = get_element_data_buffer(pack, sub_handles[0], NULL, 0);
-    printf("From:");
-    print_stlv_string(identity_data, identity_len);
-    printf("\n");
-
+    
     int message_len = get_element_data_size(pack, sub_handles[1], NULL, 0);
     unsigned char* message_data = get_element_data_buffer(pack, sub_handles[1], NULL, 0);
-    printf("Message:");
-    print_stlv_string(message_data, message_len);
-    printf("\n");
     
+    identity_data[identity_len] = '\0';
+    message_data[message_len] = '\0';
+    printf("From: %s\n", identity_data);
+    printf("Message: %s\n", message_data);
+    window_notify(identity_data,
+                  message_data,
+                  NOTIFY_OK,
+                  icon
+                  );
 }
    
 void handle_stlv_packet(unsigned char* packet)
@@ -158,30 +168,33 @@ void handle_stlv_packet(unsigned char* packet)
                 unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                 printf("clock: %d/%d/%d %d:%d:%d\n", 
                     (int)data[0], (int)data[1], (int)data[2], (int)data[3], (int)data[4], (int)data[5]);
+                rtc_setdate(2000 + data[0], data[1], data[2]);
+                rtc_settime(data[3], data[4], data[5]);
             }
             break;
             
         case ELEMENT_TYPE_MESSAGE:
             if (type_len == 2)
             {
+                uint8_t icon;
                 switch (type_buf[1])
                 {
                 case ELEMENT_TYPE_MESSAGE_SMS:
                     printf("notification(SMS):\n");
-                    handle_msg_element(pack, handle);
+                    icon = ICON_MSG;
                     break;
                 case ELEMENT_TYPE_MESSAGE_FB:
                     printf("notification(Facebook):\n");
-                    handle_msg_element(pack, handle);
+                    icon = ICON_FACEBOOK;
                     break;
                 case ELEMENT_TYPE_MESSAGE_TW:
                     printf("notification(Twitter):\n");
-                    handle_msg_element(pack, handle);
+                    icon = ICON_TWITTER;
                     break;
                 default:
                     break;
                 }
-                
+                handle_msg_element(icon, pack, handle);                
             }
             break;
             

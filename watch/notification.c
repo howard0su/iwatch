@@ -2,6 +2,7 @@
 #include "window.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "backlight.h"
 
 static const char* message_title;
 static const char* message;
@@ -9,7 +10,7 @@ static char message_icon;
 static uint8_t message_buttons;
 static uint8_t message_result;
 
-#define BORDER 10
+#define BORDER 5
 
 static const tRectangle rect[5] =
 {
@@ -70,7 +71,9 @@ uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
+  {
     break;
+  }
   case EVENT_WINDOW_PAINT:
     {
       onDraw((tContext*)rparam);
@@ -104,6 +107,11 @@ void window_notify(const char* title, const char* msg, uint8_t buttons, char ico
   message = msg;
   message_buttons = buttons;
   message_icon = icon;
-  window_open(notify_process, NULL);
+  motor_on(200, CLOCK_SECOND / 2);
+
+  if (window_current() == notify_process)
+    window_invalid(NULL);
+  else 
+    window_open(notify_process, NULL);
 }
 

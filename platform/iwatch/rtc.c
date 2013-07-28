@@ -61,17 +61,21 @@ void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
   uint8_t weekday;
 
   weekday = rtc_getweekday(year, month, day);
-  RTCYEAR = year;                         // Year = 0x2010
-  RTCMON = month;                             // Month = 0x04 = April
-  RTCDAY = day;                            // Day = 0x05 = 5th
+  now.year = RTCYEAR = year;                         // Year = 0x2010
+  now.month = RTCMON = month;                             // Month = 0x04 = April
+  now.day = RTCDAY = day;                            // Day = 0x05 = 5th
   RTCDOW = weekday;                            // Day of week = 0x01 = Monday
+
+  process_post(ui_process, EVENT_TIME_CHANGED, &now);
 }
 
 void rtc_settime(uint8_t hour, uint8_t min, uint8_t sec)
 {
-  RTCHOUR = hour;                           // Hour = 0x10
-  RTCMIN = min;                            // Minute = 0x32
-  RTCSEC = sec;                            // Seconds = 0x45
+  now.hour = RTCHOUR = hour;                           // Hour = 0x10
+  now.minute = RTCMIN = min;                            // Minute = 0x32
+  now.second = RTCSEC = sec;                            // Seconds = 0x45
+
+  process_post(ui_process, EVENT_TIME_CHANGED, &now);
 }
 
 uint8_t rtc_getmaxday(uint16_t year, uint8_t month)

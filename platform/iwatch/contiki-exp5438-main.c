@@ -44,8 +44,6 @@
 #include "sys/autostart.h"
 #include "sys/profile.h"
 #include "sys/ctimer.h"
-#include "cfs/cfs.h"
-#include "cfs/cfs-coffee.h"
 
 #include "node-id.h"
 #include "power.h"
@@ -107,22 +105,20 @@ main(int argc, char **argv)
   battery_init();
   button_init();
   rtc_init();
+  SPI_FLASH_Init();
   I2C_Init();
+  mpu6050_init();
 
   //codec_init();
   //ant_init();
-    bluetooth_init();
+  bluetooth_init();
 
 //  if (!bluetooth_paired())
   {
     bluetooth_discoverable(1);
   }
 
-  mpu6050_init();
-
   autostart_start(autostart_processes);
-
-  SPI_FLASH_Init();
 
   /*
   * This is the scheduler loop.
@@ -163,7 +159,7 @@ main(int argc, char **argv)
       }
       else
       {
-      __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
+        __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
       }
 
       /* We get the current processing time for interrupts that was

@@ -126,11 +126,13 @@ void window_handle_event(uint8_t ev, void* data)
     }
     else if (ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS)
     {
+#if 0
       if (!(SFRRPCR & SYSNMI))
       {
         SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
         SFRIE1 &= ~NMIIE;
       }
+#endif
       status_process(ev, (uint16_t)data, NULL);
       ui_window(ev, (uint16_t)data, NULL);
     }
@@ -292,4 +294,9 @@ void window_writeconfig()
   flash_clear(INFOC);
   flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
   flash_done();
+}
+
+windowproc window_current()
+{
+  return ui_window;
 }

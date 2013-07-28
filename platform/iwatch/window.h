@@ -54,6 +54,7 @@ extern void window_invalid(const tRectangle *rect);
 extern void status_invalid(void);  // invalid status
 extern void window_timer(clock_time_t time);
 extern void window_close(void);
+extern windowproc window_current();
 
 // Common control
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
