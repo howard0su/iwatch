@@ -4,6 +4,7 @@
 #include "Template_Driver.h"
 #include "rtc.h"
 #include "ant/ant.h"
+#include "stlv.h"
 #include <stdio.h>
 
 #define GRID_3 			0
@@ -267,6 +268,15 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       printf("got ant data\n");
       updateData(DATA_HEARTRATE, (uint16_t)rparam);
+      {
+        // send data to phone
+        stlv_packet p = create_packet();
+        if (p == NULL)
+            break;
+        element_handle h = append_element(p, NULL, "H", 1);
+        element_append_data(p, h, (unsigned char*)&rparam, 2);
+        send_packet(p);
+      }
       break;
     }
   case EVENT_TIME_CHANGED:
