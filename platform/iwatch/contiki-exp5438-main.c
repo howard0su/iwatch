@@ -124,6 +124,7 @@ main(int argc, char **argv)
   * This is the scheduler loop.
   */
   SMCLK_NEED = 0;
+  watchdog_stop();
   watchdog_start();
 
   while(1) {
