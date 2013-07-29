@@ -38,7 +38,7 @@
 
 static int counter = 0;
 
-#define PRINT_STACK_ON_REBOOT 1
+#define PRINT_STACK_ON_REBOOT 0
 
 /*---------------------------------------------------------------------------*/
 ISR(WDT, watchdog_interrupt)
