@@ -29,6 +29,8 @@ ALL_INCLUDEDIRS = \
 	platform/native \
 	platform/iwatch \
 	btstack/include \
+	btstack/src \
+	platform/iwatch/btstack \
 
 #######################################
 # source files
@@ -103,7 +105,10 @@ WATCH = \
     watch/status.c \
     watch/window.c
 
-SRCS = $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c
+BTSTACK=btstack/src/obex.c \
+	btstack/src/utils.c 
+
+SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c platform/iwatch/btstack/stlv.c 
 
 OBJDIR = objs.native
 OBJS0 = $(SRCS:.c=.o)

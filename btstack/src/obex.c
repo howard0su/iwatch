@@ -5,123 +5,176 @@
 #include "obex.h"
 #include "sdp.h"
 #include "rfcomm.h"
+#include "btstack/utils.h"
 #include "btstack/sdp_util.h"
 
 #include <string.h>
+#include <assert.h>
 #include "config.h"
 #include "debug.h"
 
+#define INIT 0
+#define CONNECTING 1
+#define CONNECTED 2
+#define WAITRESP 3
 
-static uint16_t obex_response_size;
-static void*    obex_response_buffer;
-static uint16_t rfcomm_channel_id = 0;
 
-static enum
+static void obex_handle_request(const struct obex* obex, const operation_obex* data)
 {
-  INITIALIZING,WAITINCOME,ERROR
-}state;
 
-
-static void obex_try_respond(uint16_t rfcomm_channel_id){
-    if (!obex_response_size ) return;
-    if (!rfcomm_channel_id) return;
-
-    // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
-    uint16_t size = obex_response_size;
-    obex_response_size = 0;
-    if (rfcomm_send_internal(rfcomm_channel_id, obex_response_buffer, size) != 0)
-    {
-      // if error, we need retry
-      obex_response_size = size;
-    }
 }
 
-static void obex_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint16_t len)
+static void obex_handle_response(const struct obex* obex, const operation_obex* data)
 {
-  log_info("obex_handler state %d event %d\n", state, type);
-  switch(type)
+
+}
+
+static void obex_handle_connected(const struct obex* obex, const connection_obex* data)
+{
+  const uint8_t *ptr = data->data;
+  while(ptr - data->data < data->length)
   {
-  case RFCOMM_DATA_PACKET:
+    switch(*ptr)
     {
-      break;
+      case OBEX_HEADER_CONNID:
+        obex->state->connection = READ_NET_32(ptr, 0);
+        ptr += 4 + 1;
+        break;
     }
-  case HCI_EVENT_PACKET:
+  }
+
+  obex->callback(OBEX_CB_NEWCONN, &(obex->state->connection), sizeof(uint32_t));
+  obex->state->state = CONNECTED;
+}
+
+// handle the input packet and call event handler
+void obex_handle(const struct obex* obex, const uint8_t* packet, uint16_t length)
+{
+  switch(*packet)
+  {
+    case 0x20:
+    case 0xA0:
     {
-      switch(packet[0])
+      // if sucess, get connectid
+      switch (obex->state->state)
       {
-      case RFCOMM_EVENT_INCOMING_CONNECTION:
+        case CONNECTING:
         {
-          uint8_t   rfcomm_channel_nr;
-          bd_addr_t event_addr;
-          // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
-          bt_flip_addr(event_addr, &packet[2]);
-          rfcomm_channel_nr = packet[8];
-          uint16_t rfcomm_id = READ_BT_16(packet, 9);
-          log_info("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
-          if (rfcomm_channel_id == 0)
-          {
-            rfcomm_channel_id = rfcomm_id;
-            rfcomm_accept_connection_internal(rfcomm_id);
-            break;
-          }
-          else
-          {
-            rfcomm_decline_connection_internal(rfcomm_id);
-          }
+          connection_obex *data = (connection_obex*)packet;    
+          obex_handle_connected(obex, data);
           break;
         }
-
-      case RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE:
+        case CONNECTED:
         {
-          if (packet[2])
-          {
-            rfcomm_channel_id = 0;
-            break;
-          }
-
-          if (state == INITIALIZING)
-          {
-            state = WAITINCOME;
-            obex_response_buffer = NULL;
-            obex_response_size = 0;
-            obex_try_respond(rfcomm_channel_id);
-          }
-          else
-          {
-            state = ERROR;
-          }
+          operation_obex *data = (operation_obex*)packet;
+          obex_handle_request(obex, data);
           break;
         }
-      case RFCOMM_EVENT_CREDITS:
+        case WAITRESP:
         {
-          obex_try_respond(rfcomm_channel_id);
-          break;
-        }
-      case RFCOMM_EVENT_CHANNEL_CLOSED:
-        {
-          if (rfcomm_channel_id)
-          {
-            rfcomm_channel_id = 0;
-          }
-          state = INITIALIZING;
+          operation_obex *data = (operation_obex*)packet;
+          obex_handle_response(obex, data);
           break;
         }
       }
+      break;
     }
+    default:
+      printf("Response error: %d\n", *packet);
+      break;
   }
 }
 
-void obex_init(int channel)
+uint8_t* obex_header_add_text(uint8_t *buf, int code, const char* text)
 {
-  rfcomm_register_service_internal(NULL, obex_handler, channel, 100);  // reserved channel, mtu=100
+  // assert code
+  assert((code & 0xC0) == 0x00);
+  buf[0] = code;
+  int length = strlen(text);
+  net_store_16(buf, 1, length);
+  memcpy(buf + 3, text, length + 1);
 
-  state = INITIALIZING;
+  return buf + 3 + length + 1;
 }
 
-void obex_open(const bd_addr_t *remote_addr, uint8_t port)
+uint8_t* obex_header_add_bytes(uint8_t *buf, int code, const uint8_t *data, int length)
 {
-  if (rfcomm_channel_id)
+  // assert code
+  assert((code & 0xC0) == 0x40);
+  buf[0] = code;
+  net_store_16(buf, 1, length);
+  memcpy(buf + 3, data, length);
+
+  return buf + 3 + length;
+}
+
+uint8_t *obex_header_add_byte(uint8_t *buf, int code, uint8_t data)
+{
+  assert((code & 0xC0) == 0x80);
+  buf[0] = code;
+  buf[1] = data;
+  return buf + 2;
+}
+
+uint8_t *obex_header_add_uint32(uint8_t *buf, int code, uint32_t data)
+{
+  assert((code & 0xC0) == 0xC0);
+  buf[0] = code;
+  net_store_32(buf, 1, data);
+
+  return buf + 5;
+}
+
+uint8_t* obex_create_request(const struct obex* obex, int opcode, uint8_t* buf)
+{
+  operation_obex *request = (operation_obex*)buf;
+  request->opcode = opcode;
+  uint8_t *ptr = request->data;
+  obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, obex->state->connection);
+
+  return ptr;
+}
+
+void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length)
+{
+  if (obex->state->state != CONNECTED)
+    return;
+  operation_obex *request = (operation_obex*)buf;
+
+  net_store_16(buf, 1, length);
+
+  obex->state->state = WAITRESP;
+  obex->callback(OBEX_CB_SEND, buf, length);  
+}
+
+void obex_connect(const struct obex* obex, const uint8_t *target, uint8_t target_length)
+{
+  uint8_t *ptr;
+  uint8_t buf[128];
+
+  if (obex->state->state != INIT)
     return;
 
-  rfcomm_create_channel_internal(NULL, obex_handler, (bd_addr_t*)remote_addr, port);
+  connection_obex* conn = (connection_obex*)buf;
+  conn->opcode = 0x80; // connect
+  conn->version = 0x10;
+  conn->flags = 0;
+  conn->max_packet_length = 0x2800; // 255?
+
+  ptr = conn->data;
+  if (target != NULL)
+  {
+    ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TARGET, target, target_length);
+  }
+
+  //putlenth
+  net_store_16(buf, 1, ptr - buf);
+
+  obex->state->state = CONNECTING;
+  obex->callback(OBEX_CB_SEND, buf, ptr - buf);
+}
+
+void obex_init(const struct obex* obex)
+{
+  memset(obex->state, 0, sizeof(struct obex_state));
 }
