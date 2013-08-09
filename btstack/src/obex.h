@@ -1,10 +1,12 @@
 #ifndef _OBEX_H_
 #define _OBEX_H_
+#include <wchar.h>
 
 #define OBEX_OP_CONNECT 	0x00
 #define OBEX_OP_DISCONNECT 	0x01
 #define OBEX_OP_PUT			0x02
 #define OBEX_OP_GET			0x03
+#define OBEX_OP_FINAL		0x80
 
 #define OBEX_OP_LAST_FLAG   0x80
 
@@ -27,7 +29,8 @@ struct obex_state
 struct obex
 {
 	struct obex_state *state;
-	void (*callback)(int code, void* lparam, uint16_t rparam);
+	void (*state_callback)(int code, void* lparam, uint16_t rparam);
+	void (*send)(void* data, uint16_t length);
 };
 
 #pragma pack(push, 1)
@@ -62,14 +65,14 @@ typedef struct _operation_obex
 
 void obex_init(const struct obex*);
 void obex_handle(const struct obex* state, const uint8_t* packet, uint16_t length);
-void obex_connect(const struct obex* obex, const uint8_t *target, uint8_t target_length);
+void obex_connect_request(const struct obex* obex, const uint8_t *target, uint8_t target_length);
 uint8_t* obex_create_request(const struct obex* obex, int opcode, uint8_t* buf);
 void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length);
 
-uint8_t* obex_header_add_text(uint8_t *buf, int code, const char* text);
+uint8_t* obex_header_add_text(uint8_t *buf, int code, const wchar_t* text);
 uint8_t* obex_header_add_bytes(uint8_t *buf, int code, const uint8_t *data, int length);
 uint8_t *obex_header_add_byte(uint8_t *buf, int code, uint8_t data);
 uint8_t *obex_header_add_uint32(uint8_t *buf, int code, uint32_t data);
-
+uint8_t *obex_header_get_next(uint8_t *prev, /* in,out*/ uint16_t *length_left);
 
 #endif

@@ -2145,6 +2145,9 @@
         <name>$PROJ_DIR$\..\btstack\src\mns.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\btstack\src\mas.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\btstack\src\obex.c</name>
       </file>
       <file>

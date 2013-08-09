@@ -370,19 +370,20 @@ void SimluateRun()
 
 #include "obex.h"
 static void mas_callback(int code, void* lparam, uint16_t rparam);
+static void mas_send(void* lparam, uint16_t rparam);
 static struct obex_state mas_obex_state;
 static const struct obex mas_obex = 
 {
-  &mas_obex_state, mas_callback
+  &mas_obex_state, mas_callback, mas_send
 };
 static void mas_callback(int code, void* lparam, uint16_t rparam)
 {
-  switch(code)
-  {
-    case OBEX_CB_SEND:
-      hexdump(lparam, rparam);
-      break;
-  }
+  printf("obex event : %d\n", code);
+}
+
+static void mas_send(void* lparam, uint16_t rparam)
+{
+  hexdump(lparam, rparam);
 }
 static const uint8_t appparams_notify[] = 
 {
@@ -397,15 +398,21 @@ static const char type_notify[] = "x-bt/MAP-NotificationRegistration";
 void testobex()
 {
   obex_init(&mas_obex);
-  obex_connect(&mas_obex, MAS_TARGET, sizeof(MAS_TARGET));
+  obex_connect_request(&mas_obex, MAS_TARGET, sizeof(MAS_TARGET));
 
-  mas_obex.state->state = 2; // hack, assume we connected
+  uint8_t data[] = {
+    0xA0, 0x00, 0x1F , 0x10 , 0x00 , 0x0F , 0xA0 , 0xCB , 0x00 , 0x1D , 0x91 ,
+    0x18 , 0x4A , 0x00 , 0x13 , 0xBB , 0x58 , 0x2B , 0x40 , 0x42 , 0x0C , 0x11 , 
+    0xDB , 0xB0 , 0xDE , 0x08 , 0x00 , 0x20 , 0x0C , 0x9A , 0x66
+  };
+
+  obex_handle(&mas_obex, data, sizeof(data));
 
   uint8_t buf[256];
   uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_PUT, buf);
   uint8_t Fillerbyte = 0x30;
   
-  ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_notify, strlen(type_notify));
+  ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_notify, sizeof(type_notify));
   ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_notify, sizeof(appparams_notify));
   ptr = obex_header_add_bytes(ptr, OBEX_HEADER_ENDBODY, &Fillerbyte, 1);
     

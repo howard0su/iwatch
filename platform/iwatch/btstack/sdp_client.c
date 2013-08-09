@@ -30,13 +30,15 @@
 #include "avrcp.h"
 #include "debug.h"
 
-static const uint16_t serviceids[3] = {
+static const uint16_t serviceids[] = {
   0x111F, // HFP gateway
   0x110C, // AVRCP server
   0x1132, // MAP MNS Server
 };
 static uint8_t current_server = 0;
 static bd_addr_t addr;
+
+extern int mas_open(const bd_addr_t *remote_addr, uint8_t port);
 
 static enum
 {
@@ -84,7 +86,7 @@ static void sdpc_trysend()
   }
 }
 
-static uint8_t hfp_port, mns_port;
+static uint8_t hfp_port, mas_port;
 /*
 parse the sdp record:
 type   DES (6), element len 26
@@ -163,7 +165,7 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     {
       state = DONE;
       l2cap_close_connection(&current_server);
-      //hfp_open(&addr, hfp_port);
+//        hfp_open(&addr, hfp_port);
       //mns_open(&addr, mns_port);
     }
     else
