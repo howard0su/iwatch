@@ -153,8 +153,8 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
         break;
       case 2:
         {
-        mns_port = sdp_get_parameters_for_uuid(&packet[7], 0x0003);;
-        log_info("MAP port: %d\n", mns_port );
+        mas_port = sdp_get_parameters_for_uuid(&packet[7], 0x0003);;
+        log_info("MAP port: %d\n", mas_port );
         break;
         }
       }
@@ -165,8 +165,10 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     {
       state = DONE;
       l2cap_close_connection(&current_server);
+//      if (hfp_port != 0)
 //        hfp_open(&addr, hfp_port);
-      //mns_open(&addr, mns_port);
+      if (mas_port != 0)
+        mas_open(&addr, mas_port);
     }
     else
     {
