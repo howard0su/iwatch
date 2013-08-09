@@ -3,5 +3,5 @@
 
 extern void backlight_on(uint8_t level);
 extern void backlight_init();
-extern void motor_on(uint8_t level);
+extern void motor_on(uint8_t level, clock_time_t length);
 #endif
