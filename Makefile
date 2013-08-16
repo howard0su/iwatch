@@ -21,7 +21,7 @@ CFLAGS = $(CFLAGS0)
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -108,7 +108,9 @@ WATCH = \
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c 
 
-SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c platform/iwatch/btstack/stlv.c 
+PAWN=pawnscript/amx.c pawnscript/amxaux.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c 
+
+SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) main.c platform/iwatch/btstack/stlv.c 
 
 OBJDIR = objs.native
 OBJS0 = $(SRCS:.c=.o)

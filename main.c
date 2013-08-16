@@ -379,6 +379,7 @@ static const struct obex mas_obex =
 static void mas_callback(int code, void* lparam, uint16_t rparam)
 {
   printf("obex event : %d\n", code);
+  hexdump(lparam, rparam);
 }
 
 static void mas_send(void* lparam, uint16_t rparam)
@@ -406,6 +407,12 @@ void testobex()
     0xDB , 0xB0 , 0xDE , 0x08 , 0x00 , 0x20 , 0x0C , 0x9A , 0x66
   };
 
+uint8_t data1[] = {0x82,0x00,0xBE,0xCB,0x00,0x12,0x34,0x56,0x42,0x00,0x19,0x78,0x2D,0x62,0x74,0x2F,0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0x70,0x6F,0x72,0x74,0x00,0x4C,0x00,0x06,0x0F,0x01,0x00,0x49,0x00,0x97,0x3C};
+uint8_t data2[] = {0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0x70,0x6F,0x72,0x74,0x20,0x76,0x65,0x72,0x73,0x69,0x6F,0x6E,0x20,0x3D,0x20,0x22,0x31,0x2E,0x30,0x22,0x3E,0x3C,0x65,0x76,0x65,0x6E,0x74,0x20,0x74,0x79,0x70,
+0x65,0x20,0x3D,0x20,0x22,0x4E,0x65,0x77,0x4D,0x65,0x73,0x73,0x61,0x67,0x65,0x22,0x20,0x68,0x61,0x6E,0x64,0x6C,0x65,0x20,0x3D,0x20,0x22,0x31,0x30,0x30,0x31,0x22,0x20,0x66,0x6F,0x6C,0x64,0x65,0x72,0x20,0x3D,0x20,0x22,
+0x74,0x65,0x6C,0x65,0x63,0x6F,0x6D,0x2F,0x6D,0x73,0x67,0x2F,0x69,0x6E,0x62,0x6F,0x78,0x22,0x20,0x6D,0x73,0x67,0x5F,0x74,0x79,0x70,0x65,0x20,0x3D,0x20,0x22,0x53,0x4D,0x53,0x5F,0x47,0x53,0x4D,0x22,0x20,0x2F,0x3E,0x3C,
+0x2F,0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0x70,0x6F,0x72,0x74,0x3E};
+
   obex_handle(&mas_obex, data, sizeof(data));
 
   uint8_t buf[256];
@@ -418,8 +425,133 @@ void testobex()
     
   obex_send(&mas_obex, buf, ptr - &buf[0]);
 
+  obex_handle(&mas_obex, data1, sizeof(data1));
+  obex_handle(&mas_obex, data2, sizeof(data2));
 
 }
+
+#include "pawnscript/amx.h"
+#include "pawnscript/amxaux.h"
+
+int load_script(const char* filename, char* memblock)
+{
+  FILE *fp;
+  AMX_HEADER hdr;
+
+  /* open the file, read and check the header */
+  if ((fp = fopen(filename, "rb")) == NULL)
+    return AMX_ERR_NOTFOUND;
+  fread(&hdr, sizeof hdr, 1, fp);
+  //amx_Align16(&hdr.magic);
+  //amx_Align32((uint32_t *)&hdr.size);
+  //amx_Align32((uint32_t *)&hdr.stp);
+  if (hdr.magic != AMX_MAGIC) {
+    fclose(fp);
+    return AMX_ERR_FORMAT;
+  } /* if */
+
+  /* read in the file */
+  rewind(fp);
+  fread(memblock, 1, (size_t)hdr.size, fp);
+  fclose(fp);
+
+  return 0;
+}
+
+AMX amx;
+int idxOnCreate = -1, idxOnPaint = -1, idxOnClose = -1;
+uint8_t rom[1024 * 2];
+uint8_t ram[1024];
+
+int init_script()
+{
+  int error;
+  cell ret;
+  /* initialize the abstract machine */
+  memset(&amx, 0, sizeof amx);
+
+  load_script("script1.amx", rom);
+  amx.data = ram;
+  error = amx_Init(&amx, rom);
+  if (error != AMX_ERR_NONE)
+  {
+    printf("Error Init: %s\n", aux_StrError(error));
+    return -1;
+  }
+  error = amx_ConsoleInit(&amx);
+  if (error != AMX_ERR_NONE)
+  {
+    printf("Error Console init: %s\n", aux_StrError(error));
+    //return -1;
+  }
+
+  error = amx_WindowInit(&amx);
+  if (error != AMX_ERR_NONE)
+  {
+    printf("Error Window init: %s\n", aux_StrError(error));
+    //return -1;
+  }
+
+  error = amx_StringInit(&amx);
+  if (error != AMX_ERR_NONE)
+  {
+    printf("Error String init: %s\n", aux_StrError(error));
+    //return -1;
+  }
+
+  amx_FindPublic(&amx, "@oncreate", &idxOnCreate);
+  amx_FindPublic(&amx, "@onpaint", &idxOnPaint);
+  amx_FindPublic(&amx, "@onclose", &idxOnClose);
+}
+
+static uint8_t test_script_process(uint8_t event, uint16_t lparam, void* rparam)
+{
+  int error;
+  cell ret;
+  switch(event)
+  {
+    case EVENT_WINDOW_CREATED:
+    init_script();
+    if (idxOnCreate != -1)
+    {
+      error = amx_Exec(&amx, &ret, idxOnCreate);
+      if (error != AMX_ERR_NONE)
+      {
+        printf("Error Exec: %s\n", aux_StrError(error));
+      }
+    }
+    break;
+    case EVENT_WINDOW_PAINT:
+    if (idxOnPaint != -1)
+    {
+      tContext *pContext = (tContext*)rparam;
+      GrContextForegroundSet(pContext, ClrBlack);
+      GrRectFill(pContext, &client_clip);
+      GrContextForegroundSet(pContext, ClrWhite);
+
+      amx_Push(&amx, (cell)rparam);
+      error = amx_Exec(&amx, &ret, idxOnPaint);
+      if (error != AMX_ERR_NONE)
+      {
+        printf("Error Exec: %s\n", aux_StrError(error));
+      }
+    }
+    break;
+    case EVENT_WINDOW_CLOSING:
+    if (idxOnClose != -1)
+    {
+      error = amx_Exec(&amx, &ret, idxOnClose);
+      if (error != AMX_ERR_NONE)
+      {
+        printf("Error Exec: %s\n", aux_StrError(error));
+      }
+    }
+    break;
+  }
+
+  return 1;
+}
+
 
 int main()
 {
@@ -448,6 +580,11 @@ int main()
   {
     gesture_processdata(&inputpoints[i * 3]);
   }
+
+
+  test_window(&test_script_process, NULL);
+
+  return 0;
 
 /*
   for(int i = 0; fonts[i]; i++)
