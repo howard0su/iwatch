@@ -18,7 +18,7 @@ static const uint8_t MAS_TARGET[16] =
  0xbb, 0x58, 0x2b, 0x40, 0x42, 0x0c, 0x11, 0xdb, 0xb0, 0xde, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66
 };
 
-static void mas_callback(int code, void* lparam, uint16_t rparam);
+static void mas_callback(int code, const uint8_t* lparam, uint16_t rparam);
 static void mas_send(void *data, uint16_t length);
 static uint16_t rfcomm_channel_id;
 static struct obex_state mas_obex_state;
@@ -63,16 +63,17 @@ static void mas_send(void *data, uint16_t length)
   mas_try_respond(rfcomm_channel_id);  
 }
 
-static void mas_callback(int code, void* lparam, uint16_t rparam)
+static void mas_callback(int code, const uint8_t* lparam, uint16_t rparam)
 {
   printf("Callback with code %d\n", code);
   switch(code)
   {
-    case OBEX_CB_NEWCONN:
+    case OBEX_CB_CONNECT_RESP: // connected
     {
       uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_PUT + OBEX_OP_FINAL, mas_buf);
       uint8_t Fillerbyte = 0x30;
       
+      ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, mas_obex.state->connection);
       ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_notify, sizeof(type_notify));
       ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_notify, sizeof(appparams_notify));
       ptr = obex_header_add_bytes(ptr, OBEX_HEADER_ENDBODY, &Fillerbyte, 1);

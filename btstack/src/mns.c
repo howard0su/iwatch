@@ -7,10 +7,11 @@
 #include "sdp.h"
 #include "obex.h"
 #include <btstack/sdp_util.h>
+#include <btstack/utils.h>
 
 #define MNS_CHANNEL 17
 
-static void mns_callback(int code, void* lparam, uint16_t rparam);
+static void mns_callback(int code, const uint8_t* lparam, uint16_t rparam);
 static void mns_send(void *data, uint16_t length);
 
 static service_record_item_t mns_service_record;
@@ -118,9 +119,85 @@ static void mns_send(void *data, uint16_t length)
   mns_try_respond(rfcomm_channel_id);  
 }
 
-static void mns_callback(int code, void* lparam, uint16_t rparam)
+static void mns_callback(int code, const uint8_t* header, uint16_t length)
 {
   printf("Callback with code %d\n", code);
+  uint8_t buf[20];
+
+  switch(code)
+  {
+    case OBEX_CB_CONNECT:
+    // client try to make a connection
+    // validate the target
+    while(header != NULL && length > 0)
+    {
+      switch(*header)
+      {
+        case OBEX_HEADER_TARGET:
+        {
+          if (READ_NET_16(header, 1) == (16 + 3) &&
+            memcmp((uint8_t*)header + 3, MNS_TARGET, 16) == 0)
+          {
+            // send response
+              printf("connection successful\n");
+              uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xA0, buf);
+              ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, 0x123456);
+              obex_send(&mns_obex, buf, ptr - buf);
+          }
+          else
+          {
+              printf("connection failed\n");
+              uint8_t *ptr = obex_create_connect_request(&mns_obex, 404, buf);
+              obex_send(&mns_obex, buf, ptr - buf);
+          }
+          return;
+        }
+      }
+
+      header = obex_header_get_next(header, &length);
+    }
+
+    obex_create_request(&mns_obex, 500, buf);
+    obex_send(&mns_obex, buf, 0);
+
+    break;
+  case OBEX_CB_PUT:
+    while(header != NULL && length > 0)
+    {
+      switch(*header)
+      {
+        case OBEX_HEADER_BODY:
+        {
+          uint16_t length = READ_NET_16((uint8_t*)header, 1);
+          hexdump((uint8_t*)header + 3, length);
+          obex_create_request(&mns_obex, 0x20, buf);
+          obex_send(&mns_obex, buf, 0);
+          break;
+        }
+      }
+
+      header = obex_header_get_next(header, &length);
+    }
+    break;
+  case OBEX_CB_PUT | OBEX_CBFLAG_FINAL:
+    while(header != NULL && length > 0)
+    {
+      switch(*header)
+      {
+        case OBEX_HEADER_BODY:
+        case OBEX_HEADER_ENDBODY:
+        {
+          uint16_t length = READ_NET_16((uint8_t*)header, 1);
+          hexdump((uint8_t*)header + 3, length);
+          obex_create_request(&mns_obex, 0xA0, buf);
+          obex_send(&mns_obex, buf, 0);
+          break;
+        }
+      }
+      header = obex_header_get_next(header, &length);
+    }
+    break;
+  }
 }
 
 static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
