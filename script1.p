@@ -9,13 +9,14 @@ refreshdata()
 {
 	getdate(year, month, day)
 	gettime(hour, minute, second)
-
 	window_invalid()
 }
 
 @oncreate()
 {
 	refreshdata();
+
+	enableclock(Minute)
 }
 
 @onpaint(context: context)
@@ -47,7 +48,7 @@ refreshdata()
 	window_drawtext context, command, (LCD_WIDTH - width)/2, 35, 0
 }
 
-@ontimer()
+@onclock()
 {
   refreshdata()
 }

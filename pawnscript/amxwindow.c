@@ -125,6 +125,14 @@ static cell AMX_NATIVE_CALL n_getdate(AMX *amx, const cell *params)
   return 0;
 }
 
+static cell AMX_NATIVE_CALL n_enableclock(AMX *amx, const cell *params)
+{
+  printf("n_enableclock %x called\n", params[1]);
+  rtc_enablechange(params[1]);
+
+  return 0;
+}
+
 extern cell AMX_NATIVE_CALL n_strformat(AMX *amx,const cell *params);
 
 AMX_NATIVE window_natives[] =
@@ -136,25 +144,6 @@ AMX_NATIVE window_natives[] =
   n_drawtext,
   n_strformat,
   n_gettime,
-  n_getdate
+  n_getdate,
+  n_enableclock
 };
-
-#if defined __cplusplus
-  extern "C"
-#endif
-const AMX_NATIVE_INFO window_Natives[] = {
-  { "window_invalid",   n_invalid },
-  { "window_invalid_rect",   n_invalid_rect },
-  { "window_setfont",   n_setfont},
-  { "window_getwidth", n_getwidth},
-  { "window_drawtext", n_drawtext},
-  { "gettime", n_gettime},
-  { "getdate", n_getdate},
-  { NULL, NULL }        /* terminator */
-};
-
-
-int AMXEXPORT AMXAPI amx_WindowInit(AMX *amx)
-{
-//  return amx_Register(amx, window_Natives, -1);
-}
