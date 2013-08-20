@@ -26,6 +26,7 @@ typedef uint32_t u32;
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
+#define hexdump(...)
 #endif
 
 /*
@@ -57,12 +58,12 @@ static inline void SPI_FLASH_SendCommandAddress(uint8_t opcode, uint32_t address
     SPI_FLASH_SendByte(pData[i]);
 }
 
-inline void SPI_FLASH_CS_LOW()
+static inline void SPI_FLASH_CS_LOW()
 {
   SPIOUT &= ~CSPIN;
 }
 
-inline void SPI_FLASH_CS_HIGH()
+static inline void SPI_FLASH_CS_HIGH()
 {
   SPIOUT |= CSPIN;
 }
@@ -458,7 +459,7 @@ void SPI_FLASH_Init(void)
   UCA1CTL1 &= ~UCSWRST;
 
   //SPI_Flash_Reset();
-
+#if 0
   uint8_t FLASH_Status;
   SPI_FLASH_CS_LOW();
   /*发送读状态指令 */
@@ -477,4 +478,5 @@ void SPI_FLASH_Init(void)
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
   printf("status register 2 = %x ", FLASH_Status);  
+#endif
 }
