@@ -1,5 +1,3 @@
-#include <string>
-#include <time>
 #include "window"
 
 static day
@@ -20,7 +18,7 @@ refreshdata()
 	refreshdata();
 }
 
-@onpaint(context)
+@onpaint(context: context)
 {
     new command[30]
 	new ampm = 0

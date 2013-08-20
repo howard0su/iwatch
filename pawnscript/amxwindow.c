@@ -51,7 +51,7 @@ static cell AMX_NATIVE_CALL n_invalid_rect(AMX *amx,const cell *params)
 
 static cell AMX_NATIVE_CALL n_setfont(AMX *amx, const cell *params)
 {
-  tContext *context = (tContext*)params[1];
+  tContext *context = window_context();
   uint8_t font = (uint8_t)params[2];
 
   if (font < sizeof(fonts))
@@ -63,7 +63,7 @@ static cell AMX_NATIVE_CALL n_setfont(AMX *amx, const cell *params)
 //native window_getwidth(context, string[])
 static cell AMX_NATIVE_CALL n_getwidth(AMX *amx, const cell *params)
 {
-  tContext *context = (tContext*)params[1];
+  tContext *context = window_context();
   char *text;
 
   amx_StrParam(amx, params[2], text);
@@ -74,7 +74,7 @@ static cell AMX_NATIVE_CALL n_getwidth(AMX *amx, const cell *params)
 // window_drawtext(context, string[], x, y, style)
 static cell AMX_NATIVE_CALL n_drawtext(AMX *amx, const cell *params)
 {
-  tContext *context = (tContext*)params[1];
+  tContext *context = window_context();
   char *text;
 
   amx_StrParam(amx, params[2], text);
@@ -88,6 +88,7 @@ static cell AMX_NATIVE_CALL n_gettime(AMX *amx, const cell *params)
 {
   cell *cptr;
 
+  printf("n_gettime called\n");
   assert(params[0]==(int)(3*sizeof(cell)));
 
   uint8_t hour, minute, second;
@@ -107,6 +108,7 @@ static cell AMX_NATIVE_CALL n_getdate(AMX *amx, const cell *params)
 {
   cell *cptr;
 
+  printf("n_getdate called\n");
   assert(params[0]==(int)(3*sizeof(cell)));
 
   uint16_t year;
@@ -122,6 +124,20 @@ static cell AMX_NATIVE_CALL n_getdate(AMX *amx, const cell *params)
 
   return 0;
 }
+
+extern cell AMX_NATIVE_CALL n_strformat(AMX *amx,const cell *params);
+
+AMX_NATIVE window_natives[] =
+{
+  n_invalid,
+  n_invalid_rect,
+  n_setfont,
+  n_getwidth,
+  n_drawtext,
+  n_strformat,
+  n_gettime,
+  n_getdate
+};
 
 #if defined __cplusplus
   extern "C"
@@ -140,5 +156,5 @@ const AMX_NATIVE_INFO window_Natives[] = {
 
 int AMXEXPORT AMXAPI amx_WindowInit(AMX *amx)
 {
-  return amx_Register(amx, window_Natives, -1);
+//  return amx_Register(amx, window_Natives, -1);
 }

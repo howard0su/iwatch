@@ -431,7 +431,6 @@ uint8_t data2[] = {0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0
 }
 
 #include "pawnscript/amx.h"
-#include "pawnscript/amxaux.h"
 
 int load_script(const char* filename, char* memblock)
 {
@@ -458,101 +457,8 @@ int load_script(const char* filename, char* memblock)
   return 0;
 }
 
-AMX amx;
-int idxOnCreate = -1, idxOnPaint = -1, idxOnClose = -1;
 uint8_t rom[1024 * 2];
-uint8_t ram[1024];
-
-int init_script()
-{
-  int error;
-  cell ret;
-  /* initialize the abstract machine */
-  memset(&amx, 0, sizeof amx);
-
-  load_script("script1.amx", rom);
-  amx.data = ram;
-  error = amx_Init(&amx, rom);
-  if (error != AMX_ERR_NONE)
-  {
-    printf("Error Init: %s\n", aux_StrError(error));
-    return -1;
-  }
-  error = amx_ConsoleInit(&amx);
-  if (error != AMX_ERR_NONE)
-  {
-    printf("Error Console init: %s\n", aux_StrError(error));
-    //return -1;
-  }
-
-  error = amx_WindowInit(&amx);
-  if (error != AMX_ERR_NONE)
-  {
-    printf("Error Window init: %s\n", aux_StrError(error));
-    //return -1;
-  }
-
-  error = amx_StringInit(&amx);
-  if (error != AMX_ERR_NONE)
-  {
-    printf("Error String init: %s\n", aux_StrError(error));
-    //return -1;
-  }
-
-  amx_FindPublic(&amx, "@oncreate", &idxOnCreate);
-  amx_FindPublic(&amx, "@onpaint", &idxOnPaint);
-  amx_FindPublic(&amx, "@onclose", &idxOnClose);
-}
-
-static uint8_t test_script_process(uint8_t event, uint16_t lparam, void* rparam)
-{
-  int error;
-  cell ret;
-  switch(event)
-  {
-    case EVENT_WINDOW_CREATED:
-    init_script();
-    if (idxOnCreate != -1)
-    {
-      error = amx_Exec(&amx, &ret, idxOnCreate);
-      if (error != AMX_ERR_NONE)
-      {
-        printf("Error Exec: %s\n", aux_StrError(error));
-      }
-    }
-    break;
-    case EVENT_WINDOW_PAINT:
-    if (idxOnPaint != -1)
-    {
-      tContext *pContext = (tContext*)rparam;
-      GrContextForegroundSet(pContext, ClrBlack);
-      GrRectFill(pContext, &client_clip);
-      GrContextForegroundSet(pContext, ClrWhite);
-
-      amx_Push(&amx, (cell)rparam);
-      error = amx_Exec(&amx, &ret, idxOnPaint);
-      if (error != AMX_ERR_NONE)
-      {
-        printf("Error Exec: %s\n", aux_StrError(error));
-      }
-    }
-    break;
-    case EVENT_WINDOW_CLOSING:
-    if (idxOnClose != -1)
-    {
-      error = amx_Exec(&amx, &ret, idxOnClose);
-      if (error != AMX_ERR_NONE)
-      {
-        printf("Error Exec: %s\n", aux_StrError(error));
-      }
-    }
-    break;
-  }
-
-  return 1;
-}
-
-
+extern const unsigned char script1_amx[1088];
 int main()
 {
   memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
@@ -581,10 +487,9 @@ int main()
     gesture_processdata(&inputpoints[i * 3]);
   }
 
-
-  test_window(&test_script_process, NULL);
-
-  return 0;
+  load_script("script1.amx", rom);
+  test_window(&script_process, rom);
+//  test_window(&script_process, script1_amx);
 
 /*
   for(int i = 0; fonts[i]; i++)

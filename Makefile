@@ -21,7 +21,7 @@ CFLAGS = $(CFLAGS0)
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -100,6 +100,7 @@ WATCH = \
     watch/sportselect.c \
     watch/notification.c \
     watch/worldclock.c \
+    watch/host.c \
     watch/watch.c \
     watch/today.c \
     watch/status.c \
@@ -108,7 +109,7 @@ WATCH = \
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c 
 
-PAWN=pawnscript/amx.c pawnscript/amxaux.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c 
+PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
 SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) main.c platform/iwatch/btstack/stlv.c 
 

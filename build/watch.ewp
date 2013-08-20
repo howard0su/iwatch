@@ -166,7 +166,11 @@
           <name>CCDefines</name>
           <state>AUTOSTART_ENABLE=1</state>
           <state>HAVE_BLE=1</state>
-          <state>__DEBUG=1</state>
+          <state>AMX_ANSIONLY=1</state>
+          <state>BYTE_ORDER=LITTLE_ENDIAN</state>
+          <state>PAWN_CELL_SIZE=16</state>
+          <state>HAVE_ALLOCA_H=0</state>
+          <state>AMX_NATIVETABLE=window_natives</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1153,6 +1157,11 @@
           <name>CCDefines</name>
           <state>AUTOSTART_ENABLE=1</state>
           <state>HAVE_BLE=1</state>
+          <state>HAVE_ALLOCA_H=0</state>
+          <state>AMX_ANSIONLY=1</state>
+          <state>BYTE_ORDER=LITTLE_ENDIAN</state>
+          <state>PAWN_CELL_SIZE=16</state>
+          <state>AMX_NATIVETABLE=window_natives</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1344,7 +1353,7 @@
         </option>
         <option>
           <name>CCOptLevel</name>
-          <state>3</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCOptStrategy</name>
@@ -2031,6 +2040,9 @@
       <name>$PROJ_DIR$\..\watch\gesture.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\host.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\menu.c</name>
     </file>
     <file>
@@ -2139,13 +2151,13 @@
         <name>$PROJ_DIR$\..\btstack\src\linked_list.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\btstack\src\mas.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\btstack\src\memory_pool.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\src\mns.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\btstack\src\mas.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\src\obex.c</name>
@@ -2426,6 +2438,18 @@
       <name>$PROJ_DIR$\..\platform\iwatch\watchdog.c</name>
     </file>
   </group>
+  <file>
+    <name>$PROJ_DIR$\..\pawnscript\amx.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\..\pawnscript\amxcons.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\..\pawnscript\amxstring.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\..\pawnscript\amxwindow.c</name>
+  </file>
 </project>
 
 

@@ -942,7 +942,7 @@ static cell AMX_NATIVE_CALL n_memcpy(AMX *amx,const cell *params)
 
 /* strformat(dest[], size=sizeof dest, bool:pack=false, const format[], {Fixed,_}:...)
  */
-static cell AMX_NATIVE_CALL n_strformat(AMX *amx,const cell *params)
+cell AMX_NATIVE_CALL n_strformat(AMX *amx,const cell *params)
 {
   #if defined AMX_NOSTRFMT
     (void)amx;
@@ -995,7 +995,7 @@ const AMX_NATIVE_INFO string_Natives[] = {
   { "uudecode",  n_uudecode },
   { "uuencode",  n_uuencode },
   { "urldecode", n_urldecode },
-  { "urlencode", n_urlencode },
+//  { "urlencode", n_urlencode },
   { "valstr",    n_valstr },
   { NULL, NULL }        /* terminator */
 };

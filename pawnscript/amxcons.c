@@ -21,6 +21,8 @@
  *  Version: $Id: amxcons.c 4523 2011-06-21 15:03:47Z thiadmer $
  */
 
+#define AMX_STRING_LIB
+
 #if defined _UNICODE || defined __UNICODE__ || defined UNICODE
 # if !defined UNICODE   /* for Windows */
 #   define UNICODE

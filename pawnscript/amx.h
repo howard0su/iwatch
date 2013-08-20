@@ -420,7 +420,7 @@ enum {
   #define amx_StrParam_Type(amx,param,result,type)                          \
     int result##_length_;                                                   \
     amx_StrLen(amx_Address(amx,param),&result##_length_);                   \
-    char result##_vla_[(result##_length_+1)*sizeof(*(result))];             \
+    char result##_vla_[255];             \
     (result)=(type)result##_vla_;                                           \
     amx_GetString((char*)(result),amx_Address(amx,param),                   \
                   sizeof(*(result))>1,result##_length_+1)
@@ -434,7 +434,7 @@ enum {
       amx_StrLen(amx_Address(amx,param),&result##_length_);                 \
       if (result##_length_>0 &&                                             \
           ((result)=(type)alloca((result##_length_+1)*sizeof(*(result))))!=NULL) \
-        amx_GetString((char*)(result),amx_Address(amx,param),               \
+          amx_GetString((char*)(result),amx_Address(amx,param),             \
                       sizeof(*(result))>1,result##_length_+1);              \
       else (result) = NULL;                                                 \
     } while (0)

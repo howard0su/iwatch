@@ -55,6 +55,7 @@ extern void status_invalid(void);  // invalid status
 extern void window_timer(clock_time_t time);
 extern void window_close(void);
 extern windowproc window_current();
+extern tContext* window_context();
 
 // Common control
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
@@ -96,6 +97,7 @@ extern uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xABADFACF
 typedef struct {
