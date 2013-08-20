@@ -2217,8 +2217,7 @@ int AMXAPI amx_Exec(AMX *amx, cell *retval, int index)
 #else
 
   #define CHKMARGIN()   if (hea+STKMARGIN>stk) return AMX_ERR_STACKERR
-  #define CHKSTACK()    printf("%d ip:0x%x stack=%d\n", __LINE__, cip, stk); \
-    if (stk>amx->stp) {printf("stk %d stp%d\n", stk, amx->stp);return AMX_ERR_STACKLOW;}
+  #define CHKSTACK()    if (stk>amx->stp) return AMX_ERR_STACKLOW
   #define CHKHEAP()     if (hea<amx->hlw) return AMX_ERR_HEAPLOW
 
   /* PUSH() and POP() are defined in terms of the _R() and _W() macros */
