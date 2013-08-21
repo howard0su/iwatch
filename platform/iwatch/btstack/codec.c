@@ -125,6 +125,29 @@ void codec_shutdown()
   I2C_done();
 }
 
+uint8_t codec_changevolume(int8_t diff)
+{
+  uint8_t current;
+  uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
+  current = value & 0x3F;
+  value &= ~0x3F;
+  
+  if (diff > 0)
+  {
+    if (current + diff <= 0x3f)
+      current += diff;
+  }
+  else
+  {
+    if (current > -diff)
+      current += diff;
+  }
+
+  value |= current;
+
+  return current;
+}
+
 /* set volume, levle is from 0 - 255 */
 void codec_setvolume(uint8_t level)
 {

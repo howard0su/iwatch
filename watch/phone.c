@@ -24,11 +24,12 @@ static enum
 
 static void onDraw(tContext *pContext)
 {
-  GrContextForegroundSet(pContext, ClrWhite);
-  GrRectFill(pContext, &client_clip);
+	GrContextForegroundSet(pContext, ClrBlack);
+	GrRectFill(pContext, &client_clip);
+	GrContextForegroundSet(pContext, ClrWhite);
 
-  // draw the phone number
-  
+    // draw the phone number
+    GrStringDraw(pContext, phonenumber, -1, 80, 80, 0);
 }
 
 static void handleKey(uint8_t key)
@@ -60,9 +61,24 @@ static void handleKey(uint8_t key)
 		// exit, hang up the call
 		case STATE_CALLING:
 		{
-			if (key == KEY_EXIT)
+			switch(key)
 			{
-
+				case KEY_EXIT:
+				{
+					// hang the call
+					break;
+				}
+				case KEY_UP:
+				{
+					codec_changevolume(+1);
+					break;
+				}
+				case KEY_DOWN:
+				{
+					// decrease voice
+					codec_changevolume(-1);
+					break;
+				}
 			}
 		}
 
