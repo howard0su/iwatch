@@ -1,15 +1,9 @@
-#include "contiki.h"
-#include "window.h"
+
 #include "stlv.h"
 #include <stdio.h>
-#include "rtc.h"
+#include "stlv_handler.h"
 
 #define GET_PACKET_END(pack) (pack + STLV_HEAD_SIZE + get_body_length(pack))
-
-#define ICON_FACEBOOK 's'
-#define ICON_TWITTER  't'
-#define ICON_MSG      'u'
-
 
 int get_version(stlv_packet pack)
 {
@@ -112,7 +106,7 @@ static void print_stlv_string(unsigned char* data, int len)
     data[len] = back;
 }
 
-static void handle_msg_element(uint8_t icon, stlv_packet pack, element_handle handle)
+static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handle handle)
 {
     element_handle begin = get_first_sub_element(pack, handle);
     char filter[2] = { SUB_TYPE_MESSAGE_IDENTITY, SUB_TYPE_MESSAGE_MESSAGE, };
@@ -134,13 +128,10 @@ static void handle_msg_element(uint8_t icon, stlv_packet pack, element_handle ha
     message_data[message_len] = '\0';
     printf("From: %s\n", identity_data);
     printf("Message: %s\n", message_data);
-    window_notify(identity_data,
-                  message_data,
-                  NOTIFY_OK,
-                  icon
-                  );
+    handle_message(msg_type, identity_data, message_data);
+    
 }
-   
+
 void handle_stlv_packet(unsigned char* packet)
 {
     stlv_packet pack = packet;
@@ -159,12 +150,7 @@ void handle_stlv_packet(unsigned char* packet)
                 printf("echo: ");
                 print_stlv_string(data, data_len);
                 printf("\n");
-                stlv_packet p = create_packet();
-                if (p == NULL)
-                    return;
-                element_handle h = append_element(p, NULL, "E", 1);
-                element_append_data(p, h, data, data_len);
-                send_packet(p);
+                handle_echo(data, data_len);
             }
             break;
             
@@ -174,33 +160,28 @@ void handle_stlv_packet(unsigned char* packet)
                 unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                 printf("clock: %d/%d/%d %d:%d:%d\n", 
                     (int)data[0], (int)data[1], (int)data[2], (int)data[3], (int)data[4], (int)data[5]);
-                rtc_setdate(2000 + data[0], data[1], data[2]);
-                rtc_settime(data[3], data[4], data[5]);
+                handle_clock(data[0], data[1], data[2], data[3], data[4], data[5]);
             }
             break;
             
         case ELEMENT_TYPE_MESSAGE:
             if (type_len == 2)
             {
-                uint8_t icon;
                 switch (type_buf[1])
                 {
                 case ELEMENT_TYPE_MESSAGE_SMS:
                     printf("notification(SMS):\n");
-                    icon = ICON_MSG;
                     break;
                 case ELEMENT_TYPE_MESSAGE_FB:
                     printf("notification(Facebook):\n");
-                    icon = ICON_FACEBOOK;
                     break;
                 case ELEMENT_TYPE_MESSAGE_TW:
                     printf("notification(Twitter):\n");
-                    icon = ICON_TWITTER;
                     break;
                 default:
                     break;
                 }
-                handle_msg_element(icon, pack, handle);                
+                handle_msg_element(type_buf[1], pack, handle);                
             }
             break;
             
@@ -247,6 +228,7 @@ int filter_elements(
 
 typedef struct _stlv_packet_builder
 {
+    unsigned char trivial_head;
     unsigned char packet_data[STLV_PACKET_MAX_SIZE];
 
     element_handle stack[MAX_ELEMENT_NESTED_LAYER];
@@ -258,6 +240,8 @@ typedef struct _stlv_packet_builder
 static stlv_packet_builder _packet[BUILDER_COUNT];
 static short _packet_reader = 0;
 static short _packet_writer = 0;
+
+
 
 #define GET_PACKET_BUILDER(p)     ((stlv_packet_builder*)p)
 #define CAN_ADD_NEW_LAYER(bulder) (builder->stack_ptr < MAX_ELEMENT_NESTED_LAYER)

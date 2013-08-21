@@ -28,6 +28,7 @@ ALL_INCLUDEDIRS = \
 	core/lib \
 	platform/native \
 	platform/iwatch \
+	platform/iwatch/btstack \
 	btstack/include \
 
 #######################################
@@ -101,7 +102,8 @@ WATCH = \
     watch/watch.c \
     watch/today.c \
     watch/status.c \
-    watch/window.c
+    watch/window.c \
+    platform/iwatch/btstack/stlv.c
 
 SRCS = $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) main.c
 

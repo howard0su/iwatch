@@ -5,7 +5,7 @@
 #define STLV_INVALID_HANDLE 0
 #define IS_VALID_STLV_HANDLE(h) (h != STLV_INVALID_HANDLE)
 
-#define STLV_PACKET_MAX_BODY_SIZE 39
+#define STLV_PACKET_MAX_BODY_SIZE 240
 #define STLV_HEAD_SIZE   4
 #define STLV_PACKET_MAX_SIZE      (STLV_PACKET_MAX_BODY_SIZE + STLV_HEAD_SIZE)
 
@@ -19,14 +19,15 @@
 #define HEADFIELD_BODY_LENGTH 2
 #define HEADFIELD_SEQUENCE    3
 
-#define ELEMENT_TYPE_ECHO        'E'
-#define ELEMENT_TYPE_CLOCK       'C'
-#define ELEMENT_TYPE_MESSAGE     'M'
-#define ELEMENT_TYPE_MESSAGE_SMS 'S'
-#define ELEMENT_TYPE_MESSAGE_FB  'F'
-#define ELEMENT_TYPE_MESSAGE_TW  'T'
-#define     SUB_TYPE_MESSAGE_IDENTITY 'i'
-#define     SUB_TYPE_MESSAGE_MESSAGE  'd'
+#define ELEMENT_TYPE_CLOCK                'C'
+#define ELEMENT_TYPE_ECHO                 'E'
+#define ELEMENT_TYPE_MESSAGE              'M'
+#define     ELEMENT_TYPE_MESSAGE_SMS      'S'
+#define     ELEMENT_TYPE_MESSAGE_FB       'F'
+#define     ELEMENT_TYPE_MESSAGE_TW       'T'
+#define         SUB_TYPE_MESSAGE_IDENTITY 'i'
+#define         SUB_TYPE_MESSAGE_MESSAGE  'd'
+#define ELEMENT_TYPE_MESSAGE              'M'
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;
@@ -72,6 +73,9 @@ int element_append_data  (stlv_packet p, element_handle h, unsigned char* data_b
 //int element_append_short (stlv_packet p, element_handle h, short data);
 //int element_append_int   (stlv_packet p, element_handle h, int   data);
 int element_append_string(stlv_packet p, element_handle h, char* data);
+
+
+
 
 #endif
 

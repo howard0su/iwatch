@@ -29,15 +29,24 @@ static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
 typedef void (*proc_t)(char*, int);
 
-#define SPP_SENDER_NULL   0
-#define SPP_SENDER_READY  1
-#define SPP_SENDER_SENT   2
+#define SPP_SENDER_NULL     0
+#define SPP_SENDER_READY    1
+#define SPP_SENDER_SENDING  2
+#define SPP_SENDER_SENT     3
 
-typedef struct tag_spp_sender
+#define SPP_PACKET_SIZE  40
+
+#define SPP_FLAG_BEGIN       0x01
+#define SPP_FLAG_END         0x02
+#define SPP_FLAG_BEGIN_END   (SPP_FLAG_BEGIN | SPP_FLAG_END)
+
+typedef struct _spp_sender
 {
     char* buffer;
     short buffer_size;
+    short sent_size;
     short status;
+    short unit_size;
     proc_t sent_complete;
 }spp_sender;
 
@@ -59,6 +68,8 @@ int spp_register_task(char* buf, int size, void (*callback)(char*, int))
         {
             task->buffer        = buf;
             task->buffer_size   = size;
+            task->sent_size     = 0;
+            task->unit_size     = 0;
             task->sent_complete = callback;
             task->status        = SPP_SENDER_READY;
             tryToSend();
@@ -69,6 +80,21 @@ int spp_register_task(char* buf, int size, void (*callback)(char*, int))
     return -1;
 }
 
+static uint8_t build_transport_packet(spp_sender* task)
+{
+    short left_size = task->buffer_size - task->sent_size;
+    short send_size = left_size > SPP_PACKET_SIZE ? SPP_PACKET_SIZE : left_size;
+
+    unsigned char* flag_ptr = task->buffer + task->sent_size - 1;
+    *flag_ptr = 0;
+    if (send_size == left_size)
+        *flag_ptr |= SPP_FLAG_END;
+    if (task->sent_size == 0)
+        *flag_ptr |= SPP_FLAG_BEGIN;
+    
+    return send_size;
+}
+
 static void tryToSend(void){
     if (!spp_channel_id) return;
 
@@ -76,24 +102,66 @@ static void tryToSend(void){
     {
         if (task_queue_pos >= TASK_QUEUE_SIZE)
             task_queue_pos = 0;
+        
         spp_sender* task = &task_queue[task_queue_pos];
+
         if (task->status == SPP_SENDER_READY)
         {
-            int err = rfcomm_send_internal(
-                spp_channel_id, task->buffer, task->buffer_size);
-            if (err == 0)
+            task->unit_size = build_transport_packet(task);
+            task->status = SPP_SENDER_SENDING;
+        }
+        
+        if (task->status == SPP_SENDER_SENDING)
+        {
+            int err = rfcomm_send_internal(spp_channel_id, 
+                task->buffer + task->sent_size - 1, task->unit_size + 1);
+            if (err != 0)
+                return;
+
+            task->sent_size += task->unit_size;
+            if (task->sent_size >= task->buffer_size)
             {
                 if (task->sent_complete != NULL)
                     task->sent_complete(task->buffer, task->buffer_size);
                 task->status = SPP_SENDER_NULL;
                 task_queue_pos++;
             }
+            else
+            {
+                task->status = SPP_SENDER_READY;
+                task->unit_size = 0;
+            }
             return;
         }
+        
         task_queue_pos++;
     }
     return;
 
+}
+
+
+static unsigned char _recv_packet[STLV_PACKET_MAX_SIZE];
+static short _recv_packet_size = 0;
+
+static short handle_stvl_transport(unsigned char* packet, uint16_t size)
+{
+    if ((packet[0] & SPP_FLAG_BEGIN) != 0)
+        _recv_packet_size = 0;
+
+    if (_recv_packet_size + size - 1 > STLV_PACKET_MAX_SIZE)
+    {
+        _recv_packet_size = 0;
+        return -1;
+    }
+
+    memcpy(&_recv_packet[_recv_packet_size], packet + 1, size - 1);
+    _recv_packet_size += (size - 1);
+
+    if ((packet[0] & SPP_FLAG_END) != 0)
+        return _recv_packet_size;
+    else
+        return 0;
 }
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -103,7 +171,11 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
     hexdump(packet, size);
-    handle_stlv_packet(packet);
+    if (handle_stvl_transport(packet, size) > 0)
+    {
+        handle_stlv_packet(_recv_packet);
+        _recv_packet_size = 0;
+    }
     return;
   }
 
@@ -238,6 +310,12 @@ static void sdp_create_spp_service(uint8_t *service, int service_id, const char 
 	de_add_data(service,  DE_STRING, strlen(name), (uint8_t *) name);
 }
 
+int spp_send(char* buf, int count, proc_t callback)
+{
+
+  tryToSend();
+  return 0;
+}
 
 void spp_init()
 {
@@ -254,9 +332,4 @@ void spp_init()
   rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
 }
 
-int spp_send(char* buf, int count, proc_t callback)
-{
 
-  tryToSend();
-  return 0;
-}
