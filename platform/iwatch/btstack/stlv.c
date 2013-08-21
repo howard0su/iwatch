@@ -62,7 +62,7 @@ element_handle get_next_sub_element(stlv_packet pack, element_handle parent, ele
         return STLV_INVALID_HANDLE;
     else
         return element_end;
-    
+
 }
 
 int get_element_type(stlv_packet pack, element_handle handle, char* buf, int buf_size)
@@ -120,16 +120,16 @@ static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handl
 
     int identity_len = get_element_data_size(pack, sub_handles[0], NULL, 0);
     unsigned char* identity_data = get_element_data_buffer(pack, sub_handles[0], NULL, 0);
-    
+
     int message_len = get_element_data_size(pack, sub_handles[1], NULL, 0);
     unsigned char* message_data = get_element_data_buffer(pack, sub_handles[1], NULL, 0);
-    
+
     identity_data[identity_len] = '\0';
     message_data[message_len] = '\0';
     printf("From: %s\n", identity_data);
     printf("Message: %s\n", message_data);
-    handle_message(msg_type, identity_data, message_data);
-    
+    handle_message(msg_type, (char*)identity_data, (char*)message_data);
+
 }
 
 void handle_stlv_packet(unsigned char* packet)
@@ -153,17 +153,16 @@ void handle_stlv_packet(unsigned char* packet)
                 handle_echo(data, data_len);
             }
             break;
-            
+
         case ELEMENT_TYPE_CLOCK:
             {
-                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                printf("clock: %d/%d/%d %d:%d:%d\n", 
+                printf("clock: %d/%d/%d %d:%d:%d\n",
                     (int)data[0], (int)data[1], (int)data[2], (int)data[3], (int)data[4], (int)data[5]);
                 handle_clock(data[0], data[1], data[2], data[3], data[4], data[5]);
             }
             break;
-            
+
         case ELEMENT_TYPE_MESSAGE:
             if (type_len == 2)
             {
@@ -181,23 +180,23 @@ void handle_stlv_packet(unsigned char* packet)
                 default:
                     break;
                 }
-                handle_msg_element(type_buf[1], pack, handle);                
+                handle_msg_element(type_buf[1], pack, handle);
             }
             break;
-            
+
         }
-        
+
         handle = get_next_element(pack, handle);
-        
+
     }
 }
 
 int filter_elements(
-    stlv_packet pack, 
-    element_handle parent, 
-    element_handle begin, 
-    char* filter, 
-    int filter_size, 
+    stlv_packet pack,
+    element_handle parent,
+    element_handle begin,
+    char* filter,
+    int filter_size,
     element_handle* result
     )
 {
@@ -206,7 +205,7 @@ int filter_elements(
     int mask  = 0;
     while (IS_VALID_STLV_HANDLE(handle))
     {
-        int type_len = get_element_type(pack, handle, type_buf, sizeof(type_buf));
+        get_element_type(pack, handle, type_buf, sizeof(type_buf));
         for (int i = 0; i < filter_size; ++i)
         {
             if (filter[i] == type_buf[0])

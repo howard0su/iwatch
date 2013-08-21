@@ -27,7 +27,6 @@
 #define     ELEMENT_TYPE_MESSAGE_TW       'T'
 #define         SUB_TYPE_MESSAGE_IDENTITY 'i'
 #define         SUB_TYPE_MESSAGE_MESSAGE  'd'
-#define ELEMENT_TYPE_MESSAGE              'M'
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;
