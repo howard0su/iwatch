@@ -99,7 +99,7 @@ static int8_t Normalize(int16_t data)
 		return -ret;
 }
 
-extern int spp_send(char* buf, int count);
+//extern int spp_send(char* buf, int count);
 static uint16_t gesture_caculate(int index, const int8_t* point)
 {
 	const int8_t *gestureData = GestureData[index];
@@ -197,7 +197,7 @@ void gesture_processdata(int16_t *input)
 		{
 			char buf[30];
 			int length = sprintf(buf, "%d %d %d\n", result[0], result[1], result[2]);
-			spp_send(buf, length);
+			//spp_send(buf, length);
 		}
 		else
 		{

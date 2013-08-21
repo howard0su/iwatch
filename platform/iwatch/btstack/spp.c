@@ -27,7 +27,6 @@ static uint16_t spp_channel_id = 0;
 static char spp_buffer[1024];
 static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
-typedef void (*proc_t)(char*, int);
 
 #define SPP_SENDER_NULL     0
 #define SPP_SENDER_READY    1
@@ -47,7 +46,8 @@ typedef struct _spp_sender
     short sent_size;
     short status;
     short unit_size;
-    proc_t sent_complete;
+    void (*callback)(int);
+    int   para;
 }spp_sender;
 
 #define TASK_QUEUE_SIZE 10
@@ -55,7 +55,7 @@ static spp_sender task_queue[TASK_QUEUE_SIZE] = {0};
 static short task_queue_pos = 0;
 
 void tryToSend(void);
-int spp_register_task(char* buf, int size, void (*callback)(char*, int))
+int spp_register_task(char* buf, int size, void (*callback)(int), int para)
 {
     short cursor = task_queue_pos + 1;
     for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
@@ -70,7 +70,8 @@ int spp_register_task(char* buf, int size, void (*callback)(char*, int))
             task->buffer_size   = size;
             task->sent_size     = 0;
             task->unit_size     = 0;
-            task->sent_complete = callback;
+            task->callback      = callback;
+            task->para          = para;
             task->status        = SPP_SENDER_READY;
             tryToSend();
             return 0;
@@ -121,8 +122,8 @@ static void tryToSend(void){
             task->sent_size += task->unit_size;
             if (task->sent_size >= task->buffer_size)
             {
-                if (task->sent_complete != NULL)
-                    task->sent_complete(task->buffer, task->buffer_size);
+                if (task->callback != NULL)
+                    task->callback(task->para);
                 task->status = SPP_SENDER_NULL;
                 task_queue_pos++;
             }
@@ -310,12 +311,6 @@ static void sdp_create_spp_service(uint8_t *service, int service_id, const char 
 	de_add_data(service,  DE_STRING, strlen(name), (uint8_t *) name);
 }
 
-int spp_send(char* buf, int count, proc_t callback)
-{
-
-  tryToSend();
-  return 0;
-}
 
 void spp_init()
 {
