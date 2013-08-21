@@ -108,6 +108,27 @@ void test_cfs()
     printf("ERROR: could read from memory in step 6.\n");
   }
 
+  // COPY A SCRIPT FILE FOR SCRIPT TESTING
+  FILE* fp = fopen("script1.amx", "rb");
+  int fd = cfs_open("/script1.amx", CFS_WRITE);
+
+  if (fp != NULL && fd != -1)
+  {
+    // copy the file
+    char buf[1024];
+    int length;
+
+    length = fread(buf, 1, 1024, fp);
+    while(length > 0)
+    {
+      printf("write %d bytes\n", length);
+      cfs_write(fd, buf, length);
+      length = fread(buf, 1, 1024, fp);
+    }
+    fclose(fp);
+    cfs_close(fd);
+  }
+
 }
 #endif
 
@@ -430,35 +451,6 @@ uint8_t data2[] = {0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0
 
 }
 
-#include "pawnscript/amx.h"
-
-int load_script(const char* filename, char* memblock)
-{
-  FILE *fp;
-  AMX_HEADER hdr;
-
-  /* open the file, read and check the header */
-  if ((fp = fopen(filename, "rb")) == NULL)
-    return AMX_ERR_NOTFOUND;
-  fread(&hdr, sizeof hdr, 1, fp);
-  //amx_Align16(&hdr.magic);
-  //amx_Align32((uint32_t *)&hdr.size);
-  //amx_Align32((uint32_t *)&hdr.stp);
-  if (hdr.magic != AMX_MAGIC) {
-    fclose(fp);
-    return AMX_ERR_FORMAT;
-  } /* if */
-
-  /* read in the file */
-  rewind(fp);
-  fread(memblock, 1, (size_t)hdr.size, fp);
-  fclose(fp);
-
-  return 0;
-}
-
-uint8_t rom[1024 * 2];
-extern const unsigned char script1_amx[1088];
 int main()
 {
   memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
@@ -482,14 +474,15 @@ int main()
     inputpoints[i] = inputpoints[i] * 6.4;
     printf("%d(%d) ", inputpoints[i], k);
   }
+
   for(int i = 0; i < sizeof(inputpoints) /sizeof(int16_t)/ 3; i+=3)
   {
     gesture_processdata(&inputpoints[i * 3]);
   }
 
-  load_script("script1.amx", rom);
-  test_window(&script_process, rom);
-//  test_window(&script_process, script1_amx);
+  //load_script("script1.amx", rom);
+  //test_window(&script_process, rom);
+  test_window(&script_process, "/script1.amx");
 
 /*
   for(int i = 0; fonts[i]; i++)

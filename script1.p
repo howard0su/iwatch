@@ -21,7 +21,7 @@ refreshdata()
 
 @onpaint(context: context)
 {
-    new command[30]
+    new command{30}
 	new ampm = 0
 	new width
 
