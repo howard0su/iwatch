@@ -164,24 +164,32 @@ unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
   while( moreDataToRead() )
   {
     data = readTI_TextFile(BSL_bufferSize);
-	numBytes += data.numberOfBytes;
+	  numBytes += data.numberOfBytes;
 	/*
 	for( i = 0; i < data.numberOfBytes; i++)
 	{
     printf( "%2.2x ", data.data[i] );
 	}
 	*/
-	if( !fast)
-	{
-	  if ( BSL_RX_DataBlock( data ) != BSL_ACK )
-	  {
+  	if( !fast)
+  	{
+      int retry;
+      for(retry = 0; retry < 3; retry++)
+      {
+    	  if ( BSL_RX_DataBlock( data ) == BSL_ACK )
+    	  {
+          break;
+    	  }
+
+        printf("retry write to %x\n", data.startAddr);
+      }
+      if (retry == 3)
         return data.startAddr;
-	  }
-	}
-	else
-	{
-      BSL_RX_DataBlock_Fast( data );
-	}
+  	}
+  	else
+  	{
+        BSL_RX_DataBlock_Fast( data );
+  	}
   }
     stop = GetTickCount();
     seconds = ((float)stop-(float)start)/(float)1000;
