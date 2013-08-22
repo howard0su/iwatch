@@ -5,7 +5,7 @@
 #define STLV_INVALID_HANDLE 0
 #define IS_VALID_STLV_HANDLE(h) (h != STLV_INVALID_HANDLE)
 
-#define STLV_PACKET_MAX_BODY_SIZE 39
+#define STLV_PACKET_MAX_BODY_SIZE 240
 #define STLV_HEAD_SIZE   4
 #define STLV_PACKET_MAX_SIZE      (STLV_PACKET_MAX_BODY_SIZE + STLV_HEAD_SIZE)
 
@@ -79,6 +79,9 @@ int element_append_data  (stlv_packet p, element_handle h, unsigned char* data_b
 //int element_append_short (stlv_packet p, element_handle h, short data);
 //int element_append_int   (stlv_packet p, element_handle h, int   data);
 int element_append_string(stlv_packet p, element_handle h, char* data);
+
+
+
 
 #endif
 
