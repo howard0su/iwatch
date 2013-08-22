@@ -73,7 +73,7 @@ static const uint16_t config[] =
   0xFFFF, 0xFFFF, // skip 2
   0x12c, 0x2c, 0x2c, 0x2c, 0x2c, //Equalizer
   0xFFFF, // skip 1
-  0x32, 0x0c, // DAC Limiter
+  0x32, 0x00, // DAC Limiter
   0xFFFF, // skip 1
   0x0, 0x0, 0x0, 0x0, //Notch Filter
   0xffff, // skip 1
@@ -82,7 +82,7 @@ static const uint16_t config[] =
 //  0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz MCLK
   0x0, // BYP Control
   0xFFFF, 0xFFFF, 0xFFFF, // skip 3
-  0x3, 0x2a, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40 + 63, 0x1, //Input Output Mixer
+  0x3, 0x10, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40, 0x1, //Input Output Mixer
 };
 
 static int codec_write(uint8_t reg, uint16_t data)
@@ -123,6 +123,29 @@ void codec_shutdown()
 
   codec_write(REG_CLK_GEN_CTRL, 0x148);
   I2C_done();
+}
+
+uint8_t codec_changevolume(int8_t diff)
+{
+  uint8_t current;
+  uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
+  current = value & 0x3F;
+  value &= ~0x3F;
+  
+  if (diff > 0)
+  {
+    if (current + diff <= 0x3f)
+      current += diff;
+  }
+  else
+  {
+    if (current > -diff)
+      current += diff;
+  }
+
+  value |= current;
+
+  return current;
 }
 
 /* set volume, levle is from 0 - 255 */

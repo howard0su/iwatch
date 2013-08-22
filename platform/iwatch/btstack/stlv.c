@@ -1,4 +1,3 @@
-
 #include "stlv.h"
 #include <stdio.h>
 #include "stlv_server.h"
@@ -420,4 +419,3 @@ int element_append_string(stlv_packet p, element_handle h, char* data)
     int len = strlen(data);
     return element_append_data(p, h, (unsigned char*)data, len);
 }
-

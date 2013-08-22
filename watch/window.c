@@ -300,3 +300,8 @@ windowproc window_current()
 {
   return ui_window;
 }
+
+tContext* window_context()
+{
+  return &context;
+}

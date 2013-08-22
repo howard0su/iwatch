@@ -54,7 +54,7 @@ int openTI_TextForRead( char *filename )
         sscanf(&string[1], "%x\n", &blocks[block].currentAddr);
         blocks[block].offset = 0;
         blocks[block].size = 0;
-        blocks[block].data = malloc(128 * 1024);
+        blocks[block].data = malloc(256 * 1024);
         bytesRead = 0;
         continue;
       }

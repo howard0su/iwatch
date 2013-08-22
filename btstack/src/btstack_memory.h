@@ -63,13 +63,14 @@ void * btstack_memory_db_mem_device_link_key_get(void);
 void   btstack_memory_db_mem_device_link_key_free(void *db_mem_device_link_key);
 void * btstack_memory_db_mem_service_get(void);
 void   btstack_memory_db_mem_service_free(void *db_mem_service);
+#pragma pack(push, 1)
 extern const struct _configdata
 {
   bd_addr_t bd_addr;
   link_key_t link_key;
   device_name_t device_name;
 }config_data;
-
+#pragma pack(pop)
 #if defined __cplusplus
 }
 #endif

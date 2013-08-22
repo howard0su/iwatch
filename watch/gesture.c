@@ -15,7 +15,7 @@
 #define PRINTF(...)
 #endif
 
-#define MAX_DATAPOINTS 400
+#define MAX_DATAPOINTS 100
 // must be 2^n. 1, 2, 4, 8, 16
 #define MOVE_WINDOW 4
 #define MOVE_STEP 2
@@ -24,19 +24,30 @@ static int16_t data[MOVE_WINDOW][3];
 static uint8_t datap = 0;
 static int32_t currentsum[3];
 
-#define NUM_GESTURES 3
+#define NUM_GESTURES 6
 #define MAX_GESTURES 25
 
-static const int8_t Gesture1[] = {0,0,16, 0,0,15, 0,0,15, -1,0,10, -2,2,10, -2,2,10, -4,1,10, -3,1,10, 0,2,10, 6,5,16, 10,8,16, 10,10,16, 10,9,10, 10,9,10
-, 7,10,8, 6,10,8, 5,10,10, -2,10,10, -9,10,16, -9,10,16, -6,10,16, -4,10,16, -3,10,16};
+static const int8_t Gesture1[] = {
+0,0,16, 0,0,15, 0,0,15, -1,0,10, -2,2,10, -2,2,10, -4,1,10, -3,1,10, 0,2,10, 6,5,16, 
+10,8,16, 10,10,16, 10,9,10, 10,9,10, 7,10,8, 6,10,8, 5,10,10, -2,10,10, -9,10,16, 
+-9,10,16, -6,10,16, -4,10,16, -3,10,16};
 static const int8_t Gesture2[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
 , 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 7,0,10, 6,0,10, 5,-1,10};
 static const int8_t Gesture3[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
 , 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
+static const int8_t Gesture4[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
+, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
+static const int8_t Gesture5[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
+, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
+static const int8_t Gesture6[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
+, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
 static const int8_t *GestureData[NUM_GESTURES] =
-{Gesture1, Gesture2, Gesture3};
+{Gesture1, Gesture2, Gesture3, Gesture4, Gesture5, Gesture6};
 static const int8_t GestureDataLength[NUM_GESTURES] =
-{sizeof(Gesture1)/3, sizeof(Gesture2)/3, sizeof(Gesture3)/3};
+{
+	sizeof(Gesture1)/3, sizeof(Gesture2)/3, sizeof(Gesture3)/3,
+	sizeof(Gesture4)/3, sizeof(Gesture5)/3, sizeof(Gesture6)/3
+};
 
 static uint16_t distances[NUM_GESTURES][MAX_GESTURES];
 static uint16_t count;
@@ -166,8 +177,7 @@ void gesture_processdata(int16_t *input)
 		return;
 	}
 
-
-	PRINTF("%d %d %d\n", input[0], input[1], input[2]);
+	//printf("%d %d %d\n", input[0], input[1], input[2]);
 
 	count++;
 
@@ -198,6 +208,12 @@ void gesture_processdata(int16_t *input)
 			char buf[30];
 			int length = sprintf(buf, "%d %d %d\n", result[0], result[1], result[2]);
 			//spp_send(buf, length);
+			printf(buf);
+			if (count > MAX_DATAPOINTS)
+			{
+				printf("===\n");
+				state = STATE_NONE;
+			}
 		}
 		else
 		{
@@ -206,7 +222,7 @@ void gesture_processdata(int16_t *input)
   			uint16_t longestDistance = 0;
   			uint8_t bestMatch;
   			uint32_t totalDistance = 0;
-			for(int k = 0; k < NUM_GESTURES; k++)
+			for(int k = 0; k < 2; k++)
 			{
 				uint16_t distance = gesture_caculate(k, result);
 
@@ -227,11 +243,11 @@ void gesture_processdata(int16_t *input)
 
 			if (shortestDistance > averageDistance / 2)
 			{
-				PRINTF("almost matched %d\n", bestMatch);
+				PRINTF("almost matched %d\n", bestMatch+1);
 				return;
 			}
 			// matched
-			PRINTF("Matched %d\n", bestMatch);
+			PRINTF("Matched %d\n", bestMatch+1);
 			process_post(ui_process, EVENT_GESTURE_MATCHED, (void*)(bestMatch + 1));
 			state = STATE_NONE;
 			return;
