@@ -111,7 +111,7 @@ BTSTACK=btstack/src/obex.c \
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
-SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) main.c platform/iwatch/btstack/stlv.c 
+SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) main.c platform/iwatch/btstack/stlv.c platform/iwatch/btstack/stlv_client.c platform/iwatch/btstack/stlv_server.c 
 
 OBJDIR = objs.native
 OBJS0 = $(SRCS:.c=.o)
