@@ -40,21 +40,19 @@ typedef uint32_t u32;
 * 返回值：u8 8位数据
 * 功能：SPIFLASH读写一个字节函数，外部调用
 *********************************************************************************************/
-static uint8_t SPI_FLASH_SendByte( uint8_t data )
+static inline uint8_t SPI_FLASH_SendByte( uint8_t data )
 {
-  PRINTF("%02x ", data);
   UCA1TXBUF = data;
   while(( UCA1IFG & UCRXIFG ) == 0x00 ); // Wait for Rx completion (implies Tx is also complete)
   return( UCA1RXBUF );
 }
 
-static inline void SPI_FLASH_SendCommandAddress(uint8_t opcode, uint32_t address)
+static void SPI_FLASH_SendCommandAddress(uint8_t opcode, uint32_t address)
 {
-  uint32_t data = address << 8 | opcode;
-  uint8_t *pData = (uint8_t*)&data;
-
-  for(int i = 3; i>=0 ; i--) 
-    SPI_FLASH_SendByte(pData[i]);
+  SPI_FLASH_SendByte(opcode);
+  SPI_FLASH_SendByte((address >> 16) & 0xFF);
+  SPI_FLASH_SendByte((address >> 8) & 0xFF);
+  SPI_FLASH_SendByte(address & 0xFF);
 }
 
 inline void SPI_FLASH_CS_LOW()
@@ -65,6 +63,7 @@ inline void SPI_FLASH_CS_LOW()
 inline void SPI_FLASH_CS_HIGH()
 {
   SPIOUT |= CSPIN;
+  __delay_cycles(10);
 }
 
 
@@ -263,13 +262,10 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 {
   PRINTF("Read from Disk: offset:%lx size:%d\n", ReadAddr, NumByteToRead);
   u16 n = NumByteToRead;
-  for(int i = 0; i < NumByteToRead; i++)
-    pBuffer[i] = 0;
 
    /* 使能片选 */
   SPI_FLASH_CS_LOW();
   /*发送读数据指令*/
-  SPI_FLASH_SendByte(W25X_ReadData);
   SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
   while (NumByteToRead--) /* 循环读取数据*/
   {
@@ -281,7 +277,7 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
 
-  hexdump(pBuffer, n);
+  hexdump(pBuffer - n, n);
 }
 
 /******************************************************************************************
@@ -332,20 +328,23 @@ u32 SPI_FLASH_ReadDeviceID(void)
 
 static void SPI_FLASH_WaitForFlag(uint8_t flag)
 {
+  u16 tick = 0;
   u8 FLASH_Status = 0;
-   /* 使能片选 */
-  SPI_FLASH_CS_LOW();
-  /*发送读状态指令 */
-  SPI_FLASH_SendByte(W25X_ReadStatusReg);
-  /*循环发送空数据直到FLASH芯片空闲*/
   do
   {
+     /* 使能片选 */
+    SPI_FLASH_CS_LOW();
+    /*发送读状态指令 */
+    SPI_FLASH_SendByte(W25X_ReadStatusReg);
+    /*循环发送空数据直到FLASH芯片空闲*/
     /* 发送空字节 */
     FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
-  }
-  while (((FLASH_Status & flag) == flag) && (FLASH_Status != 0xff)); /* 检测是否空闲*/
-  /*失能片选*/
-  SPI_FLASH_CS_HIGH();
+    tick++;
+    /*失能片选*/
+    SPI_FLASH_CS_HIGH();
+  }while ((FLASH_Status & flag) == flag); /* 检测是否空闲*/
+
+  PRINTF("operation takes %d ticks\n", tick);
 }
 
 /******************************************************************************************
@@ -364,7 +363,7 @@ void SPI_FLASH_WriteEnable(void)
   SPI_FLASH_CS_HIGH();
 
   /*check WEL */
-  SPI_FLASH_WaitForFlag(WEL_Flag);
+  //SPI_FLASH_WaitForFlag(WEL_Flag);
 }
 
 /******************************************************************************************
@@ -438,7 +437,7 @@ void SPI_FLASH_Init(void)
   // init SPI
   UCA1CTL1 = UCSWRST;
 
-  UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPH + UCCKPL; // master, 3-pin SPI mode, LSB
+  UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPL; // master, 3-pin SPI mode, LSB //UCCKPH
   UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
   UCA1BR0 = 80; // 16MHZ / 8 = 2Mhz
   UCA1BR1 = 0;
@@ -457,8 +456,9 @@ void SPI_FLASH_Init(void)
 
   UCA1CTL1 &= ~UCSWRST;
 
-  //SPI_Flash_Reset();
+  SPI_Flash_Reset();
 
+#if 0
   uint8_t FLASH_Status;
   SPI_FLASH_CS_LOW();
   /*发送读状态指令 */
@@ -477,4 +477,6 @@ void SPI_FLASH_Init(void)
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
   printf("status register 2 = %x ", FLASH_Status);  
+#endif
+  printf("Find SPI Flash DeviceId = %x\n", SPI_FLASH_ReadDeviceID());
 }
