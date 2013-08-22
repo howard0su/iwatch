@@ -19,8 +19,15 @@
 #define HEADFIELD_BODY_LENGTH 2
 #define HEADFIELD_SEQUENCE    3
 
-#define ELEMENT_TYPE_CLOCK                'C'
-#define ELEMENT_TYPE_ECHO                 'E'
+#define ELEMENT_TYPE_CLOCK  'C'
+#define ELEMENT_TYPE_ECHO   'E'
+
+#define ELEMENT_TYPE_FILE             'F'
+#define     SUB_TYPE_FILE_SIZE        's'
+#define     SUB_TYPE_FILE_NAME        'n'
+#define     SUB_TYPE_FILE_DATA        'd'
+#define     SUB_TYPE_FILE_OFFSET      'o'
+
 #define ELEMENT_TYPE_MESSAGE              'M'
 #define     ELEMENT_TYPE_MESSAGE_SMS      'S'
 #define     ELEMENT_TYPE_MESSAGE_FB       'F'
@@ -58,7 +65,7 @@ void handle_stlv_packet(unsigned char* packet);
 
 //build packet
 stlv_packet create_packet();
-int send_packet(stlv_packet p);
+int send_packet(stlv_packet p, void (*callback)(int), int para);
 
 int set_version    (stlv_packet p, int version);
 int set_body_length(stlv_packet p, int len);

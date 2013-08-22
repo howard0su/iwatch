@@ -1,21 +1,16 @@
 
-#include "stlv_handler.h"
+#include "stlv_server.h"
 
 #include <stdio.h>
 #include "stlv.h"
 #include "contiki.h"
 #include "window.h"
 #include "rtc.h"
+#include "stlv_client.h"
 
 void handle_echo(uint8_t* data, int data_len)
 {
-
-    stlv_packet p = create_packet();
-    if (p == NULL)
-        return;
-    element_handle h = append_element(p, NULL, "E", 1);
-    element_append_data(p, h, data, data_len);
-    send_packet(p);
+    send_echo(data, data_len);
 }
 
 void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
@@ -51,7 +46,17 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 
 }
 
-void send_echo(uint8_t* data, int size)
+//TODO: implement these 3 file data functions
+void handle_file_begin(char* name)
 {
 }
+
+void handle_file_data(char* name, uint8_t* data, uint8_t size)
+{
+}
+
+void handle_file_end(char* name)
+{
+}
+
 

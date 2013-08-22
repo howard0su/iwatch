@@ -2197,7 +2197,10 @@
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_handler.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_client.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_server.c</name>
     </file>
   </group>
   <group>

@@ -1,7 +1,7 @@
 
 #include "stlv.h"
 #include <stdio.h>
-#include "stlv_handler.h"
+#include "stlv_server.h"
 
 #define GET_PACKET_END(pack) (pack + STLV_HEAD_SIZE + get_body_length(pack))
 
@@ -184,6 +184,9 @@ void handle_stlv_packet(unsigned char* packet)
             }
             break;
 
+        case ELEMENT_TYPE_FILE:
+            break;
+
         }
 
         handle = get_next_element(pack, handle);
@@ -233,13 +236,14 @@ typedef struct _stlv_packet_builder
     element_handle stack[MAX_ELEMENT_NESTED_LAYER];
     int            stack_ptr;
     int            slot_id;
+    void (*callback)(int);
+    int  para;
 }stlv_packet_builder;
 
 #define BUILDER_COUNT (1024 / sizeof(stlv_packet_builder))
 static stlv_packet_builder _packet[BUILDER_COUNT];
 static short _packet_reader = 0;
 static short _packet_writer = 0;
-
 
 
 #define GET_PACKET_BUILDER(p)     ((stlv_packet_builder*)p)
@@ -291,28 +295,41 @@ stlv_packet create_packet()
     builder->packet_data[HEADFIELD_FLAG]        = 0x80;
     builder->packet_data[HEADFIELD_BODY_LENGTH] = 0;
     builder->packet_data[HEADFIELD_SEQUENCE]    = 0;
-
     builder->stack_ptr = 0;
     builder->slot_id   = _packet_writer;
+    builder->callback  = 0;
+    builder->para      = 0;
 
     return _packet[_packet_writer].packet_data;
 }
 
-extern int spp_register_task(char* buf, int size, void (*callback)(char*, int));
-static void sent_complete(char* buf, int len)
+extern int spp_register_task(char* buf, int size, void (*callback)(int), int para);
+
+static void sent_complete(int para)
 {
+    //handle callback
+    stlv_packet_builder* cur_builder = &_packet[para];
+    if (cur_builder->callback != 0)
+        cur_builder->callback(cur_builder->para);
+
+    //try send next packet
     if (_packet_reader == _packet_writer)
         return;
     _packet_reader++;
     if (_packet_reader == BUILDER_COUNT)
         _packet_reader = 0;
-    send_packet(_packet[_packet_reader].packet_data);
+
+    stlv_packet_builder* builder = &_packet[_packet_reader];
+    stlv_packet p = builder->packet_data;
+    spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
 }
 
-int send_packet(stlv_packet p)
+int send_packet(stlv_packet p, void (*callback)(int), int para)
 {
-    //return -1;
-    return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete);
+    stlv_packet_builder* builder = (stlv_packet_builder*)(p - 1);
+    builder->callback = callback;
+    builder->para     = para;
+    return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
 }
 
 int  set_version(stlv_packet p, int version)

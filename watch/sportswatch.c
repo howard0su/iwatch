@@ -275,7 +275,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
             break;
         element_handle h = append_element(p, NULL, "H", 1);
         element_append_data(p, h, (unsigned char*)&rparam, 2);
-        send_packet(p);
+        send_packet(p, 0, 0);
       }
       break;
     }
