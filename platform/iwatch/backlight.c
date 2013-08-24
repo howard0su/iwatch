@@ -2,11 +2,10 @@
 #include "backlight.h"
 #include "sys/ctimer.h"
 
-#define LIGHTDIR P8DIR
-#define LIGHTOUT P8OUT
-#define LIGHTSEL P8SEL
-#define LIGHT1   BIT6
-#define LIGHT2   BIT5
+#define LIGHTDIR P4DIR
+#define LIGHTOUT P4OUT
+#define LIGHTSEL P4SEL
+#define LIGHT    BIT2
 
 #define MOTORDIR P4DIR
 #define MOTOROUT P4OUT
@@ -15,8 +14,8 @@
 
 void backlight_init()
 {
-  LIGHTDIR |= LIGHT1 + LIGHT2;
-  LIGHTOUT &= ~(LIGHT1 + LIGHT2);
+  LIGHTDIR |= LIGHT;
+  LIGHTOUT &= ~LIGHT;
 
   //MOTOROUT &= ~(MOTOR);
   MOTORSEL |= MOTOR;
@@ -28,17 +27,17 @@ void backlight_on(uint8_t level)
   if (level == 0)
   {
 //    TA1CTL = MC__STOP;
-    LIGHTOUT &= ~(LIGHT1 + LIGHT2);
+    LIGHTOUT &= ~LIGHT;
   }
   else if (level == 255)
   {
 //    TA1CTL = MC__STOP;
-    LIGHTOUT |= LIGHT1 + LIGHT2;
+    LIGHTOUT |= LIGHT;
   }
   else
   {
-    LIGHTSEL |= LIGHT1 + LIGHT2;
-    LIGHTOUT &= ~(LIGHT1 + LIGHT2);
+    LIGHTSEL |= LIGHT;
+    LIGHTOUT &= ~LIGHT;
 #if 0
     // setup PWM for light
     // LIGHT1 <-- TA1.0

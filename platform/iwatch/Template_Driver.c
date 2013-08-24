@@ -219,8 +219,8 @@ memlcd_DriverInit(void)
   //TA0CCR0 = 4096;
   //TA0CCR1 = 1;
 
-  P8SEL &= ~BIT1;
-  P8DIR |= BIT1; // p8.1 is TA0.1
+  P4SEL &= ~BIT3;
+  P3DIR |= BIT3; // p4.3 is EXTCOMM
 
   // enable disply
   P8DIR |= BIT2; // p8.2 is display

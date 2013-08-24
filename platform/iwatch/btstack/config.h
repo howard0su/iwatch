@@ -61,3 +61,13 @@
 #define BT_CTS_IE     	P1IE
 #define BT_CTS_IN       P1IN
 #define BT_CTS_BIT      BIT3
+
+//P9.7 nOE SLOW clk
+#define OECLKDIR		P9DIR
+#define OECLKOUT		P9OUT
+#define OECLKBIT		BIT7
+
+//P9.2 nOE HCI 
+#define OEHCIDIR		P9DIR
+#define OEHCIOUT		P9OUT
+#define OEHCIBIT		BIT2

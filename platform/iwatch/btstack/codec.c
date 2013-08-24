@@ -102,6 +102,14 @@ static uint16_t codec_read(uint8_t reg)
 #define AUDDIR P10DIR
 #define AUDBIT BIT6
 
+#define CLKSEL P11SEL
+#define CLKDIR P11DIR
+#define CLKBIT BIT2
+
+#define OEDIR P8DIR
+#define OEOUT P8OUT
+#define OEBIT BIT7
+
 void codec_shutdown()
 {
   /*
@@ -114,7 +122,7 @@ void codec_shutdown()
   */
   printf("codec_shutdown\n");
   SMCLK_NEED--;
-  P11SEL &= ~BIT2;     // disable SMCLK
+  CLKSEL &= ~CLKBIT;     // disable SMCLK
 
   I2C_addr(CODEC_ADDRESS, 1);
   codec_write(REG_POWER_MANAGEMENT1, 0);
@@ -159,7 +167,7 @@ void codec_setvolume(uint8_t level)
 void codec_wakeup()
 {
   printf("codec_wakeup\n");
-  P11SEL |= BIT2;     // output SMCLK
+  CLKSEL |= CLKBIT;     // output SMCLK
   SMCLK_NEED++;
 
   I2C_addr(CODEC_ADDRESS, 1);
@@ -177,8 +185,11 @@ void codec_init()
   AUDDIR |= AUDBIT;
   AUDOUT &= ~AUDBIT; // output direction, value = H
 
-  P11DIR |= BIT2;
-  P11SEL |= BIT2;     // output SMCLK
+  CLKDIR |= CLKBIT;
+  CLKSEL |= CLKBIT;     // output SMCLK
+
+  OEDIR |= OEBIT;
+  OEOUT &= ~OEBIT;
   SMCLK_NEED++;
 
   I2C_addr(CODEC_ADDRESS, 1);
