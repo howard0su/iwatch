@@ -56,7 +56,7 @@
 #define CCIF
 #define CLIF
 
-#define HAVE_STDINT_H
+#define HAVE_STDINT_H 1
 #define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
