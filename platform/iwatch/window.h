@@ -122,9 +122,9 @@ extern ui_config* window_readconfig();
 extern void window_writeconfig();
 
 // the const strings
-extern const char *month_name[];
-extern const char *month_shortname[];
-extern const char *week_shortname[];
+extern const char * const month_name[];
+extern const char * const month_shortname[];
+extern const char * const week_shortname[];
 extern const char* toEnglish(uint8_t number, char* buffer);
 
 #ifndef CASSERT

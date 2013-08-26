@@ -2,31 +2,31 @@
 #include "window.h"
 #include <string.h>
 
-const char *month_name[] =
+const char * const month_name[] =
 {
   "January", "February", "March", "April", "May",
   "June", "July", "August", "September",
   "November", "December"
 };
 
-static const char* english_name[] =
+static const char* const english_name[] =
 {
   "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT",
   "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN",
   "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"
 };
 
-static const char* english_name_prefix[] =
+static const char* const english_name_prefix[] =
 {
     "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY",
     "SEVENTY", "EIGHTY", "NINTY"
 };
 
-const char *month_shortname[] = {
+const char * const month_shortname[] = {
   "JAN","FEB","MAR","APR", "MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"
 };
 
-const char* week_shortname[] = {
+const char* const week_shortname[] = {
   "SU", "MO", "TU", "WE", "TH", "FR", "SA"
 };
 
