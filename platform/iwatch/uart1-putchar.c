@@ -33,7 +33,7 @@ static int uartTxDaTA0;                                         // UART internal
 static volatile char RXByte;                                           // Array to save rx'ed characters
 static volatile int hasReceived;
 
-PROCESS(input_process, "UART INPUT");
+PROCESS(recv_process, "UART INPUT");
 
 void
 uart1_init(unsigned long ubr)
@@ -45,10 +45,10 @@ uart1_init(unsigned long ubr)
   UARTDIR &= ~UARTRXBIT;
 
   TA0CCTL0 = OUT;                                              // Set TXD Idle as Mark = '1'
-  TA0CCTL1 = SCS + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
-  TA0CTL = TASSEL_2 + MC_2;                                    // SMCLK, start in continuous mode
+  TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
+  TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
-  process_start(&input_process, NULL);
+  process_start(&recv_process, NULL);
   #endif
 }
 
@@ -104,16 +104,19 @@ static enum
 }state;
 static uint8_t payload;
 
-PROCESS_THREAD(input_process, ev, data)
+PROCESS_THREAD(recv_process, ev, data)
 {
   PROCESS_BEGIN();
   state = WAITDATA;
   while(1)
   {
-    PROCESS_WAIT_EVENT();
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
     if (!hasReceived)
       continue;
+    uint8_t data = RXByte;
     hasReceived = 0;
+    printf("input: %x\n", (uint16_t)data);
+#if 0
     switch(state)
     {
       case WAITDATA:
@@ -142,6 +145,7 @@ PROCESS_THREAD(input_process, ev, data)
         state = WAITDATA;
         break;
     }
+#endif
   }
   PROCESS_END();
 }
@@ -167,14 +171,14 @@ putchar(int byte)
 */
 ISR(TIMER0_A1, timer0_a1_interrupt)
 {
-  static unsigned char rxBitCnt = 8;
+  static unsigned char rxBitCnt = 9;
   static unsigned char rxData = 0;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   switch (TA0IV)                      
   {
-  case 2:                                                 // TACCR1 CCIFG - UART RX
+  case 2:                                      // TACCR1 CCIFG - UART RX
       TA0CCR1 += UART1_TBIT;                              // Add Offset to CCRx
       if (TA0CCTL1 & CAP)                                 // Capture mode = start bit edge
       {
@@ -193,10 +197,10 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
           {
               RXByte = rxData; // Store in global variable
               hasReceived = 1;
-              rxBitCnt = 8;                               // Re-load bit counter
+              rxBitCnt = 9;                               // Re-load bit counter
               TA0CCTL1 |= CAP;                            // Switch compare to capture mode
-              process_poll(&input_process);
-              __bic_SR_register_on_exit(LPM4_bits);       // Clear LPM0 bits from 0(SR)
+              process_poll(&recv_process);
+              LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
           }
       }
       break;
@@ -210,9 +214,9 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
 //------------------------------------------------------------------------------
 //#pragma vector = TIMER1_A0_VECTOR
 //__interrupt void Timer1_A0_ISR(void)
-ISR(TIMER0_A0, Timer1_A0_ISR)
+ISR(TIMER0_A0, Timer0_A0_ISR)
 {
-    static  char txBitCnt = 10;
+    static unsigned char txBitCnt = 10;
     ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
     TA0CCR0 += UART1_TBIT;                                      // Add Offset to CCRx
@@ -235,4 +239,4 @@ ISR(TIMER0_A0, Timer1_A0_ISR)
         txBitCnt--;
     }
     ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}      
+}

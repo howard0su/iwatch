@@ -355,7 +355,7 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 /*********TOGGLE_INFO*********************************************************/
     else if( memcmp( line, "TOGGLE_INFO", 11 )==0 )
 	{
-      printf("Toggling info flagt\t");
+      printf("Toggling info flag\t\t");
 	  if ( BSL_toggleInfo() == BSL_ACK )
 	  {
         printf("DONE\n");

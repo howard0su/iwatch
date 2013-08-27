@@ -419,7 +419,7 @@ static void event_handler(uint8_t *packet, int size){
 	uint32_t device_type;
     int i;
 
-    // printf("HCI:EVENT:%02x\n", packet[0]);
+    //printf("HCI:EVENT:%02x\n", packet[0]);
     hci_dump_packet( HCI_EVENT_PACKET, 1, packet, size);
 
 

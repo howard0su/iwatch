@@ -7,6 +7,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "cfs/cfs.h"
+
 #define DEBUG 1
 #if DEBUG
 #include <stdio.h>
@@ -53,6 +55,9 @@ static uint16_t distances[NUM_GESTURES][MAX_GESTURES];
 static uint16_t count;
 static enum{STATE_NONE, STATE_RECORDING, STATE_RECON} state;
 
+static uint8_t startno;
+static int fd;
+
 void gesture_init(int8_t _recording)
 {
 	// init gesture structure
@@ -61,8 +66,19 @@ void gesture_init(int8_t _recording)
 	memset(currentsum, 0, sizeof(currentsum));
 	datap = 0;
 	count = 0;
-	if (_recording)
+
+	if (fd != 0)
+	{
+		cfs_close(fd);
+		fd = 0;
+	}
+
+	if (_recording){
 		state = STATE_RECORDING;
+		char name[40];
+		sprintf(name, "record%d.dat", startno++);
+		fd = cfs_open(name, CFS_WRITE | CFS_APPEND);
+	}
 	else
 		state = STATE_RECON;
 }
@@ -207,6 +223,7 @@ void gesture_processdata(int16_t *input)
 		{
 			char buf[30];
 			int length = sprintf(buf, "%d %d %d\n", result[0], result[1], result[2]);
+			cfs_write(fd, result, 3 * sizeof(result[0]));
 			//spp_send(buf, length);
 			printf(buf);
 			if (count > MAX_DATAPOINTS)
