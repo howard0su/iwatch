@@ -107,7 +107,8 @@ WATCH = \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \
-	btstack/src/utils.c 
+	btstack/src/utils.c \
+	btstack/src/remote_device_db_memory.c 
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 

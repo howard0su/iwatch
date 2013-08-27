@@ -20,7 +20,7 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -440,7 +440,7 @@ void SPI_FLASH_Init(void)
 
   UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPL; // master, 3-pin SPI mode, LSB //UCCKPH
   UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCA1BR0 = 80; // 16MHZ / 8 = 2Mhz
+  UCA1BR0 = 8; // 16MHZ / 8 = 2Mhz
   UCA1BR1 = 0;
   UCA1MCTL = 0;
 
@@ -479,5 +479,7 @@ void SPI_FLASH_Init(void)
   SPI_FLASH_CS_HIGH();
   printf("status register 2 = %x ", FLASH_Status);  
 #endif
-  printf("Find SPI Flash DeviceId = %x\n", SPI_FLASH_ReadDeviceID());
+  printf("Find SPI Flash DeviceId = %x\n", (uint16_t)SPI_FLASH_ReadDeviceID());
+
+//  SPI_FLASH_BulkErase();
 }

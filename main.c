@@ -11,6 +11,8 @@
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
 
+#include "unittest.h"
+
 static tContext context;
 extern const tRectangle status_clip;
 void window_handle_event(uint8_t ev, void* data);
@@ -42,7 +44,7 @@ void test_cfs()
   /* step 2 */
   /*        */
   /* writing to cfs */
-  char *filename = "msg_file";
+  const char *filename = "/sys/msg_file";
   int fd_write, fd_read;
   int n;
   fd_write = cfs_open(filename, CFS_WRITE);
@@ -451,8 +453,39 @@ uint8_t data2[] = {0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0
 
 }
 
-int main()
+#include "btstack/src/remote_device_db.h"
+void test_remote_db()
 {
+  bd_addr_t bd = {1, 2, 3, 4, 5, 6};
+  link_key_t key = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+  EXPECT(remote_device_db_memory.get_link_key(&bd, &key) == 0);
+
+  remote_device_db_memory.put_link_key(&bd, &key);
+
+  EXPECT(remote_device_db_memory.get_link_key(&bd, &key) == 1);
+
+  // validate key
+  for(int i = 0; i < 16; i++)
+  {
+    printf("%d ", key[i]);
+    EXPECT(key[i] == i+1);
+  }
+  printf("\n");
+
+  bd[0] = 0xff;
+  key[0] = 0xff;
+  remote_device_db_memory.put_link_key(&bd, &key);
+
+  EXPECT(remote_device_db_memory.get_link_key(&bd, &key) == 1);
+
+  // validate key
+  EXPECT(key[0] == 0xff);
+  for(int i = 1; i < 16; i++)
+    EXPECT(key[i] == i+1);
+}
+
+int main()
+{ 
   memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
 
   testobex();
@@ -460,6 +493,8 @@ int main()
 
   cfs_coffee_format();
   test_cfs();
+
+  test_remote_db();
 
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
@@ -483,6 +518,7 @@ int main()
   //load_script("script1.amx", rom);
   //test_window(&script_process, rom);
   test_window(&script_process, "/script1.amx");
+  test_window(&script_process, "/notexist.amx");
 
 /*
   for(int i = 0; fonts[i]; i++)

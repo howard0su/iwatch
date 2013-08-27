@@ -39,18 +39,14 @@
 #include <btstack/utils.h>
 #include <btstack/linked_list.h>
 
-#include "dev/flash.h"
+#include "cfs/cfs.h"
 
+struct element
+{
+  link_key_t link_key;
+  char device_name[DEVICE_NAME_LEN];
+};
 
-#if defined(__GNUC__)
-__attribute__ ((section(".infob")))
-#else
-#pragma constseg = INFOB
-#endif
-const struct _configdata config_data;
-#ifndef __GNUC__
-#pragma constseg = default
-#endif
 // Device info
 static void db_open(void){
 }
@@ -60,95 +56,73 @@ static void db_close(void){
 
 static int get_name(bd_addr_t *bd_addr, device_name_t *device_name) {
 
-  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
-  {
-    return 0;
-  }
-
-  memcpy(device_name, config_data.device_name, DEVICE_NAME_LEN);
-
   return 1;
+}
+
+static void formatname(char* filename, bd_addr_t addr)
+{
+  sprintf(filename, "_%02x%02x%02x%02x%02x%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 }
 
 static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key) {
   log_info("get link key for %s\n", bd_addr_to_str(*bd_addr));
-  if (memcmp(*bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
-  {
+
+  char filename[32];
+  formatname(filename, *bd_addr);
+  int fd = cfs_open(filename, CFS_READ);
+  struct element entry;
+  if (fd == -1)
     return 0;
-  }
 
-  memcpy(*link_key, config_data.link_key, LINK_KEY_LEN);
+  int len = cfs_read(fd, &entry, sizeof(struct element));
+  if (len == sizeof(struct element))
+  {
+      memcpy(*link_key, entry.link_key, LINK_KEY_LEN);
+      cfs_close(fd);
+      return 1;
+    }
 
-  return 1;
+  cfs_close(fd);
+  return 0;
 }
 
 static void delete_link_key(bd_addr_t *bd_addr){
   log_info("delete link key for %s\n", bd_addr_to_str(*bd_addr));
-  if (memcmp(*bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
-  {
-    return;
-  }
-  struct _configdata newdata;
-  memcpy(&newdata, &config_data, sizeof(config_data));
-  memset(newdata.bd_addr, 0xFF, BD_ADDR_LEN);
-  memset(newdata.link_key, 0xFF, LINK_KEY_LEN);
+  char filename[32];
+  formatname(filename, *bd_addr);
 
-  // write to flash
-  flash_setup();
-  flash_clear((uint16_t*)&config_data);
-  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
-  flash_done();
+  cfs_remove(filename);
 }
 
 
 static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key){
   log_info("put link key for %s\n", bd_addr_to_str(*bd_addr));
-  struct _configdata newdata;
-  memcpy(&newdata, &config_data, sizeof(config_data));
+  char filename[32];
+  formatname(filename, *bd_addr);
+  struct element entry;
+  int fd = cfs_open(filename, CFS_READ);
+  if (fd != -1)
+  {
+    cfs_read(fd, &entry, sizeof(struct element));
+    cfs_close(fd);
+  }
 
-  memcpy(newdata.bd_addr, *bd_addr, BD_ADDR_LEN);
-  memcpy(newdata.link_key, *link_key, LINK_KEY_LEN);
+  fd = cfs_open(filename, CFS_WRITE);
+  
+  memcpy(entry.link_key, *link_key, LINK_KEY_LEN);
+  cfs_write(fd, &entry, sizeof(struct element));
 
-  // write to flash
-  flash_setup();
-  flash_clear((uint16_t*)&config_data);
-  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
-  flash_done();
+  cfs_close(fd);
 }
 
 static void delete_name(bd_addr_t *bd_addr){
-  if (memcmp(bd_addr, config_data.bd_addr, BD_ADDR_LEN) != 0)
-  {
-    return;
-  }
-  struct _configdata newdata;
-  memcpy(&newdata, &config_data, sizeof(config_data));
-  memset(newdata.device_name, 0, DEVICE_NAME_LEN);
-
-  // write to flash
-  flash_setup();
-  flash_clear((uint16_t*)&config_data);
-  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
-  flash_done();
 }
 
 static void put_name(bd_addr_t *bd_addr, device_name_t *device_name){
-  struct _configdata newdata;
-  memcpy(&newdata, &config_data, sizeof(config_data));
-
-  memcpy(newdata.bd_addr, bd_addr, BD_ADDR_LEN);
-  memcpy(newdata.device_name, device_name, MAX_NAME_LEN);
-
-  // write to flash
-  flash_setup();
-  flash_clear((uint16_t*)&config_data);
-  flash_writepage((uint16_t*)&config_data, (uint16_t*)&newdata, sizeof(newdata));
-  flash_done();
 }
 
 
 // MARK: PERSISTENT RFCOMM CHANNEL ALLOCATION
-
 static uint8_t persistent_rfcomm_channel(char *serviceName){
 
   return 1;
