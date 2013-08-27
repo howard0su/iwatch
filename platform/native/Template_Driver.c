@@ -641,7 +641,7 @@ void screenshot()
   FILE* fp;
   watchdog_stop();
   char name[30];
-  sprintf(name, "unittest/image%03d.pbm", id++);
+  sprintf(name, "unittest/screen/image%03d.pbm", id++);
   fp = fopen(name, "wb");
   fprintf(fp, "P4\n%d %d\n", LCD_X_SIZE, LCD_Y_SIZE);
 
