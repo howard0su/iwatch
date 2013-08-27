@@ -106,4 +106,8 @@ typedef unsigned long off_t;
     }                                                                   \
   } while(0)
 
+#ifndef CASSERT
+#define CASSERT(exp, name) typedef int dummy##name [(exp) ? 1 : -1];
+#endif
+
 #endif /* __PLATFORM_CONF_H__ */

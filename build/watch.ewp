@@ -2443,6 +2443,9 @@
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\watchdog.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\system.c</name>
+    </file>
   </group>
   <file>
     <name>$PROJ_DIR$\..\pawnscript\amx.c</name>
