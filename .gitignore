@@ -6,7 +6,7 @@
 *.ihex
 objs/
 objs.native/
-unittest/
+unittest/screen/
 build/Debug
 build/Retail
 build/Settings
