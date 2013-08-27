@@ -127,7 +127,4 @@ extern const char * const month_shortname[];
 extern const char * const week_shortname[];
 extern const char* toEnglish(uint8_t number, char* buffer);
 
-#ifndef CASSERT
-#define CASSERT(exp, name) typedef int dummy##name [(exp) ? 1 : -1];
-#endif
 #endif

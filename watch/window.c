@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "backlight.h"
-#include "dev/flash.h"
+#include "cfs/cfs.h"
 
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
@@ -17,9 +17,7 @@ AUTOSTART_PROCESSES(&system_process);
 static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
-#define INFOC (uint16_t*)0x1880
-
-static const ui_config ui_config_default =
+static ui_config ui_config_data =
 {
   UI_CONFIG_SIGNATURE,
 
@@ -34,7 +32,7 @@ static const ui_config ui_config_default =
   0, 1, 2, 3, 4
 };
 
-ui_config ui_config_data;
+
 
 const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
 const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
@@ -269,18 +267,26 @@ void window_close()
   GrFlush(&context);
 }
 
-CASSERT(sizeof(ui_config) <= 128, ui_config_less_than_infoc);
+#define WINDOWCONFIG "_uiconfig"
 
 ui_config* window_readconfig()
 {
-  if (ui_config_data.signature != UI_CONFIG_SIGNATURE)
+  ui_config data;
+  int fd = cfs_open(WINDOWCONFIG, CFS_READ);
+  if (fd != -1)
   {
-    memcpy(&ui_config_data, INFOC, sizeof(ui_config_data));
-
-    // still not valid?
-    if (ui_config_data.signature != UI_CONFIG_SIGNATURE)
+    int length = cfs_read(fd, &data, sizeof(data));
+    cfs_close(fd); 
+  
+    if (length == sizeof(data) && (data.signature == UI_CONFIG_SIGNATURE))
     {
-      memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config_data));
+      // valid config
+      memcpy(&ui_config_data, &data, sizeof(data));
+    }
+    else
+    {
+      // if invalid file, flush current
+      window_writeconfig();      
     }
   }
 
@@ -289,11 +295,14 @@ ui_config* window_readconfig()
 
 void window_writeconfig()
 {
-  // write to flash
-  flash_setup();
-  flash_clear(INFOC);
-  flash_writepage(INFOC, (uint16_t*)&ui_config_data, 128);
-  flash_done();
+  int fd = cfs_open(WINDOWCONFIG, CFS_WRITE);
+  if (fd == -1)
+  {
+    printf("error write config\n");
+    return;
+  }
+  cfs_write(fd, &ui_config_data, sizeof(ui_config_data));
+  cfs_close(fd);
 }
 
 windowproc window_current()

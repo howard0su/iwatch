@@ -27,23 +27,6 @@ static const tFont *fonts[] =
  NULL
 };
 
-static const ui_config ui_config_default =
-{
-  UI_CONFIG_SIGNATURE,
-
-  "Shanghai", "London", "New York", "Place A", "Place B", "Place C",
-  +16, +8, +3, -1, -2, -3,
-
-  1,
-  4,
-  2,
-
-  1,
-  0, 1, 2, 3, 4
-};
-
-extern ui_config ui_config_data;
-
 static struct 
 {
    int delta;
@@ -172,8 +155,6 @@ PROCESS_THREAD(event_process, ev, data)
 
 void SimluateRun(CuTest* tc)
 {
-  memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
-
  /*
   * Initialize Contiki and our processes.
   */
@@ -249,9 +230,7 @@ static void test_window_stopwatch(windowproc window, void* data)
 
 
 void TestWindows(CuTest *tc)
-{
-  memcpy(&ui_config_data, &ui_config_default, sizeof(ui_config));
-  
+{ 
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
   window_init();
