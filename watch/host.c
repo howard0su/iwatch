@@ -17,9 +17,11 @@
 #define hexdump(...)
 #endif
 
-AMX amx;
-int idxOnCreate, idxOnPaint, idxOnClose, idxOnClock;
-uint16_t mem[800];
+static AMX amx;
+static int idxOnCreate, idxOnPaint, idxOnClose, idxOnClock;
+static uint16_t mem[800];
+
+static enum {RUNNING, ERROR, DONE} state;
 
 static const char * AMXAPI aux_StrError(int errnum)
 {
@@ -149,8 +151,9 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
 
       if (code != 0)
       {
-        PRINTF("Error when loading %s\n", aux_StrError(error));
-        window_close();
+        PRINTF("Error when loading %s\n", aux_StrError(code));
+        state = ERROR;
+        idxOnCreate = code;
         return 0;
       }
 
@@ -161,27 +164,42 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
         if (error != AMX_ERR_NONE)
         {
           PRINTF("Error Exec: %s\n", aux_StrError(error));
+          state = ERROR;
+          idxOnCreate = error;
         }
       }
       break;
     }
     case EVENT_WINDOW_PAINT:
-    if (idxOnPaint != INT_MAX)
     {
       tContext *pContext = (tContext*)rparam;
       GrContextForegroundSet(pContext, ClrBlack);
       GrRectFill(pContext, &client_clip);
       GrContextForegroundSet(pContext, ClrWhite);
 
-      PRINTF("try to run onpaint\n");
-      amx_Push(&amx, (cell)rparam);
-      error = amx_Exec(&amx, &ret, idxOnPaint);
-      if (error != AMX_ERR_NONE)
+      if (state == ERROR)
       {
-        PRINTF("Error Exec: %s\n", aux_StrError(error));
+        GrContextFontSet(pContext, &g_sFontNova16);
+        GrStringDrawWrap(pContext, aux_StrError(idxOnCreate), 10, 80, LCD_X_SIZE - 10, 18);
+
+        return 1;
       }
+
+      if (idxOnPaint != INT_MAX)
+      {
+        PRINTF("try to run onpaint\n");
+        amx_Push(&amx, (cell)rparam);
+        error = amx_Exec(&amx, &ret, idxOnPaint);
+        if (error != AMX_ERR_NONE)
+        {
+          PRINTF("Error Exec: %s\n", aux_StrError(error));
+          state = ERROR;
+          idxOnCreate = error;
+          window_invalid(NULL);
+        }
+      }
+      break;
     }
-    break;
     case EVENT_TIME_CHANGED:
     if (idxOnClock != INT_MAX)
     {
@@ -190,20 +208,33 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
       if (error != AMX_ERR_NONE)
       {
         PRINTF("Error Exec: %s\n", aux_StrError(error));
+        state = ERROR;
+        idxOnCreate = error;
+        window_invalid(NULL);
       }
     }
     break;
     case EVENT_WINDOW_CLOSING:
-    if (idxOnClose != INT_MAX)
     {
-      PRINTF("try to run onclose\n");
-      error = amx_Exec(&amx, &ret, idxOnClose);
-      if (error != AMX_ERR_NONE)
+      if (state == ERROR)
       {
-        PRINTF("Error Exec: %s\n", aux_StrError(error));
+        return 1;
       }
+      else
+      if (idxOnClose != INT_MAX)
+      {
+        PRINTF("try to run onclose\n");
+        error = amx_Exec(&amx, &ret, idxOnClose);
+        if (error != AMX_ERR_NONE)
+        {
+          PRINTF("Error Exec: %s\n", aux_StrError(error));
+          state = ERROR;
+          idxOnCreate = error;
+          window_invalid(NULL);
+        }
+      }
+      break;
     }
-    break;
     default:
     return 0;
   }
