@@ -52,7 +52,7 @@ static uint16_t         att_response_handle = 0;
 static uint16_t         att_response_size   = 0;
 static uint8_t          att_response_buffer[28];
 
-
+static bd_addr_t currentbd;
 
 static void att_try_respond(void){
   if (!att_response_size) return;
@@ -181,6 +181,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     {
       // new device is paired
       bt_flip_addr(event_addr, &packet[2]);
+      memcpy(&currentbd, event_addr, sizeof(currentbd));
       //sdpc_open(event_addr);
       break;
     }
@@ -283,7 +284,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_register_packet_handler(packet_handler);
-        sdpc_open(config_data.bd_addr);
       }
       break;
     }
@@ -368,12 +368,12 @@ void bluetooth_discoverable(uint8_t onoff)
 
 uint8_t bluetooth_paired()
 {
-  return config_data.bd_addr[0] && config_data.bd_addr[1] && config_data.bd_addr[2] && config_data.bd_addr[4];
+  return 1;
 }
 
 bd_addr_t* bluetooth_paired_addr()
 {
-  return (bd_addr_t*)&config_data.bd_addr;
+  return &currentbd;
 }
 
 const char* bluetooth_address()
