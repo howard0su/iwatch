@@ -482,6 +482,10 @@ void test_remote_db()
   EXPECT(key[0] == 0xff);
   for(int i = 1; i < 16; i++)
     EXPECT(key[i] == i+1);
+
+  remote_device_db_memory.delete_link_key(&bd);
+
+  EXPECT(remote_device_db_memory.get_link_key(&bd, &key) == 0);
 }
 
 int main()
