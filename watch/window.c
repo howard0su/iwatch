@@ -39,6 +39,7 @@ const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
 static tContext context;
 static struct etimer timer, status_timer, backlight_timer;
 
+static void window_loadconfig();
 
 // the real stack is like this
 //     uistack[4]
@@ -56,6 +57,7 @@ extern tImage g_logoImage;
 void window_init()
 {
   backlight_on(255);
+
   current_clip = client_clip;
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
@@ -91,6 +93,8 @@ void window_handle_event(uint8_t ev, void* data)
     if (ev == PROCESS_EVENT_INIT)
     {
       backlight_on(0);
+
+      window_loadconfig();
 
       // continue create menu window
       ui_window(EVENT_WINDOW_CREATED, 0, NULL);
@@ -269,9 +273,10 @@ void window_close()
 
 #define WINDOWCONFIG "_uiconfig"
 
-ui_config* window_readconfig()
+static void window_loadconfig()
 {
   ui_config data;
+  printf("load config file");
   int fd = cfs_open(WINDOWCONFIG, CFS_READ);
   if (fd != -1)
   {
@@ -289,7 +294,10 @@ ui_config* window_readconfig()
       window_writeconfig();      
     }
   }
+}
 
+ui_config* window_readconfig()
+{
   return &ui_config_data;
 }
 
