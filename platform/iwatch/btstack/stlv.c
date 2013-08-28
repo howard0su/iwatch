@@ -224,7 +224,7 @@ static void sent_complete(int para)
 
     stlv_packet_builder* builder = &_packet[_packet_reader];
     stlv_packet p = builder->packet_data;
-    spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
+    spp_register_task((char*)p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
 }
 
 int send_packet(stlv_packet p, void (*callback)(int), int para)
@@ -232,7 +232,7 @@ int send_packet(stlv_packet p, void (*callback)(int), int para)
     stlv_packet_builder* builder = (stlv_packet_builder*)(p - 1);
     builder->callback = callback;
     builder->para     = para;
-    return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
+    return spp_register_task((char*)p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
 }
 
 int  set_version(stlv_packet p, int version)
@@ -305,17 +305,17 @@ element_handle append_element(stlv_packet p, element_handle parent, char* type_b
 
 int element_append_char(stlv_packet p, element_handle h, char data)
 {
-    ELEMENT_APPEND_TYPE(p, h, data);
+    return ELEMENT_APPEND_TYPE(p, h, data);
 }
 
 int element_append_short(stlv_packet p, element_handle h, short data)
 {
-    ELEMENT_APPEND_TYPE(p, h, data);
+    return ELEMENT_APPEND_TYPE(p, h, data);
 }
 
 int element_append_int(stlv_packet p, element_handle h, int data)
 {
-    ELEMENT_APPEND_TYPE(p, h, data);
+    return ELEMENT_APPEND_TYPE(p, h, data);
 }
 
 int element_append_data(stlv_packet p, element_handle h, uint8_t* data_buf, int buf_len)
