@@ -4,6 +4,12 @@
 *.log
 *.elf
 *.ihex
+*.dep
+*.swp
+*.py
+*.pyc
+*.pbm
+tags
 objs/
 objs.native/
 unittest/screen/
