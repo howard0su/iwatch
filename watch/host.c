@@ -180,7 +180,7 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
       if (state == ERROR)
       {
         GrContextFontSet(pContext, &g_sFontNova16);
-        GrStringDrawWrap(pContext, aux_StrError(idxOnCreate), 10, 80, LCD_X_SIZE - 10, 18);
+        GrStringDrawWrap(pContext, aux_StrError(idxOnCreate), 10, 80, 130, 18);
 
         return 1;
       }
