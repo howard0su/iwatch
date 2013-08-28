@@ -66,7 +66,7 @@
 #define COFFEE_ERASE(sector)					\
 		SPI_FLASH_SectorErase(sector * COFFEE_SECTOR_SIZE, COFFEE_SECTOR_SIZE)
 
-#if 0
+#if 1
 #define COFFEE_ERASEALL() \
 		SPI_FLASH_BulkErase()
 #endif
