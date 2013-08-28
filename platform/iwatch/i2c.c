@@ -13,18 +13,8 @@ static uint8_t txlen;
 
 static enum { STATE_IDL, STATE_RUNNING, STATE_DONE, STATE_ERROR} state;
 
-
-#define CODECDIR P7DIR
-#define CODECOUT P7OUT
-#define CODECBIT BIT7
-
-
 void I2C_Init()
 {
-  printf("enable codec power\n");
-  CODECDIR |= CODECBIT;
-  CODECOUT |= CODECBIT;
-
   printf("I2C: Initialize...");
   // initialize i2c UCB1
   UCB1CTL1 |= UCSWRST;
