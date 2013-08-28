@@ -73,4 +73,13 @@ void handle_file_end(int fd)
     cfs_close(fd);
 }
 
+//TODO: sujun implement this heart beat and get file
+void handle_sports_heartbeat(uint8_t seconds_to_next)
+{
+}
+
+void handle_get_file(char* name)
+{
+}
+
 
