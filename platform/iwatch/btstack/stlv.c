@@ -97,40 +97,6 @@ unsigned char* get_element_data_buffer(stlv_packet pack, element_handle handle, 
         return handle + get_element_type(pack, handle, buf, buf_size) + 1;
 }
 
-static void print_stlv_string(unsigned char* data, int len)
-{
-    unsigned char back = data[len];
-    data[len] = '\0';
-    printf((char*)data);
-    data[len] = back;
-}
-
-static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handle handle)
-{
-    element_handle begin = get_first_sub_element(pack, handle);
-    char filter[2] = { SUB_TYPE_MESSAGE_IDENTITY, SUB_TYPE_MESSAGE_MESSAGE, };
-    element_handle sub_handles[2] = {0};
-    int sub_element_count = filter_elements(pack, handle, begin, filter, 2, sub_handles);
-    if (sub_element_count != 0x03)
-    {
-        printf("Cannot find expected sub-elements: %c, %c\n", filter[0], filter[1]);
-        return;
-    }
-
-    int identity_len = get_element_data_size(pack, sub_handles[0], NULL, 0);
-    unsigned char* identity_data = get_element_data_buffer(pack, sub_handles[0], NULL, 0);
-
-    int message_len = get_element_data_size(pack, sub_handles[1], NULL, 0);
-    unsigned char* message_data = get_element_data_buffer(pack, sub_handles[1], NULL, 0);
-
-    identity_data[identity_len] = '\0';
-    message_data[message_len] = '\0';
-    printf("From: %s\n", identity_data);
-    printf("Message: %s\n", message_data);
-    handle_message(msg_type, (char*)identity_data, (char*)message_data);
-
-}
-
 int filter_elements(
     stlv_packet pack,
     element_handle parent,
