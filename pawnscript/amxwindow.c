@@ -135,7 +135,7 @@ static cell AMX_NATIVE_CALL n_enableclock(AMX *amx, const cell *params)
 
 extern cell AMX_NATIVE_CALL n_strformat(AMX *amx,const cell *params);
 
-AMX_NATIVE window_natives[] =
+AMX_NATIVE const window_natives[] =
 {
   n_invalid,
   n_invalid_rect,

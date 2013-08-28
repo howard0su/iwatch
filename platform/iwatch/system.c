@@ -1,5 +1,6 @@
 #include "contiki.h"
 #include "cfs/cfs-coffee.h"
+#include "dev/flash.h"
 
 struct system_data
 {
