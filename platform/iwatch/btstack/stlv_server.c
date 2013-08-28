@@ -6,6 +6,7 @@
 #include "contiki.h"
 #include "window.h"
 #include "rtc.h"
+#include "cfs/cfs.h"
 #include "stlv_client.h"
 
 void handle_echo(uint8_t* data, int data_len)
@@ -47,16 +48,30 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 }
 
 //TODO: implement these 3 file data functions
-void handle_file_begin(char* name)
+int handle_file_begin(char* name)
 {
+    int fd = cfs_open(name, CFS_WRITE);
+    if (fd == -1)
+    {
+        printf("Open file %s failed\n", name);
+    }
+
+    return fd;
 }
 
-void handle_file_data(char* name, uint8_t* data, uint8_t size)
+int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
+    if (fd != -1)
+    {
+        return cfs_write(fd, data, size);
+    }
+
+    return 0;
 }
 
-void handle_file_end(char* name)
+void handle_file_end(int fd)
 {
+    cfs_close(fd);
 }
 
 
