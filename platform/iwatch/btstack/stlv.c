@@ -131,68 +131,6 @@ static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handl
 
 }
 
-void handle_stlv_packet(unsigned char* packet)
-{
-    stlv_packet pack = packet;
-    char type_buf[MAX_ELEMENT_TYPE_BUFSIZE];
-
-    element_handle handle = get_first_element(pack);
-    while (IS_VALID_STLV_HANDLE(handle))
-    {
-        int type_len = get_element_type(pack, handle, type_buf, sizeof(type_buf));
-        switch (type_buf[0])
-        {
-        case ELEMENT_TYPE_ECHO:
-            {
-                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
-                unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                printf("echo: ");
-                print_stlv_string(data, data_len);
-                printf("\n");
-                handle_echo(data, data_len);
-            }
-            break;
-
-        case ELEMENT_TYPE_CLOCK:
-            {
-                unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                printf("clock: %d/%d/%d %d:%d:%d\n",
-                    (int)data[0], (int)data[1], (int)data[2], (int)data[3], (int)data[4], (int)data[5]);
-                handle_clock(data[0], data[1], data[2], data[3], data[4], data[5]);
-            }
-            break;
-
-        case ELEMENT_TYPE_MESSAGE:
-            if (type_len == 2)
-            {
-                switch (type_buf[1])
-                {
-                case ELEMENT_TYPE_MESSAGE_SMS:
-                    printf("notification(SMS):\n");
-                    break;
-                case ELEMENT_TYPE_MESSAGE_FB:
-                    printf("notification(Facebook):\n");
-                    break;
-                case ELEMENT_TYPE_MESSAGE_TW:
-                    printf("notification(Twitter):\n");
-                    break;
-                default:
-                    break;
-                }
-                handle_msg_element(type_buf[1], pack, handle);
-            }
-            break;
-
-        case ELEMENT_TYPE_FILE:
-            break;
-
-        }
-
-        handle = get_next_element(pack, handle);
-
-    }
-}
-
 int filter_elements(
     stlv_packet pack,
     element_handle parent,
@@ -399,7 +337,22 @@ element_handle append_element(stlv_packet p, element_handle parent, char* type_b
     return h;
 }
 
-int element_append_data(stlv_packet p, element_handle h, unsigned char* data_buf, int buf_len)
+int element_append_char(stlv_packet p, element_handle h, char data)
+{
+    ELEMENT_APPEND_TYPE(p, h, data);
+}
+
+int element_append_short(stlv_packet p, element_handle h, short data)
+{
+    ELEMENT_APPEND_TYPE(p, h, data);
+}
+
+int element_append_int(stlv_packet p, element_handle h, int data)
+{
+    ELEMENT_APPEND_TYPE(p, h, data);
+}
+
+int element_append_data(stlv_packet p, element_handle h, uint8_t* data_buf, int buf_len)
 {
     unsigned char* body_start = get_element_data_buffer(p, h, NULL, 0);
     for (int i = 0; i < buf_len; i++)
@@ -411,11 +364,9 @@ int element_append_data(stlv_packet p, element_handle h, unsigned char* data_buf
     return buf_len;
 }
 
-//int element_append_char  (stlv_packet p, element_handle h, char  data);
-//int element_append_short (stlv_packet p, element_handle h, short data);
-//int element_append_int   (stlv_packet p, element_handle h, int   data);
 int element_append_string(stlv_packet p, element_handle h, char* data)
 {
     int len = strlen(data);
     return element_append_data(p, h, (unsigned char*)data, len);
 }
+

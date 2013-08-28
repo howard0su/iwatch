@@ -92,7 +92,7 @@ static uint8_t build_transport_packet(spp_sender* task)
         *flag_ptr |= SPP_FLAG_END;
     if (task->sent_size == 0)
         *flag_ptr |= SPP_FLAG_BEGIN;
-    
+
     return send_size;
 }
 
@@ -103,7 +103,7 @@ static void tryToSend(void){
     {
         if (task_queue_pos >= TASK_QUEUE_SIZE)
             task_queue_pos = 0;
-        
+
         spp_sender* task = &task_queue[task_queue_pos];
 
         if (task->status == SPP_SENDER_READY)
@@ -111,10 +111,10 @@ static void tryToSend(void){
             task->unit_size = build_transport_packet(task);
             task->status = SPP_SENDER_SENDING;
         }
-        
+
         if (task->status == SPP_SENDER_SENDING)
         {
-            int err = rfcomm_send_internal(spp_channel_id, 
+            int err = rfcomm_send_internal(spp_channel_id,
                 task->buffer + task->sent_size - 1, task->unit_size + 1);
             if (err != 0)
                 return;
@@ -134,7 +134,7 @@ static void tryToSend(void){
             }
             return;
         }
-        
+
         task_queue_pos++;
     }
     return;

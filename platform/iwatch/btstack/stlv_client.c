@@ -13,10 +13,11 @@ void send_echo(uint8_t* data, uint8_t size)
     send_packet(p, 0, 0);
 }
 
-#define FILESENDER_S_NULL 0
-#define FILESENDER_S_BEGIN 1
-#define FILESENDER_S_DATA  2
-#define FILESENDER_S_END   3
+#define FILESENDER_S_NULL   0
+#define FILESENDER_S_BEGIN  1
+#define FILESENDER_S_DATA   2
+#define FILESENDER_S_ENDING 3
+#define FILESENDER_S_END    4
 
 typedef struct _file_sender_t
 {
@@ -24,7 +25,7 @@ typedef struct _file_sender_t
     uint8_t  size;
     uint8_t* data;
     char*    name;
-    int  para;
+    int      para;
     void (*callback)(int);
 }file_sender_t;
 
@@ -40,13 +41,30 @@ static void init_file_senders()
     }
 }
 
-static void send_data_callback(int para)
+static void send_file_data_callback(int para)
 {
     file_sender_t* s = &s_file_senders[para];
     if (s->status == FILESENDER_S_END)
+    {
         s->status = FILESENDER_S_NULL;
+    }
+    else if (s->status == FILESENDER_S_ENDING)
+    {
+        //send the end flag packet
+        stlv_packet p = create_packet();
+        if (p == NULL)
+            return;
+        element_handle file_elem = append_element(p, NULL, "F", 1);
+        element_handle endflag_elm = append_element(p, file_elem, "e", 1);
+        element_append_char(p, endflag_elm, '\0');
+        send_packet(p, send_file_data_callback, para);
+
+        s->status = FILESENDER_S_END;
+    }
     else if (s->callback != 0)
+    {
         s->callback(s->para);
+    }
 }
 
 int begin_send_file(char* name)
@@ -73,7 +91,7 @@ int begin_send_file(char* name)
 int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int), int para)
 {
     file_sender_t* s = &s_file_senders[handle];
-    
+
     stlv_packet p = create_packet();
     if (p == NULL)
         return -1;
@@ -93,8 +111,8 @@ int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int
     s->size = size;
     s->para = para;
     s->callback = callback;
- 
-    send_packet(p, send_data_callback, handle);
+
+    send_packet(p, send_file_data_callback, handle);
     return 0;
 }
 
