@@ -27,12 +27,14 @@ static const tFont *fonts[] =
  NULL
 };
 
-static struct 
+static struct _event
 {
    int delta;
    uint8_t event;
    void* data
-} test_events[] = {
+};
+
+static struct _event test_events[] = {
     // today's activity
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
@@ -194,22 +196,46 @@ void SimluateRun(CuTest* tc)
   }
 }
 
+
 static tContext context;
 extern const tRectangle status_clip;
 void window_handle_event(uint8_t ev, void* data);
 
-static void test_window(windowproc window, void* data)
+  struct _event default_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {3, EVENT_WINDOW_CLOSING, NULL},
+    {-1}
+  };
+
+
+
+static void run_window_events(windowproc window, struct _event *events)
 {
   GrContextFontSet(&context, (const tFont*)NULL);
-  window(EVENT_WINDOW_CREATED, 0, data);
   GrContextClipRegionSet(&context, &status_clip);
-  status_process(EVENT_WINDOW_PAINT, 0, &context);
-  GrContextClipRegionSet(&context, &client_clip);
-  GrContextForegroundSet(&context, ClrWhite);
-  window(EVENT_WINDOW_PAINT, 0, &context);
-  GrFlush(&context);
 
-  window(EVENT_WINDOW_CLOSING, 0, 0);
+  for(struct _event *ev = events; ev->delta != -1; ev++)
+  {
+    window(ev->event, 0, ev->data);  
+    if (ev->event == EVENT_WINDOW_PAINT)
+    {
+      GrFlush(&context);    
+    }
+  }
+}
+
+static void test_window(windowproc window, void* data)
+{
+ struct _event my_events[] = {
+    {1, EVENT_WINDOW_CREATED, data},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {3, EVENT_WINDOW_CLOSING, NULL},
+    {-1}
+  };
+
+  run_window_events(window, my_events);
+
 }
 
 static void test_window_stopwatch(windowproc window, void* data)
@@ -226,6 +252,24 @@ static void test_window_stopwatch(windowproc window, void* data)
   GrFlush(&context);
 
   window(EVENT_WINDOW_CLOSING, 0, 0);
+}
+
+void TestSportWatch(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_TIME_CHANGED, NULL},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {3, EVENT_WINDOW_CLOSING, NULL},
+    {-1}
+  };
+
+  for(int i = 0; i < 3; i++)
+  {
+    window_readconfig()->sports_grid = i;
+    run_window_events(&sportswatch_process, test_events);
+  }
 }
 
 
@@ -250,12 +294,6 @@ void TestWindows(CuTest *tc)
   test_window(&today_process, NULL);
 
   test_window(&sporttype_process, NULL);
-
-  for(int i = 0; i < 3; i++)
-  {
-    window_readconfig()->sports_grid = i;
-    test_window(&sportswatch_process, NULL);
-  }
 
   test_window(&calendar_process, NULL);
 
@@ -294,4 +332,6 @@ CuSuite* WindowGetSuite(void)
 
   SUITE_ADD_TEST(suite, TestWindows);
 	SUITE_ADD_TEST(suite, SimluateRun);
+  SUITE_ADD_TEST(suite, TestSportWatch);
+  
 }
