@@ -66,6 +66,24 @@ void handle_stlv_packet(unsigned char* packet)
             handle_file(pack, handle);
             break;
 
+        case ELEMENT_TYPE_GET_FILE:
+            {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                STLV_BUF_BEGIN_TEMP_STRING(data, data_len);
+                handle_get_file((char*)data);
+                STLV_BUF_END_TEMP_STRING(data, data_len);
+            }
+           break;
+
+        case ELEMENT_TYPE_SPORT_HEARTBEAT:
+            {
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                uint8_t seconds_to_next = *data;
+                handle_sports_heartbeat(seconds_to_next);
+           }
+           break;
+            break;
         }
 
         handle = get_next_element(pack, handle);

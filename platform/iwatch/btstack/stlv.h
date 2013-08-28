@@ -21,13 +21,16 @@
 #define HEADFIELD_BODY_LENGTH 2
 #define HEADFIELD_SEQUENCE    3
 
-#define ELEMENT_TYPE_CLOCK  'C'
-#define ELEMENT_TYPE_ECHO   'E'
+#define ELEMENT_TYPE_CLOCK            'C'
+#define ELEMENT_TYPE_ECHO             'E'
+#define ELEMENT_TYPE_SPORT_HEARTBEAT  'H'
+#define ELEMENT_TYPE_GET_FILE         'G'
 
 #define ELEMENT_TYPE_FILE             'F'
 #define     SUB_TYPE_FILE_NAME        'n'
 #define     SUB_TYPE_FILE_DATA        'd'
 #define     SUB_TYPE_FILE_END         'e'
+
 
 #define ELEMENT_TYPE_MESSAGE              'M'
 #define     ELEMENT_TYPE_MESSAGE_SMS      'S'
@@ -80,6 +83,10 @@ int element_append_short (stlv_packet p, element_handle h, short data);
 int element_append_int   (stlv_packet p, element_handle h, int   data);
 int element_append_data  (stlv_packet p, element_handle h, uint8_t* data_buf, int buf_len);
 int element_append_string(stlv_packet p, element_handle h, char* data);
+
+//utilities
+#define STLV_BUF_BEGIN_TEMP_STRING(buf, size) { uint8_t temp = buf[size]
+#define STLV_BUF_END_TEMP_STRING(buf, size) buf[size] = temp; }
 
 #endif
 
