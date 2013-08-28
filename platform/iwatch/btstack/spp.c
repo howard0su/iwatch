@@ -8,6 +8,7 @@
 #include <string.h>
 #include "config.h"
 #include "stlv.h"
+#include "stlv_server.h"
 #include "debug.h"
 
 static service_record_item_t spp_service_record;
@@ -41,13 +42,13 @@ static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
 typedef struct _spp_sender
 {
-    char* buffer;
-    short buffer_size;
-    short sent_size;
-    short status;
-    short unit_size;
-    void (*callback)(int);
-    int   para;
+    uint8_t* buffer;
+    short    buffer_size;
+    short    sent_size;
+    short    status;
+    short    unit_size;
+    void    (*callback)(int);
+    int     para;
 }spp_sender;
 
 #define TASK_QUEUE_SIZE 10
@@ -55,7 +56,7 @@ static spp_sender task_queue[TASK_QUEUE_SIZE] = {0};
 static short task_queue_pos = 0;
 
 void tryToSend(void);
-int spp_register_task(char* buf, int size, void (*callback)(int), int para)
+int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
 {
     short cursor = task_queue_pos + 1;
     for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
@@ -86,7 +87,7 @@ static uint8_t build_transport_packet(spp_sender* task)
     short left_size = task->buffer_size - task->sent_size;
     short send_size = left_size > SPP_PACKET_SIZE ? SPP_PACKET_SIZE : left_size;
 
-    unsigned char* flag_ptr = task->buffer + task->sent_size - 1;
+    uint8_t* flag_ptr = task->buffer + task->sent_size - 1;
     *flag_ptr = 0;
     if (send_size == left_size)
         *flag_ptr |= SPP_FLAG_END;

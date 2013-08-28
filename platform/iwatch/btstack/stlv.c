@@ -206,7 +206,7 @@ stlv_packet create_packet()
     return _packet[_packet_writer].packet_data;
 }
 
-extern int spp_register_task(char* buf, int size, void (*callback)(int), int para);
+extern int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para);
 
 static void sent_complete(int para)
 {
