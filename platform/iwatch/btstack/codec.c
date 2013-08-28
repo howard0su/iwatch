@@ -106,9 +106,9 @@ static uint16_t codec_read(uint8_t reg)
 #define CLKDIR P11DIR
 #define CLKBIT BIT2
 
-#define OEDIR P8DIR
-#define OEOUT P8OUT
-#define OEBIT BIT7
+#define PCODECDIR P7DIR
+#define PCODECOUT P7OUT
+#define PCODECBIT BIT7
 
 void codec_shutdown()
 {
@@ -188,8 +188,9 @@ void codec_init()
   CLKDIR |= CLKBIT;
   CLKSEL |= CLKBIT;     // output SMCLK
 
-  OEDIR |= OEBIT;
-  OEOUT &= ~OEBIT;
+ PCODECDIR |= PCODECBIT;
+ PCODECOUT |= PCODECBIT;
+
   SMCLK_NEED++;
 
   I2C_addr(CODEC_ADDRESS, 1);
