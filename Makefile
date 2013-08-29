@@ -109,7 +109,10 @@ WATCH = \
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
-	platform/iwatch/btstack/stlv.c platform/iwatch/btstack/stlv_client.c platform/iwatch/btstack/stlv_server.c 
+	platform/iwatch/btstack/stlv.c \
+	platform/iwatch/btstack/stlv_client.c \
+	platform/iwatch/btstack/stlv_server.c \
+	platform/iwatch/btstack/stlv_handler.c
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
