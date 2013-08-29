@@ -97,102 +97,6 @@ unsigned char* get_element_data_buffer(stlv_packet pack, element_handle handle, 
         return handle + get_element_type(pack, handle, buf, buf_size) + 1;
 }
 
-static void print_stlv_string(unsigned char* data, int len)
-{
-    unsigned char back = data[len];
-    data[len] = '\0';
-    printf((char*)data);
-    data[len] = back;
-}
-
-static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handle handle)
-{
-    element_handle begin = get_first_sub_element(pack, handle);
-    char filter[2] = { SUB_TYPE_MESSAGE_IDENTITY, SUB_TYPE_MESSAGE_MESSAGE, };
-    element_handle sub_handles[2] = {0};
-    int sub_element_count = filter_elements(pack, handle, begin, filter, 2, sub_handles);
-    if (sub_element_count != 0x03)
-    {
-        printf("Cannot find expected sub-elements: %c, %c\n", filter[0], filter[1]);
-        return;
-    }
-
-    int identity_len = get_element_data_size(pack, sub_handles[0], NULL, 0);
-    unsigned char* identity_data = get_element_data_buffer(pack, sub_handles[0], NULL, 0);
-
-    int message_len = get_element_data_size(pack, sub_handles[1], NULL, 0);
-    unsigned char* message_data = get_element_data_buffer(pack, sub_handles[1], NULL, 0);
-
-    identity_data[identity_len] = '\0';
-    message_data[message_len] = '\0';
-    printf("From: %s\n", identity_data);
-    printf("Message: %s\n", message_data);
-    handle_message(msg_type, (char*)identity_data, (char*)message_data);
-
-}
-
-void handle_stlv_packet(unsigned char* packet)
-{
-    stlv_packet pack = packet;
-    char type_buf[MAX_ELEMENT_TYPE_BUFSIZE];
-
-    element_handle handle = get_first_element(pack);
-    while (IS_VALID_STLV_HANDLE(handle))
-    {
-        int type_len = get_element_type(pack, handle, type_buf, sizeof(type_buf));
-        switch (type_buf[0])
-        {
-        case ELEMENT_TYPE_ECHO:
-            {
-                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
-                unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                printf("echo: ");
-                print_stlv_string(data, data_len);
-                printf("\n");
-                handle_echo(data, data_len);
-            }
-            break;
-
-        case ELEMENT_TYPE_CLOCK:
-            {
-                unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                printf("clock: %d/%d/%d %d:%d:%d\n",
-                    (int)data[0], (int)data[1], (int)data[2], (int)data[3], (int)data[4], (int)data[5]);
-                handle_clock(data[0], data[1], data[2], data[3], data[4], data[5]);
-            }
-            break;
-
-        case ELEMENT_TYPE_MESSAGE:
-            if (type_len == 2)
-            {
-                switch (type_buf[1])
-                {
-                case ELEMENT_TYPE_MESSAGE_SMS:
-                    printf("notification(SMS):\n");
-                    break;
-                case ELEMENT_TYPE_MESSAGE_FB:
-                    printf("notification(Facebook):\n");
-                    break;
-                case ELEMENT_TYPE_MESSAGE_TW:
-                    printf("notification(Twitter):\n");
-                    break;
-                default:
-                    break;
-                }
-                handle_msg_element(type_buf[1], pack, handle);
-            }
-            break;
-
-        case ELEMENT_TYPE_FILE:
-            break;
-
-        }
-
-        handle = get_next_element(pack, handle);
-
-    }
-}
-
 int filter_elements(
     stlv_packet pack,
     element_handle parent,
@@ -302,7 +206,7 @@ stlv_packet create_packet()
     return _packet[_packet_writer].packet_data;
 }
 
-extern int spp_register_task(char* buf, int size, void (*callback)(int), int para);
+extern int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para);
 
 static void sent_complete(int para)
 {
@@ -320,7 +224,7 @@ static void sent_complete(int para)
 
     stlv_packet_builder* builder = &_packet[_packet_reader];
     stlv_packet p = builder->packet_data;
-    spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
+    spp_register_task((char*)p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
 }
 
 int send_packet(stlv_packet p, void (*callback)(int), int para)
@@ -328,7 +232,7 @@ int send_packet(stlv_packet p, void (*callback)(int), int para)
     stlv_packet_builder* builder = (stlv_packet_builder*)(p - 1);
     builder->callback = callback;
     builder->para     = para;
-    return spp_register_task(p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
+    return spp_register_task((char*)p, p[HEADFIELD_BODY_LENGTH] + STLV_HEAD_SIZE, sent_complete, builder->slot_id);
 }
 
 int  set_version(stlv_packet p, int version)
@@ -399,7 +303,22 @@ element_handle append_element(stlv_packet p, element_handle parent, char* type_b
     return h;
 }
 
-int element_append_data(stlv_packet p, element_handle h, unsigned char* data_buf, int buf_len)
+int element_append_char(stlv_packet p, element_handle h, char data)
+{
+    return ELEMENT_APPEND_TYPE(p, h, data);
+}
+
+int element_append_short(stlv_packet p, element_handle h, short data)
+{
+    return ELEMENT_APPEND_TYPE(p, h, data);
+}
+
+int element_append_int(stlv_packet p, element_handle h, int data)
+{
+    return ELEMENT_APPEND_TYPE(p, h, data);
+}
+
+int element_append_data(stlv_packet p, element_handle h, uint8_t* data_buf, int buf_len)
 {
     unsigned char* body_start = get_element_data_buffer(p, h, NULL, 0);
     for (int i = 0; i < buf_len; i++)
@@ -411,11 +330,9 @@ int element_append_data(stlv_packet p, element_handle h, unsigned char* data_buf
     return buf_len;
 }
 
-//int element_append_char  (stlv_packet p, element_handle h, char  data);
-//int element_append_short (stlv_packet p, element_handle h, short data);
-//int element_append_int   (stlv_packet p, element_handle h, int   data);
 int element_append_string(stlv_packet p, element_handle h, char* data)
 {
     int len = strlen(data);
     return element_append_data(p, h, (unsigned char*)data, len);
 }
+

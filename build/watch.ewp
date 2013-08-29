@@ -1226,7 +1226,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>10111</state>
+          <state>00000</state>
         </option>
         <option>
           <name>CCObjUseModuleName</name>
@@ -1362,7 +1362,7 @@
         </option>
         <option>
           <name>CCOptLevelSlave</name>
-          <state>3</state>
+          <state>1</state>
         </option>
         <option>
           <name>CInput</name>
@@ -2215,6 +2215,9 @@
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_client.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_handler.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_server.c</name>
     </file>
   </group>
@@ -2438,13 +2441,13 @@
       <name>$PROJ_DIR$\..\platform\iwatch\spiflash.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\system.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\uart1-putchar.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\watchdog.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\system.c</name>
     </file>
   </group>
   <file>
