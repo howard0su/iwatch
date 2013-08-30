@@ -125,3 +125,8 @@ void motor_on(uint8_t level, clock_time_t length)
 
 int spp_register_task(char* buf, int size, void (*callback)(char*, int))
 {}
+
+void system_ready()
+{
+  printf("system is ready\n");
+}

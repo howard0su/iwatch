@@ -103,6 +103,7 @@ WATCH = \
     watch/host.c \
     watch/watch.c \
     watch/today.c \
+    watch/test.c \
     watch/status.c \
     watch/window.c
 

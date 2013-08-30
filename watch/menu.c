@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "test.h"
+
 /*
 * This implement the menu
 */
@@ -74,6 +76,15 @@ static const struct MenuItem MainMenu[] =
   {'h', "Sports Watch", &sporttype_process},
   {'l', "Watch Setup", &menu_process},
   {0,   "About", &menu_process},
+  {0, NULL, NULL}
+};
+
+static const struct MenuItem TestMenu[] = 
+{
+  {0, "Button", &test_button},
+  {0, "Motor", &test_motor},
+  {0, "Light", &test_light},
+  {0, "LCD", &test_lcd},
   {0, NULL, NULL}
 };
 
@@ -217,6 +228,10 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       else if (strcmp(rparam, "About") == 0)
       {
         Items = AboutMenu;
+      }
+      else if (strcmp(rparam, "Test") == 0)
+      {
+        Items = TestMenu;
       }
 
       getMenuLength();
