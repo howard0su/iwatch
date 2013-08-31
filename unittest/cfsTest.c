@@ -144,12 +144,27 @@ void test_remote_db(CuTest* tc)
   CuAssertIntEquals(tc, remote_device_db_memory.get_link_key(&bd, &key) ,  0);
 }
 
+void TestDir(CuTest* tc)
+{
+  struct cfs_dir dir;
+  struct cfs_dirent entry;
+  cfs_opendir(&dir, "/");
+  while(!cfs_readdir(&dir, &entry))
+  {
+    printf("entry %s\n", entry.name);
+  }
+
+  printf("done\n");
+}
+
 CuSuite* cfsGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
 	SUITE_ADD_TEST(suite, test_cfs);
 	SUITE_ADD_TEST(suite, test_remote_db);
+  SUITE_ADD_TEST(suite, TestDir);
 
 
+  return suite;
 }

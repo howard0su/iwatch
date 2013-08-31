@@ -2,10 +2,13 @@
 #include "cfs/cfs-coffee.h"
 #include "dev/flash.h"
 
+#include "system.h"
+
 struct system_data
 {
-	uint8_t system_debug; // 0 - not debug system, 1 - debug system
+	uint8_t system_debug; // 0 - debug system, 1 - retail system
 	uint8_t system_reset; // 0 - don't reset, 1 - factory reset
+	uint8_t system_testing; // 0 - normal, 1 - factory testing
 	uint8_t mac_address[6];
 	uint8_t txpower[3]; // 0:GFSK, 1:EDR2, 2:EDR3, valid from 0 - 15, or 0xff to take default
 };
@@ -16,7 +19,7 @@ __attribute__ ((section(".infod")))
 #pragma constseg = INFOD
 #endif
 static const struct system_data data = {
-	0, 1, 
+	0, 1, 1,
 	0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
 	0x0d, 0x0d, 0x0d, 
 };
@@ -46,6 +49,26 @@ void system_init()
 	}
 }
 
+uint8_t system_testing()
+{
+	return data.system_testing;
+}
+
+void system_rebootToNormal()
+{
+	struct system_data new_data;
+	new_data = data;
+
+	new_data.system_testing = 0;
+	// write the data
+	flash_setup();
+	flash_clear(INFOD);
+	flash_writepage(INFOD, (uint16_t*)&new_data, 128);
+	flash_done();
+
+	for(;;);	 // let watchdog reboot
+}
+
 uint8_t system_debug()
 {
 	return data.system_debug; // if this is a debug system
@@ -56,3 +79,12 @@ uint8_t system_txpower(uint8_t i)
 {
 	return data.txpower[i];
 }
+
+void system_ready()
+{
+	if (!system_debug() && !(SFRRPCR & SYSNMI))
+	{
+		SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
+		SFRIE1 &= ~NMIIE;
+	}
+ }
