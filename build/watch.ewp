@@ -2220,6 +2220,9 @@
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_server.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\stlv_transport.c</name>
+    </file>
   </group>
   <group>
     <name>core</name>
