@@ -9,7 +9,7 @@ struct system_data
 	uint8_t system_debug; // 0 - debug system, 1 - retail system
 	uint8_t system_reset; // 0 - don't reset, 1 - factory reset
 	uint8_t system_testing; // 0 - normal, 1 - factory testing
-	uint8_t mac_address[6];
+	uint8_t serial[6];
 	uint8_t txpower[3]; // 0:GFSK, 1:EDR2, 2:EDR3, valid from 0 - 15, or 0xff to take default
 };
 
@@ -19,7 +19,7 @@ __attribute__ ((section(".infod")))
 #pragma constseg = INFOD
 #endif
 static const struct system_data data = {
-	0, 1, 1,
+	1, 1, 1,
 	0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
 	0x0d, 0x0d, 0x0d, 
 };
@@ -40,6 +40,8 @@ void system_init()
 	{
 		cfs_coffee_format();
 		new_data.system_reset = 0;
+
+		///TODO: Write system id into SPI security area
 
 		// write the data
 		flash_setup();
@@ -69,9 +71,9 @@ void system_rebootToNormal()
 	for(;;);	 // let watchdog reboot
 }
 
-uint8_t system_debug()
+uint8_t system_retail()
 {
-	return data.system_debug; // if this is a debug system
+	return !data.system_debug; // if this is a debug system
 }
 
 // i = 0:GFSK, 1:EDR2, 2:EDR3
@@ -82,9 +84,15 @@ uint8_t system_txpower(uint8_t i)
 
 void system_ready()
 {
-	if (!system_debug() && !(SFRRPCR & SYSNMI))
+	if (system_retail() && !(SFRRPCR & SYSNMI))
 	{
 		SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
 		SFRIE1 &= ~NMIIE;
 	}
+ }
+
+ void system_getserial(uint8_t *buf)
+ {
+ 	//TODO
+ 	memcpy(buf, data.serial, 6);
  }
