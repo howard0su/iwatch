@@ -105,6 +105,7 @@ WATCH = \
     watch/today.c \
     watch/test.c \
     watch/status.c \
+    watch/test.c \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \
