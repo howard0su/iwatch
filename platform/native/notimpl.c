@@ -125,8 +125,6 @@ void system_ready()
 {
   printf("system is ready\n");
 }
-<<<<<<< HEAD
-=======
 
 uint8_t system_testing()
 {
@@ -148,4 +146,4 @@ void system_rebootToNormal()
   char fake[6] = {43,44,45,86,97,0xff};
   memcpy(buf, fake, 6);
  }
->>>>>>> 95d39f997efeccaaac54bf92bb06dbf12c79da1f
+

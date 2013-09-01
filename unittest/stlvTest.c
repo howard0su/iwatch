@@ -237,6 +237,7 @@ uint8_t file_end_data[] = {
 
 static void TestRecvFile(CuTest* tc)
 {
+    cfs_coffee_format();
     init_send_pack_stub();
 
     handle_stlv_packet(file_begin_data);
