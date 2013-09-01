@@ -38,7 +38,6 @@ void backlight_on(uint8_t level)
   if (level == 0)
   {
     LIGHTCONTROL = OUTMOD_0;
-    LIGHTOUT &= ~LIGHT;
   }
   else
   {
@@ -51,7 +50,6 @@ static struct ctimer motor_timer;
 void motor_stop(void *ptr)
 {
   MOTORCONTROL = OUTMOD_0;
-  MOTOROUT &= ~MOTOR;
 }
 
 void motor_on(uint8_t level, clock_time_t length)
