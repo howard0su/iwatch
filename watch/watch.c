@@ -22,7 +22,8 @@
 #include <stdlib.h>
 #include <stdio.h> /* For printf() */
 
-extern tImage g_logoImage;
+extern const unsigned char logoPixel[];
+
 /*
 * This process is the startup process.
 * It first shows the logo
@@ -42,7 +43,7 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       tContext *pContext = (tContext*)rparam;
       GrContextForegroundSet(pContext, ClrWhite);
-      GrImageDraw(pContext, &g_logoImage, 0, 60);
+      GrImageDraw(pContext, logoPixel, 0, 60);
       break;
     }
   case PROCESS_EVENT_TIMER:

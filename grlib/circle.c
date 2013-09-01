@@ -63,7 +63,7 @@ GrCircleDraw(const tContext *pContext, long lX, long lY, long lRadius)
     //
     // Check the arguments.
     //
-    assert(pContext);
+    ASSERT(pContext);
 
     //
     // Initialize the variables that control the Bresenham circle drawing
@@ -327,7 +327,7 @@ GrCircleFill(const tContext *pContext, long lX, long lY, long lRadius)
     //
     // Check the arguments.
     //
-/*    assert(pContext);*/
+    ASSERT(pContext);
 
     //
     // Initialize the variables that control the Bresenham circle drawing

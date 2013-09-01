@@ -66,7 +66,7 @@ GrLineDrawH(const tContext *pContext, long lX1, long lX2, long lY)
     //
     // Check the arguments.
     //
-    assert(pContext);
+    ASSERT(pContext);
 
     //
     // If the Y coordinate of this line is not in the clipping region, then
@@ -148,7 +148,7 @@ GrLineDrawV(const tContext *pContext, long lX, long lY1, long lY2)
     //
     // Check the arguments.
     //
-    assert(pContext);
+    ASSERT(pContext);
 
     //
     // If the X coordinate of this line is not within the clipping region, then
@@ -473,7 +473,7 @@ GrLineDraw(const tContext *pContext, long lX1, long lY1, long lX2, long lY2)
     //
     // Check the arguments.
     //
-/*    assert(pContext);*/
+    ASSERT(pContext);
 
     //
     // See if this is a vertical line.

@@ -74,8 +74,8 @@ GrRectDraw(const tContext *pContext, const tRectangle *pRect)
     //
     // Check the arguments.
     //
-    assert(pContext);
-    assert(pRect);
+    ASSERT(pContext);
+    ASSERT(pRect);
 
     //
     // Draw a line across the top of the rectangle.
@@ -147,8 +147,8 @@ GrRectFill(const tContext *pContext, const tRectangle *pRect)
     //
     // Check the arguments.
     //
-    assert(pContext);
-    assert(pRect);
+    ASSERT(pContext);
+    ASSERT(pRect);
 
     //
     // Swap the X coordinates if sXMin is greater than sXMax.

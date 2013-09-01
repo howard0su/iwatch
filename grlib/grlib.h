@@ -1,41 +1,30 @@
-/* --COPYRIGHT--,BSD
- * Copyright (c) 2012, Texas Instruments Incorporated
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * --/COPYRIGHT--*/
-
+//*****************************************************************************
+//
+// grlib.h - Prototypes for the low level primitives provided by the graphics
+//           library.
+//
+// Copyright (c) 2007-2013 Texas Instruments Incorporated.  All rights reserved.
+// Software License Agreement
+// 
+// Texas Instruments (TI) is supplying this software for use solely and
+// exclusively on TI's microcontroller products. The software is owned by
+// TI and/or its suppliers, and is protected under applicable copyright
+// laws. You may not combine this software with "viral" open-source
+// software in order to form a larger program.
+// 
+// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
+// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
+// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
+// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+// DAMAGES, FOR ANY REASON WHATSOEVER.
+// 
+// This is part of revision 10636 of the Stellaris Graphics Library.
+//
+//*****************************************************************************
 
 #ifndef __GRLIB_H__
 #define __GRLIB_H__
-
-#define NDEBUG
-#include "assert.h"
 
 //*****************************************************************************
 //
@@ -54,46 +43,6 @@
 extern "C"
 {
 #endif
-
-//*****************************************************************************
-//
-//! This structure defines the characteristics of a Bitmap Image
-//
-//*****************************************************************************
-typedef struct
-{
-    //
-    //! Bits per pixel and Compressed/Uncompressed
-    //
-    unsigned char BPP;
-
-    //
-    //! X size
-    //
-    unsigned int XSize;
-
-    //
-    //! Y size
-    //
-    unsigned int YSize;
-
-    //
-    //! Number of Colors in Palette
-    //
-
-    unsigned int NumColors;
-
-    //
-    //! Pointer to Palette
-    //
-    const unsigned long * pPalette;
-
-    //
-    //! Pointer to pixel data
-    //
-    const unsigned char * pPixel;
-}
-tImage;
 
 //*****************************************************************************
 //
@@ -156,40 +105,40 @@ typedef struct
     //
     //! A pointer to the function to draw a pixel on this display.
     //
-    void (*pfnPixelDraw)(void *pvDisplayData, int lX, int lY,
-                         unsigned int ulValue);
+    void (*pfnPixelDraw)(void *pvDisplayData, long lX, long lY,
+                         unsigned long ulValue);
 
     //
     //! A pointer to the function to draw multiple pixels on this display.
     //
-    void (*pfnPixelDrawMultiple)(void *pvDisplayData, int lX, int lY,
-                                 int lX0, int lCount, int lBPP,
+    void (*pfnPixelDrawMultiple)(void *pvDisplayData, long lX, long lY,
+                                 long lX0, long lCount, long lBPP,
                                  const unsigned char *pucData,
-                                 const unsigned int *pucPalette);
+                                 const unsigned char *pucPalette);
 
     //
     //! A pointer to the function to draw a horizontal line on this display.
     //
-    void (*pfnLineDrawH)(void *pvDisplayData, int lX1, int lX2, int lY,
-                         unsigned int ulValue);
+    void (*pfnLineDrawH)(void *pvDisplayData, long lX1, long lX2, long lY,
+                         unsigned long ulValue);
 
     //
     //! A pointer to the function to draw a vertical line on this display.
     //
-    void (*pfnLineDrawV)(void *pvDisplayData, int lX, int lY1, int lY2,
-                         unsigned int ulValue);
+    void (*pfnLineDrawV)(void *pvDisplayData, long lX, long lY1, long lY2,
+                         unsigned long ulValue);
 
     //
     //! A pointer to the function to draw a filled rectangle on this display.
     //
     void (*pfnRectFill)(void *pvDisplayData, const tRectangle *pRect,
-                        unsigned int ulValue);
+                        unsigned long ulValue);
 
     //
     //! A pointer to the function to translate 24-bit RGB colors to
     //! display-specific colors.
     //
-    unsigned int (*pfnColorTranslate)(void *pvDisplayData,
+    unsigned long (*pfnColorTranslate)(void *pvDisplayData,
                                        unsigned long ulValue);
 
     //
@@ -197,18 +146,15 @@ typedef struct
     //! this display.
     //
     void (*pfnFlush)(void *pvDisplayData);
-
-    //
-    //! A pointer to the function to clears Display. Contents of display buffer
-    //! unmodified
-    //
-    void (*pfnClearDisplay)(void *pvDisplayData, unsigned int ulValue);
 }
 tDisplay;
 
 //*****************************************************************************
 //
 //! This structure describes a font used for drawing text onto the screen.
+//! Fonts in this format may encode ASCII characters with codepoints in the
+//! range 0x20 - 0x7F.   More information on this and the other supported font
+//! structures may be found in the ``Font Format'' section of the user's guide.
 //
 //*****************************************************************************
 typedef struct
@@ -260,7 +206,9 @@ tFont;
 //! European languages and any left-to-right typeface supported by an ISO8859
 //! variant. Fonts encoded in this format may be used interchangeably with the
 //! original fonts merely by casting the structure pointer when calling any
-//! function or macro which expects a font pointer as a parameter.
+//! function or macro which expects a font pointer as a parameter.  More
+//! information on this and the other supported font structures may be found in
+//! the ``Font Format'' section of the user's guide.
 //
 //*****************************************************************************
 typedef struct
@@ -318,6 +266,283 @@ tFontEx;
 
 //*****************************************************************************
 //
+//! This variant of the font structure supports Unicode and other multi-byte
+//! character sets.  It is intended for use when rendering such languages as
+//! traditional and simplified Chinese, Korean and Japanese.  The font
+//! supports multiple blocks of contiguous characters and includes a codepage
+//! identifier to allow GrLib to correctly map source codepoints to font
+//! glyphs in cases where the codepages may differ.  More information on
+//! this and the other supported font structures may be found in the ``Font
+//! Format'' section of the user's guide.
+//
+// For the benefit of those of you reading the source...
+
+// Note that, unlike tFont and tFontEx where the character data and offset
+// tables are referenced by pointer and may be discontiguous, a font described
+// using tFontWide is assumed to comprise a single, contiguous block of data
+// with a tFontWide structure as its header, a number of tFontBlock structures
+// immediately following this, and a number of tFontOffsetTable and font glyph
+// data entries following this.  This format ensures that the font is position-
+// independent and allows use in external memory or from non-random-access
+// storage such as SDCards or SSI flash.
+//
+// A complete font in this format would look as follows:
+//
+//      ------------------------------
+//  0  | tFontWide header             |
+//     | ulNumBlocks = n              |
+//      ------------------------------
+//     | tFontBlock[0]                | First block describes characters from
+//     | ulStartCodepoint = S0        | codepoint S0 to (S0 + N0 - 1). Offset
+//     | ulNumCodepoints  = N0        | to glyph table is OF0 bytes from the
+//     | ulGlyphTableOffset = OF0     | start of the tFontWide header struct.
+//      ------------------------------
+//     |     ...                      |
+//      ------------------------------
+//     | tFontBlock[n-1]              | Final block describes characters from
+//     | ulStartCodepoint = S(n-1)    | codepoint S(n-1) to (S(n-1) + N(n-1)
+//     | ulNumCodepoints  = N(n-1)    | - 1).
+//     | ulGlyphTableOffset = OF(n-1) |
+//      ------------------------------
+//      Start of Block 0 Offset Table
+//      ------------------------------
+// OF0 | ulGlyphOffset = GO0          | Offset from OF0 to glyph S0 data.
+//     |                              |
+//      ------------------------------
+//     | ulGlyphOffset = GO1          | Offset from OF0 to glyph (S0 + 1) data.
+//     |                              |
+//      ------------------------------
+//     |     ...                      |
+//     |                              |
+//      ------------------------------
+//     | ulGlyphOffset = GO(N0 - 1)   | Offset from OF0 to glyph (S0 + N0 - 1)
+//     |                              |
+//      ------------------------------
+//       Start of Block 0 Glyph Data
+//      ------------------------------
+// GO0 | Glyph data for codepoint     |
+//     | S0 from block 0              |
+//      ------------------------------
+// GO1 | Glyph data for codepoint     |
+//     | S0 + 1 from block 0          |
+//      ------------------------------
+//     |     ...                      |
+//      ------------------------------
+// GO  | Glyph data for codepoint     |
+//(N-1)| (S0 + N0 - 1) from block 0   |
+//      ------------------------------
+//      Start of Block 1 Offset Table
+//      ------------------------------
+// OF1 | ulGlyphOffset = G10          | Offset from OF1 to glyph S1 data.
+//     |                              |
+//      ------------------------------
+//     | ulGlyphOffset = G11          | Offset from OF1 to glyph (S1 + 1) data.
+//     |                              |
+//      ------------------------------
+//     |     ...                      |
+//     |                              |
+//      ------------------------------
+//     | ulGlyphOffset = G1(N1 - 1)   | Offset from OF1 to glyph (S1 + N1 - 1)
+//     |                              |
+//      ------------------------------
+//       Start of Block 1 Glyph Data
+//      ------------------------------
+// G10 | Glyph data for codepoint     |
+//     | S1 from block 1              |
+//      ------------------------------
+// G11 | Glyph data for codepoint     |
+//     | S1 + 1 from block 1          |
+//      ------------------------------
+//     |     ...                      |
+//      ------------------------------
+// G1  | Glyph data for codepoint     |
+//(N-1)| (S1 + N1 - 1) from block 1   |
+//      ------------------------------
+//! GO0 | Glyph data for codepoint     |
+//     | S0 from block 0              |
+//!      ------------------------------
+//      Start of Block 2 Offset Table
+//!      ------------------------------
+//     | ...continued for remaining   |
+//     | font blocks.                 |
+//      ------------------------------
+//
+//*****************************************************************************
+typedef struct
+{
+    //
+    //! The format of the font.  Can be one of FONT_FMT_WIDE_UNCOMPRESSED or
+    //! FONT_FMT_WIDE_PIXEL_RLE.
+    //
+    unsigned char ucFormat;
+
+    //
+    //! The maximum width of a character; this is the width of the widest
+    //! character in the font, though any individual character may be narrower
+    //! than this width.
+    //
+    unsigned char ucMaxWidth;
+
+    //
+    //! The height of the character cell; this may be taller than the font data
+    //! for the characters (to provide inter-line spacing).
+    //
+    unsigned char ucHeight;
+
+    //
+    //! The offset between the top of the character cell and the baseline of
+    //! the glyph.  The baseline is the bottom row of a capital letter, below
+    //! which only the descenders of the lower case letters occur.
+    //
+    unsigned char ucBaseline;
+
+    //
+    //! The codepage that is used to find characters in this font.  This
+    //! defines the codepoint-to-glyph mapping within this font.
+    //
+    unsigned short usCodepage;
+
+    //
+    //! The number of blocks of characters described by this font where a block
+    //! contains a number of contiguous codepoints.
+    //
+    unsigned short usNumBlocks;
+}
+tFontWide;
+
+typedef struct
+{
+    //
+    //! The first codepoint in this block of characters.  The meaning of this
+    //! value depends upon the codepage that the font is using, as defined in
+    //! the eCodePage field of the associated tFontWide structure.
+    //
+    unsigned long ulStartCodepoint;
+
+    //
+    //! The number of characters encoded in this block.  The first character
+    //! is given by ulStartCodepoint and the last is (ulStartCodepoint +
+    //! ulNumBlockChars - 1).
+    //
+    unsigned long ulNumCodepoints;
+
+    //
+    //! The offset from the beginning of the tFontWide header to the glyph
+    //! offset table for this block of characters.
+    //
+    unsigned long ulGlyphTableOffset;
+}
+tFontBlock;
+
+typedef struct
+{
+    //
+    //! The offset of each glyph in the block relative to the first entry in
+    //! this table.  This structure is represented as an array of 1 entry but
+    //! the actual number of entries is given in the usNumBlockChars entry of
+    //! the tFontBlock that points to this structure.
+    //!
+    //! The value provided in ulGlyphOffset[n] is the byte offset from the
+    //! start of the tFontBlock structure that this glyph belongs to to the
+    //! first byte of the glyph data.
+    //!
+    //! To support fonts which contain large blocks of codepoints with
+    //! small gaps, a ulGlyphOffset value of 0 indicates that the codepoint in
+    //! question is not populated in the font.  Using this method, single
+    //! characters may be skipped while avoiding the overhead of defining a new
+    //! block.
+    //
+    unsigned long ulGlyphOffset[1];
+}
+tFontOffsetTable;
+
+//*****************************************************************************
+//
+//! The jump table used to access a particular wrapped (offline) font.
+//! This table exists for each type of wrapped font in use with the functions
+//! dependent upon the storage medium holding the font.
+//
+//*****************************************************************************
+typedef struct
+{
+    //
+    //! A pointer to the function which will return information on the
+    //! font.  This is used to support GrFontInfoGet.
+    //
+    void (*pfnFontInfoGet)(unsigned char *pucFontId, unsigned char *pucFormat,
+                           unsigned char *pucWidth, unsigned char *pucHeight,
+                           unsigned char *pucBaseline);
+
+    //
+    //! A pointer to the function used to retrieve data for a particular font
+    //! glyph.  This function returns a pointer to the glyph data in linear,
+    //! random access memory.  If a buffer is required to ensure this, that
+    //! buffer must be owned and managed by the font wrapper function.  It is
+    //! safe to assume that this function will not be called again until any
+    //! previously requested glyph data has been used so a single character
+    //! buffer should suffice.  This is used to support GrFontGlyphDataGet.
+    //
+    const unsigned char *(*pfnFontGlyphDataGet)(unsigned char *pucFontId,
+                                                unsigned long ulCodePoint,
+                                                unsigned char *pucWidth);
+
+    //
+    //! A pointer to the function used to determine the codepage supported by
+    //! the font.
+    //
+    unsigned short (*pfnFontCodepageGet)(unsigned char *pucFontId);
+
+    //
+    //! A pointer to the function used to determine the number of blocks of
+    //! codepoints supported by the font.
+    //
+    unsigned short (*pfnFontNumBlocksGet)(unsigned char *pucFontId);
+
+    //
+    //! A pointer to the function used to determine the codepoints in a given
+    //! codepoints in a given font block.
+    //
+    unsigned long (*pfnFontBlockCodepointsGet)(unsigned char *pucFontId,
+                                               unsigned short usBlockIndex,
+                                               unsigned long *pulStart);
+}
+tFontAccessFuncs;
+
+//*****************************************************************************
+//
+//! This is a wrapper used to support fonts which are stored in a file system
+//! or other non-random access storage.  The font is accessed by means of
+//! access functions whose pointers are described in this structure.  The
+//! pucFontId field is written with a handle supplied to the application by
+//! the font wrapper's FontLoad function and is passed to all access functions
+//! to identify the font in use.  Wrapped fonts may be used by any GrLib
+//! function that accepts a font pointer as a parameter merely by casting the
+//! pointer appropriately.
+//
+//*****************************************************************************
+typedef struct
+{
+    //
+    //! The format of the font.  Will be FONT_FMT_WRAPPED.
+    //
+    unsigned char ucFormat;
+
+    //
+    //! A pointer to information required to allow the font access functions
+    //! to find the font to be used.  This value is returned from a call to
+    //! the FontLoad function for the particular font wrapper in use.
+    //
+    unsigned char *pucFontId;
+
+    //
+    //! Access functions for this font.
+    //
+    const tFontAccessFuncs *pFuncs;
+}
+tFontWrapper;
+
+//*****************************************************************************
+//
 //! Indicates that the font data is stored in an uncompressed format.
 //
 //*****************************************************************************
@@ -356,27 +581,36 @@ tFontEx;
 
 //*****************************************************************************
 //
-//! Value to automatically draw the entire length of the string
-//! (subject to clipping)
+//! A marker used in the ucFormat field of a font to indicates that the font
+//! data is stored using the new tFontWide structure.
 //
 //*****************************************************************************
-#define AUTO_STRING_LENGTH     -1
+#define FONT_WIDE_MARKER          0x40
 
 //*****************************************************************************
 //
-//! Value to draw text opaque
-//! The text foreground and background are drawn together
+//! Indicates that the font data is stored in an uncompressed format and uses
+//! the tFontWide structure format.
 //
 //*****************************************************************************
-#define OPAQUE_TEXT     1
+#define FONT_FMT_WIDE_UNCOMPRESSED   (FONT_FMT_UNCOMPRESSED | FONT_WIDE_MARKER)
 
 //*****************************************************************************
 //
-//! Value to draw text transparently
-//! The text only (no background) is drawn
+//! Indicates that the font data is stored using a pixel-based RLE format and
+//! uses the tFontWide structure format.
 //
 //*****************************************************************************
-#define TRANSPARENT_TEXT     0
+#define FONT_FMT_WIDE_PIXEL_RLE      (FONT_FMT_PIXEL_RLE | FONT_WIDE_MARKER)
+
+//*****************************************************************************
+//
+//! Indicates that the font data is stored in offline storage (file system,
+//! serial memory device, etc) and must be accessed using wrapper functions.
+//! Fonts using this format are described using a tFontWrapper structure.
+//
+//*****************************************************************************
+#define FONT_FMT_WRAPPED        0x20
 
 //*****************************************************************************
 //
@@ -385,14 +619,6 @@ tFontEx;
 //
 //*****************************************************************************
 #define IMAGE_FMT_1BPP_UNCOMP   0x01
-
-//*****************************************************************************
-//
-//! Indicates that the image data is not compressed and represents each pixel
-//! with two bits.
-//
-//*****************************************************************************
-#define IMAGE_FMT_2BPP_UNCOMP   0x02
 
 //*****************************************************************************
 //
@@ -412,68 +638,173 @@ tFontEx;
 
 //*****************************************************************************
 //
-//! Indicates that the image data is compressed with 4 bit Run Length Encoding
-//! and represents each pixel with a single bit.
+//! Indicates that the image data is compressed and represents each pixel with
+//! a single bit.
 //
 //*****************************************************************************
-#define IMAGE_FMT_1BPP_COMP_RLE4     0x41
-
-//*****************************************************************************
-//
-//! Indicates that the image data is compressed with 4 bit Run Length Encoding
-//! and represents each pixel with two bits.
-//
-//*****************************************************************************
-#define IMAGE_FMT_2BPP_COMP_RLE4     0x42
-
-//*****************************************************************************
-//
-//! Indicates that the image data is compressed with 4 bit Run Length Encoding
-//! and represents each pixel with four bits.
-//
-//*****************************************************************************
-#define IMAGE_FMT_4BPP_COMP_RLE4     0x44
-
-//*****************************************************************************
-//
-//! Indicates that the image data is compressed with 8 bit Run Length Encoding
-//! and represents each pixel with a single bit.
-//
-//*****************************************************************************
-#define IMAGE_FMT_1BPP_COMP_RLE8     0x81
-
-//*****************************************************************************
-//
-//! Indicates that the image data is compressed with 8 bit Run Length Encoding
-//! and represents each pixel with two bits.
-//
-//*****************************************************************************
-#define IMAGE_FMT_2BPP_COMP_RLE8     0x82
-
-//*****************************************************************************
-//
-//! Indicates that the image data is compressed with 8 bit Run Length Encoding
-//! and represents each pixel with four bits.
-//
-//*****************************************************************************
-#define IMAGE_FMT_4BPP_COMP_RLE8     0x84
-
-//*****************************************************************************
-//
-//! Indicates that the image data is compressed with 8 bit Run Length Encoding
-//! and represents each pixel with eight bits.
-//
-//*****************************************************************************
-#define IMAGE_FMT_8BPP_COMP_RLE8     0x88
+#define IMAGE_FMT_1BPP_COMP     0x81
 
 //*****************************************************************************
 //
 //! Indicates that the image data is compressed and represents each pixel with
-//! info bits.
+//! four bits.
 //
 //*****************************************************************************
-#define IMAGE_FMT_8BPP_COMP_RLEBLEND     0x28
+#define IMAGE_FMT_4BPP_COMP     0x84
 
+//*****************************************************************************
+//
+//! Indicates that the image data is compressed and represents each pixel with
+//! eight bits.
+//
+//*****************************************************************************
+#define IMAGE_FMT_8BPP_COMP     0x88
+
+#ifndef GRLIB_REMOVE_WIDE_FONT_SUPPORT
+//*****************************************************************************
+//
+//! Identifiers for codepages and source text encoding formats.
+//
+//*****************************************************************************
+#define CODEPAGE_ISO8859_1     0x0000
+#define CODEPAGE_ISO8859_2     0x0001
+#define CODEPAGE_ISO8859_3     0x0002
+#define CODEPAGE_ISO8859_4     0x0013
+#define CODEPAGE_ISO8859_5     0x0003
+#define CODEPAGE_ISO8859_6     0x0004
+#define CODEPAGE_ISO8859_7     0x0005
+#define CODEPAGE_ISO8859_8     0x0006
+#define CODEPAGE_ISO8859_9     0x0007
+#define CODEPAGE_ISO8859_10    0x0008
+#define CODEPAGE_ISO8859_11    0x0009
+#define CODEPAGE_ISO8859_13    0x000A
+#define CODEPAGE_ISO8859_14    0x000B
+#define CODEPAGE_ISO8859_15    0x000C
+#define CODEPAGE_ISO8859_16    0x000D
+#define CODEPAGE_UNICODE       0x000E
+#define CODEPAGE_GB2312        0x000F
+#define CODEPAGE_GB18030       0x0010
+#define CODEPAGE_BIG5          0x0011
+#define CODEPAGE_SHIFT_JIS     0x0012
+#define CODEPAGE_WIN1250       0x0013
+#define CODEPAGE_WIN1251       0x0014
+#define CODEPAGE_WIN1252       0x0015
+#define CODEPAGE_WIN1253       0x0016
+#define CODEPAGE_WIN1254       0x0017
+#define CODEPAGE_WIN1255       0x0018
+#define CODEPAGE_WIN1256       0x0019
+#define CODEPAGE_WIN1257       0x001A
+#define CODEPAGE_WIN1258       0x001B
+
+//
+// UTF-8 and UTF-16 may be specified as the source text encoding but may not
+// be used to describe the codepage in use in a font since they are simply
+// different encoding methods for Unicode.
+//
+#define CODEPAGE_UTF_8         0x4000
+#define CODEPAGE_UTF_16LE      0x4001
+#define CODEPAGE_UTF_16BE      0x4002
+#define CODEPAGE_UTF_16        CODEPAGE_UTF_16BE
+
+//
+// Applications wishing to use custom fonts with, for example, application-
+// specific glyph mappings may use codepage identifiers above
+// CODEPAGE_CUSTOM_BASE.
+//
+#define CODEPAGE_CUSTOM_BASE   0x8000
+
+//*****************************************************************************
+//
+//! A structure used to define a mapping function that converts text in one
+//! codepage to a different codepage.  Typically this is used to translate
+//! text strings into the codepoints needed to retrieve the appropriate
+//! glyphs from a font.
+//
+//*****************************************************************************
+typedef struct
+{
+    //
+    //! The codepage used to describe the source characters.
+    //
+    unsigned short usSrcCodepage;
+
+    //
+    //! The codepage into which source characters are to be mapped.
+    //
+    unsigned short usFontCodepage;
+
+    //
+    //! A pointer to the conversion function which will be used to translate
+    //! input strings into codepoints in the output codepage.
+    //
+    unsigned long (*pfnMapChar)(const char *pcSrcChar,
+                                unsigned long ulCount,
+                                unsigned long *pulSkip);
+}
+tCodePointMap;
+
+//*****************************************************************************
+//
+// Forward reference to the graphics context structure.
+//
+//*****************************************************************************
+struct _tContext;
+
+//*****************************************************************************
+//
+// A function pointer for a replacement text string rendering function.  The
+// prototype for this function follows GrStringDraw.  Applications making use
+// of scripts which require special handling for diacritics, ligatures or
+// character composition/decomposition may replace the default GrLib string
+// renderer with one of their own which understands these rules.
+//
+//*****************************************************************************
+typedef void (*tStringRenderer)(const struct _tContext *, const char *, long, long,
+                                long, unsigned long);
+
+//*****************************************************************************
+//
+//! This structure contains default values that are set in any new context
+//! initialized via a call to GrContextInit.  This structure is passed to the
+//! graphics library using the GrLibInit function.
+//
+//*****************************************************************************
+typedef struct
+{
+    //
+    //! The default string rendering function to use.  This will normally be
+    //! GrDefaultStringRenderer but may be replaced when supporting languages
+    //! requiring mixed rendering directions such as Arabic or Hebrew.
+    //
+    void (*pfnStringRenderer)(const struct _tContext *, const char *, long,
+                              long, long, unsigned long);
+
+    //
+    //! The default codepoint mapping function table.  This table contains
+    //! information allowing GrLib to map text in the source codepage to the
+    //! correct glyphs in the fonts to be used.  The field points to the first
+    //! element of an array of ucNumCodePointMaps structures.
+    //
+    tCodePointMap *pCodePointMapTable;
+
+    //
+    //! The default source text codepage encoding in use by the application.
+    //
+    unsigned short usCodepage;
+
+    //
+    //! The number of entries in the pCodePointMapTable array.
+    //
+    unsigned char ucNumCodePointMaps;
+
+    //
+    //! Reserved for future expansion.
+    //
+    unsigned char ucReserved;
+}
+tGrLibDefaults;
+
+#endif
 
 //*****************************************************************************
 //
@@ -481,7 +812,11 @@ tFontEx;
 //! screen.  Multiple drawing contexts may exist at any time.
 //
 //*****************************************************************************
+#ifdef DOXYGEN
 typedef struct
+#else
+typedef struct _tContext
+#endif
 {
     //
     //! The size of this structure.
@@ -512,6 +847,43 @@ typedef struct
     //! The font used to render text onto the screen.
     //
     const tFont *pFont;
+
+#ifndef GRLIB_REMOVE_WIDE_FONT_SUPPORT
+    //
+    //! A pointer to a replacement string rendering function.  Applications
+    //! can use this for language-specific string rendering support.  If
+    //! set, this function is passed control whenever GrStringDraw is called.
+    //
+    void (*pfnStringRenderer)(const struct _tContext *, const char *, long,
+                              long, long, unsigned long);
+
+    //
+    //! A table of functions used to map between the various supported
+    //! source codepages and the codepages supported by fonts in use.
+    //
+    const tCodePointMap *pCodePointMapTable;
+
+    //
+    //! The currently selected source text codepage.
+    //
+    unsigned short usCodepage;
+
+    //
+    //! The number of entries in the pCodePointMapTable array.
+    //
+    unsigned char ucNumCodePointMaps;
+
+    //
+    //! The index of the codepoint map table entry which is currently in use
+    //! based on the selected source codepage and the current font.
+    //
+    unsigned char ucCodePointMap;
+
+    //
+    //! Reserved for future expansion.
+    //
+    unsigned char ucReserved;
+#endif
 }
 tContext;
 
@@ -589,6 +961,7 @@ tContext;
 #define GrContextDpyHeightGet(pContext)      \
         (DpyHeightGet((pContext)->pDisplay))
 
+#ifdef GRLIB_REMOVE_WIDE_FONT_SUPPORT
 //*****************************************************************************
 //
 //! Sets the font to be used.
@@ -611,6 +984,9 @@ tContext;
             pC->pFont = pF;              \
         }                                \
         while(0)
+#else
+extern void GrContextFontSet(tContext *pContext, const tFont *pFnt);
+#endif
 
 //*****************************************************************************
 //
@@ -678,26 +1054,7 @@ tContext;
         }                                  \
         while(0)
 
-
-//*****************************************************************************
-//
-//! Forces a clear screen. Contents of Display buffer unmodified
-//!
-//! \param pContext is a pointer to the drawing context to use.
-//!
-//! This function forces a clear screen.
-//!
-//! \return None.
-//
-//*****************************************************************************
-#define GrClearDisplay(pContext)           \
-        do                                 \
-        {                                  \
-            const tContext *pC = pContext; \
-            DpyClearDisplay(pC->pDisplay,pC->ulBackground ); \
-        }                                  \
-        while(0)
-
+#ifdef GRLIB_REMOVE_WIDE_FONT_SUPPORT
 //*****************************************************************************
 //
 //! Gets the baseline of a font.
@@ -745,12 +1102,13 @@ tContext;
 //*****************************************************************************
 #define GrFontMaxWidthGet(pFont) \
         ((pFont)->ucMaxWidth)
+#endif
 
 //*****************************************************************************
 //
 //! Gets the number of colors in an image.
 //!
-//! \param pImage is a tImage struct
+//! \param pucImage is a pointer to the image to query.
 //!
 //! This function determines the number of colors in the palette of an image.
 //! This is only valid for 4bpp and 8bpp images; 1bpp images do not contain a
@@ -759,35 +1117,36 @@ tContext;
 //! \return Returns the number of colors in the image.
 //
 //*****************************************************************************
-#define GrImageColorsGet(pImage)           \
-        pImage->NumColors
+#define GrImageColorsGet(pucImage)           \
+        (((unsigned char *)pucImage)[5] + 1)
+
 //*****************************************************************************
 //
 //! Gets the height of an image.
 //!
-//! \param pImage is a tImage struct
+//! \param pucImage is a pointer to the image to query.
 //!
 //! This function determines the height of an image in pixels.
 //!
 //! \return Returns the height of the image in pixels.
 //
 //*****************************************************************************
-#define GrImageHeightGet(pImage)          \
-        pImage->YSize
+#define GrImageHeightGet(pucImage)          \
+        (*(unsigned short *)(pucImage + 3))
 
 //*****************************************************************************
 //
 //! Gets the width of an image.
 //!
-//! \param pImage is a tImage struct
+//! \param pucImage is a pointer to the image to query.
 //!
 //! This function determines the width of an image in pixels.
 //!
 //! \return Returns the width of the image in pixels.
 //
 //*****************************************************************************
-#define GrImageWidthGet(pImage)           \
-        pImage->XSize
+#define GrImageWidthGet(pucImage)           \
+        (*(unsigned short *)(pucImage + 1))
 
 //*****************************************************************************
 //
@@ -879,7 +1238,7 @@ tContext;
 //
 //*****************************************************************************
 #define GrStringBaselineGet(pContext)   \
-        ((pContext)->pFont->ucBaseline)
+        (GrFontBaselineGet((pContext)->pFont))
 
 //*****************************************************************************
 //
@@ -914,7 +1273,7 @@ tContext;
                                                                             \
             GrStringDraw(pC, pcStr, lLength,                                \
                          (lX) - (GrStringWidthGet(pC, pcStr, lLength) / 2), \
-                         (lY) - (pC->pFont->ucBaseline / 2), bOpaque);      \
+                         (lY) - (GrFontBaselineGet(pC->pFont) / 2), bOpaque); \
         }                                                                   \
         while(0)
 
@@ -935,7 +1294,7 @@ tContext;
 //
 //*****************************************************************************
 #define GrStringHeightGet(pContext)   \
-        ((pContext)->pFont->ucHeight)
+        (GrFontHeightGet((pContext)->pFont))
 
 //*****************************************************************************
 //
@@ -952,7 +1311,7 @@ tContext;
 //
 //*****************************************************************************
 #define GrStringMaxWidthGet(pContext)   \
-        ((pContext)->pFont->ucMaxWidth)
+        (GrFontMaxWidthGet((pContext)->pFont))
 
 //*****************************************************************************
 //
@@ -1100,7 +1459,6 @@ tContext;
 #define ClrWhiteSmoke           0x00F5F5F5
 #define ClrYellow               0x00FFFF00
 #define ClrYellowGreen          0x009ACD32
-#define ClrBlack		0x00000000
 
 //*****************************************************************************
 //
@@ -1122,25 +1480,312 @@ tContext;
 // computer modern sans-serif font.
 //
 //*****************************************************************************
-extern const tFont g_sFontNova12b;
-extern const tFont g_sFontNova13;
-extern const tFont g_sFontNova16;
-extern const tFont g_sFontNova16b;
-extern const tFont g_sFontNova28;
-extern const tFont g_sFontNova28b;
-extern const tFont g_sFontNova38;
-extern const tFont g_sFontNova38b;
-extern const tFont g_sFontNova50b;
-extern const tFont g_sFontRed13;
-extern const tFont g_sFontBaby16;
-extern const tFont g_sFontBaby12;
-extern const tFontEx g_sFontExIcon16;
-extern const tFontEx g_sFontExIcon48;
-
-extern const tFontEx g_sFontExDigit44;
-extern const tFontEx g_sFontExDigit44b;
-extern const tFontEx g_sFontExDigit56;
-extern const tFontEx g_sFontExDigit52b;
+extern const tFont g_sFontCm12;
+#define g_pFontCm12 (const tFont *)&g_sFontCm12
+extern const tFont g_sFontCm12b;
+#define g_pCm12b (const tFont *)&g_sFontCm12b
+extern const tFont g_sFontCm12i;
+#define g_pFontCm12i (const tFont *)&g_sFontCm12i
+extern const tFont g_sFontCm14;
+#define g_pFontCm14 (const tFont *)&g_sFontCm14
+extern const tFont g_sFontCm14b;
+#define g_pFontCm14b (const tFont *)&g_sFontCm14b
+extern const tFont g_sFontCm14i;
+#define g_pFontCm14i (const tFont *)&g_sFontCm14i
+extern const tFont g_sFontCm16;
+#define g_pFontCm16 (const tFont *)&g_sFontCm16
+extern const tFont g_sFontCm16b;
+#define g_pFontCm16b (const tFont *)&g_sFontCm16b
+extern const tFont g_sFontCm16i;
+#define g_pFontCm16i (const tFont *)&g_sFontCm16i
+extern const tFont g_sFontCm18;
+#define g_pFontCm18 (const tFont *)&g_sFontCm18
+extern const tFont g_sFontCm18b;
+#define g_pFontCm18b (const tFont *)&g_sFontCm18b
+extern const tFont g_sFontCm18i;
+#define g_pFontCm18i (const tFont *)&g_sFontCm18i
+extern const tFont g_sFontCm20;
+#define g_pFontCm20 (const tFont *)&g_sFontCm20
+extern const tFont g_sFontCm20b;
+#define g_pFontCm20b (const tFont *)&g_sFontCm20b
+extern const tFont g_sFontCm20i;
+#define g_pFontCm20i (const tFont *)&g_sFontCm20i
+extern const tFont g_sFontCm22;
+#define g_pFontCm22 (const tFont *)&g_sFontCm22
+extern const tFont g_sFontCm22b;
+#define g_pFontCm22b (const tFont *)&g_sFontCm22b
+extern const tFont g_sFontCm22i;
+#define g_pFontCm22i (const tFont *)&g_sFontCm22i
+extern const tFont g_sFontCm24;
+#define g_pFontCm24 (const tFont *)&g_sFontCm24
+extern const tFont g_sFontCm24b;
+#define g_pFontCm24b (const tFont *)&g_sFontCm24b
+extern const tFont g_sFontCm24i;
+#define g_pFontCm24i (const tFont *)&g_sFontCm24i
+extern const tFont g_sFontCm26;
+#define g_pFontCm26 (const tFont *)&g_sFontCm26
+extern const tFont g_sFontCm26b;
+#define g_pFontCm26b (const tFont *)&g_sFontCm26b
+extern const tFont g_sFontCm26i;
+#define g_pFontCm26i (const tFont *)&g_sFontCm26i
+extern const tFont g_sFontCm28;
+#define g_pFontCm28 (const tFont *)&g_sFontCm28
+extern const tFont g_sFontCm28b;
+#define g_pFontCm28b (const tFont *)&g_sFontCm28b
+extern const tFont g_sFontCm28i;
+#define g_pFontCm28i (const tFont *)&g_sFontCm28i
+extern const tFont g_sFontCm30;
+#define g_pFontCm30 (const tFont *)&g_sFontCm30
+extern const tFont g_sFontCm30b;
+#define g_pFontCm30b (const tFont *)&g_sFontCm30b
+extern const tFont g_sFontCm30i;
+#define g_pFontCm30i (const tFont *)&g_sFontCm30i
+extern const tFont g_sFontCm32;
+#define g_pFontCm32 (const tFont *)&g_sFontCm32
+extern const tFont g_sFontCm32b;
+#define g_pFontCm32b (const tFont *)&g_sFontCm32b
+extern const tFont g_sFontCm32i;
+#define g_pFontCm32i (const tFont *)&g_sFontCm32i
+extern const tFont g_sFontCm34;
+#define g_pFontCm34 (const tFont *)&g_sFontCm34
+extern const tFont g_sFontCm34b;
+#define g_pFontCm34b (const tFont *)&g_sFontCm34b
+extern const tFont g_sFontCm34i;
+#define g_pFontCm34i (const tFont *)&g_sFontCm34i
+extern const tFont g_sFontCm36;
+#define g_pFontCm36 (const tFont *)&g_sFontCm36
+extern const tFont g_sFontCm36b;
+#define g_pFontCm36b (const tFont *)&g_sFontCm36b
+extern const tFont g_sFontCm36i;
+#define g_pFontCm36i (const tFont *)&g_sFontCm36i
+extern const tFont g_sFontCm38;
+#define g_pFontCm38 (const tFont *)&g_sFontCm38
+extern const tFont g_sFontCm38b;
+#define g_pFontCm38b (const tFont *)&g_sFontCm38b
+extern const tFont g_sFontCm38i;
+#define g_pFontCm38i (const tFont *)&g_sFontCm38i
+extern const tFont g_sFontCm40;
+#define g_pFontCm40 (const tFont *)&g_sFontCm40
+extern const tFont g_sFontCm40b;
+#define g_pFontCm40b (const tFont *)&g_sFontCm40b
+extern const tFont g_sFontCm40i;
+#define g_pFontCm40i (const tFont *)&g_sFontCm40i
+extern const tFont g_sFontCm42;
+#define g_pFontCm42 (const tFont *)&g_sFontCm42
+extern const tFont g_sFontCm42b;
+#define g_pFontCm42b (const tFont *)&g_sFontCm42b
+extern const tFont g_sFontCm42i;
+#define g_pFontCm42i (const tFont *)&g_sFontCm42i
+extern const tFont g_sFontCm44;
+#define g_pFontCm44 (const tFont *)&g_sFontCm44
+extern const tFont g_sFontCm44b;
+#define g_pFontCm44b (const tFont *)&g_sFontCm44b
+extern const tFont g_sFontCm44i;
+#define g_pFontCm44i (const tFont *)&g_sFontCm44i
+extern const tFont g_sFontCm46;
+#define g_pFontCm46 (const tFont *)&g_sFontCm46
+extern const tFont g_sFontCm46b;
+#define g_pFontCm46b (const tFont *)&g_sFontCm46b
+extern const tFont g_sFontCm46i;
+#define g_pFontCm46i (const tFont *)&g_sFontCm46i
+extern const tFont g_sFontCm48;
+#define g_pFontCm48 (const tFont *)&g_sFontCm48
+extern const tFont g_sFontCm48b;
+#define g_pFontCm48b (const tFont *)&g_sFontCm48b
+extern const tFont g_sFontCm48i;
+#define g_pFontCm48i (const tFont *)&g_sFontCm48i
+extern const tFont g_sFontCmsc12;
+#define g_pFontCmsc12 (const tFont *)&g_sFontCmsc12
+extern const tFont g_sFontCmsc14;
+#define g_pFontCmsc14 (const tFont *)&g_sFontCmsc14
+extern const tFont g_sFontCmsc16;
+#define g_pFontCmsc16 (const tFont *)&g_sFontCmsc16
+extern const tFont g_sFontCmsc18;
+#define g_pFontCmsc18 (const tFont *)&g_sFontCmsc18
+extern const tFont g_sFontCmsc20;
+#define g_pFontCmsc20 (const tFont *)&g_sFontCmsc20
+extern const tFont g_sFontCmsc22;
+#define g_pFontCmsc22 (const tFont *)&g_sFontCmsc22
+extern const tFont g_sFontCmsc24;
+#define g_pFontCmsc24 (const tFont *)&g_sFontCmsc24
+extern const tFont g_sFontCmsc26;
+#define g_pFontCmsc26 (const tFont *)&g_sFontCmsc26
+extern const tFont g_sFontCmsc28;
+#define g_pFontCmsc28 (const tFont *)&g_sFontCmsc28
+extern const tFont g_sFontCmsc30;
+#define g_pFontCmsc30 (const tFont *)&g_sFontCmsc30
+extern const tFont g_sFontCmsc32;
+#define g_pFontCmsc32 (const tFont *)&g_sFontCmsc32
+extern const tFont g_sFontCmsc34;
+#define g_pFontCmsc34 (const tFont *)&g_sFontCmsc34
+extern const tFont g_sFontCmsc36;
+#define g_pFontCmsc36 (const tFont *)&g_sFontCmsc36
+extern const tFont g_sFontCmsc38;
+#define g_pFontCmsc38 (const tFont *)&g_sFontCmsc38
+extern const tFont g_sFontCmsc40;
+#define g_pFontCmsc40 (const tFont *)&g_sFontCmsc40
+extern const tFont g_sFontCmsc42;
+#define g_pFontCmsc42 (const tFont *)&g_sFontCmsc42
+extern const tFont g_sFontCmsc44;
+#define g_pFontCmsc44 (const tFont *)&g_sFontCmsc44
+extern const tFont g_sFontCmsc46;
+#define g_pFontCmsc46 (const tFont *)&g_sFontCmsc46
+extern const tFont g_sFontCmsc48;
+#define g_pFontCmsc48 (const tFont *)&g_sFontCmsc48
+extern const tFont g_sFontCmss12;
+#define g_pFontCmss12 (const tFont *)&g_sFontCmss12
+extern const tFont g_sFontCmss12b;
+#define g_pFontCmss12b (const tFont *)&g_sFontCmss12b
+extern const tFont g_sFontCmss12i;
+#define g_pFontCmss12i (const tFont *)&g_sFontCmss12i
+extern const tFont g_sFontCmss14;
+#define g_pFontCmss14 (const tFont *)&g_sFontCmss14
+extern const tFont g_sFontCmss14b;
+#define g_pFontCmss14b (const tFont *)&g_sFontCmss14b
+extern const tFont g_sFontCmss14i;
+#define g_pFontCmss14i (const tFont *)&g_sFontCmss14i
+extern const tFont g_sFontCmss16;
+#define g_pFontCmss16 (const tFont *)&g_sFontCmss16
+extern const tFont g_sFontCmss16b;
+#define g_pFontCmss16b (const tFont *)&g_sFontCmss16b
+extern const tFont g_sFontCmss16i;
+#define g_pFontCmss16i (const tFont *)&g_sFontCmss16i
+extern const tFont g_sFontCmss18;
+#define g_pFontCmss18 (const tFont *)&g_sFontCmss18
+extern const tFont g_sFontCmss18b;
+#define g_pFontCmss18b (const tFont *)&g_sFontCmss18b
+extern const tFont g_sFontCmss18i;
+#define g_pFontCmss18i (const tFont *)&g_sFontCmss18i
+extern const tFont g_sFontCmss20;
+#define g_pFontCmss20 (const tFont *)&g_sFontCmss20
+extern const tFont g_sFontCmss20b;
+#define g_pFontCmss20b (const tFont *)&g_sFontCmss20b
+extern const tFont g_sFontCmss20i;
+#define g_pFontCmss20i (const tFont *)&g_sFontCmss20i
+extern const tFont g_sFontCmss22;
+#define g_pFontCmss22 (const tFont *)&g_sFontCmss22
+extern const tFont g_sFontCmss22b;
+#define g_pFontCmss22b (const tFont *)&g_sFontCmss22b
+extern const tFont g_sFontCmss22i;
+#define g_pFontCmss22i (const tFont *)&g_sFontCmss22i
+extern const tFont g_sFontCmss24;
+#define g_pFontCmss24 (const tFont *)&g_sFontCmss24
+extern const tFont g_sFontCmss24b;
+#define g_pFontCmss24b (const tFont *)&g_sFontCmss24b
+extern const tFont g_sFontCmss24i;
+#define g_pFontCmss24i (const tFont *)&g_sFontCmss24i
+extern const tFont g_sFontCmss26;
+#define g_pFontCmss26 (const tFont *)&g_sFontCmss26
+extern const tFont g_sFontCmss26b;
+#define g_pFontCmss26b (const tFont *)&g_sFontCmss26b
+extern const tFont g_sFontCmss26i;
+#define g_pFontCmss26i (const tFont *)&g_sFontCmss26i
+extern const tFont g_sFontCmss28;
+#define g_pFontCmss28 (const tFont *)&g_sFontCmss28
+extern const tFont g_sFontCmss28b;
+#define g_pFontCmss28b (const tFont *)&g_sFontCmss28b
+extern const tFont g_sFontCmss28i;
+#define g_pFontCmss28i (const tFont *)&g_sFontCmss28i
+extern const tFont g_sFontCmss30;
+#define g_pFontCmss30 (const tFont *)&g_sFontCmss30
+extern const tFont g_sFontCmss30b;
+#define g_pFontCmss30b (const tFont *)&g_sFontCmss30b
+extern const tFont g_sFontCmss30i;
+#define g_pFontCmss30i (const tFont *)&g_sFontCmss30i
+extern const tFont g_sFontCmss32;
+#define g_pFontCmss32 (const tFont *)&g_sFontCmss32
+extern const tFont g_sFontCmss32b;
+#define g_pFontCmss32b (const tFont *)&g_sFontCmss32b
+extern const tFont g_sFontCmss32i;
+#define g_pFontCmss32i (const tFont *)&g_sFontCmss32i
+extern const tFont g_sFontCmss34;
+#define g_pFontCmss34 (const tFont *)&g_sFontCmss34
+extern const tFont g_sFontCmss34b;
+#define g_pFontCmss34b (const tFont *)&g_sFontCmss34b
+extern const tFont g_sFontCmss34i;
+#define g_pFontCmss34i (const tFont *)&g_sFontCmss34i
+extern const tFont g_sFontCmss36;
+#define g_pFontCmss36 (const tFont *)&g_sFontCmss36
+extern const tFont g_sFontCmss36b;
+#define g_pFontCmss36b (const tFont *)&g_sFontCmss36b
+extern const tFont g_sFontCmss36i;
+#define g_pFontCmss36i (const tFont *)&g_sFontCmss36i
+extern const tFont g_sFontCmss38;
+#define g_pFontCmss38 (const tFont *)&g_sFontCmss38
+extern const tFont g_sFontCmss38b;
+#define g_pFontCmss38b (const tFont *)&g_sFontCmss38b
+extern const tFont g_sFontCmss38i;
+#define g_pFontCmss38i (const tFont *)&g_sFontCmss38i
+extern const tFont g_sFontCmss40;
+#define g_pFontCmss40 (const tFont *)&g_sFontCmss40
+extern const tFont g_sFontCmss40b;
+#define g_pFontCmss40b (const tFont *)&g_sFontCmss40b
+extern const tFont g_sFontCmss40i;
+#define g_pFontCmss40i (const tFont *)&g_sFontCmss40i
+extern const tFont g_sFontCmss42;
+#define g_pFontCmss42 (const tFont *)&g_sFontCmss42
+extern const tFont g_sFontCmss42b;
+#define g_pFontCmss42b (const tFont *)&g_sFontCmss42b
+extern const tFont g_sFontCmss42i;
+#define g_pFontCmss42i (const tFont *)&g_sFontCmss42i
+extern const tFont g_sFontCmss44;
+#define g_pFontCmss44 (const tFont *)&g_sFontCmss44
+extern const tFont g_sFontCmss44b;
+#define g_pFontCmss44b (const tFont *)&g_sFontCmss44b
+extern const tFont g_sFontCmss44i;
+#define g_pFontCmss44i (const tFont *)&g_sFontCmss44i
+extern const tFont g_sFontCmss46;
+#define g_pFontCmss46 (const tFont *)&g_sFontCmss46
+extern const tFont g_sFontCmss46b;
+#define g_pFontCmss46b (const tFont *)&g_sFontCmss46b
+extern const tFont g_sFontCmss46i;
+#define g_pFontCmss46i (const tFont *)&g_sFontCmss46i
+extern const tFont g_sFontCmss48;
+#define g_pFontCmss48 (const tFont *)&g_sFontCmss48
+extern const tFont g_sFontCmss48b;
+#define g_pFontCmss48b (const tFont *)&g_sFontCmss48b
+extern const tFont g_sFontCmss48i;
+#define g_pFontCmss48i (const tFont *)&g_sFontCmss48i
+extern const tFont g_sFontCmtt12;
+#define g_pFontCmtt12 (const tFont *)&g_sFontCmtt12
+extern const tFont g_sFontCmtt14;
+#define g_pFontCmtt14 (const tFont *)&g_sFontCmtt14
+extern const tFont g_sFontCmtt16;
+#define g_pFontCmtt16 (const tFont *)&g_sFontCmtt16
+extern const tFont g_sFontCmtt18;
+#define g_pFontCmtt18 (const tFont *)&g_sFontCmtt18
+extern const tFont g_sFontCmtt20;
+#define g_pFontCmtt20 (const tFont *)&g_sFontCmtt20
+extern const tFont g_sFontCmtt22;
+#define g_pFontCmtt22 (const tFont *)&g_sFontCmtt22
+extern const tFont g_sFontCmtt24;
+#define g_pFontCmtt24 (const tFont *)&g_sFontCmtt24
+extern const tFont g_sFontCmtt26;
+#define g_pFontCmtt26 (const tFont *)&g_sFontCmtt26
+extern const tFont g_sFontCmtt28;
+#define g_pFontCmtt28 (const tFont *)&g_sFontCmtt28
+extern const tFont g_sFontCmtt30;
+#define g_pFontCmtt30 (const tFont *)&g_sFontCmtt30
+extern const tFont g_sFontCmtt32;
+#define g_pFontCmtt32 (const tFont *)&g_sFontCmtt32
+extern const tFont g_sFontCmtt34;
+#define g_pFontCmtt34 (const tFont *)&g_sFontCmtt34
+extern const tFont g_sFontCmtt36;
+#define g_pFontCmtt36 (const tFont *)&g_sFontCmtt36
+extern const tFont g_sFontCmtt38;
+#define g_pFontCmtt38 (const tFont *)&g_sFontCmtt38
+extern const tFont g_sFontCmtt40;
+#define g_pFontCmtt40 (const tFont *)&g_sFontCmtt40
+extern const tFont g_sFontCmtt42;
+#define g_pFontCmtt42 (const tFont *)&g_sFontCmtt42
+extern const tFont g_sFontCmtt44;
+#define g_pFontCmtt44 (const tFont *)&g_sFontCmtt44
+extern const tFont g_sFontCmtt46;
+#define g_pFontCmtt46 (const tFont *)&g_sFontCmtt46
+extern const tFont g_sFontCmtt48;
+#define g_pFontCmtt48 (const tFont *)&g_sFontCmtt48
+extern const tFont g_sFontFixed6x8;
+#define g_pFontFixed6x8 (const tFont *)&g_sFontFixed6x8
 
 //*****************************************************************************
 //
@@ -1198,33 +1843,12 @@ extern const tFontEx g_sFontExDigit52b;
 //! \return None.
 //
 //*****************************************************************************
-#define DpyFlush(pDisplay) 			         \
+#define DpyFlush(pDisplay)                   \
         do                                   \
         {                                    \
             const tDisplay *pD = pDisplay;   \
             pD->pfnFlush(pD->pvDisplayData); \
         }                                    \
-        while(0)
-
-//*****************************************************************************
-//
-//! Forces a clear Display.
-//!
-//! \param pDisplay is the pointer to the display driver structure for the
-//! display to operate upon.
-//! \param ulValue is the current background color to fill the screen with.
-//!
-//! This function clears the Display
-//!
-//! \return None.
-//
-//*****************************************************************************
-#define DpyClearDisplay(pDisplay, ulValue)                   \
-        do                                          \
-        {                                           \
-            const tDisplay *pD = pDisplay;          \
-            pD->pfnClearDisplay(pD->pvDisplayData, ulValue); \
-        }                                           \
         while(0)
 
 //*****************************************************************************
@@ -1414,9 +2038,48 @@ extern const tFontEx g_sFontExDigit52b;
 
 //*****************************************************************************
 //
+// Counts the number of zeros at the start of a word.
+//
+// \param x is the word whose leading zeros are to be counted.
+//
+// This macro uses compiler-specific constructs to perform an inline
+// insertion of the "clz" instruction, which counts the leading zeros
+// directly.
+//
+// \return Returns the number of leading 0 bits in the word provided.
+//
+//*****************************************************************************
+#if defined(ewarm)
+#include <intrinsics.h>
+#define NumLeadingZeros(x)      __CLZ(x)
+#endif
+#if defined(codered) || defined(gcc) || defined(sourcerygxx)
+#define NumLeadingZeros(x) __extension__                        \
+        ({                                                      \
+            register unsigned long __ret, __inp = x;            \
+            __asm__("clz %0, %1" : "=r" (__ret) : "r" (__inp)); \
+            __ret;                                              \
+        })
+#endif
+#if defined(rvmdk) || defined(__ARMCC_VERSION)
+#define NumLeadingZeros(x)      __clz(x)
+#endif
+#if defined(ccs)
+//
+// The CCS/TI compiler _norm intrinsic function will generate an inline CLZ
+// instruction.
+//
+#define NumLeadingZeros(x)      _norm(x)
+#endif
+
+//*****************************************************************************
+//
 // Prototypes for the graphics library functions.
 //
 //*****************************************************************************
+#ifndef GRLIB_REMOVE_WIDE_FONT_SUPPORT
+extern void GrLibInit(const tGrLibDefaults *pDefaults);
+#endif
 extern void GrCircleDraw(const tContext *pContext, long lX, long lY,
                          long lRadius);
 extern void GrCircleFill(const tContext *pContext, long lX, long lY,
@@ -1424,24 +2087,181 @@ extern void GrCircleFill(const tContext *pContext, long lX, long lY,
 extern void GrContextClipRegionSet(tContext *pContext, const tRectangle *pRect);
 extern void GrContextInit(tContext *pContext, const tDisplay *pDisplay);
 extern void GrImageDraw(const tContext *pContext,
-                        const tImage *pBitmap, int lX, int lY);
+                        const unsigned char *pucImage, long lX, long lY);
+extern void GrTransparentImageDraw(const tContext *pContext,
+                                   const unsigned char *pucImage,
+                                   long lX, long lY,
+                                   unsigned long ulTransparent);
 extern void GrLineDraw(const tContext *pContext, long lX1, long lY1, long lX2,
                        long lY2);
 extern void GrLineDrawH(const tContext *pContext, long lX1, long lX2, long lY);
 extern void GrLineDrawV(const tContext *pContext, long lX, long lY1, long lY2);
+extern void GrOffScreen1BPPInit(tDisplay *pDisplay, unsigned char *pucImage,
+                                long lWidth, long lHeight);
+extern void GrOffScreen4BPPInit(tDisplay *pDisplay, unsigned char *pucImage,
+                                long lWidth, long lHeight);
+extern void GrOffScreen4BPPPaletteSet(tDisplay *pDisplay,
+                                      unsigned long *pulPalette,
+                                      unsigned long ulOffset,
+                                      unsigned long ulCount);
+extern void GrOffScreen8BPPInit(tDisplay *pDisplay, unsigned char *pucImage,
+                                long lWidth, long lHeight);
+extern void GrOffScreen8BPPPaletteSet(tDisplay *pDisplay,
+                                      unsigned long *pulPalette,
+                                      unsigned long ulOffset,
+                                      unsigned long ulCount);
 extern void GrRectDraw(const tContext *pContext, const tRectangle *pRect);
 extern void GrRectFill(const tContext *pContext, const tRectangle *pRect);
-extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
 extern void GrStringDraw(const tContext *pContext, const char *pcString,
                          long lLength, long lX, long lY,
                          unsigned long bOpaque);
-extern void GrStringDrawWrap(const tContext* pContext, const char* text, 
-    long startx, long starty, long width, long margin);
 extern long GrStringWidthGet(const tContext *pContext, const char *pcString,
                              long lLength);
+extern void GrStringTableSet(const void *pvTable);
+unsigned long GrStringLanguageSet(unsigned short usLangID);
+unsigned long GrStringGet(long lIndex, char *pcData, unsigned long ulSize);
 extern long GrRectOverlapCheck(tRectangle *psRect1, tRectangle *psRect2);
 extern long GrRectIntersectGet(tRectangle *psRect1, tRectangle *psRect2,
                                tRectangle *psIntersect);
+
+#ifndef GRLIB_REMOVE_WIDE_FONT_SUPPORT
+//*****************************************************************************
+//
+// Font parsing functions.
+//
+//*****************************************************************************
+extern void GrFontInfoGet(const tFont *pFont, unsigned char *pucFormat,
+                          unsigned char *pucMaxWidth, unsigned char *pucHeight,
+                          unsigned char *pucBaseline);
+extern unsigned long GrFontMaxWidthGet(const tFont *pFont);
+extern unsigned long GrFontHeightGet(const tFont *pFont);
+extern unsigned long GrFontBaselineGet(const tFont *pFont);
+extern const unsigned char *GrFontGlyphDataGet(const tFont *pFont,
+                                               unsigned long ulCodePoint,
+                                               unsigned char *pucWidth);
+extern unsigned short GrFontCodepageGet(const tFont *pFont);
+extern unsigned short GrFontNumBlocksGet(const tFont *pFont);
+extern unsigned long GrFontBlockCodepointsGet(const tFont *pFont,
+                                           unsigned short usBlockIndex,
+                                           unsigned long *pulStart);
+
+//*****************************************************************************
+//
+// Low level string and font glyph rendering function.
+//
+//*****************************************************************************
+void GrFontGlyphRender(const tContext *pContext, const unsigned char *pucData,
+                       long lX, long lY, unsigned long bCompressed,
+                       unsigned long bOpaque);
+void
+GrDefaultStringRenderer(const tContext *pContext, const char *pcString,
+                        long lLength, long lX, long lY, unsigned long bOpaque);
+
+//*****************************************************************************
+//
+// Codepage translation functions.
+//
+//*****************************************************************************
+extern void GrCodepageMapTableSet(tContext *pContext,
+                                  tCodePointMap *pCodePointMapTable,
+                                  unsigned char ucNumMaps);
+extern long GrStringCodepageSet(tContext *pContext,
+                                unsigned short usCodepage);
+extern unsigned long GrStringRendererSet(tContext *pContext,
+                                         tStringRenderer pfnRenderer);
+extern unsigned long GrStringNumGlyphsGet(const tContext *pContext,
+                                          const char *pcString);
+extern unsigned long GrStringNextCharGet(const tContext *pContext,
+                                         const char *pcString,
+                                         unsigned long ulCount,
+                                         unsigned long *pulSkip);
+
+extern unsigned long GrMapUnicode_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapUTF8_Unicode(const char *pcSrcChar,
+                                       unsigned long ulCount,
+                                       unsigned long *pulSkip);
+extern unsigned long GrMapUTF16LE_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapUTF16BE_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_1_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_2_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_3_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_4_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_5_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_6_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_7_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_8_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_9_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_10_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_11_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_13_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_14_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_15_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapISO8859_16_Unicode(const char *pcSrcChar,
+                                            unsigned long ulCount,
+                                            unsigned long *pulSkip);
+extern unsigned long GrMapWIN1250_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapWIN1251_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapWIN1252_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapWIN1253_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+extern unsigned long GrMapWIN1254_Unicode(const char *pcSrcChar,
+                                          unsigned long ulCount,
+                                          unsigned long *pulSkip);
+
+//*****************************************************************************
+//
+// A helpful #define that maps any 8 bit source codepage to itself.  This can
+// be used for any 8 bit source encoding when the font being used is encoded
+// using the same codepage, for example ISO8859-5 text with an ISO8859-5 font.
+// It just so happens that the ISO8859-1 to Unicode mapping function provides
+// exactly what is required here since there is a 1:1 mapping of ISO8859-1
+// codepoints to the first 256 Unicode characters.
+//
+//*****************************************************************************
+#define GrMap8BitIdentity GrMapISO8859_1_Unicode
+
+#endif
 
 //*****************************************************************************
 //
@@ -1451,6 +2271,34 @@ extern long GrRectIntersectGet(tRectangle *psRect1, tRectangle *psRect2,
 #ifdef __cplusplus
 }
 #endif
+
+/* hack to get grlib works wit msp430 */
+#define true 1
+#define false 0
+#include <assert.h>
+#define ASSERT(x) assert(x)
+typedef unsigned char tBoolean;
+
+extern const tFont g_sFontNova12b;
+extern const tFont g_sFontNova13;
+extern const tFont g_sFontNova16;
+extern const tFont g_sFontNova16b;
+extern const tFont g_sFontNova28;
+extern const tFont g_sFontNova28b;
+extern const tFont g_sFontNova38;
+extern const tFont g_sFontNova38b;
+extern const tFont g_sFontNova50b;
+extern const tFont g_sFontRed13;
+extern const tFont g_sFontBaby16;
+extern const tFont g_sFontBaby12;
+extern const tFontEx g_sFontExIcon16;
+extern const tFontEx g_sFontExIcon48;
+
+extern const tFontEx g_sFontExDigit44;
+extern const tFontEx g_sFontExDigit44b;
+extern const tFontEx g_sFontExDigit56;
+extern const tFontEx g_sFontExDigit52b;
+
 
 //*****************************************************************************
 //

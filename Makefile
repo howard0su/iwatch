@@ -56,6 +56,7 @@ PLATFORM = \
 
 GRLIB0 = \
 	circle.c \
+	charmap.c \
 	context.c \
 	image.c \
 	line.c \

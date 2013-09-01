@@ -19,6 +19,8 @@ AUTOSTART_PROCESSES(&system_process);
 static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
+extern const unsigned char logoPixel[];
+
 static ui_config ui_config_data =
 {
   UI_CONFIG_SIGNATURE,
@@ -54,7 +56,6 @@ static void window_loadconfig();
 #define ui_window (stack[stackptr])
 static windowproc stack[MAX_STACK]; // assume 6 is enough
 static uint8_t stackptr = 0;
-extern tImage g_logoImage;
 
 void window_init()
 {
@@ -68,7 +69,7 @@ void window_init()
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, ClrWhite);
-  GrImageDraw(&context, &g_logoImage, 0, 60);
+  GrImageDraw(&context, logoPixel, 0, 60);
 
   GrFlush(&context);
   stackptr = 0;
