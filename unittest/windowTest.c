@@ -12,6 +12,8 @@
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
 
+#include "watch/test.h"
+
 static const tFont *fonts[] =
 {
  &g_sFontNova12b,
@@ -31,7 +33,8 @@ static struct _event
 {
    int delta;
    uint8_t event;
-   void* data
+   void* rparam;
+   uint16_t lparam;
 };
 
 static struct _event test_events[] = {
@@ -141,7 +144,7 @@ PROCESS_THREAD(event_process, ev, data)
   {
     if (ev == PROCESS_EVENT_TIMER)
     {
-       process_post(ui_process, test_events[event].event, test_events[event].data);
+       process_post(ui_process, test_events[event].event, test_events[event].rparam);
        event++;
        if (test_events[event].delta == -1)
        {
@@ -213,11 +216,11 @@ void window_handle_event(uint8_t ev, void* data);
 static void run_window_events(windowproc window, struct _event *events)
 {
   GrContextFontSet(&context, (const tFont*)NULL);
-  GrContextClipRegionSet(&context, &status_clip);
+  GrContextClipRegionSet(&context, &client_clip);
 
   for(struct _event *ev = events; ev->delta != -1; ev++)
   {
-    window(ev->event, 0, ev->data);  
+    window(ev->event, ev->lparam, ev->rparam);  
     if (ev->event == EVENT_WINDOW_PAINT)
     {
       GrFlush(&context);    
@@ -272,6 +275,53 @@ void TestSportWatch(CuTest* tc)
   }
 }
 
+void TestTestButton(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_EXIT},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {3, EVENT_WINDOW_CLOSING, NULL},
+    {1, EVENT_KEY_LONGPRESSED, NULL, KEY_EXIT},
+    {-1}
+  };  
+  run_window_events(&test_button, test_events);
+}
+
+
+void TestTestLight(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {-1}
+  };  
+  run_window_events(&test_light, test_events);
+}
+
+void TestTestLcd(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {-1}
+  };  
+  run_window_events(&test_lcd, test_events);
+}
 
 void TestWindows(CuTest *tc)
 { 
@@ -333,5 +383,8 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestWindows);
 	SUITE_ADD_TEST(suite, SimluateRun);
   SUITE_ADD_TEST(suite, TestSportWatch);
-  
+  SUITE_ADD_TEST(suite, TestTestButton);
+  SUITE_ADD_TEST(suite, TestTestLight);
+  SUITE_ADD_TEST(suite, TestTestLcd);
+ 
 }

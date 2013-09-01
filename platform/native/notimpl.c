@@ -94,11 +94,6 @@ void flash_clear(uint16_t *addr) {}
 void flash_writepage(uint16_t *addr, const uint16_t *data, uint8_t size) {}
 void __disable_interrupt() {}
 
-const char* bluetooth_address()
-{
-  return "01:23:45:67:89:ab";
-}
-
 unsigned long mpu_getsteptime()
 {return 1257;}
 unsigned long mpu_getsteps()
@@ -130,3 +125,27 @@ void system_ready()
 {
   printf("system is ready\n");
 }
+<<<<<<< HEAD
+=======
+
+uint8_t system_testing()
+{
+  return 0;
+}
+
+uint8_t system_debug()
+{
+  return 0;
+}
+
+void system_rebootToNormal()
+{
+
+}
+
+ void system_getserial(uint8_t *buf)
+ {
+  char fake[6] = {43,44,45,86,97,0xff};
+  memcpy(buf, fake, 6);
+ }
+>>>>>>> 95d39f997efeccaaac54bf92bb06dbf12c79da1f

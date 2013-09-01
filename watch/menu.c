@@ -56,7 +56,7 @@ static const struct MenuItem SetupMenu[] =
 static const struct MenuItem AboutMenu[] = 
 {
   {DATA_VERSION, "Version", NULL},
-  {NO_DATA, "BT Address", NULL},
+  {NO_DATA, "Serial", NULL},
   {DATA_BTADDR, "", NULL},
   {NO_DATA, "Legal", NULL},
   {DATA_LEGAL, "", NULL},
@@ -85,6 +85,7 @@ static const struct MenuItem TestMenu[] =
   {0, "Motor", &test_motor},
   {0, "Light", &test_light},
   {0, "LCD", &test_lcd},
+  {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };
 
@@ -159,8 +160,12 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       strcpy(buf, "1.0.0.1");
       break;
       case DATA_BTADDR:
-      strcpy(buf, bluetooth_address());
+      {
+      uint8_t serial[6];
+      system_getserial(serial);
+      sprintf(buf, "%02X%02X%02X%02X%02X%02X", serial[0], serial[1],serial[2],serial[3],serial[4],serial[5]);
       break;
+      }
       default:
       strcpy(buf, "TODO");
       break;
@@ -219,7 +224,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       
       if (rparam == NULL)
       {
-        Items = MainMenu;
+        Items = (system_testing()==1)?TestMenu:MainMenu;
       }
       else if (strcmp(rparam, "Watch Setup") == 0)
       {
@@ -241,7 +246,8 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     case EVENT_WINDOW_ACTIVE:
     {
-      etimer_set(&timer, CLOCK_SECOND * 30);
+      if (!system_testing())
+        etimer_set(&timer, CLOCK_SECOND * 30);
       break;
     }
     case EVENT_WINDOW_DEACTIVE:
