@@ -6,9 +6,12 @@
 
 #ifdef UNITTEST
 #   define send_internal test_send_internal
+#   include "TestUtility/stlv_test_stub.h"
+uint16_t spp_channel_id = 1;
 #else
 #   define send_internal rfcomm_send_internal
-#include "rfcomm.h"
+#   include "rfcomm.h"
+extern uint16_t spp_channel_id = 0;
 #endif
 
 typedef struct _spp_sender
@@ -67,7 +70,6 @@ static uint8_t build_transport_packet(spp_sender* task)
     return send_size;
 }
 
-extern uint16_t spp_channel_id;
 void tryToSend(void)
 {
     if (!spp_channel_id) return;
@@ -92,13 +94,15 @@ void tryToSend(void)
             if (err != 0)
                 return;
 
+
             task->sent_size += task->unit_size;
+            printf("tryToSend(%d,%d/%d)\n", task_queue_pos, task->sent_size, task->buffer_size);
             if (task->sent_size >= task->buffer_size)
             {
-                if (task->callback != NULL)
-                    task->callback(task->para);
                 task->status = SPP_SENDER_NULL;
                 task_queue_pos++;
+                if (task->callback != NULL)
+                    task->callback(task->para);
             }
             else
             {
@@ -125,6 +129,11 @@ void reset_stlv_transport_buffer()
 uint8_t* get_stlv_transport_buffer()
 {
     return _recv_packet;
+}
+
+short get_stlv_transport_buffer_size()
+{
+    return _recv_packet_size;
 }
 
 short handle_stvl_transport(unsigned char* packet, uint16_t size)

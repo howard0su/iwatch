@@ -9,8 +9,7 @@ void send_echo(uint8_t* data, uint8_t size);
 
 //return 0 if success
 int begin_send_file(char* name);
-
-int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int), int para);
+int send_file_data(int fd, uint8_t* data, uint8_t size, void (*callback)(int), int para);
 void end_send_file(int fd);
 
 #endif

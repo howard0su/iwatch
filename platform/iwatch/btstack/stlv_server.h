@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-void handle_stlv_packet(unsigned char* packet);
+void handle_stlv_packet(uint8_t* packet);
 
 #endif
 

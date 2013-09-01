@@ -31,6 +31,7 @@ ALL_INCLUDEDIRS = \
 	btstack/include \
 	btstack/src \
 	platform/iwatch/btstack \
+	unittest \
 
 #######################################
 # source files
@@ -113,6 +114,7 @@ BTSTACK=btstack/src/obex.c \
 	platform/iwatch/btstack/stlv.c \
 	platform/iwatch/btstack/stlv_client.c \
 	platform/iwatch/btstack/stlv_server.c \
+	platform/iwatch/btstack/stlv_transport.c \
 	platform/iwatch/btstack/stlv_handler.c
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
@@ -123,7 +125,9 @@ SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/cfsTest.c \
  unittest/obexTest.c \
  unittest/windowTest.c \
- unittest/gestureTest.c 
+ unittest/stlvTest.c \
+ unittest/gestureTest.c \
+ unittest/TestUtility/stlv_test_stub.c \
 
 
 OBJDIR = objs.native

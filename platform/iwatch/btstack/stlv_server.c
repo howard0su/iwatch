@@ -5,7 +5,6 @@
 #include "stlv.h"
 #include "stlv_handler.h"
 
-
 static void handle_file(stlv_packet pack, element_handle handle);
 static void print_stlv_string(unsigned char* data, int len);
 static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handle handle);

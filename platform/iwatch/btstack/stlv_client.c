@@ -50,6 +50,7 @@ static void send_file_data_callback(int para)
     }
     else if (s->status == FILESENDER_S_ENDING)
     {
+        printf("send end\n");
         //send the end flag packet
         stlv_packet p = create_packet();
         if (p == NULL)
