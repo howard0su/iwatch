@@ -2,6 +2,7 @@
 #include "stlv_transport.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "stlv.h"
 
 #ifdef UNITTEST
@@ -11,7 +12,7 @@ uint16_t spp_channel_id = 1;
 #else
 #   define send_internal rfcomm_send_internal
 #   include "rfcomm.h"
-extern uint16_t spp_channel_id = 0;
+extern uint16_t spp_channel_id;
 #endif
 
 typedef struct _spp_sender
