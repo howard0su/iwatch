@@ -30,15 +30,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-typedef unsigned char tBoolean;
-#include "../grlib.h"
-
-#ifndef true
-#define true 1
-#endif
-#ifndef false
-#define false 0
-#endif
+#include "../../../grlib/grlib.h"
 
 //*****************************************************************************
 //
