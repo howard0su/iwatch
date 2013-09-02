@@ -105,34 +105,34 @@ typedef struct
     //
     //! A pointer to the function to draw a pixel on this display.
     //
-    void (*pfnPixelDraw)(void *pvDisplayData, long lX, long lY,
-                         unsigned long ulValue);
+    void (*pfnPixelDraw)(void *pvDisplayData, int lX, int lY,
+                         unsigned int ulValue);
 
     //
     //! A pointer to the function to draw multiple pixels on this display.
     //
-    void (*pfnPixelDrawMultiple)(void *pvDisplayData, long lX, long lY,
-                                 long lX0, long lCount, long lBPP,
+    void (*pfnPixelDrawMultiple)(void *pvDisplayData, int lX, int lY,
+                                 int lX0, int lCount, int lBPP,
                                  const unsigned char *pucData,
                                  const unsigned char *pucPalette);
 
     //
     //! A pointer to the function to draw a horizontal line on this display.
     //
-    void (*pfnLineDrawH)(void *pvDisplayData, long lX1, long lX2, long lY,
-                         unsigned long ulValue);
+    void (*pfnLineDrawH)(void *pvDisplayData, int lX1, int lX2, int lY,
+                         unsigned int ulValue);
 
     //
     //! A pointer to the function to draw a vertical line on this display.
     //
-    void (*pfnLineDrawV)(void *pvDisplayData, long lX, long lY1, long lY2,
-                         unsigned long ulValue);
+    void (*pfnLineDrawV)(void *pvDisplayData, int lX, int lY1, int lY2,
+                         unsigned int ulValue);
 
     //
     //! A pointer to the function to draw a filled rectangle on this display.
     //
     void (*pfnRectFill)(void *pvDisplayData, const tRectangle *pRect,
-                        unsigned long ulValue);
+                        unsigned int ulValue);
 
     //
     //! A pointer to the function to translate 24-bit RGB colors to
@@ -2299,7 +2299,9 @@ extern const tFontEx g_sFontExDigit44b;
 extern const tFontEx g_sFontExDigit56;
 extern const tFontEx g_sFontExDigit52b;
 
+extern const tFontWrapper g_sFontUnicode;
 
+extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
 //*****************************************************************************
 //
 // Close the Doxygen group.

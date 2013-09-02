@@ -56,7 +56,9 @@ static tGrLibDefaults const *g_psGrLibDefaults;
 const tCodePointMap g_psDefaultCodePointMapTable[] =
 {
     {CODEPAGE_ISO8859_1, CODEPAGE_UNICODE, GrMapISO8859_1_Unicode},
-    {CODEPAGE_ISO8859_1, CODEPAGE_ISO8859_1, GrMapISO8859_1_Unicode}
+    {CODEPAGE_ISO8859_1, CODEPAGE_ISO8859_1, GrMapISO8859_1_Unicode},
+    {CODEPAGE_UTF_8, CODEPAGE_UNICODE, GrMapUTF8_Unicode},
+    {CODEPAGE_UTF_16, CODEPAGE_UNICODE, GrMapUTF16LE_Unicode},
 };
 
 #define NUM_DEFAULT_CODEPOINT_MAPS (sizeof(g_psDefaultCodePointMapTable) /    \

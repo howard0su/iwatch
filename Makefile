@@ -82,6 +82,7 @@ GRLIB_FONTS = \
 	fontdigit56.c \
 	fonticon16.c \
 	fonticon48.c \
+	fontunicode.c \
 	logoimg.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 

@@ -315,7 +315,7 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
                                            int lY, int lX0, int lCount,
                                            int lBPP,
                                            const uint8_t *pucData,
-                                           const unsigned int *pucPalette)
+                                           const uint8_t *pucPalette)
 {
 	unsigned int ulByte;
 
@@ -592,7 +592,7 @@ Template_DriverRectFill(void *pvDisplayData, const tRectangle *pRect,
 //! \return Returns the display-driver specific color.
 //
 //*****************************************************************************
-static unsigned int
+static unsigned long
 Template_DriverColorTranslate(void *pvDisplayData,
                                         unsigned long ulValue)
 {
@@ -631,33 +631,6 @@ Template_DriverFlush(void *pvDisplayData)
 
 //*****************************************************************************
 //
-//! Send command to clear screen.
-//!
-//! \param pvDisplayData is a pointer to the driver-specific data for this
-//! display driver.
-//!
-//! This function does a clear screen and the Display Buffer contents
-//! are initialized to the current background color.
-//!
-//! \return None.
-//
-//*****************************************************************************
-static void
-Template_DriverClearScreen (void *pvDisplayData, unsigned int ulValue)
-{
-  unsigned int i;
-
-  for(i = 0; i < LCD_Y_SIZE; i++)
-  {
-    memset(lines[i].pixels, 0, LCD_X_SIZE/8);
-  }
-
-  halLcdRefresh(0, LCD_Y_SIZE);
-  //process_post_synch(&lcd_process, clear_event, NULL);
-}
-
-//*****************************************************************************
-//
 //! The display structure that describes the driver for the blank template.
 //
 //*****************************************************************************
@@ -678,8 +651,7 @@ const tDisplay g_memlcd_Driver =
     Template_DriverLineDrawV,
     Template_DriverRectFill,
     Template_DriverColorTranslate,
-    Template_DriverFlush,
-    Template_DriverClearScreen
+    Template_DriverFlush
 };
 
 //*****************************************************************************

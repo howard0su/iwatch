@@ -610,8 +610,7 @@ const tDisplay g_memlcd_Driver =
     Template_DriverLineDrawV,
     Template_DriverRectFill,
     Template_DriverColorTranslate,
-    Template_DriverFlush,
-    Template_DriverClearScreen
+    Template_DriverFlush
 };
 
 //*****************************************************************************

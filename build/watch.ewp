@@ -2365,6 +2365,9 @@
       <name>$PROJ_DIR$\..\grlib\context.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\grlib\charmap.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\grlib\grlib.h</name>
     </file>
     <file>

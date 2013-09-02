@@ -215,7 +215,7 @@ void window_handle_event(uint8_t ev, void* data);
 
 static void run_window_events(windowproc window, struct _event *events)
 {
-  GrContextFontSet(&context, (const tFont*)NULL);
+  //GrContextFontSet(&context, (const tFont*)NULL);
   GrContextClipRegionSet(&context, &client_clip);
 
   for(struct _event *ev = events; ev->delta != -1; ev++)
@@ -323,13 +323,74 @@ void TestTestLcd(CuTest* tc)
   run_window_events(&test_lcd, test_events);
 }
 
+
+static void* font;
+static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
+{
+        switch(event)
+        {
+                case EVENT_WINDOW_CREATED:
+                font = rparam;
+                break;
+                case EVENT_WINDOW_PAINT:
+                {
+                  tContext* pContext = (tContext*)rparam;
+                  GrContextForegroundSet(pContext, ClrBlack);
+                  GrRectFill(pContext, &client_clip);
+
+                  GrContextForegroundSet(pContext, ClrWhite);
+                  GrContextFontSet(pContext, (const tFont*)font);
+
+                  GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
+                  GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
+                  //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);
+                  GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
+                  GrStringDraw(pContext, L"文中文测试", -1, 0, 55, 0);
+                  GrStringDraw(pContext, L"国中国テスト", -1, 0, 75, 0);
+                  GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
+
+                  break;
+                }
+        }
+
+        return 1;
+}
+
+void TestWideFont(CuTest* tc)
+{
+    struct _event _events[] = {
+    {1, EVENT_WINDOW_CREATED, &g_sFontUnicode},
+    {2, EVENT_WINDOW_PAINT, &context},
+    {-1}
+  };
+
+  FILE* fp = fopen("fontunicod16pt.bin", "rb");
+  int fd = cfs_open("fontunicode", CFS_WRITE);
+
+  if (fp != NULL && fd != -1)
+  {
+    // copy the file
+    char buf[1024];
+    int length;
+
+    length = fread(buf, 1, 1024, fp);
+    while(length > 0)
+    {
+      printf("write %d bytes\n", length);
+      cfs_write(fd, buf, length);
+      length = fread(buf, 1, 1024, fp);
+    }
+    fclose(fp);
+    cfs_close(fd);
+  }
+
+  CFSFontWrapperLoad("fontunicode");
+  run_window_events(testfont, _events);
+}
+
+
 void TestWindows(CuTest *tc)
 { 
-  memlcd_DriverInit();
-  GrContextInit(&context, &g_memlcd_Driver);
-  window_init();
-  status_process(EVENT_WINDOW_CREATED, 0, NULL);
-
   //load_script("script1.amx", rom);
   //test_window(&script_process, rom);
   test_window(&script_process, "/script1.amx");
@@ -379,12 +440,19 @@ void TestWindows(CuTest *tc)
 CuSuite* WindowGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
+ 
+  memlcd_DriverInit();
+  GrContextInit(&context, &g_memlcd_Driver);
+  window_init();
+  status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
-  SUITE_ADD_TEST(suite, TestWindows);
-	SUITE_ADD_TEST(suite, SimluateRun);
+  SUITE_ADD_TEST(suite, TestWideFont);
+
   SUITE_ADD_TEST(suite, TestSportWatch);
   SUITE_ADD_TEST(suite, TestTestButton);
   SUITE_ADD_TEST(suite, TestTestLight);
   SUITE_ADD_TEST(suite, TestTestLcd);
- 
+
+ // SUITE_ADD_TEST(suite, TestWindows);
+  // SUITE_ADD_TEST(suite, SimluateRun);
 }
