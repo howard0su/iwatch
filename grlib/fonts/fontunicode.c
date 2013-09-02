@@ -20,6 +20,19 @@
 //*****************************************************************************
 #define MAX_GLYPH_SIZE 256
 
+//file api wrapper
+#if 1
+typedef int FILEHANDLE;
+#else
+#include <stdio.h>
+typedef FILE* FILEHANDLE;
+#define cfs_open(n, m) fopen(n, "rb")
+#define cfs_close(h) fclose(h)
+#define cfs_seek(h, offset, p) fseek(h, offset, p)
+#define cfs_read(h, buffer, n) fread(buffer, 1, n, h)
+#define cfs_write(h, buffer, n) fwrite(buffer, 1, n, h)
+#endif
+
 //*****************************************************************************
 //
 // Instance data for a single loaded font.
@@ -30,7 +43,7 @@ typedef struct
     //
     // The CFSfs file object associated with the font.
     //
-    int sFile;
+    FILEHANDLE sFile;
 
     //
     // The font header as read from the file.
@@ -223,7 +236,7 @@ CFSWrapperFontNumBlocksGet(unsigned char *pucFontId)
 //
 //*****************************************************************************
 static tBoolean
-CFSWrapperFontBlockHeaderGet(int pFile, tFontBlock *pBlock,
+CFSWrapperFontBlockHeaderGet(FILEHANDLE pFile, tFontBlock *pBlock,
                              unsigned long ulIndex)
 {
     int ulRead;

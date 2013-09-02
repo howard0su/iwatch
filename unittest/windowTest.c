@@ -341,14 +341,21 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrContextForegroundSet(pContext, ClrWhite);
                   GrContextFontSet(pContext, (const tFont*)font);
 
-                  GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
-                  GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
+                  //GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
+                  //GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
                   //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
-                  GrStringDraw(pContext, L"文中文测试", -1, 0, 55, 0);
-                  GrStringDraw(pContext, L"国中国テスト", -1, 0, 75, 0);
-                  GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
+                  uint16_t data[] = 
+                  {
+                    0x6087, 0x6187, 0x6287, 0x6387, 0x6487, 0x6587, 0x6687, 0x6787,
+                    0x6887, 0x6987, 0x6a87, 0x6b87, 0x6c87, 0x6d87, 0x6e87, 0x6f87
+                  };
+                    GrStringDraw(pContext, data, 16, 0, 32, 0);
+                    GrStringDraw(pContext, &data[8], 16, 0, 44, 0);
 
+                  GrStringDraw(pContext, L"中文测试", -1, 0, 55, 0);
+                  GrStringDraw(pContext, L"中国语テスト", -1, 0, 75, 0);
+                  GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
                   break;
                 }
         }
@@ -448,10 +455,10 @@ CuSuite* WindowGetSuite(void)
 
   SUITE_ADD_TEST(suite, TestWideFont);
 
-  SUITE_ADD_TEST(suite, TestSportWatch);
-  SUITE_ADD_TEST(suite, TestTestButton);
-  SUITE_ADD_TEST(suite, TestTestLight);
-  SUITE_ADD_TEST(suite, TestTestLcd);
+ // SUITE_ADD_TEST(suite, TestSportWatch);
+ // SUITE_ADD_TEST(suite, TestTestButton);
+ // SUITE_ADD_TEST(suite, TestTestLight);
+ // SUITE_ADD_TEST(suite, TestTestLcd);
 
  // SUITE_ADD_TEST(suite, TestWindows);
   // SUITE_ADD_TEST(suite, SimluateRun);
