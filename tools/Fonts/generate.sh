@@ -20,3 +20,5 @@ echo "Generate digit numbers"
 ../grlib/ftrasterize/ftrasterize -f Digit -s 44 -v -n -b -p 48 -e 58 ProximaNova-Bold.otf
 ../grlib/ftrasterize/ftrasterize -f Digit -s 52 -v -n -b -p 48 -e 58 ProximaNova-Bold.otf
 ../grlib/ftrasterize/ftrasterize -f Digit -s 56 -v -n -p 48 -e 58 ProximaNova-Regular.otf
+
+../grlib/ftrasterize/ftrasterize.exe -f unicod -s 16 -c unicode.txt -y -r -u wqy-zenhei.ttc
