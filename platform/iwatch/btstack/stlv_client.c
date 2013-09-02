@@ -13,11 +13,12 @@ void send_echo(uint8_t* data, uint8_t size)
     send_packet(p, 0, 0);
 }
 
-#define FILESENDER_S_NULL   0
-#define FILESENDER_S_BEGIN  1
-#define FILESENDER_S_DATA   2
-#define FILESENDER_S_ENDING 3
-#define FILESENDER_S_END    4
+#define FILESENDER_S_NULL      0
+#define FILESENDER_S_BEGIN     1
+#define FILESENDER_S_DATA      2
+#define FILESENDER_S_DATA_SENT 3
+#define FILESENDER_S_ENDING    4
+#define FILESENDER_S_END       5
 
 typedef struct _file_sender_t
 {
@@ -33,6 +34,8 @@ typedef struct _file_sender_t
 static uint8_t s_file_senders_status = 0;
 static file_sender_t s_file_senders[FILE_SENDER_COUNT];
 
+static void send_file_end(int para);
+
 static void init_file_senders()
 {
     for (uint8_t i = 0; i < FILE_SENDER_COUNT; ++i)
@@ -44,29 +47,40 @@ static void init_file_senders()
 static void send_file_data_callback(int para)
 {
     file_sender_t* s = &s_file_senders[para];
-    if (s->status == FILESENDER_S_END)
+    switch (s->status)
     {
-        s->status = FILESENDER_S_NULL;
-    }
-    else if (s->status == FILESENDER_S_ENDING)
-    {
-        printf("send end\n");
-        //send the end flag packet
-        stlv_packet p = create_packet();
-        if (p == NULL)
-            return;
-        element_handle file_elem = append_element(p, NULL, "F", 1);
-        element_handle endflag_elm = append_element(p, file_elem, "e", 1);
-        element_append_char(p, endflag_elm, '\0');
-        send_packet(p, send_file_data_callback, para);
+        case FILESENDER_S_END:
+            s->status = FILESENDER_S_NULL;
+            break;
 
-        s->status = FILESENDER_S_END;
-    }
-    else if (s->callback != 0)
-    {
-        s->callback(s->para);
+        case FILESENDER_S_ENDING:
+            send_file_end(para);
+            s->status = FILESENDER_S_END;
+            break;
+
+        case FILESENDER_S_DATA:
+            s->status = FILESENDER_S_DATA_SENT;
+            if (s->callback != 0)
+            {
+                s->callback(s->para);
+            }
+            break;
+
     }
 }
+
+static void send_file_end(int para)
+{
+    printf("send end\n");
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle file_elem = append_element(p, NULL, "F", 1);
+    element_handle endflag_elm = append_element(p, file_elem, "e", 1);
+    element_append_char(p, endflag_elm, '\0');
+    send_packet(p, send_file_data_callback, para);
+}
+
 
 int begin_send_file(char* name)
 {
@@ -93,6 +107,11 @@ int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int
 {
     file_sender_t* s = &s_file_senders[handle];
 
+    if (s->status != FILESENDER_S_BEGIN && s->status != FILESENDER_S_DATA_SENT)
+    {
+        return -1;
+    }
+
     stlv_packet p = create_packet();
     if (p == NULL)
         return -1;
@@ -112,6 +131,7 @@ int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int
     s->size = size;
     s->para = para;
     s->callback = callback;
+    s->status = FILESENDER_S_DATA;
 
     send_packet(p, send_file_data_callback, handle);
     return 0;
@@ -120,6 +140,13 @@ int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int
 void end_send_file(int handle)
 {
     file_sender_t* s = &s_file_senders[handle];
-    s->status = FILESENDER_S_END;
+    if (s->status == FILESENDER_S_DATA)
+    {
+        s->status = FILESENDER_S_ENDING;
+    }
+    else if (s->status == FILESENDER_S_DATA_SENT)
+    {
+        send_file_end(handle);
+    }
 }
 

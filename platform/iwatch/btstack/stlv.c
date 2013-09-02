@@ -35,8 +35,10 @@ element_handle get_first_element(stlv_packet pack)
 
 element_handle get_next_element(stlv_packet pack, element_handle handle)
 {
-    int len = get_element_data_size(pack, handle, 0, 0);
-    if (GET_PACKET_END(pack) - (handle + len) >= MIN_ELEMENT_SIZE)
+    char type_buf[MAX_ELEMENT_TYPE_BUFSIZE] = {0};
+    int  type_size = get_element_type(pack, handle, type_buf, sizeof(type_buf));
+    int len = get_element_data_size(pack, handle, type_buf, type_size);
+    if (GET_PACKET_END(pack) - (handle + len + type_size) >= MIN_ELEMENT_SIZE)
         return handle + len;
     else
         return STLV_INVALID_HANDLE;

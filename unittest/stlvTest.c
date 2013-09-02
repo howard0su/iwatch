@@ -90,7 +90,7 @@ static void TestSendFile(CuTest* tc)
 
     trySendOut();
 
-    CuAssertIntEquals(tc, 24, get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 25, get_send_pack_stub_count());
 
     send_pack_stub_t* node = get_send_pack_stub();
 
@@ -99,11 +99,11 @@ static void TestSendFile(CuTest* tc)
         //CuAssertIntEquals(tc, 41, node->len);
         //CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
         int rc = handle_stvl_transport(node->data, node->len);
-        if (rc != 0)
-        {
-            printf("packet: len = %d\n", get_stlv_transport_buffer_size());
-            hex_dump(get_stlv_transport_buffer(), get_stlv_transport_buffer_size());
-        }
+        //if (rc != 0)
+        //{
+        //    printf("packet: len = %d\n", get_stlv_transport_buffer_size());
+        //    hex_dump(get_stlv_transport_buffer(), get_stlv_transport_buffer_size());
+        //}
         node = get_next_send_pack_stub(node);
     }
 }
@@ -208,7 +208,7 @@ uint8_t file_data_data_1[] = {
 0x02,
 };
 
-uint8_t file_end_data[] = {
+uint8_t file_data_data_2[] = {
 0x01, 0x80, 0xcc, 0x00, 0x46, 0x9e, 0x64, 0xd0, 0x03,
 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
@@ -235,6 +235,10 @@ uint8_t file_end_data[] = {
 0x03,
 };
 
+uint8_t file_end_data[] = {
+0x01, 0x80, 0x05, 0x00, 0x46, 0xf5, 0x65, 0xca, 0x00,
+};
+
 static void TestRecvFile(CuTest* tc)
 {
     cfs_coffee_format();
@@ -243,6 +247,7 @@ static void TestRecvFile(CuTest* tc)
     handle_stlv_packet(file_begin_data);
     handle_stlv_packet(file_data_data_0);
     handle_stlv_packet(file_data_data_1);
+    handle_stlv_packet(file_data_data_2);
     handle_stlv_packet(file_end_data);
 }
 
@@ -252,7 +257,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestSendEcho);
     SUITE_ADD_TEST(suite, TestRecvEcho);
     SUITE_ADD_TEST(suite, TestSendFile);
-    //SUITE_ADD_TEST(suite, TestRecvFile);
+    SUITE_ADD_TEST(suite, TestRecvFile);
     return suite;
 }
 

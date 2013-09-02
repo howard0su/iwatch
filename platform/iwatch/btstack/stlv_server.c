@@ -82,7 +82,6 @@ void handle_stlv_packet(unsigned char* packet)
                 handle_sports_heartbeat(seconds_to_next);
            }
            break;
-            break;
         }
 
         handle = get_next_element(pack, handle);
@@ -92,12 +91,12 @@ void handle_stlv_packet(unsigned char* packet)
 
 static void handle_file(stlv_packet pack, element_handle handle)
 {
-    static int s_file_handle = 0;
+    static int s_file_handle = -1;
 
     char type_buf[MAX_ELEMENT_TYPE_BUFSIZE];
 
     element_handle element = get_first_sub_element(pack, handle);
-    while (IS_VALID_STLV_HANDLE(handle))
+    while (IS_VALID_STLV_HANDLE(element))
     {
         int type_len = get_element_type(pack, element, type_buf, sizeof(type_buf));
         switch (type_buf[0])
@@ -110,6 +109,7 @@ static void handle_file(stlv_packet pack, element_handle handle)
                     file_name_data[file_name_size] = '\0';
                     char* file_name = (char*)file_name_data;
                     s_file_handle = handle_file_begin(file_name);
+                    printf("handle_file_begin(%s) return %d\n", file_name, s_file_handle);
                     file_name_data[file_name_size] = temp;
                 }
                 break;
@@ -118,15 +118,18 @@ static void handle_file(stlv_packet pack, element_handle handle)
                 {
                     uint8_t* file_data = get_element_data_buffer(pack, element, type_buf, type_len);
                     uint8_t  data_size = get_element_data_size(pack, element, type_buf, type_len);
+                    printf("handle_file_data(fd=%d, %d bytes)\n", s_file_handle, data_size);
                     handle_file_data(s_file_handle, file_data, data_size);
                 }
                 break;
 
             case SUB_TYPE_FILE_END:
+                printf("handle_file_end(fd=%d)\n", s_file_handle);
                 handle_file_end(s_file_handle);
                 s_file_handle = 0;
                 break;
         }
+        element = get_next_sub_element(pack, handle, element);
     }
 }
 
