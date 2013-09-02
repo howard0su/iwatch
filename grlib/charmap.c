@@ -1543,7 +1543,7 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
 {
     unsigned short usChar, usCharToo;
     unsigned long ulCode;
-    const char *pcChar;
+    const unsigned char *pcChar;
 
     //
     // Parameter sanity check.
@@ -1555,7 +1555,7 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
     // Walk the string until we find something valid that we can decode.
     //
     ulCode = 0;
-    pcChar = pcSrcChar;
+    pcChar = (const unsigned char *)pcSrcChar;
 
     while(ulCount >= 2)
     {
@@ -1630,7 +1630,7 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
     // character we just parsed and return the character codepoint if we
     // found one.
     //
-    *pulSkip = (unsigned long)(pcChar - pcSrcChar);
+    *pulSkip = (unsigned long)(pcChar - (const unsigned char *)pcSrcChar);
     return(ulCode);
 }
 
