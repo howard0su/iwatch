@@ -28,7 +28,7 @@ static const tFont *fonts[] =
  NULL
 };
 
-static struct _event
+struct _event
 {
    int delta;
    uint8_t event;
@@ -38,95 +38,95 @@ static struct _event
 
 static struct _event test_events[] = {
     // today's activity
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
     // analog watch
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
     // digit watch
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    // world clock
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_UP},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    // calendar 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    // stop watch
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_UP},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    // 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    {-1}
 };
@@ -204,9 +204,9 @@ extern const tRectangle status_clip;
 void window_handle_event(uint8_t ev, void* data);
 
   struct _event default_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL},
-    {2, EVENT_WINDOW_PAINT, &context},
-    {3, EVENT_WINDOW_CLOSING, NULL},
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
 
@@ -230,9 +230,9 @@ static void run_window_events(windowproc window, struct _event *events)
 static void test_window(windowproc window, void* data)
 {
  struct _event my_events[] = {
-    {1, EVENT_WINDOW_CREATED, data},
-    {2, EVENT_WINDOW_PAINT, &context},
-    {3, EVENT_WINDOW_CLOSING, NULL},
+    {1, EVENT_WINDOW_CREATED, data, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
 
@@ -259,11 +259,11 @@ static void test_window_stopwatch(windowproc window, void* data)
 void TestSportWatch(CuTest* tc)
 {
   struct _event test_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL},
-    {2, EVENT_WINDOW_PAINT, &context},
-    {1, EVENT_TIME_CHANGED, NULL},
-    {2, EVENT_WINDOW_PAINT, &context},
-    {3, EVENT_WINDOW_CLOSING, NULL},
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
 
@@ -277,12 +277,12 @@ void TestSportWatch(CuTest* tc)
 void TestTestButton(CuTest* tc)
 {
   struct _event test_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL},
-    {2, EVENT_WINDOW_PAINT, &context},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_EXIT},
-    {2, EVENT_WINDOW_PAINT, &context},
-    {3, EVENT_WINDOW_CLOSING, NULL},
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_EXIT, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {1, EVENT_KEY_LONGPRESSED, NULL, KEY_EXIT},
     {-1}
   };  
@@ -293,14 +293,14 @@ void TestTestButton(CuTest* tc)
 void TestTestLight(CuTest* tc)
 {
   struct _event test_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };  
   run_window_events(&test_light, test_events);
@@ -309,14 +309,14 @@ void TestTestLight(CuTest* tc)
 void TestTestLcd(CuTest* tc)
 {
   struct _event test_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };  
   run_window_events(&test_lcd, test_events);
@@ -365,8 +365,8 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
 void TestWideFont(CuTest* tc)
 {
     struct _event _events[] = {
-    {1, EVENT_WINDOW_CREATED, &g_sFontUnicode},
-    {2, EVENT_WINDOW_PAINT, &context},
+    {1, EVENT_WINDOW_CREATED, &g_sFontUnicode, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };
 
