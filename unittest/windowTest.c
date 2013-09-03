@@ -5,7 +5,6 @@
 #include "window.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
-#include <unistd.h>
 #include "sys/timer.h"
 #include "sys/etimer.h"
 

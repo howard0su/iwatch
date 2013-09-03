@@ -37,9 +37,6 @@
 #include "dev/xmem.h"
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
 #include <string.h>
 
 #define XMEM_SIZE 256 * 32 * 1024
