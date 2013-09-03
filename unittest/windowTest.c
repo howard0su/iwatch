@@ -311,11 +311,7 @@ void TestTestLcd(CuTest* tc)
   struct _event test_events[] = {
     {1, EVENT_WINDOW_CREATED, NULL, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
-    {2, EVENT_WINDOW_PAINT, &context, 0},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
-    {2, EVENT_WINDOW_PAINT, &context, 0},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };  
@@ -454,11 +450,11 @@ CuSuite* WindowGetSuite(void)
 
   SUITE_ADD_TEST(suite, TestWideFont);
 
- // SUITE_ADD_TEST(suite, TestSportWatch);
- // SUITE_ADD_TEST(suite, TestTestButton);
- // SUITE_ADD_TEST(suite, TestTestLight);
- // SUITE_ADD_TEST(suite, TestTestLcd);
+  SUITE_ADD_TEST(suite, TestSportWatch);
+  SUITE_ADD_TEST(suite, TestTestButton);
+  SUITE_ADD_TEST(suite, TestTestLight);
+  SUITE_ADD_TEST(suite, TestTestLcd);
 
- // SUITE_ADD_TEST(suite, TestWindows);
-  // SUITE_ADD_TEST(suite, SimluateRun);
+  SUITE_ADD_TEST(suite, TestWindows);
+  SUITE_ADD_TEST(suite, SimluateRun);
 }
