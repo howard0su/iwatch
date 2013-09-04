@@ -6,6 +6,7 @@
 #include "ant/ant.h"
 #include "stlv.h"
 #include <stdio.h>
+#include <cfs/cfs.h>
 
 #define GRID_3 			0
 #define GRID_4 			1
@@ -244,6 +245,9 @@ static void updateData(uint8_t datatype, uint16_t value)
   window_invalid(&regions[window_readconfig()->sports_grid][slot]);
 }
 
+static uint8_t fileidx;
+static int fileid;
+static uint16_t entrycount;
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   switch(event)
@@ -262,6 +266,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       for (int i = 0; i < 5; i++)
         data[i] = 0;
       workout_time = 0;
+      fileidx = 0;
       break;
     }
   case EVENT_ANT_DATA:
@@ -283,6 +288,48 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       workout_time++;
       updateData(DATA_WORKOUT, workout_time);
+
+      // push the data into CFS
+      if (fileid != -1)
+      {
+        // open the file
+        char filename[32];
+        sprintf(filename, "/sports/%03d.bin", fileidx++);
+        fileid = cfs_open(filename, CFS_WRITE | CFS_APPEND);
+
+        if (fileid == -1)
+        {
+          printf("Error to open a new file to write\n");
+          break;
+        }
+
+        entrycount = 0;
+
+        // append header
+        uint16_t signature = 0x1517;
+        ui_config* config = window_readconfig();
+        cfs_write(fileid, &signature, sizeof(signature));
+        cfs_write(fileid, &config->sports_grid, sizeof(config->sports_grid));
+
+        cfs_write(fileid, config->sports_grid_data, config->sports_grid * sizeof(config->sports_grid_data[0]));
+      }
+
+      // write the file
+      if (fileid != -1)
+      {
+        cfs_write(fileid, &workout_time, sizeof(workout_time));
+        cfs_write(fileid, data, config->sports_grid * sizeof(data[0]));
+        entrycount++;
+
+        // if enough size, let's trucate current file and restart
+        if (entrycount > 1800) // 6 * 2 = 12 bytes per entry. 30mins
+        {
+          cfs_close(fileid);
+          fileid = -1;
+        }
+
+      }
+      
       break;
     }
   case EVENT_WINDOW_PAINT:
