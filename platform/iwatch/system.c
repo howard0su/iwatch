@@ -19,7 +19,7 @@ __attribute__ ((section(".infod")))
 #pragma constseg = INFOD
 #endif
 static const struct system_data data = {
-	1, 1, 1,
+	0, 0, 0,
 	0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
 	0x0d, 0x0d, 0x0d, 
 };
