@@ -245,7 +245,7 @@ static void updateData(uint8_t datatype, uint16_t value)
   window_invalid(&regions[window_readconfig()->sports_grid][slot]);
 }
 
-static uint8_t fileidx;
+static uint8_t fileidx, sportnum;
 static int fileid;
 static uint16_t entrycount;
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
@@ -312,13 +312,14 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         cfs_write(fileid, &config->sports_grid, sizeof(config->sports_grid));
 
         cfs_write(fileid, config->sports_grid_data, config->sports_grid * sizeof(config->sports_grid_data[0]));
+        sportnum = config->sports_grid;
       }
 
       // write the file
       if (fileid != -1)
       {
         cfs_write(fileid, &workout_time, sizeof(workout_time));
-        cfs_write(fileid, data, config->sports_grid * sizeof(data[0]));
+        cfs_write(fileid, data, sportnum * sizeof(data[0]));
         entrycount++;
 
         // if enough size, let's trucate current file and restart
