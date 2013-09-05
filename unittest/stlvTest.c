@@ -7,7 +7,9 @@
 #include "stlv_server.h"
 #include "stlv_transport.h"
 
-#define NULL 0
+#ifndef NULL
+#   define NULL 0
+#endif
 
 static void trySendOut()
 {
@@ -21,8 +23,6 @@ static void trySendOut()
 static void TestSendEcho(CuTest* tc)
 {
     init_send_pack_stub();
-
-    printf("here");
 
     uint8_t data[40];
     for (uint16_t i = 0; i < sizeof(data); ++i)
