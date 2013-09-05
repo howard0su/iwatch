@@ -43,7 +43,6 @@ static send_pack_stub_t* append_stub(send_pack_stub_t** phead)
     send_pack_stub_t* head = *phead;
     if (head != 0)
     {
-        printf("append_stub(%p<-%p->%p) %d\n", head->prev, new_node, head, _send_pack_stub_count);
         head->prev->next = new_node;
         new_node->prev   = head->prev;
         head->prev       = new_node;
@@ -51,7 +50,6 @@ static send_pack_stub_t* append_stub(send_pack_stub_t** phead)
     }
     else
     {
-        printf("append_stub(%p<-%p->%p) %d\n", new_node, new_node, new_node, _send_pack_stub_count);
         *phead = new_node;
     }
     return new_node;
@@ -59,7 +57,6 @@ static send_pack_stub_t* append_stub(send_pack_stub_t** phead)
 
 static void remove_stub(send_pack_stub_t* node)
 {
-    printf("remove_stub(%p<-%p->%p) %d\n", node->prev, node, node->next, _send_pack_stub_count);
 
     _send_pack_stub_count--;
     if (node->next == node && node->prev == node)
