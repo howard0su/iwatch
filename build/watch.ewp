@@ -1868,7 +1868,7 @@
         </option>
         <option>
           <name>ListOutputFormat</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>BufferedTermOutput</name>
@@ -2077,6 +2077,9 @@
       </excluded>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\test.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\today.c</name>
     </file>
     <file>
@@ -2087,9 +2090,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\watch\test.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\worldclock.c</name>
@@ -2359,13 +2359,13 @@
       </file>
     </group>
     <file>
+      <name>$PROJ_DIR$\..\grlib\charmap.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\grlib\circle.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\grlib\context.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\grlib\charmap.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\grlib\grlib.h</name>
