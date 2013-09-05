@@ -1,6 +1,5 @@
 #include "grlib/grlib.h"
-#define logoWidth 144
-#define logoHeight 35
+
 const unsigned char logoPixel[] =
 {
    IMAGE_FMT_1BPP_UNCOMP,
@@ -59,14 +58,3 @@ const unsigned char logoPixel[] =
    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7f, 0xff, 0xfc,
    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
-
-
-#if 0
-static const unsigned long Palette[] = {0, 1};
-
-//TODO: make this RLE compress
-tImage g_logoImage = 
-{
-    IMAGE_FMT_1BPP_UNCOMP, 144, 35, 2, Palette, pixelData
-};
-#endif

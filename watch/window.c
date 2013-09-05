@@ -25,7 +25,7 @@ static ui_config ui_config_data =
 {
   UI_CONFIG_SIGNATURE,
 
-  "Shanghai", "London", "New York", "", "", "",
+  "Shanghai", "London", "New York", "Place A", "Place B", "Place C",
   +16, +8, +3, +1, +2, -5,
 
   0,
