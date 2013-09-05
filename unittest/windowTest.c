@@ -262,6 +262,7 @@ void TestSportWatch(CuTest* tc)
     {1, EVENT_WINDOW_CREATED, NULL, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
@@ -271,6 +272,21 @@ void TestSportWatch(CuTest* tc)
   {
     window_readconfig()->sports_grid = i;
     run_window_events(&sportswatch_process, test_events);
+
+    int fd = cfs_open("/sports/000.bin", CFS_READ);
+    CuAssert(tc, fd != -1, "file sports/000.bin doesn't find");
+    uint16_t sig;
+    cfs_read(fd, &sig, sizeof(sig));
+    CuAssertIntEquals_Msg(tc, "sport file signautre doesn't match", 0x1517, sig);
+
+    int offset = cfs_seek(fd, 0, CFS_SEEK_END);
+    CuAssertIntEquals(tc, sizeof(uint16_t) +  // signature
+                          sizeof(uint8_t) +   // grid num
+                          (i + 3) * sizeof(uint8_t) +  // grid types
+                          (i + 3 + 1) * sizeof(uint16_t) * 2, // data, 2 copy
+                          offset);
+
+    cfs_close(fd);
   }
 }
 
@@ -379,7 +395,11 @@ void TestWideFont(CuTest* tc)
     while(length > 0)
     {
       printf("write %d bytes\n", length);
-      cfs_write(fd, buf, length);
+      int wl = cfs_write(fd, buf, length);
+      if (wl != length)
+      {
+        CuFail(tc, "Failed to write the font file into spi flash because falsh is too small");
+      }
       length = fread(buf, 1, 1024, fp);
     }
     fclose(fp);
@@ -457,4 +477,6 @@ CuSuite* WindowGetSuite(void)
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);
+
+  return suite;
 }

@@ -265,6 +265,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       rtc_enablechange(SECOND_CHANGE);
       for (int i = 0; i < 5; i++)
         data[i] = 0;
+      fileid = -1;
       workout_time = 0;
       fileidx = 0;
       break;
@@ -290,11 +291,12 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       updateData(DATA_WORKOUT, workout_time);
 
       // push the data into CFS
-      if (fileid != -1)
+      if (fileid == -1)
       {
         // open the file
         char filename[32];
         sprintf(filename, "/sports/%03d.bin", fileidx++);
+        cfs_remove(filename);
         fileid = cfs_open(filename, CFS_WRITE | CFS_APPEND);
 
         if (fileid == -1)
@@ -310,9 +312,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         ui_config* config = window_readconfig();
         cfs_write(fileid, &signature, sizeof(signature));
         cfs_write(fileid, &config->sports_grid, sizeof(config->sports_grid));
-
-        cfs_write(fileid, config->sports_grid_data, config->sports_grid * sizeof(config->sports_grid_data[0]));
-        sportnum = config->sports_grid;
+        sportnum = config->sports_grid + 3;
+        cfs_write(fileid, config->sports_grid_data, sportnum * sizeof(config->sports_grid_data[0]));        
       }
 
       // write the file
@@ -343,6 +344,11 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       break;
     }
   case EVENT_WINDOW_CLOSING:
+    if (fileid != -1)
+    {
+      cfs_close(fileid);
+      fileid = -1;
+    }
     rtc_enablechange(0);
     ant_shutdown();
     break;
