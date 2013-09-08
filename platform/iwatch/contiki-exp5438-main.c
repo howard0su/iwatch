@@ -110,11 +110,12 @@ main(int argc, char **argv)
   system_init(); // check system status and do factor reset if needed
 
   I2C_Init();
-  mpu6050_init();
 
   //codec_init();
   //ant_init();
   bluetooth_init();
+
+  mpu6050_init();
 
 //  if (!bluetooth_paired())
   {

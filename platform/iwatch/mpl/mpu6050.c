@@ -185,7 +185,7 @@ void mpu6050_init()
   dmp_set_fifo_rate(DEFAULT_MPU_HZ);
   mpu_set_dmp_state(1);
 
-//  dmp_set_interrupt_mode(DMP_INT_GESTURE);
+  dmp_set_interrupt_mode(DMP_INT_GESTURE);
 #endif
 
   I2C_done();
