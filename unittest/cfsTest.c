@@ -101,7 +101,6 @@ void test_cfs(CuTest* tc)
     length = fread(buf, 1, 1024, fp);
     while(length > 0)
     {
-      printf("write %d bytes\n", length);
       cfs_write(fd, buf, length);
       length = fread(buf, 1, 1024, fp);
     }

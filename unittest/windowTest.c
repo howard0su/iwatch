@@ -394,7 +394,6 @@ void TestWideFont(CuTest* tc)
     length = fread(buf, 1, 1024, fp);
     while(length > 0)
     {
-      printf("write %d bytes\n", length);
       int wl = cfs_write(fd, buf, length);
       if (wl != length)
       {
@@ -418,10 +417,8 @@ void TestWindows(CuTest *tc)
   test_window(&script_process, "/script1.amx");
   test_window(&script_process, "/notexist.amx");
 
-/*
   for(int i = 0; fonts[i]; i++)
     test_window(&testfont, (void*)fonts[i]);
-  */
   test_window(&worldclock_process, NULL);
 
   test_window(&today_process, NULL);
