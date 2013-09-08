@@ -166,7 +166,6 @@ static void bt_control_cc256x_update_command(uint8_t *hci_cmd_buffer){
 
     uint16_t opcode = hci_cmd_buffer[0] | (hci_cmd_buffer[1] << 8);
 
-    printf("%04x ", opcode);
     switch (opcode){
         case 0xFD87:
             update_set_class2_single_power(hci_cmd_buffer);
