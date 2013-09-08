@@ -275,6 +275,7 @@ typedef struct
 //*****************************************************************************
 tGlyph g_pGlyphs[256];
 
+int g_maxGlyphs_length = 0;
 //*****************************************************************************
 //
 // Command line options.
@@ -1819,6 +1820,9 @@ tBoolean CompressGlyph(tConversionParameters *pParams, tGlyph *pGlyph,
     pGlyph->pucChar[1] = iXMax - iXMin;
     memcpy(pGlyph->pucChar + 2, pucChar, iOpt);
 
+    if (iOpt > g_maxGlyphs_length)
+        g_maxGlyphs_length = iOpt;
+
     return(true);
 }
 
@@ -2281,6 +2285,7 @@ tBoolean WriteBinaryWideFont(tConversionParameters *pParams, tFontInfo *pFont,
     {
         printf("Font contains %d blocks and %d glyphs.\n", pFont->usNumBlocks,
                 pFont->ulNumGlyphs);
+        printf("max glyph data is : %d\n", g_maxGlyphs_length);
         printf("%d bytes of glyph data, %d bytes total size.\n", iOpt,
                 iFontSize);
     }
@@ -2893,6 +2898,7 @@ tBoolean WriteASCIIWideFont(tConversionParameters *pParams, tFontInfo *pFont,
                 pFont->ulNumGlyphs);
         printf("%d bytes of glyph data, %d bytes total size.\n", iOpt,
                 iFontSize);
+        printf("max glyph data is : %d\n", g_maxGlyphs_length);
         if(pParams->bRemap)
         {
             printf("Remapping font to a single block with codepage 0x%04x.\n",
