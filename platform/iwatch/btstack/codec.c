@@ -82,7 +82,7 @@ static const uint16_t config[] =
 //  0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz MCLK
   0x0, // BYP Control
   0xFFFF, 0xFFFF, 0xFFFF, // skip 3
-  0x3, 0x10, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40, 0x1, //Input Output Mixer
+  0x3, 0x10, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40 + 63, 0x1, //Input Output Mixer
 };
 
 static int codec_write(uint8_t reg, uint16_t data)
@@ -136,7 +136,8 @@ void codec_shutdown()
 uint8_t codec_changevolume(int8_t diff)
 {
   uint8_t current;
-  uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
+  I2C_addr(CODEC_ADDRESS, 1);
+  uint16_t value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
   current = value & 0x3F;
   value &= ~0x3F;
   
@@ -152,6 +153,9 @@ uint8_t codec_changevolume(int8_t diff)
   }
 
   value |= current;
+  
+  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
+  I2C_done();
 
   return current;
 }
@@ -162,6 +166,20 @@ void codec_setvolume(uint8_t level)
   uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
   value &= ~0x3F;
   value |= level >> 2;
+
+  I2C_addr(CODEC_ADDRESS, 1);
+  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
+  I2C_done();
+}
+
+/* set volume, levle is from 0 - 64 */
+uint8_t codec_getvolume(uint8_t level)
+{
+  uint16_t value;
+  I2C_addr(CODEC_ADDRESS, 1);
+  value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
+  I2C_done();
+  return value;
 }
 
 void codec_wakeup()

@@ -669,3 +669,7 @@ uint8_t hfp_accept_call(uint8_t accept)
   return 0;
 }
 
+uint8_t hfp_getstatus(uint8_t ind)
+{
+  return cind_state[ind];
+}

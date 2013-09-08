@@ -35,5 +35,5 @@ extern uint8_t hfp_accept_call(uint8_t);
 #define HFP_CIND_SERVICE_AVAILABLE	1
 
 extern void hfp_callback(uint8_t type, uint8_t index, uint8_t value);
-
+extern uint8_t hfp_getstatus(uint8_t ind);
 #endif

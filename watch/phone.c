@@ -5,6 +5,7 @@
 #include "contiki.h"
 #include "window.h"
 #include "hfp.h"
+#include "bluetooth.h"
 #include <string.h>
 
 static char phonenumber[20];
@@ -15,59 +16,60 @@ static char phonenumber[20];
  * After that, give the option to hang up
  * The dialog will be show as an notification when callsetup = 1
  */
-static enum
-{
-	STATE_RING,
-	STATE_PICKSMS,
-	STATE_CALLING
-}state;
-
 static void onDraw(tContext *pContext)
 {
 	GrContextForegroundSet(pContext, ClrBlack);
 	GrRectFill(pContext, &client_clip);
 	GrContextForegroundSet(pContext, ClrWhite);
 
+	GrContextFontSet(pContext, &g_sFontBaby16);
+	if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
+	{
+		GrStringDraw(pContext, "Calling", 4, 40, 50, 0);
+	}
+	else if (hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
+	{
+		GrStringDraw(pContext, "Ring", 4, 40, 50, 0);
+	}
+	else
+	{
+		GrStringDraw(pContext, "Done", 4, 40, 50, 0);	
+	}
+
+	GrContextFontSet(pContext, &g_sFontBaby12);
     // draw the phone number
-    GrStringDraw(pContext, phonenumber, -1, 80, 80, 0);
+    GrStringDraw(pContext, phonenumber, -1, 20, 80, 0);
+
+    // volume
+    char buf[32];
+    sprintf(buf, "Volume: %d", codec_getvolume());
+	GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
 }
 
 static void handleKey(uint8_t key)
 {
-	switch(state)
+	switch(hfp_getstatus(HFP_CIND_CALL))
 	{
-		case STATE_RING:
+		case HFP_CIND_CALL_NONE:
 		/* ring, down/enter-> pick, up -> SMS, exit -> reject */
 		switch(key)
 		{
 			case KEY_DOWN:
 			case KEY_ENTER:
-				state = STATE_CALLING;
 				// notify hfp that we are accepting the call
 				hfp_accept_call(1);
 				break;
-
-			case KEY_EXIT:
-				hfp_accept_call(0);
-				window_close();
-				return;
 			case KEY_UP:
-				state = STATE_PICKSMS;
-				hfp_accept_call(0);
+				//hfp_accept_call(0);
 				break;
 		}
 		break;
 
 		// exit, hang up the call
-		case STATE_CALLING:
+		case HFP_CIND_CALL_ACTIVE:
 		{
 			switch(key)
 			{
-				case KEY_EXIT:
-				{
-					// hang the call
-					break;
-				}
 				case KEY_UP:
 				{
 					codec_changevolume(+1);
@@ -92,47 +94,35 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
 	switch(ev)
 	{
 	case EVENT_WINDOW_CREATED:
-	state = STATE_RING;
-	break;
+		break;
+
 	case EVENT_RING_NUM:
-	// get the calling number from the user
-	strcpy(phonenumber, rparam);
-	window_invalid(NULL);
-	break;
+		// get the calling number from the user
+		strcpy(phonenumber, rparam);
+		window_invalid(NULL);
+		break;
+
 	case EVENT_RING:
-	if (lparam == 0)
-	{
-		// this is ringing, ingore it
-	}
-	else
-	{
-		// +CIEV K, M
-		uint8_t ind = (uint8_t)(lparam >> 8);
-		uint8_t value = (uint8_t)lparam;
-
-		if (ind == HFP_CIND_CALLSETUP)
+		if ((lparam >> 8) == HFP_CIND_CALL ||
+			(lparam >> 8) == HFP_CIND_CALLSETUP)
 		{
-
+			window_invalid(NULL);
 		}
-		else if (ind == HFP_CIND_CALL)
-		{
-			if (value == 1)
-			{
-				// call is established
-				state = STATE_CALLING;
-			}
-		}
-	}
-	break;
+		break;
 	case EVENT_WINDOW_PAINT:
-	onDraw((tContext*)rparam);
-	break;
+		onDraw((tContext*)rparam);
+		break;
+
 	case EVENT_KEY_PRESSED:
-	handleKey((uint8_t)lparam);
-	break;
-	case EVENT_EXIT_PRESSED:
-	handleKey(KEY_EXIT);
-	break;
+		handleKey((uint8_t)lparam);
+		break;
+
+	case EVENT_WINDOW_CLOSING:
+		if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE
+			|| hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
+		{
+			hfp_accept_call(0);
+		}
 	default:
 		return 0;
 	}
