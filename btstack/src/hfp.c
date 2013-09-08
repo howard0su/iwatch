@@ -34,14 +34,14 @@ static void hfp_try_respond(uint16_t rfcomm_channel_id){
     if (!hfp_response_size) return;
     if (!rfcomm_channel_id) return;
 
-    printf("HFP: sending %s\n", hfp_response_buffer);
+    log_info("HFP: sending %s\n", hfp_response_buffer);
     // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
     uint16_t size = hfp_response_size;
     hfp_response_size = 0;
     if (rfcomm_send_internal(rfcomm_channel_id, hfp_response_buffer, size) != 0)
     {
       // if error, we need retry
-      printf("HFP: send failed.\n");
+      log_error("HFP: send failed.\n");
       hfp_response_size = size;
     }
 }
@@ -481,10 +481,10 @@ static int handle_CIND(char *buf)
 
 static void hfp_state_handler(int code, char* buf)
 {
-  printf("state: %d, code: %d, buf: %s\n", state, code, buf);
+  log_info("state: %d, code: %d, buf: %s\n", state, code, buf);
   if (state == WAIT_BRSF && code == R_BRSF)
   {
-    printf("%s\n", buf);
+    log_info("%s\n", buf);
   }
   else if (state == WAIT_BRSF && code == R_OK)
   {
