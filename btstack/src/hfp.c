@@ -15,7 +15,7 @@
 
 static enum
 {
-  INITIALIZING,
+  INITIALIZING = 1,
   WAIT_BRSF,
   WAIT_CIND0,
   WAIT_CIND,
@@ -152,16 +152,16 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
   state = INITIALIZING;
 }
 
-#define AT_BRSF  "AT+BRSF=4\r"
-#define AT_CIND0 "AT+CIND=?\r"
-#define AT_CIND  "AT+CIND?\r"
-#define AT_CMER  "AT+CMER=3,0,0,1\r"
-#define AT_CLIP  "AT+CLIP=1\r"
-#define AT_BVRA  "AT+BVRA=1\r"
-#define AT_BTRH1 "AT+BTRH=1\r"
-#define AT_BTRH2 "AT+BTRH=2\r"
-#define AT_CHUP  "AT+CHUP\r"
-#define AT_ATA   "ATA\r"
+#define AT_BRSF  "\r\nAT+BRSF=4\r\n"
+#define AT_CIND0 "\r\nAT+CIND=?\r\n"
+#define AT_CIND  "\r\nAT+CIND?\r\n"
+#define AT_CMER  "\r\nAT+CMER=3,0,0,1\r\n"
+#define AT_CLIP  "\r\nAT+CLIP=1\r\n"
+#define AT_BVRA  "\r\nAT+BVRA=1\r\n"
+#define AT_BTRH1 "\r\nAT+BTRH=1\r\n"
+#define AT_BTRH2 "\r\nAT+BTRH=2\r\n"
+#define AT_CHUP  "\r\nAT+CHUP\r\n"
+#define AT_ATA   "\r\nATA\r\n"
 
 #define R_NONE 0
 #define R_OK   0
@@ -207,6 +207,10 @@ static char* parse_return(char* result, int* code)
   else if (strncmp(result, "+BTRH", 5) == 0)
   {
     *code = R_BTRH;
+  }
+  else if (strncmp(result, "RING", 4) == 0)
+  {
+    *code = R_RING;
   }
   else if (strncmp(result, "OK", 2) == 0)
   {
@@ -308,6 +312,7 @@ static void handle_RING()
 static void handle_CLIP(char* buf)
 {
   char *phone;
+  buf += 6;
   while(*buf != 0 && *buf == '\"')
   {
     buf++;
@@ -315,9 +320,9 @@ static void handle_CLIP(char* buf)
   // find buf
   if (*buf == 0)
     return;
-  
-  phone = buf;
 
+  buf++;  
+  phone = buf;
   buf++;
   while (*buf != 0 && *buf != '\"')
   {
@@ -476,7 +481,12 @@ static int handle_CIND(char *buf)
 
 static void hfp_state_handler(int code, char* buf)
 {
+  printf("state: %d, code: %d, buf: %s\n", state, code, buf);
   if (state == WAIT_BRSF && code == R_BRSF)
+  {
+    printf("%s\n", buf);
+  }
+  else if (state == WAIT_BRSF && code == R_OK)
   {
     hfp_response_buffer = AT_CIND0;
     hfp_response_size = sizeof(AT_CIND0);
@@ -486,6 +496,9 @@ static void hfp_state_handler(int code, char* buf)
   else if (state == WAIT_CIND0 && code == R_CIND)
   {
     handle_CIND0(buf);
+  }
+  else if (state == WAIT_CIND0 && code == R_OK)
+  {
     hfp_response_buffer = AT_CIND;
     hfp_response_size = sizeof(AT_CIND);
     state = WAIT_CIND;
@@ -494,6 +507,9 @@ static void hfp_state_handler(int code, char* buf)
   else if (state == WAIT_CIND && code == R_CIND)
   {
     handle_CIND(buf);
+  }
+  else if (state == WAIT_CIND && code == R_OK)
+  {
     hfp_response_buffer = AT_CMER;
     hfp_response_size = sizeof(AT_CMER);
     state = WAIT_CMEROK;
@@ -503,8 +519,8 @@ static void hfp_state_handler(int code, char* buf)
   {
     hfp_response_buffer = AT_CLIP;
     hfp_response_size = sizeof(AT_CLIP);
-    hfp_try_respond(rfcomm_channel_id);
     state = WAIT_OK;
+    hfp_try_respond(rfcomm_channel_id);
   }
   else if (code == R_CIEV)
   {
@@ -523,6 +539,7 @@ static void hfp_state_handler(int code, char* buf)
   }
   else
   {
+    log_error("HFP: enter error state");
     state = ERROR;
   }
 }
@@ -561,7 +578,6 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
           if (code != R_UNKNOWN)
           {
             hfp_state_handler(code, current);
-            hfp_try_respond(rfcomm_channel_id);
           }
         }
         current = next;
