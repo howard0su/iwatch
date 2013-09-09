@@ -22,11 +22,14 @@ void handle_sports_heartbeat(uint8_t seconds_to_next);
 #define FILE_PREFIX_WATCHFACE
 #define FILE_PREFIX_GADGIT
 void handle_get_file(char* name);
+void handle_list_file();
+void handle_remove_file(char* name);
 
 //-----------------------file handlers----------------------
 int handle_file_begin(char* name);
 int handle_file_data(int fd, uint8_t* data, uint8_t size);
 void handle_file_end(int fd);
 
+int transfer_file(char* name);
 #endif
 

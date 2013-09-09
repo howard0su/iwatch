@@ -12,4 +12,6 @@ int begin_send_file(char* name);
 int send_file_data(int fd, uint8_t* data, uint8_t size, void (*callback)(int), int para);
 void end_send_file(int fd);
 
+void send_file(char* name);
 #endif
+
