@@ -280,6 +280,7 @@ static void set_element_type(stlv_packet p, element_handle h, char* type_buf, in
 
     p[HEADFIELD_BODY_LENGTH] += (buf_len + 1);
     inc_parent_elements_length(p, buf_len + 1);
+    h[buf_len] = 0; //set element length = 0
 }
 
 element_handle append_element(stlv_packet p, element_handle parent, char* type_buf, int buf_len)

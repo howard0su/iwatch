@@ -275,6 +275,15 @@ static void TestRemoveFiles(CuTest* tc)
     handle_remove_file(TEST_FILE_NAME);
 }
 
+static void TestSportsGrid(CuTest* tc)
+{
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
@@ -283,6 +292,8 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestSendFile);
     SUITE_ADD_TEST(suite, TestRecvFile);
     SUITE_ADD_TEST(suite, TestGetFile);
+    SUITE_ADD_TEST(suite, TestSportsGrid);
+
     return suite;
 }
 

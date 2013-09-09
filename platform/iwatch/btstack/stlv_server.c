@@ -102,6 +102,7 @@ void handle_stlv_packet(unsigned char* packet)
             break;
 #endif
         case ELEMENT_TYPE_SPORTS_GRID:
+            printf("Get Sports Grid Request\n");
             handle_get_sports_grid();
             break;
 

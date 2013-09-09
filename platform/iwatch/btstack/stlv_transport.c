@@ -29,9 +29,16 @@ typedef struct _spp_sender
 #define TASK_QUEUE_SIZE 10
 static spp_sender task_queue[TASK_QUEUE_SIZE] = {{0, 0, 0, 0, 0, 0, 0}, };
 static short task_queue_pos = 0;
+static uint8_t _task_queue_inited = 0;
 
 int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
 {
+    if (!_task_queue_inited)
+    {
+        memset(&task_queue[0], 0, sizeof(task_queue));
+        _task_queue_inited = 1;
+    }
+
     short cursor = task_queue_pos + 1;
     for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
     {
@@ -95,9 +102,11 @@ void tryToSend(void)
             if (err != 0)
                 return;
 
-
             task->sent_size += task->unit_size;
             printf("tryToSend(%d,%d/%d)\n", task_queue_pos, task->sent_size, task->buffer_size);
+            printf("dump: %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+                    task->buffer[0], task->buffer[1], task->buffer[2], task->buffer[3],
+                    task->buffer[4], task->buffer[5], task->buffer[6], task->buffer[7] );
             if (task->sent_size >= task->buffer_size)
             {
                 task->status = SPP_SENDER_NULL;

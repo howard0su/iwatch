@@ -180,6 +180,7 @@ void handle_get_sports_grid()
     element_handle h = append_element(p, NULL, "R", 1);
     ui_config* config = window_readconfig();
     element_append_data(p, h, (unsigned char*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
+    printf("send_sports_grid(%d)\n", sizeof(uint8_t) * (config->sports_grid + 3));
     send_packet(p, 0, 0);
 }
 
