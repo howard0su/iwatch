@@ -26,32 +26,34 @@ static void onDraw(tContext *pContext)
 	GrContextFontSet(pContext, &g_sFontBaby16);
 	if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
 	{
-		GrStringDraw(pContext, "Calling", 4, 40, 50, 0);
+		GrStringDrawCentered(pContext, "Calling", -1, 72, 50, 0);
 		window_button(pContext, KEY_UP, "Vol Up");
 		window_button(pContext, KEY_DOWN, "Vol Down");
 		window_button(pContext, KEY_EXIT, "Hang up");
+	    // volume
+	    char buf[32];
+	    sprintf(buf, "Volume: %d", codec_getvolume());
+		GrContextFontSet(pContext, &g_sFontBaby16);
+		GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
 	}
 	else if (hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
 	{
-		GrStringDraw(pContext, "Ring", 4, 40, 50, 0);
+		GrStringDrawCentered(pContext, "Ring", 4, 72, 50, 0);
 		window_button(pContext, KEY_EXIT, "Reject");
 		window_button(pContext, KEY_ENTER, "Pickup");
 		window_button(pContext, KEY_DOWN, "SMS Reply");
 	}
 	else
 	{
-		GrStringDraw(pContext, "Finished", 4, 40, 50, 0);	
+		GrStringDrawCentered(pContext, "Finished", -1, 72, 50, 0);	
 		window_close();
+
+		return; // don't need paint others
 	}
 
-	GrContextFontSet(pContext, &g_sFontBaby12);
     // draw the phone number
-    GrStringDraw(pContext, phonenumber, -1, 20, 80, 0);
-
-    // volume
-    char buf[32];
-    sprintf(buf, "Volume: %d", codec_getvolume());
-	GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
+	GrContextFontSet(pContext, &g_sFontBaby16);
+    GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
 }
 
 static void handleKey(uint8_t key)
