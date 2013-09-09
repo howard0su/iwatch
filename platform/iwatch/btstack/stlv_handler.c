@@ -161,14 +161,26 @@ int transfer_file(char* filename)
     return 0;
 }
 
-void handle_get_sports_data()
+void handle_get_sports_data(uint16_t *data, uint8_t numofdata)
 {
-    //void send_sports_data(uint16_t* data, uint8_t size);
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "A", 1);
+
+    element_append_data(p, h, (unsigned char*)&data, sizeof(uint16_t) * numofdata);
+    send_packet(p, 0, 0);
 }
 
 void handle_get_sports_grid()
 {
-    //void send_sports_grid(uint8_t* data, uint8_t size);
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "R", 1);
+    ui_config* config = window_readconfig();
+    element_append_data(p, h, (unsigned char*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
+    send_packet(p, 0, 0);    
 }
 
 

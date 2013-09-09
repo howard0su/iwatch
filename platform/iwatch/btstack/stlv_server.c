@@ -96,11 +96,11 @@ void handle_stlv_packet(unsigned char* packet)
                 handle_sports_heartbeat(seconds_to_next);
             }
             break;
-
+#if 0
         case ELEMENT_TYPE_SPORTS_DATA:
             handle_get_sports_data();
             break;
-
+#endif
         case ELEMENT_TYPE_SPORTS_GRID:
             handle_get_sports_grid();
             break;

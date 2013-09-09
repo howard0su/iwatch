@@ -253,7 +253,7 @@ static int fileid;
 static uint16_t entrycount;
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
-    UNUSED_VAR(lparam);
+  UNUSED_VAR(lparam);
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
@@ -272,21 +272,16 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       fileid = -1;
       workout_time = 0;
       fileidx = 0;
+
+      ui_config* config = window_readconfig();
+      sportnum = config->sports_grid + 3;
+
       break;
     }
   case EVENT_ANT_DATA:
     {
       printf("got ant data\n");
       updateData(DATA_HEARTRATE, (uint16_t)rparam);
-      {
-        // send data to phone
-        stlv_packet p = create_packet();
-        if (p == NULL)
-            break;
-        element_handle h = append_element(p, NULL, "H", 1);
-        element_append_data(p, h, (unsigned char*)&rparam, 2);
-        send_packet(p, 0, 0);
-      }
       break;
     }
   case EVENT_TIME_CHANGED:
@@ -297,9 +292,14 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       if (upload_data_interval > 0 &&
           workout_time % upload_data_interval == 0)
       {
-          //send_sports_data(data[])
+        // send data to phone
+        uint16_t tobesend[6];
+        tobesend[0] = workout_time;
+        for(int i = 1; i < sportnum; i++)
+            tobesend[i + 1] = data[i];
+        handle_get_sports_data(tobesend, sportnum+1);
       }
-
+#if 0
       // push the data into CFS
       if (fileid == -1)
       {
@@ -341,6 +341,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         }
 
       }
+#endif
 
       break;
     }
