@@ -11,6 +11,8 @@
 #   define NULL 0
 #endif
 
+#define TEST_FILE_NAME "testfile"
+
 static void trySendOut()
 {
     int prev_count = 0;
@@ -85,7 +87,7 @@ static void TestSendFile(CuTest* tc)
     for (int i = 0; i < sizeof(file_buf); ++i)
         file_buf[i] = file_index;
 
-    int fd = begin_send_file("testfile");
+    int fd = begin_send_file(TEST_FILE_NAME);
     send_file_data(fd, file_buf, sizeof(file_buf), send_file_callback, fd);
 
     trySendOut();
@@ -96,14 +98,7 @@ static void TestSendFile(CuTest* tc)
 
     for (int i = 0; i < get_send_pack_stub_count(); ++i)
     {
-        //CuAssertIntEquals(tc, 41, node->len);
-        //CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
-        int rc = handle_stvl_transport(node->data, node->len);
-        //if (rc != 0)
-        //{
-        //    printf("packet: len = %d\n", get_stlv_transport_buffer_size());
-        //    hex_dump(get_stlv_transport_buffer(), get_stlv_transport_buffer_size());
-        //}
+        handle_stvl_transport(node->data, node->len);
         node = get_next_send_pack_stub(node);
     }
 }
@@ -251,6 +246,29 @@ static void TestRecvFile(CuTest* tc)
     handle_stlv_packet(file_end_data);
 }
 
+static void TestListFiles(CuTest* tc)
+{
+    handle_list_file();
+    trySendOut();
+}
+
+static void TestGetFile(CuTest* tc)
+{
+    handle_get_file(TEST_FILE_NAME);
+    trySendOut();
+
+    CuAssertIntEquals(tc, 25,  get_send_pack_stub_count());
+    send_pack_stub_t* node = get_send_pack_stub();
+    CuAssertIntEquals(tc, 41, node->len);
+    CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
+    node = get_next_send_pack_stub(node);
+}
+
+static void TestRemoveFiles(CuTest* tc)
+{
+    handle_remove_file(TEST_FILE_NAME);
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
@@ -258,6 +276,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestRecvEcho);
     SUITE_ADD_TEST(suite, TestSendFile);
     SUITE_ADD_TEST(suite, TestRecvFile);
+    SUITE_ADD_TEST(suite, TestGetFile);
     return suite;
 }
 
