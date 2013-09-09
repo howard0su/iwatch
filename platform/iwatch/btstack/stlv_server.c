@@ -75,6 +75,20 @@ void handle_stlv_packet(unsigned char* packet)
             }
            break;
 
+        case ELEMENT_TYPE_LIST_FILES:
+           handle_list_file();
+           break;
+
+        case ELEMENT_TYPE_REMOVE_FILE:
+            {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                STLV_BUF_BEGIN_TEMP_STRING(data, data_len);
+                handle_remove_file((char*)data);
+                STLV_BUF_END_TEMP_STRING(data, data_len);
+            }
+           break;
+
         case ELEMENT_TYPE_SPORT_HEARTBEAT:
             {
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);

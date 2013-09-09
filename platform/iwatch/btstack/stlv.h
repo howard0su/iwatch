@@ -25,12 +25,13 @@
 #define ELEMENT_TYPE_ECHO             'E'
 #define ELEMENT_TYPE_SPORT_HEARTBEAT  'H'
 #define ELEMENT_TYPE_GET_FILE         'G'
+#define ELEMENT_TYPE_LIST_FILES       'L'
+#define ELEMENT_TYPE_REMOVE_FILE      'R'
 
 #define ELEMENT_TYPE_FILE             'F'
 #define     SUB_TYPE_FILE_NAME        'n'
 #define     SUB_TYPE_FILE_DATA        'd'
 #define     SUB_TYPE_FILE_END         'e'
-
 
 #define ELEMENT_TYPE_MESSAGE              'M'
 #define     ELEMENT_TYPE_MESSAGE_SMS      'S'
