@@ -2,6 +2,8 @@
 #include "stlv_handler.h"
 
 #include <stdio.h>
+#include <string.h>
+
 #include "stlv.h"
 #include "contiki.h"
 #include "window.h"
@@ -76,6 +78,7 @@ void handle_file_end(int fd)
 //TODO: sujun implement this heart beat and get file
 void handle_sports_heartbeat(uint8_t seconds_to_next)
 {
+    UNUSED_VAR(seconds_to_next);
 }
 
 void handle_get_file(char* name)
@@ -89,6 +92,7 @@ void handle_list_file()
 
 void handle_remove_file(char* name)
 {
+    UNUSED_VAR(name);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -155,6 +159,16 @@ int transfer_file(char* filename)
     send_file_block(_f_reader.send_fd);
 
     return 0;
+}
+
+void handle_get_sports_data()
+{
+    //void send_sports_data(uint16_t* data, uint8_t size);
+}
+
+void handle_get_sports_grid()
+{
+    //void send_sports_grid(uint8_t* data, uint8_t size);
 }
 
 

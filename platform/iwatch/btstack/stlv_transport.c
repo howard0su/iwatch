@@ -27,7 +27,7 @@ typedef struct _spp_sender
 }spp_sender;
 
 #define TASK_QUEUE_SIZE 10
-static spp_sender task_queue[TASK_QUEUE_SIZE] = {0};
+static spp_sender task_queue[TASK_QUEUE_SIZE] = {{0, 0, 0, 0, 0, 0, 0}, };
 static short task_queue_pos = 0;
 
 int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
