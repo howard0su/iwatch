@@ -179,7 +179,7 @@ uint8_t codec_getvolume(uint8_t level)
   I2C_addr(CODEC_ADDRESS, 1);
   value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
   I2C_done();
-  return value;
+  return value & 0x3F;
 }
 
 void codec_wakeup()

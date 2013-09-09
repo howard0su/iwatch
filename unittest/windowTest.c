@@ -263,6 +263,22 @@ void TestSportWatch(CuTest* tc)
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_TIME_CHANGED, NULL, 0},
     {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
+    {1, EVENT_TIME_CHANGED, NULL, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
@@ -274,7 +290,7 @@ void TestSportWatch(CuTest* tc)
     run_window_events(&sportswatch_process, test_events);
 
     int fd = cfs_open("/sports/000.bin", CFS_READ);
-    CuAssert(tc, fd != -1, "file sports/000.bin doesn't find");
+    CuAssert(tc, "file sports/000.bin doesn't find", fd != -1);
     uint16_t sig;
     cfs_read(fd, &sig, sizeof(sig));
     CuAssertIntEquals_Msg(tc, "sport file signautre doesn't match", 0x1517, sig);
@@ -456,6 +472,29 @@ void TestWindows(CuTest *tc)
   printf("test finished!\n");
 }
 
+#include "btstack/src/hfp.h"
+void hfp_test_setstatus(uint8_t ind, uint8_t value);
+void TestPhoneScreen(CuTest* tc)
+{
+    struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };
+
+  hfp_test_setstatus(HFP_CIND_CALL, HFP_CIND_CALL_ACTIVE);
+  run_window_events(phone_process, test_events);
+
+  hfp_test_setstatus(HFP_CIND_CALL, HFP_CIND_CALL_NONE);
+  hfp_test_setstatus(HFP_CIND_CALLSETUP, HFP_CIND_CALLSETUP_INCOMING);
+  run_window_events(phone_process, test_events);  
+
+  hfp_test_setstatus(HFP_CIND_CALL, HFP_CIND_CALL_NONE);
+  hfp_test_setstatus(HFP_CIND_CALLSETUP, HFP_CIND_CALLSETUP_OUTGOING);
+  run_window_events(phone_process, test_events);   
+}
+
 CuSuite* WindowGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
@@ -471,6 +510,8 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestButton);
   SUITE_ADD_TEST(suite, TestTestLight);
   SUITE_ADD_TEST(suite, TestTestLcd);
+  SUITE_ADD_TEST(suite, TestPhoneScreen);
+
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);

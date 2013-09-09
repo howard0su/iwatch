@@ -101,6 +101,7 @@ WATCH = \
     watch/stopwatch.c \
     watch/sportswatch.c \
     watch/sportselect.c \
+    watch/phone.c \
     watch/notification.c \
     watch/worldclock.c \
     watch/host.c \
@@ -131,6 +132,7 @@ SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/stlvTest.c \
  unittest/gestureTest.c \
  unittest/TestUtility/stlv_test_stub.c \
+ unittest/hfpTest.c
 
 
 OBJDIR = objs.native
