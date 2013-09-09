@@ -7,7 +7,7 @@
 #include <string.h>
 #include "backlight.h"
 #include "cfs/cfs.h"
-
+#include "btstack/src/hfp.h"
 #include "system.h"
 
 PROCESS(system_process, "System process");
@@ -164,9 +164,14 @@ void window_handle_event(uint8_t ev, void* data)
 
       if (ev == EVENT_KEY_PRESSED && (uint16_t)data == KEY_EXIT)
       {
-          uint8_t ret = ui_window(EVENT_EXIT_PRESSED, 0, NULL);
+        uint8_t ret = ui_window(EVENT_EXIT_PRESSED, 0, NULL);
           if (!ret)
         window_close();
+      }
+      else if (ev == EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_ENTER)
+      {
+        // switch to phone call interface to show Siri
+        window_open(&phone_process, (void*)1);
       }
       else
       {

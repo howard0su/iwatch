@@ -493,6 +493,11 @@ void TestPhoneScreen(CuTest* tc)
   hfp_test_setstatus(HFP_CIND_CALL, HFP_CIND_CALL_NONE);
   hfp_test_setstatus(HFP_CIND_CALLSETUP, HFP_CIND_CALLSETUP_OUTGOING);
   run_window_events(phone_process, test_events);   
+
+  // test siri
+  test_events[0].rparam = 1;
+  hfp_test_setstatus(HFP_CIND_CALL, HFP_CIND_CALL_ACTIVE);
+  run_window_events(phone_process, test_events);
 }
 
 CuSuite* WindowGetSuite(void)
