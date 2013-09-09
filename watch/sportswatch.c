@@ -5,6 +5,7 @@
 #include "rtc.h"
 #include "ant/ant.h"
 #include "stlv.h"
+#include "stlv_client.h"
 #include <stdio.h>
 #include <cfs/cfs.h>
 
@@ -44,16 +45,16 @@ struct _datapoints
 
 static const struct _datapoints datapoints[] =
 {
-  {DATA_WORKOUT, "Total Workout Time", NULL},
-  {DATA_SPEED, "Speed", "mph"},
-  {DATA_HEARTRATE, "Heart Rate", "bpm"},
-  {DATA_DISTANCE, "Distance", "mile"},
-  {DATA_CALS, "Burned Calories", "cal"},
-  {DATA_SPEED_AVG, "Avg Speed", "mph"},
-  {DATA_SPEED, "Speed", "mph"},
-  {DATA_ALTITUTE, "Altitude", "ft"},
-  {DATA_TIME, "Time of the Day", NULL},
-  {DATA_SPEED_TOP, "Top Speed", "mph"}
+  {DATA_WORKOUT,   "Total Workout Time", NULL,   0},
+  {DATA_SPEED,     "Speed",              "mph",  0},
+  {DATA_HEARTRATE, "Heart Rate",         "bpm",  0},
+  {DATA_DISTANCE,  "Distance",           "mile", 0},
+  {DATA_CALS,      "Burned Calories",    "cal",  0},
+  {DATA_SPEED_AVG, "Avg Speed",          "mph",  0},
+  {DATA_SPEED,     "Speed",              "mph",  0},
+  {DATA_ALTITUTE,  "Altitude",           "ft",   0},
+  {DATA_TIME,      "Time of the Day",    NULL,   0},
+  {DATA_SPEED_TOP, "Top Speed",          "mph",  0}
 };
 
 static const tRectangle region_3grid[] =
@@ -85,6 +86,8 @@ static const tRectangle *regions[] =
 {
   region_3grid, region_4grid, region_5grid
 };
+
+static int upload_data_interval = 3;
 
 // Find which grid slot contains the specific data
 static int findDataGrid(uint8_t data)
@@ -250,6 +253,7 @@ static int fileid;
 static uint16_t entrycount;
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
+    UNUSED_VAR(lparam);
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
@@ -290,6 +294,12 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       workout_time++;
       updateData(DATA_WORKOUT, workout_time);
 
+      if (upload_data_interval > 0 &&
+          workout_time % upload_data_interval == 0)
+      {
+          //send_sports_data(data[])
+      }
+
       // push the data into CFS
       if (fileid == -1)
       {
@@ -313,7 +323,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         cfs_write(fileid, &signature, sizeof(signature));
         cfs_write(fileid, &config->sports_grid, sizeof(config->sports_grid));
         sportnum = config->sports_grid + 3;
-        cfs_write(fileid, config->sports_grid_data, sportnum * sizeof(config->sports_grid_data[0]));        
+        cfs_write(fileid, config->sports_grid_data, sportnum * sizeof(config->sports_grid_data[0]));
       }
 
       // write the file
@@ -331,7 +341,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         }
 
       }
-      
+
       break;
     }
   case EVENT_WINDOW_PAINT:

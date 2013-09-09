@@ -28,8 +28,8 @@
 #define ELEMENT_TYPE_GET_FILE         'G'
 #define ELEMENT_TYPE_LIST_FILES       'L'
 #define ELEMENT_TYPE_REMOVE_FILE      'X'
-#define ELEMENT_TYPE_GET_DATA         'A'
-#define ELEMENT_TYPE_GET_GRID         'R'
+#define ELEMENT_TYPE_SPORTS_DATA      'A'
+#define ELEMENT_TYPE_SPORTS_GRID      'R'
 
 #define ELEMENT_TYPE_FILE             'F'
 #define     SUB_TYPE_FILE_NAME        'n'

@@ -97,11 +97,11 @@ void handle_stlv_packet(unsigned char* packet)
             }
             break;
 
-        case ELEMENT_TYPE_GET_DATA:
+        case ELEMENT_TYPE_SPORTS_DATA:
             handle_get_sports_data();
             break;
 
-        case ELEMENT_TYPE_GET_GRID:
+        case ELEMENT_TYPE_SPORTS_GRID:
             handle_get_sports_grid();
             break;
 
