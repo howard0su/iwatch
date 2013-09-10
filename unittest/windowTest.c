@@ -311,8 +311,8 @@ void TestTestButton(CuTest* tc)
   struct _event test_events[] = {
     {1, EVENT_WINDOW_CREATED, NULL, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER, 0},
-    {1, EVENT_KEY_PRESSED, NULL, KEY_EXIT, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_EXIT},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {1, EVENT_KEY_LONGPRESSED, NULL, KEY_EXIT},
@@ -321,6 +321,23 @@ void TestTestButton(CuTest* tc)
   run_window_events(&test_button, test_events);
 }
 
+void TestTestAnt(CuTest *tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+
+  run_window_events(&test_ant, test_events);
+}
 
 void TestTestLight(CuTest* tc)
 {
@@ -368,21 +385,16 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrContextForegroundSet(pContext, ClrWhite);
                   GrContextFontSet(pContext, (const tFont*)font);
 
-                  //GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
-                  //GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
-                  //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);
-                  GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
-                  uint16_t data[] = 
-                  {
-                    0x6087, 0x6187, 0x6287, 0x6387, 0x6487, 0x6587, 0x6687, 0x6787,
-                    0x6887, 0x6987, 0x6a87, 0x6b87, 0x6c87, 0x6d87, 0x6e87, 0x6f87
-                  };
-                    GrStringDraw(pContext, data, 16, 0, 32, 0);
-                    GrStringDraw(pContext, &data[8], 16, 0, 44, 0);
+                  GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
+                  GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
 
+                  GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
+                  //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
                   GrStringDraw(pContext, L"中文测试", -1, 0, 55, 0);
                   GrStringDraw(pContext, L"中国语テスト", -1, 0, 75, 0);
                   GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
+                  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);                  
+
                   break;
                 }
         }
@@ -515,6 +527,7 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestButton);
   SUITE_ADD_TEST(suite, TestTestLight);
   SUITE_ADD_TEST(suite, TestTestLcd);
+  SUITE_ADD_TEST(suite, TestTestAnt);
   SUITE_ADD_TEST(suite, TestPhoneScreen);
 
 

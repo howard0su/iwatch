@@ -85,6 +85,7 @@ static const struct MenuItem TestMenu[] =
   {0, "Motor", &test_motor},
   {0, "Light", &test_light},
   {0, "LCD", &test_lcd},
+  {0, "ANT+", &test_ant},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };

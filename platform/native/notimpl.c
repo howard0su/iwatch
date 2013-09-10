@@ -146,3 +146,11 @@ void system_rebootToNormal()
   memcpy(buf, fake, 6);
  }
 
+
+uint8_t
+ANT_ChannelPower(
+   uint8_t ucANTChannel_, 
+   uint8_t ucPower_)
+{
+  return 0;
+}
