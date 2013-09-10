@@ -31,7 +31,6 @@
 
 static int uartTxDaTA0;                                         // UART internal variable for TX
 static volatile char RXByte;                                           // Array to save rx'ed characters
-static volatile int hasReceived;
 
 PROCESS(recv_process, "UART INPUT");
 
@@ -48,8 +47,12 @@ uart1_init(unsigned long ubr)
   TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
   TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
-  process_start(&recv_process, NULL);
   #endif
+}
+
+void uart1_start()
+{
+ process_start(&recv_process, NULL);
 }
 
 /*
@@ -111,41 +114,8 @@ PROCESS_THREAD(recv_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    if (!hasReceived)
-      continue;
     uint8_t data = RXByte;
-    hasReceived = 0;
     printf("input: %x\n", (uint16_t)data);
-#if 0
-    switch(state)
-    {
-      case WAITDATA:
-        payload = RXByte;
-        state = LEAD;
-        break;
-      case LEAD:
-        if (RXByte == 0x5A)
-        {
-          state = PAYLOAD;
-        }
-        else
-        {
-          state = WAITDATA;
-        }
-        break;
-      case PAYLOAD:
-        payload = RXByte;
-        state = CRC;
-        break;
-      case CRC:
-        if (payload == ~RXByte)
-        {
-            RunCommand(payload);
-        }
-        state = WAITDATA;
-        break;
-    }
-#endif
   }
   PROCESS_END();
 }
@@ -171,8 +141,8 @@ putchar(int byte)
 */
 ISR(TIMER0_A1, timer0_a1_interrupt)
 {
-  static unsigned char rxBitCnt = 9;
-  static unsigned char rxData = 0;
+  static unsigned char rxBitCnt = 8;
+  static int rxData = 0;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
@@ -195,9 +165,9 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
           rxBitCnt--;
           if (rxBitCnt == 0)                              // All bits RXed?
           {
-              RXByte = rxData; // Store in global variable
-              hasReceived = 1;
-              rxBitCnt = 9;                               // Re-load bit counter
+              RXByte = rxData & 0xFF; // Store in global variable
+              rxBitCnt = 8;                               // Re-load bit counter
+              rxData = 0;
               TA0CCTL1 |= CAP;                            // Switch compare to capture mode
               process_poll(&recv_process);
               LPM4_EXIT;       // Clear LPM0 bits from 0(SR)

@@ -94,6 +94,7 @@ main(int argc, char **argv)
   */
   process_init();
   process_start(&etimer_process, NULL);
+  uart1_start();
   ctimer_init();
 
   energest_init();
