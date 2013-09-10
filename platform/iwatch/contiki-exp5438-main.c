@@ -94,7 +94,7 @@ main(int argc, char **argv)
   */
   process_init();
   process_start(&etimer_process, NULL);
-  uart1_start();
+  
   ctimer_init();
 
   energest_init();
@@ -123,6 +123,9 @@ main(int argc, char **argv)
     bluetooth_discoverable(1);
   }
 
+  protocol_init();
+  protocol_start(1);
+  
   autostart_start(autostart_processes);
 
   /*

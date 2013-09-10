@@ -32,7 +32,7 @@
 static int uartTxDaTA0;                                         // UART internal variable for TX
 static volatile char RXByte;                                           // Array to save rx'ed characters
 
-PROCESS(recv_process, "UART INPUT");
+PROCESS_NAME(protocol_process);
 
 void
 uart1_init(unsigned long ubr)
@@ -50,80 +50,13 @@ uart1_init(unsigned long ubr)
   #endif
 }
 
-void uart1_start()
+uint8_t getByte()
 {
- process_start(&recv_process, NULL);
+  return RXByte;
 }
 
-/*
- * protocol is like 1 byte command + 1 byte VERIFY
- *   7 6 5 4 3 2 1 0
- *   0 0 1 1 1 1 1 1 -> enter BSL
- *   0 0 1 1 1 0 1 0 -> enable debug log
- *
- *   0 0 0 x x x x x -> sync year 0 - 31
- *   0 0 1 0 x x x x -> sync month 0 - 12
- *   0 1 0 x x x x x -> sync day 0 - 31
- *   0 1 1 x x x x x -> sync hour 0 - 23
- *   1 0 x x x x x x -> sync minute 0 - 59
- *   1 1 x x x x x x -> sync second 0 - 59
- */
-static void RunCommand(uint8_t payload)
+void sendByte(uint8_t byte)
 {
-  if (payload & 0x80)
-  {
-    if (payload & 0xC0)
-    {
-      // sync second
-      //rtc_settime();
-    }
-    else
-    {
-      // set minute
-    }
-  }
-  else
-  {
-    switch(payload & 0xE0)
-    {
-      case 0x00:
-        break;
-      case 0x20:
-        break;
-      case 0x40:
-        break;
-      case 0x60:
-        break;
-    }
-  }
-
-}
-static enum
-{
-  WAITDATA,
-  LEAD,
-  PAYLOAD,
-  CRC
-}state;
-static uint8_t payload;
-
-PROCESS_THREAD(recv_process, ev, data)
-{
-  PROCESS_BEGIN();
-  state = WAITDATA;
-  while(1)
-  {
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    uint8_t data = RXByte;
-    printf("input: %x\n", (uint16_t)data);
-  }
-  PROCESS_END();
-}
-
-int
-putchar(int byte)
-{
-  //return 0;
   while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
   TA0CCR0 = TA0R;                                              // Current state of TA counter
   TA0CCR0 += UART1_TBIT;                                      // One bit time till first bit
@@ -131,17 +64,16 @@ putchar(int byte)
   uartTxDaTA0 = byte;                                         // Load global variable
   uartTxDaTA0 |= 0x100;                                       // Add mark stop bit to TXData
   uartTxDaTA0 <<= 1;                                          // Add space start bit
-
-  return byte;
 }
 
 
 /**
 * ISR for TXD and RXD
 */
+#define RXBITCNTWITHSTOP 9
 ISR(TIMER0_A1, timer0_a1_interrupt)
 {
-  static unsigned char rxBitCnt = 8;
+  static unsigned char rxBitCnt = RXBITCNTWITHSTOP;
   static int rxData = 0;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -166,10 +98,10 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
           if (rxBitCnt == 0)                              // All bits RXed?
           {
               RXByte = rxData & 0xFF; // Store in global variable
-              rxBitCnt = 8;                               // Re-load bit counter
+              rxBitCnt = 9;                               // Re-load bit counter
               rxData = 0;
               TA0CCTL1 |= CAP;                            // Switch compare to capture mode
-              process_poll(&recv_process);
+              process_poll(&protocol_process);
               LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
           }
       }
