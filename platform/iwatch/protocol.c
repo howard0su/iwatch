@@ -104,10 +104,10 @@ void interpretCommand();
 
 PROCESS_THREAD(protocol_process, ev, data)
 {
-  char RX_StatusFlags;
-  char dataByte;
-  int dataPointer;
-  volatile int checksum;
+  static char RX_StatusFlags;
+  static char dataByte;
+  static int dataPointer;
+  static volatile int checksum;
 
   PROCESS_BEGIN();
 
@@ -275,31 +275,6 @@ int PI_getBufferSize()
     return MAX_BUFFER_SIZE;
 }
 
-
-/*******************************************************************************
-* *Function:    BSL430_readMemory
-* *Description: Reads an array of bytes from memory into a supplied array
-* *Parameters:
-*             unsigned long addr    The address from which the read should begin
-*             char length           The amount of bytes to read
-*             char* data            The array into which the data will be saved
-****************Returns:
-*             SUCCESSFUL_OPERATION  All Data placed into data array successfully
-*             BSL_LOCKED            Correct Password has not yet been given
-*******************************************************************************/
-
-char BSL430_readMemory(unsigned long addr, unsigned int length, char* data)
-{
-    unsigned long i;
-    char exceptions = SUCCESSFUL_OPERATION;
-
-    for (i = addr + length - 1; i >= addr; i--)
-    {
-        data[i - addr] = __data20_read_char(i);
-    }
-    return exceptions;
-}
-
 /*******************************************************************************
 * *Function:    sendDataBlock
 * *Description: Fills the SendBuffer array with bytes from the given parameters
@@ -309,13 +284,12 @@ char BSL430_readMemory(unsigned long addr, unsigned int length, char* data)
 *           int length            The number of bytes to read
 *******************************************************************************/
 
-void sendDataBlock(unsigned long addr, unsigned int length)
+void sendDataBlock(const char* addr, unsigned int length)
 {
-    unsigned long int endAddr = addr + length;
+    const char* endAddr = addr + length;
     unsigned int bytes;
-    char returnValue = SUCCESSFUL_OPERATION;
 
-    while ((addr < endAddr) & (returnValue == SUCCESSFUL_OPERATION))
+    while (addr < endAddr)
     {
         if ((endAddr - addr) > PI_getBufferSize() - 1)
         {
@@ -325,20 +299,16 @@ void sendDataBlock(unsigned long addr, unsigned int length)
         {
             bytes = (endAddr - addr);
         }
-        returnValue = BSL430_readMemory(addr, bytes, &BSL430_SendBuffer[1]);
-        if (returnValue == SUCCESSFUL_OPERATION)
-        {
-            BSL430_SendBuffer[0] = BSL_DATA_REPLY;
-            PI_sendData(bytes + 1);
-        }
-        else
-        {
-            sendMessage(returnValue);
-        }
+
+        for(int i = 0; i < bytes; i++)
+            BSL430_SendBuffer[i + 1] = addr[i];
+        BSL430_SendBuffer[0] = BSL_DATA_REPLY;
+        PI_sendData(bytes + 1);
         addr += bytes;
     }
 }
 
+const unsigned char PROTOCOL_Version[4] = { 0x01, 0x00, 0x00, 0x02 };
 
 void interpretCommand()
 {
@@ -351,7 +321,7 @@ void interpretCommand()
     switch (command)
     {
         case TX_BSL_VERSION:              // Transmit BSL Version array
-            sendDataBlock((unsigned long)(0x12345678), 4);
+            sendDataBlock(PROTOCOL_Version, 4);
             break;
         default:
             sendMessage(UNKNOWN_COMMAND);

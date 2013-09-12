@@ -73,7 +73,7 @@ void sendByte(uint8_t byte)
 #define RXBITCNTWITHSTOP 9
 ISR(TIMER0_A1, timer0_a1_interrupt)
 {
-  static unsigned char rxBitCnt = RXBITCNTWITHSTOP;
+  static int8_t rxBitCnt = RXBITCNTWITHSTOP;
   static int rxData = 0;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -92,19 +92,22 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
           rxData >>= 1;
           if (TA0CCTL1 & SCCI)                            // Get bit waiting in receive latch
           {  
-              rxData |= 0x80;
+              rxData |= 0x100;
           }
           rxBitCnt--;
           if (rxBitCnt == 0)                              // All bits RXed?
           {
-              RXByte = rxData & 0xFF; // Store in global variable
-              rxBitCnt = 9;                               // Re-load bit counter
-              rxData = 0;
               TA0CCTL1 |= CAP;                            // Switch compare to capture mode
+              RXByte = rxData & 0xFF;                      // Store in global variable
+              rxBitCnt = RXBITCNTWITHSTOP;                // Re-load bit counter
+              rxData = 0;
               process_poll(&protocol_process);
               LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
           }
       }
+      break;
+
+  default:
       break;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
