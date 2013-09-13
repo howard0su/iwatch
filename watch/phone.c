@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static char phonenumber[20] = "Unknown";
+static char phonenumber[20];
 static uint8_t mode = 0; // mode - 0: phone 1: Siri mode
 
 /*
@@ -59,7 +59,7 @@ static void onDraw(tContext *pContext)
 	if (!mode)
 	{
 	    // draw the phone number
-		GrContextFontSet(pContext, &g_sFontNova28b);
+		GrContextFontSet(pContext, &g_sFontNova16b);
 	    GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
 	}
 }
@@ -110,6 +110,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
 	{
 	case EVENT_WINDOW_CREATED:
 		mode = (uint8_t)rparam;
+		phonenumber[0] = '\0';
 		break;
 	case EVENT_RING:
 		if (lparam == 0xffff)
