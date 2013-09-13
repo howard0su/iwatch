@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include <stdio.h>
-#include "dev/uart1.h"
+#include "uart1.h"
 #include "isr_compat.h"
 
 #define UARTOUT P1OUT
@@ -14,20 +14,34 @@
 #define UARTTXBIT BIT1
 #define UARTRXBIT BIT2
 
-/**
-* Baudrate
-*/
-#define BAUDRATE 		38400
+#define DCO_SPEED F_CPU
 
-/**
-* Bit time
-*/
-#define UART1_TBIT_DIV_2        (F_CPU / BAUDRATE / 2)
+// 4800 (unused)
+#define BAUD_4800 0x01
+#define BitTime_4800   (DCO_SPEED / 4800)
+#define BitTime_5_4800 (BitTime_4800 / 2)
 
-/**
-* Half bit time
-*/
-#define UART1_TBIT   (F_CPU / BAUDRATE)
+// 9600
+#define BAUD_9600 0x02
+#define BitTime_9600   (DCO_SPEED / 9600)
+#define BitTime_5_9600 (BitTime_9600 / 2)
+
+// 19200
+#define BitTime_19200   (DCO_SPEED / 19200)
+#define BitTime_5_19200 (BitTime_19200 / 2)
+
+// 38400
+#define BitTime_38400   (DCO_SPEED / 38400)
+#define BitTime_5_38400 (BitTime_38400 / 2)
+// 57600
+#define BitTime_57600   (DCO_SPEED / 57600)
+#define BitTime_5_57600 (BitTime_57600 / 2)
+// 115200
+#define BitTime_115200   (DCO_SPEED / 115200)
+#define BitTime_5_115200 (BitTime_115200 / 2)
+
+static uint16_t BitTime;
+static uint16_t BitTime_5;
 
 static int uartTxDaTA0;                                         // UART internal variable for TX
 static volatile char RXByte;                                           // Array to save rx'ed characters
@@ -35,7 +49,7 @@ static volatile char RXByte;                                           // Array 
 PROCESS_NAME(protocol_process);
 
 void
-uart1_init(unsigned long ubr)
+uart_init(char rate)
 {
   #if 1
   UARTOUT &= ~(UARTRXBIT + UARTTXBIT); 
@@ -47,19 +61,50 @@ uart1_init(unsigned long ubr)
   TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
   TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
+  BitTime = BitTime_9600;
+  BitTime_5 = BitTime_5_9600;
+
   #endif
 }
 
-uint8_t getByte()
+void uart_changerate(char rate)
+{
+    switch (rate)
+    {
+        case BAUD_9600:
+            BitTime = BitTime_9600;
+            BitTime_5 = BitTime_5_9600;
+            break;
+        case BAUD_19200:
+            BitTime = BitTime_19200;
+            BitTime_5 = BitTime_5_19200;
+            break;
+        case BAUD_38400:
+            BitTime = BitTime_38400;
+            BitTime_5 = BitTime_5_38400;
+            break;
+        case BAUD_57600:
+            BitTime = BitTime_57600;
+            BitTime_5 = BitTime_5_57600;
+            break;
+        case BAUD_115200:
+            BitTime = BitTime_115200;
+            BitTime_5 = BitTime_5_115200;
+            break;
+    }
+}
+
+
+uint8_t uart_getByte()
 {
   return RXByte;
 }
 
-void sendByte(uint8_t byte)
+void uart_sendByte(uint8_t byte)
 {
   while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
   TA0CCR0 = TA0R;                                              // Current state of TA counter
-  TA0CCR0 += UART1_TBIT;                                      // One bit time till first bit
+  TA0CCR0 += BitTime;                                      // One bit time till first bit
   TA0CCTL0 = OUTMOD0 + CCIE;                                  // Set TXD on EQU0, Int
   uartTxDaTA0 = byte;                                         // Load global variable
   uartTxDaTA0 |= 0x100;                                       // Add mark stop bit to TXData
@@ -81,11 +126,11 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
   switch (TA0IV)                      
   {
   case 2:                                      // TACCR1 CCIFG - UART RX
-      TA0CCR1 += UART1_TBIT;                              // Add Offset to CCRx
+      TA0CCR1 += BitTime;                              // Add Offset to CCRx
       if (TA0CCTL1 & CAP)                                 // Capture mode = start bit edge
       {
           TA0CCTL1 &= ~CAP;                               // Switch capture to compare mode
-          TA0CCR1 += UART1_TBIT_DIV_2;                    // Point CCRx to middle of D0
+          TA0CCR1 += BitTime_5;                    // Point CCRx to middle of D0
       }
       else 
       {
@@ -124,7 +169,7 @@ ISR(TIMER0_A0, Timer0_A0_ISR)
     static unsigned char txBitCnt = 10;
     ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-    TA0CCR0 += UART1_TBIT;                                      // Add Offset to CCRx
+    TA0CCR0 += BitTime;                                      // Add Offset to CCRx
     if (txBitCnt == 0)                                          // All bits TXed?
     {    
         TA0CCTL0 &= ~CCIE;                                      // All bits TXed, disable interrupt

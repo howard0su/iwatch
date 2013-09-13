@@ -1,5 +1,7 @@
 #include "contiki.h"
 #include <stdio.h>
+#include "uart1.h"
+#include <cfs/cfs.h>
 
 PROCESS(protocol_process, "Protocol Handle");
 
@@ -42,10 +44,12 @@ PROCESS(protocol_process, "Protocol Handle");
 #define TX_BUFFER_SIZE     0x1A
 #define RX_DATA_BLOCK_FAST 0x1B
 
-#define TX_FILE_BEGIN      0x20
-#define TX_FILE_END        0x21
-#define TX_FILE_BLOCK      0x22
-#define TX_FILE_REMOVE     0x23
+#define TX_FILE_BEGIN      0x30
+#define TX_FILE_END        0x31
+#define TX_FILE_BLOCK      0x32
+#define TX_FILE_REMOVE     0x33
+
+#define TX_LOG_GET         0x34
 
 //Responses
 #define BSL_DATA_REPLY    0x3A
@@ -66,8 +70,9 @@ PROCESS(protocol_process, "Protocol Handle");
 #define UNKNOWN_COMMAND 0x07
 #define LENGTH_TOO_BIG_FOR_BUFFER 0x08
 
-extern void sendByte(uint8_t data);
-extern uint8_t getByte();
+#define sendByte(data) uart_sendByte(data)
+#define getByte() uart_getByte()
+
 extern void PI_sendData(int size);
 
 char *BSL430_ReceiveBuffer;
@@ -75,11 +80,16 @@ char *BSL430_SendBuffer;
 unsigned int BSL430_BufferSize;
 
 char RAM_Buf[MAX_BUFFER_SIZE];
+char Log_Buf[160];
+static uint8_t LogRead, LogWrite;
 
 void protocol_init()
 {
     BSL430_ReceiveBuffer = RAM_Buf;
     BSL430_SendBuffer = RAM_Buf;
+
+    LogRead = 0;
+    LogWrite = 1;
 }
 
 void protocol_start(uint8_t start)
@@ -92,15 +102,17 @@ void protocol_start(uint8_t start)
 
 int putchar(int data)
 {
-  if (!process_is_running(&protocol_process))
-  {
-    sendByte(data);
-  }
-  return data; // ignore;
+    int x = splhigh();
+    Log_Buf[LogWrite++] = data;
+    if (LogWrite >= sizeof(Log_Buf)) LogWrite = 0;
+    //if (LogRead == LogWrite) LogRead = LogWrite;
+    splx(x);
+    return data;
 }
 
 char verifyData(int checksum);
 void interpretCommand();
+void interpretPI_Command();
 
 PROCESS_THREAD(protocol_process, ev, data)
 {
@@ -173,7 +185,7 @@ PROCESS_THREAD(protocol_process, ev, data)
             {
                 if ((RAM_Buf[0] & 0xF0) == PI_COMMAND_UPPER)
                 {
-                    // interpretPI_Command();
+                    interpretPI_Command();
                     RX_StatusFlags = RX_PACKET_ONGOING;
                     dataByte = 0;
                     dataPointer = 0;
@@ -310,6 +322,19 @@ void sendDataBlock(const char* addr, unsigned int length)
 
 const unsigned char PROTOCOL_Version[4] = { 0x01, 0x00, 0x00, 0x02 };
 
+int fd_handle;
+
+void file_begin(char *name, uint8_t length)
+{
+    name[length] = 0;
+
+    fd_handle = cfs_open(name, CFS_WRITE);
+    if (fd_handle == -1)
+        sendMessage(UNKNOWN_ERROR);
+    else
+        sendMessage(ACK);
+}
+
 void interpretCommand()
 {
     unsigned char command = BSL430_ReceiveBuffer[0];
@@ -323,7 +348,31 @@ void interpretCommand()
         case TX_BSL_VERSION:              // Transmit BSL Version array
             sendDataBlock(PROTOCOL_Version, 4);
             break;
+        case TX_FILE_BEGIN:
+            //file_begin(BSL430_ReceiveBuffer[4])
+            break;
+        case TX_LOG_GET:
+            sendDataBlock(Log_Buf, LogWrite);
+            LogWrite = 0;
+            break;
         default:
             sendMessage(UNKNOWN_COMMAND);
+    }
+}
+
+void interpretPI_Command()
+{
+    char command = RAM_Buf[0];
+
+    if (command == CHANGE_BAUD_RATE)
+    {
+        char rate = RAM_Buf[1];
+        if (rate > BAUD_4800 && rate <= BAUD_115200)
+        {
+            sendMessage(ACK);
+            uart_changerate(rate);
+        }
+        else
+            sendMessage(UNKNOWN_BAUD_RATE);
     }
 }

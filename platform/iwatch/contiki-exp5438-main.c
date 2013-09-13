@@ -80,7 +80,7 @@ main(int argc, char **argv)
   msp430_cpu_init();
   clock_init();
 
-  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
+  uart_init(9600); /* Must come before first printf */
 
   /* xmem_init(); */
 
