@@ -151,7 +151,7 @@ void window_handle_event(uint8_t ev, void* data)
     }
     else if (ev == EVENT_RING_NUM)
     {
-      ui_window(ev, 0xFFFF, data);
+      ui_window(EVENT_RING, 0xFFFF, data);
     }
     else if (ev == EVENT_NOTIFY_RESULT || ev == EVENT_GESTURE_MATCHED)
     {
