@@ -46,10 +46,11 @@ PROCESS(protocol_process, "Protocol Handle");
 
 #define TX_FILE_BEGIN      0x30
 #define TX_FILE_END        0x31
-#define TX_FILE_BLOCK      0x32
-#define TX_FILE_REMOVE     0x33
+#define TX_FILE_READ       0x32
+#define TX_FILE_WRITE      0x33
+#define TX_FILE_REMOVE     0x34
 
-#define TX_LOG_GET         0x34
+#define TX_LOG_GET         0x35
 
 //Responses
 #define BSL_DATA_REPLY    0x3A
@@ -73,22 +74,21 @@ PROCESS(protocol_process, "Protocol Handle");
 #define sendByte(data) uart_sendByte(data)
 #define getByte() uart_getByte()
 
-extern void PI_sendData(int size);
+static void PI_sendData(int size);
 
-char *BSL430_ReceiveBuffer;
-char *BSL430_SendBuffer;
-unsigned int BSL430_BufferSize;
+static char *BSL430_ReceiveBuffer;
+static char *BSL430_SendBuffer;
+static unsigned int BSL430_BufferSize;
 
-char RAM_Buf[MAX_BUFFER_SIZE];
-char Log_Buf[160];
-static uint8_t LogRead, LogWrite;
+static char RAM_Buf[MAX_BUFFER_SIZE];
+static char Log_Buf[160];
+static uint8_t LogWrite;
 
 void protocol_init()
 {
     BSL430_ReceiveBuffer = RAM_Buf;
     BSL430_SendBuffer = RAM_Buf;
 
-    LogRead = 0;
     LogWrite = 1;
 }
 
@@ -110,9 +110,9 @@ int putchar(int data)
     return data;
 }
 
-char verifyData(int checksum);
-void interpretCommand();
-void interpretPI_Command();
+static char verifyData(int checksum);
+static void interpretCommand();
+static void interpretPI_Command();
 
 PROCESS_THREAD(protocol_process, ev, data)
 {
@@ -227,7 +227,7 @@ PROCESS_THREAD(protocol_process, ev, data)
 *           char message    the message to send
 *******************************************************************************/
 
-void sendMessage(char message)
+static void sendMessage(char message)
 {
     BSL430_SendBuffer[0] = BSL_MESSAGE_REPLY;
     BSL430_SendBuffer[1] = message;
@@ -241,7 +241,7 @@ void sendMessage(char message)
 *           int size    the number of bytes in the buffer
 *******************************************************************************/
 
-void PI_sendData(int size)
+static void PI_sendData(int size)
 {
     int i;
 
@@ -269,7 +269,7 @@ void PI_sendData(int size)
 *           0 checksum parameter is not correct for the data in the buffer
 *******************************************************************************/
 
-char verifyData(int checksum)
+static char verifyData(int checksum)
 {
     int i;
 
@@ -282,7 +282,7 @@ char verifyData(int checksum)
 }
 
 
-int PI_getBufferSize()
+static int PI_getBufferSize()
 {
     return MAX_BUFFER_SIZE;
 }
@@ -296,7 +296,7 @@ int PI_getBufferSize()
 *           int length            The number of bytes to read
 *******************************************************************************/
 
-void sendDataBlock(const char* addr, unsigned int length)
+static void sendDataBlock(const char* addr, unsigned int length)
 {
     const char* endAddr = addr + length;
     unsigned int bytes;
@@ -320,28 +320,122 @@ void sendDataBlock(const char* addr, unsigned int length)
     }
 }
 
-const unsigned char PROTOCOL_Version[4] = { 0x01, 0x00, 0x00, 0x02 };
+static const char PROTOCOL_Version[4] = { 0x01, 0x00, 0x00, 0x02 };
 
-int fd_handle;
+static int fd_handle;
 
-void file_begin(char *name, uint8_t length)
+static void file_begin(char *name, uint8_t length, int mode)
 {
     name[length] = 0;
 
-    fd_handle = cfs_open(name, CFS_WRITE);
+    if (mode == 1)
+        fd_handle = cfs_open(name, CFS_WRITE | CFS_APPEND);
+    else
+        fd_handle = cfs_open(name, CFS_READ);
+
     if (fd_handle == -1)
+        sendMessage(UNKNOWN_ERROR);
+    else
+    {
+        sendMessage(ACK);
+    }
+}
+
+static void file_write(unsigned long addr, char* data, uint8_t length)
+{
+    if (fd_handle == -1)
+    {
+        sendMessage(UNKNOWN_ERROR);
+    }
+    else
+    {
+        cfs_seek(fd_handle, addr, CFS_SEEK_SET);
+
+        if (cfs_write(fd_handle, data, length) == length)
+            sendMessage(ACK);
+        else
+            sendMessage(UNKNOWN_ERROR);
+    }
+}
+
+static void file_close()
+{
+    if (fd_handle == -1)
+        sendMessage(UNKNOWN_ERROR);
+    else
+    {
+        cfs_close(fd_handle);
+        sendMessage(ACK);
+    }
+}
+
+static void file_read(unsigned long addr, unsigned int length)
+{
+    if (fd_handle == -1)
+    {
+        sendMessage(UNKNOWN_ERROR);
+    }
+    else
+    {
+        unsigned long endAddr = addr + length;
+        unsigned int bytes;
+
+        while (addr < endAddr)
+        {
+            if ((endAddr - addr) > PI_getBufferSize() - 1)
+            {
+                bytes = PI_getBufferSize() - 1;
+            }
+            else
+            {
+                bytes = (endAddr - addr);
+            }
+
+            cfs_seek(fd_handle, addr, CFS_SEEK_SET);
+            int length = cfs_read(fd_handle, &BSL430_SendBuffer[1], bytes);
+            bytes = length;
+
+            BSL430_SendBuffer[0] = BSL_DATA_REPLY;
+            PI_sendData(bytes + 1);
+            addr += bytes;
+        }
+    }
+}
+
+static void file_remove(char * name, unsigned int length)
+{
+    name[length] = 0;
+
+    if (cfs_remove(name) == -1)
         sendMessage(UNKNOWN_ERROR);
     else
         sendMessage(ACK);
 }
 
-void interpretCommand()
+static void interpretCommand()
 {
+
+    /*
+    REQUEST
+    0 - CMD
+    1 - AL
+    2 - AM
+    3 - AH
+    4 - LL
+    5 - LH
+    6 -- BSL_BufferSize - DATA
+    */
     unsigned char command = BSL430_ReceiveBuffer[0];
     unsigned long addr = BSL430_ReceiveBuffer[1];
 
+    unsigned int length;
+
     addr |= ((unsigned long)BSL430_ReceiveBuffer[2]) << 8;
     addr |= ((unsigned long)BSL430_ReceiveBuffer[3]) << 16;
+
+    length = BSL430_ReceiveBuffer[4];
+    length |= BSL430_ReceiveBuffer[5] << 8;
+
     /*----------------------------------------------------------------------------*/
     switch (command)
     {
@@ -349,8 +443,30 @@ void interpretCommand()
             sendDataBlock(PROTOCOL_Version, 4);
             break;
         case TX_FILE_BEGIN:
-            //file_begin(BSL430_ReceiveBuffer[4])
+            {            
+            file_begin(&BSL430_ReceiveBuffer[6], length, addr);
             break;
+            }
+        case TX_FILE_WRITE:
+            {
+            file_write(addr, &BSL430_ReceiveBuffer[6], length);
+            break;
+            }
+        case TX_FILE_END:
+            {
+            file_close();
+            break;
+            }
+        case TX_FILE_REMOVE:
+            {
+            file_remove(&BSL430_ReceiveBuffer[6], length);
+            break;
+            }
+        case TX_FILE_READ:
+            {
+            file_read(addr, length);
+            break;
+            }
         case TX_LOG_GET:
             sendDataBlock(Log_Buf, LogWrite);
             LogWrite = 0;
@@ -360,7 +476,7 @@ void interpretCommand()
     }
 }
 
-void interpretPI_Command()
+static void interpretPI_Command()
 {
     char command = RAM_Buf[0];
 
