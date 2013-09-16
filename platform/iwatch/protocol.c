@@ -111,7 +111,6 @@ int putchar(int data)
 
 static char verifyData(int checksum);
 static void interpretCommand();
-static void interpretPI_Command();
 
 static char RX_StatusFlags;
 static int dataPointer;
