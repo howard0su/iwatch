@@ -253,3 +253,23 @@ DataBlock readTI_TextFile(int bytesToRead)
 
   return returnBlock;
 }
+
+int open_BinaryForRead( char *filename )
+{
+  for(int i = 0; i < 20; i++)
+   blocks[i].currentAddr = -1;
+
+  FILE *fp = fopen(filename, "rb");
+
+  blocks[0].currentAddr = 0;
+  blocks[0].offset = 0;
+  fseek (fp, 0, SEEK_END);
+  blocks[0].size = ftell(fp);
+  fseek (fp, 0, SEEK_SET);
+  blocks[0].data = malloc(blocks[0].size);
+
+  fread(blocks[0].data, blocks[0].size, 1, fp);
+  fclose(fp);
+
+  return OPERATION_SUCCESSFUL;
+}
