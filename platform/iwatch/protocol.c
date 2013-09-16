@@ -113,102 +113,108 @@ static char verifyData(int checksum);
 static void interpretCommand();
 static void interpretPI_Command();
 
+static char RX_StatusFlags;
+static int dataPointer;
+static volatile int checksum;
+
+static char senddata;
+
+int protocol_recv(unsigned char dataByte)
+{
+  if (dataPointer == 0)                                // first byte is the size of the Core
+                                                           // packet
+      {
+          if (dataByte != 0x80)                            // first byte in packet should be 0x80
+          {
+              senddata = HEADER_INCORRECT;
+              RX_StatusFlags = RX_ERROR_RECOVERABLE;
+          }
+          else
+          {
+              dataPointer++;
+          }
+      }
+      else if (dataPointer == 1)                           // first byte is the size of the Core
+                                                           // packet
+      {
+          BSL430_BufferSize = dataByte;
+          dataPointer++;
+      }
+      else if (dataPointer == 2)
+      {
+          BSL430_BufferSize |= (int)dataByte << 8;
+          if (BSL430_BufferSize == 0)
+          {
+              senddata = PACKET_SIZE_ZERO;
+              RX_StatusFlags = RX_ERROR_RECOVERABLE;
+          }
+          if (BSL430_BufferSize > MAX_BUFFER_SIZE)         // For future devices that might need
+                                                           // smaller packets
+          {
+              senddata = PACKET_SIZE_TOO_BIG;
+              RX_StatusFlags = RX_ERROR_RECOVERABLE;
+          }
+          dataPointer++;
+      }
+      else if (dataPointer == (BSL430_BufferSize + 3))
+      {
+          // if the pointer is pointing to the Checksum low data byte which resides
+          // after 0x80, rSize, Core Command.
+          checksum = dataByte;
+          dataPointer++;
+      }
+      else if (dataPointer == (BSL430_BufferSize + 4))
+      {
+          // if the pointer is pointing to the Checksum low data byte which resides
+          // after 0x80, rSize, Core Command, CKL.
+          checksum = checksum | dataByte << 8;
+          if (verifyData(checksum))
+          {
+              if ((RAM_Buf[0] & 0xF0) == PI_COMMAND_UPPER)
+              {
+                  RX_StatusFlags = RX_PACKET_ONGOING;
+                  dataByte = 0;
+                  dataPointer = 0;
+                  checksum = 0;
+              }
+              else
+              {
+                  senddata = ACK;
+                  RX_StatusFlags = DATA_RECEIVED;
+              }
+          }
+          else
+          {
+              senddata = CHECKSUM_INCORRECT;
+              RX_StatusFlags = RX_ERROR_RECOVERABLE;
+          }
+      }
+      else
+      {
+          RAM_Buf[dataPointer - 3] = dataByte;
+          dataPointer++;
+      }
+
+
+  if (RX_StatusFlags == RX_PACKET_ONGOING)
+    return 0;
+  else
+    return 1;
+}
+
 PROCESS_THREAD(protocol_process, ev, data)
 {
-  static char RX_StatusFlags;
-  static char dataByte;
-  static int dataPointer;
-  static volatile int checksum;
-
   PROCESS_BEGIN();
 
   while(1)
   {
     RX_StatusFlags = RX_PACKET_ONGOING;
-    dataByte = 0;
     dataPointer = 0;
     checksum = 0;
 
-    while (RX_StatusFlags == RX_PACKET_ONGOING)
-    {
-        PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-        dataByte = getByte();                            // get another byte from host
-        if (dataPointer == 0)                                // first byte is the size of the Core
-                                                             // packet
-        {
-            if (dataByte != 0x80)                            // first byte in packet should be 0x80
-            {
-                sendByte(HEADER_INCORRECT);
-                RX_StatusFlags = RX_ERROR_RECOVERABLE;
-            }
-            else
-            {
-                dataPointer++;
-            }
-        }
-        else if (dataPointer == 1)                           // first byte is the size of the Core
-                                                             // packet
-        {
-            BSL430_BufferSize = dataByte;
-            dataPointer++;
-        }
-        else if (dataPointer == 2)
-        {
-            BSL430_BufferSize |= (int)dataByte << 8;
-            if (BSL430_BufferSize == 0)
-            {
-                sendByte(PACKET_SIZE_ZERO);
-                RX_StatusFlags = RX_ERROR_RECOVERABLE;
-            }
-            if (BSL430_BufferSize > MAX_BUFFER_SIZE)         // For future devices that might need
-                                                             // smaller packets
-            {
-                sendByte(PACKET_SIZE_TOO_BIG);
-                RX_StatusFlags = RX_ERROR_RECOVERABLE;
-            }
-            dataPointer++;
-        }
-        else if (dataPointer == (BSL430_BufferSize + 3))
-        {
-            // if the pointer is pointing to the Checksum low data byte which resides
-            // after 0x80, rSize, Core Command.
-            checksum = dataByte;
-            dataPointer++;
-        }
-        else if (dataPointer == (BSL430_BufferSize + 4))
-        {
-            // if the pointer is pointing to the Checksum low data byte which resides
-            // after 0x80, rSize, Core Command, CKL.
-            checksum = checksum | dataByte << 8;
-            if (verifyData(checksum))
-            {
-                if ((RAM_Buf[0] & 0xF0) == PI_COMMAND_UPPER)
-                {
-                    interpretPI_Command();
-                    RX_StatusFlags = RX_PACKET_ONGOING;
-                    dataByte = 0;
-                    dataPointer = 0;
-                    checksum = 0;
-                }
-                else
-                {
-                    sendByte(ACK);
-                    RX_StatusFlags = DATA_RECEIVED;
-                }
-            }
-            else
-            {
-                sendByte(CHECKSUM_INCORRECT);
-                RX_StatusFlags = RX_ERROR_RECOVERABLE;
-            }
-        }
-        else
-        {
-            RAM_Buf[dataPointer - 3] = dataByte;
-            dataPointer++;
-        }
-    }
-
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
+        
+    sendByte(senddata);
     if (RX_StatusFlags & DATA_RECEIVED)
     {
       interpretCommand();
@@ -325,7 +331,7 @@ static int fd_handle;
 
 static void file_begin(char *name, int mode)
 {
-    name[BSL430_BufferSize - 4] = 0;
+  name[BSL430_BufferSize - 4] = 0;
 
     if (mode == 1)
         fd_handle = cfs_open(name, CFS_WRITE | CFS_APPEND);
@@ -484,12 +490,14 @@ static void interpretCommand()
             {
                 cfs_coffee_format();
                 sendMessage(SUCCESSFUL_OPERATION);
+                break;
             }
         default:
             sendMessage(UNKNOWN_COMMAND);
     }
 }
 
+#if 0
 static void interpretPI_Command()
 {
     char command = RAM_Buf[0];
@@ -506,3 +514,4 @@ static void interpretPI_Command()
             sendMessage(UNKNOWN_BAUD_RATE);
     }
 }
+#endif

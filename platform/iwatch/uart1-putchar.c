@@ -44,7 +44,6 @@ static uint16_t BitTime;
 static uint16_t BitTime_5;
 
 static int uartTxDaTA0;                                         // UART internal variable for TX
-static volatile char RXByte;                                           // Array to save rx'ed characters
 
 PROCESS_NAME(protocol_process);
 
@@ -95,11 +94,6 @@ void uart_changerate(char rate)
 }
 
 
-uint8_t uart_getByte()
-{
-  return RXByte;
-}
-
 void uart_sendByte(uint8_t byte)
 {
   while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
@@ -111,7 +105,7 @@ void uart_sendByte(uint8_t byte)
   uartTxDaTA0 <<= 1;                                          // Add space start bit
 }
 
-
+extern int protocol_recv(unsigned char dataByte);
 /**
 * ISR for TXD and RXD
 */
@@ -143,11 +137,14 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
           if (rxBitCnt == 0)                              // All bits RXed?
           {
               TA0CCTL1 |= CAP;                            // Switch compare to capture mode
-              RXByte = rxData & 0xFF;                      // Store in global variable
+              char RXByte = rxData & 0xFF;                      // Store in global variable
               rxBitCnt = RXBITCNTWITHSTOP;                // Re-load bit counter
               rxData = 0;
-              process_poll(&protocol_process);
-              LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
+              if (protocol_recv(RXByte))
+              {
+                process_poll(&protocol_process);
+                LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
+              }
           }
       }
       break;
