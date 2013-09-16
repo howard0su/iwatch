@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "uart1.h"
 #include <cfs/cfs.h>
+#include <cfs/cfs-coffee.h>
 
 PROCESS(protocol_process, "Protocol Handle");
 
@@ -46,8 +47,6 @@ PROCESS(protocol_process, "Protocol Handle");
 
 #define TX_FILE_BEGIN      0x30
 #define TX_FILE_END        0x31
-#define TX_FILE_READ       0x32
-#define TX_FILE_WRITE      0x33
 #define TX_FILE_REMOVE     0x34
 
 #define TX_LOG_GET         0x35
@@ -324,9 +323,9 @@ static const char PROTOCOL_Version[4] = { 0x01, 0x00, 0x00, 0x02 };
 
 static int fd_handle;
 
-static void file_begin(char *name, uint8_t length, int mode)
+static void file_begin(char *name, int mode)
 {
-    name[length] = 0;
+    name[BSL430_BufferSize - 4] = 0;
 
     if (mode == 1)
         fd_handle = cfs_open(name, CFS_WRITE | CFS_APPEND);
@@ -341,20 +340,27 @@ static void file_begin(char *name, uint8_t length, int mode)
     }
 }
 
-static void file_write(unsigned long addr, char* data, uint8_t length)
+static void file_write(unsigned long addr, char* data, char fastWrite)
 {
+    char returnValue;
     if (fd_handle == -1)
     {
-        sendMessage(UNKNOWN_ERROR);
+        returnValue = UNKNOWN_ERROR;
     }
     else
     {
+        unsigned int length = BSL430_BufferSize - 4;
         cfs_seek(fd_handle, addr, CFS_SEEK_SET);
 
         if (cfs_write(fd_handle, data, length) == length)
-            sendMessage(ACK);
+            returnValue = ACK;
         else
-            sendMessage(UNKNOWN_ERROR);
+            returnValue = UNKNOWN_ERROR;
+    }
+
+    if (!fastWrite)
+    {
+        sendMessage(returnValue);
     }
 }
 
@@ -402,9 +408,9 @@ static void file_read(unsigned long addr, unsigned int length)
     }
 }
 
-static void file_remove(char * name, unsigned int length)
+static void file_remove(char * name)
 {
-    name[length] = 0;
+    name[BSL430_BufferSize - 4] = 0;
 
     if (cfs_remove(name) == -1)
         sendMessage(UNKNOWN_ERROR);
@@ -428,13 +434,8 @@ static void interpretCommand()
     unsigned char command = BSL430_ReceiveBuffer[0];
     unsigned long addr = BSL430_ReceiveBuffer[1];
 
-    unsigned int length;
-
     addr |= ((unsigned long)BSL430_ReceiveBuffer[2]) << 8;
     addr |= ((unsigned long)BSL430_ReceiveBuffer[3]) << 16;
-
-    length = BSL430_ReceiveBuffer[4];
-    length |= BSL430_ReceiveBuffer[5] << 8;
 
     /*----------------------------------------------------------------------------*/
     switch (command)
@@ -444,12 +445,17 @@ static void interpretCommand()
             break;
         case TX_FILE_BEGIN:
             {            
-            file_begin(&BSL430_ReceiveBuffer[6], length, addr);
+            file_begin(&BSL430_ReceiveBuffer[4], addr);
             break;
             }
-        case TX_FILE_WRITE:
+        case RX_DATA_BLOCK:
             {
-            file_write(addr, &BSL430_ReceiveBuffer[6], length);
+            file_write(addr, &BSL430_ReceiveBuffer[4], 0);
+            break;
+            }
+        case RX_DATA_BLOCK_FAST:
+            {
+            file_write(addr, &BSL430_ReceiveBuffer[4], 1);
             break;
             }
         case TX_FILE_END:
@@ -459,11 +465,14 @@ static void interpretCommand()
             }
         case TX_FILE_REMOVE:
             {
-            file_remove(&BSL430_ReceiveBuffer[6], length);
+            file_remove(&BSL430_ReceiveBuffer[4]);
             break;
             }
-        case TX_FILE_READ:
+        case TX_DATA_BLOCK:
             {
+            unsigned int length;
+            length = BSL430_ReceiveBuffer[4];
+            length |= BSL430_ReceiveBuffer[5] << 8;
             file_read(addr, length);
             break;
             }
@@ -471,6 +480,11 @@ static void interpretCommand()
             sendDataBlock(Log_Buf, LogWrite);
             LogWrite = 0;
             break;
+        case MASS_ERASE:
+            {
+                cfs_coffee_format();
+                sendMessage(SUCCESSFUL_OPERATION);
+            }
         default:
             sendMessage(UNKNOWN_COMMAND);
     }

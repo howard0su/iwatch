@@ -477,3 +477,52 @@ unsigned char getBSL_Response( unsigned char PI_response )
 	}
   }
 }
+
+#define TX_FILE_BEGIN      0x30
+#define TX_FILE_END        0x31
+#define TX_FILE_REMOVE     0x34
+
+#define TX_LOG_GET         0x35
+
+#define MODE_WRITE 1
+#define MODE_READ 0
+
+unsigned char MY_OpenFile(const char *filename, unsigned char mode)
+{
+  unsigned int length = strlen(filename);
+
+  TXBuffer.data[0] = TX_FILE_BEGIN;
+  TXBuffer.data[1] = 0;
+  TXBuffer.data[2] = 0;
+  TXBuffer.data[3] = mode;
+  strcpy(&(TXBuffer.data[4]), filename);
+  TXBuffer.size = length + 1 + 4;
+
+  answer = BSL_TX_Packet(TXBuffer);
+
+  return answer;  
+}
+
+unsigned char MY_CloseFile()
+{
+  TXBuffer.data[0] = TX_FILE_END;
+  TXBuffer.size = 1;
+
+  return BSL_TX_Packet(TXBuffer);
+}
+
+unsigned char MY_RemoveFile(const char* filename)
+{
+  unsigned int length = strlen(filename);
+
+  TXBuffer.data[0] = TX_FILE_REMOVE;
+  TXBuffer.data[1] = 0;
+  TXBuffer.data[2] = 0;
+  TXBuffer.data[3] = 0;
+  strcpy(&(TXBuffer.data[4]), filename);
+  TXBuffer.size = length + 1 + 4;
+
+  answer = BSL_TX_Packet(TXBuffer);
+
+  return answer;  
+}

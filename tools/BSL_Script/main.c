@@ -465,6 +465,56 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 		}
 		printf("Done\n");
 	}
+/*********SEND_FLASH************************************************************/
+	else if ( memcmp( line, "SEND_FLASH", 4)==0 )
+	{
+	  char flashname[50];
+	  char srcfile[50];
+      sscanf( line, "%*s %s %s", flashname, srcfile );
+      printf("Writing %s to flash %s:\t", srcfile, flashname);
+      reply = MY_RX_TXT_File( flashname , srcfile);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL writing data block starting at %4.4x\n",reply);
+	  }
+	}
+/*********SEND_FLASH************************************************************/
+	else if ( memcmp( line, "RECV_FLASH", 4)==0 )
+	{
+	  char flashname[50];
+	  char destfile[50];
+      sscanf( line, "%*s %s %s", flashname, destfile );
+      printf("Read %s from flash to %s:\t", flashname, destfile);
+      reply = MY_TX_TXT_File( flashname , destfile);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL read data block starting at %4.4x\n",reply);
+	  }
+	}
+/*********REMOVE_FLASH************************************************************/
+	else if ( memcmp( line, "REMOVE_FLASH", 4)==0 )
+	{
+	  char flashname[50];
+      sscanf( line, "%*s %s", flashname );
+      printf("Remove %s from flash:\t", flashname);
+      reply = MY_RemoveFile( flashname);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL delete file\n",reply);
+	  }
+	}
 	else
 	{
 	  printf("Hit Uknown Command\n");

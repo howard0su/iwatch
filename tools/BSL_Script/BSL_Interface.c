@@ -110,13 +110,13 @@ unsigned int BSL_TX_TXT_File( char* fileName, unsigned int addr, unsigned int le
   if ( BSL_SetVerbose == &USB_setVerbose )
   {
     if ( BSL_TX_DataBlock ( addr, length, buf ) == BSL_ACK )
-	{
-	  writeTI_TextFile( addr, buf, length); 
-	}
-	else
-	{
-	  return 0xFF;
-	}
+  	{
+  	  writeTI_TextFile( addr, buf, length); 
+  	}
+  	else
+  	{
+  	  return 0xFF;
+  	}
   } // if USB
   else
   {
@@ -135,8 +135,8 @@ unsigned int BSL_TX_TXT_File( char* fileName, unsigned int addr, unsigned int le
   	  {
   	    return 0xFF;
   	  }
-	  //writeTI_TextFile( curAddr, buf, curLength); 
-	}// for
+	    //writeTI_TextFile( curAddr, buf, curLength); 
+	  }// for
 	  writeTI_TextFile( addr, buf, length); 
 
   }
@@ -269,4 +269,82 @@ void BSL_setCom( unsigned int com )
 	BSL_bufferSize = 48;
 
   }
+}
+
+
+// Read from BSL to text file
+unsigned int MY_TX_TXT_File( char* fileName, char *dest)
+{
+  unsigned char buf[(1024*512)];
+  DWORD start, stop;
+  float seconds, kbs;
+  FILE *fp = fopen(dest, "wb");
+  // below is the better way to do things, but crashes currently
+  //unsigned char *buf = malloc( (size_t)length);
+
+  start = GetTickCount();
+  unsigned int curLength = BSL_bufferSize;
+  unsigned int curAddr = 0;
+  MY_OpenFile(fileName, 0); // read
+  while(1)
+  {
+    if ( BSL_TX_DataBlock ( curAddr, curLength, &buf[curAddr] ) != BSL_ACK )
+    {
+      break;
+    }
+    curAddr+=curLength;
+  }// for
+
+  MY_CloseFile();
+
+  stop = GetTickCount();
+  seconds = ((float)stop-(float)start)/(float)1000;
+  kbs = ((float)curAddr/(float)1024)/(float)seconds;
+  printf( "Read %i bytes in %.2f seconds [%.2f Kbytes/s]\n", curAddr, seconds, kbs);
+  return BSL_ACK;
+}
+
+unsigned int MY_RX_TXT_File( char* fileName, char* srcfile, unsigned char fast)
+{
+  unsigned int ret;
+  DWORD start, stop;
+  float seconds, kbs;
+  DataBlock data;
+  unsigned int numBytes=0;
+
+  ret = open_BinaryForRead( srcfile );
+  if (ret != OPERATION_SUCCESSFUL)
+  {
+    printf("open src failed\n");
+    return ret;
+  }
+  ret = MY_OpenFile(fileName, 1); // write
+  if (ret != BSL_ACK)
+  {
+    printf("open flash failed\n");
+    return ret;
+  }
+  start = GetTickCount();
+  while( moreDataToRead() )
+  {
+    data = readTI_TextFile(BSL_bufferSize);
+    numBytes += data.numberOfBytes;
+    if( !fast)
+    {
+      if ( BSL_RX_DataBlock( data ) != BSL_ACK )
+      {
+          return data.startAddr;
+      }
+    }
+    else
+    {
+        BSL_RX_DataBlock_Fast( data );
+    }  
+  }
+  MY_CloseFile();
+  stop = GetTickCount();
+  seconds = ((float)stop-(float)start)/(float)1000;
+  kbs = ((float)numBytes/(float)1024)/(float)seconds;
+  printf( "Wrote %i bytes in %.2f seconds [%.2f Kbytes/s]\n", numBytes, seconds, kbs);
+  return BSL_ACK;
 }
