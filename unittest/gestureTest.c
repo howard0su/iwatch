@@ -35,4 +35,6 @@ CuSuite* GestureGetSuite(void)
 	CuSuite* suite = CuSuiteNew();
 
   SUITE_ADD_TEST(suite, TestGesture);
+
+  return suite;
 }

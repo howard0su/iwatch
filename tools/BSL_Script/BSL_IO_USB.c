@@ -119,7 +119,7 @@ void USB_delay(int time) /* exported! */
 { 
 #ifndef WIN32
   DWORD startTime= GetTickCount();
-  while (UART_calcTimeout(startTime) < time);
+  while (calcTimeout(startTime) < time);
 #else
   Sleep(time);
 #endif

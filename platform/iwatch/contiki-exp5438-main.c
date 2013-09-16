@@ -80,7 +80,7 @@ main(int argc, char **argv)
   msp430_cpu_init();
   clock_init();
 
-  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
+  uart_init(9600); /* Must come before first printf */
 
   /* xmem_init(); */
 
@@ -94,6 +94,7 @@ main(int argc, char **argv)
   */
   process_init();
   process_start(&etimer_process, NULL);
+  
   ctimer_init();
 
   energest_init();
@@ -122,6 +123,9 @@ main(int argc, char **argv)
     bluetooth_discoverable(1);
   }
 
+  protocol_init();
+  protocol_start(1);
+  
   autostart_start(autostart_processes);
 
   /*

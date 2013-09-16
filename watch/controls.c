@@ -124,5 +124,6 @@ void window_button(tContext *pContext, uint8_t key, const char* text)
     GrRectFillRound(pContext, &rect, 2);
   }
 
+  GrContextForegroundSet(pContext, ClrWhite);
 #undef SPACE
 }

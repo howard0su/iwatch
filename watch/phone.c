@@ -7,8 +7,10 @@
 #include "hfp.h"
 #include "bluetooth.h"
 #include <string.h>
+#include <stdio.h>
 
 static char phonenumber[20];
+static uint8_t mode = 0; // mode - 0: phone 1: Siri mode
 
 /*
  * The dialog shows the option to accept the call, reject call
@@ -25,25 +27,41 @@ static void onDraw(tContext *pContext)
 	GrContextFontSet(pContext, &g_sFontBaby16);
 	if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
 	{
-		GrStringDraw(pContext, "Calling", 4, 40, 50, 0);
+		if (mode)
+			GrStringDrawCentered(pContext, "Talking", -1, 72, 60, 0);
+		else	
+			GrStringDrawCentered(pContext, "Calling", -1, 72, 60, 0);
+		window_button(pContext, KEY_UP, "Vol Up");
+		window_button(pContext, KEY_DOWN, "Vol Down");
+		window_button(pContext, KEY_EXIT, "Hang up");
+	    // volume
+	    char buf[32];
+	    sprintf(buf, "Volume: %d", codec_getvolume());
+		GrContextFontSet(pContext, &g_sFontBaby16);
+		GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
 	}
 	else if (hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
 	{
-		GrStringDraw(pContext, "Ring", 4, 40, 50, 0);
+		GrStringDrawCentered(pContext, "Incoming Call", -1, 72, 60, 0);
+		window_button(pContext, KEY_EXIT, "Reject");
+		window_button(pContext, KEY_ENTER, "Pickup");
+		// TODO: not implemented
+		//window_button(pContext, KEY_DOWN, "SMS Reply"); 
 	}
 	else
 	{
-		GrStringDraw(pContext, "Done", 4, 40, 50, 0);	
+		GrStringDrawCentered(pContext, "Finished", -1, 72, 60, 0);	
+		window_close();
+
+		return; // don't need paint others
 	}
 
-	GrContextFontSet(pContext, &g_sFontBaby12);
-    // draw the phone number
-    GrStringDraw(pContext, phonenumber, -1, 20, 80, 0);
-
-    // volume
-    char buf[32];
-    sprintf(buf, "Volume: %d", codec_getvolume());
-	GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
+	if (!mode)
+	{
+	    // draw the phone number
+		GrContextFontSet(pContext, &g_sFontNova16b);
+	    GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
+	}
 }
 
 static void handleKey(uint8_t key)
@@ -58,9 +76,6 @@ static void handleKey(uint8_t key)
 			case KEY_ENTER:
 				// notify hfp that we are accepting the call
 				hfp_accept_call(1);
-				break;
-			case KEY_UP:
-				//hfp_accept_call(0);
 				break;
 		}
 		break;
@@ -94,17 +109,17 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
 	switch(ev)
 	{
 	case EVENT_WINDOW_CREATED:
+		mode = (uint8_t)rparam;
+		phonenumber[0] = '\0';
 		break;
-
-	case EVENT_RING_NUM:
-		// get the calling number from the user
-		strcpy(phonenumber, rparam);
-		window_invalid(NULL);
-		break;
-
 	case EVENT_RING:
-		if ((lparam >> 8) == HFP_CIND_CALL ||
-			(lparam >> 8) == HFP_CIND_CALLSETUP)
+		if (lparam == 0xffff)
+		{
+			strcpy(phonenumber, rparam);
+			window_invalid(NULL);			
+		}
+		else if ((lparam >> 8) == HFP_CIND_CALL ||
+				(lparam >> 8) == HFP_CIND_CALLSETUP)
 		{
 			window_invalid(NULL);
 		}
@@ -119,7 +134,8 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
 
 	case EVENT_WINDOW_CLOSING:
 		if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE
-			|| hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
+			|| hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE
+			|| mode)
 		{
 			hfp_accept_call(0);
 		}
