@@ -466,13 +466,13 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 		printf("Done\n");
 	}
 /*********SEND_FLASH************************************************************/
-	else if ( memcmp( line, "SEND_FLASH", 4)==0 )
+	else if ( memcmp( line, "SEND_FLASH", 10)==0 )
 	{
 	  char flashname[50];
 	  char srcfile[50];
       sscanf( line, "%*s %s %s", flashname, srcfile );
       printf("Writing %s to flash %s:\t", srcfile, flashname);
-      reply = MY_RX_TXT_File( flashname , srcfile);
+      reply = MY_RX_TXT_File( flashname , srcfile, 0);
 	  if( reply == BSL_ACK )
 	  {
         printf("DONE\n");
@@ -483,7 +483,24 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 	  }
 	}
 /*********SEND_FLASH************************************************************/
-	else if ( memcmp( line, "RECV_FLASH", 4)==0 )
+	else if ( memcmp( line, "SEND_FLASH_FAST", 15)==0 )
+	{
+	  char flashname[50];
+	  char srcfile[50];
+      sscanf( line, "%*s %s %s", flashname, srcfile );
+      printf("Writing %s to flash %s:\t", srcfile, flashname);
+      reply = MY_RX_TXT_File( flashname , srcfile, 1);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL writing data block starting at %4.4x\n",reply);
+	  }
+	}
+/*********SEND_FLASH************************************************************/
+	else if ( memcmp( line, "RECV_FLASH", 10)==0 )
 	{
 	  char flashname[50];
 	  char destfile[50];
@@ -500,7 +517,7 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 	  }
 	}
 /*********REMOVE_FLASH************************************************************/
-	else if ( memcmp( line, "REMOVE_FLASH", 4)==0 )
+	else if ( memcmp( line, "REMOVE_FLASH", 12)==0 )
 	{
 	  char flashname[50];
       sscanf( line, "%*s %s", flashname );

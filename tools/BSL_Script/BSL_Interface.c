@@ -164,24 +164,33 @@ unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
   while( moreDataToRead() )
   {
     data = readTI_TextFile(BSL_bufferSize);
-	numBytes += data.numberOfBytes;
-	/*
-	for( i = 0; i < data.numberOfBytes; i++)
-	{
-    printf( "%2.2x ", data.data[i] );
-	}
-	*/
-	if( !fast)
-	{
-	  if ( BSL_RX_DataBlock( data ) != BSL_ACK )
-	  {
-        return data.startAddr;
-	  }
-	}
-	else
-	{
-      BSL_RX_DataBlock_Fast( data );
-	}
+  	numBytes += data.numberOfBytes;
+  	/*
+  	for( i = 0; i < data.numberOfBytes; i++)
+  	{
+      printf( "%2.2x ", data.data[i] );
+  	}
+  	*/
+  	if( !fast)
+  	{
+      int ret;
+      for(int retry = 0; retry < 3; retry++)
+      {
+        ret = BSL_RX_DataBlock( data );
+        if (ret == BSL_ACK)
+          break;
+        printf("retry write @%x\n", data.startAddr);
+      }
+
+  	  if (  ret != BSL_ACK )
+  	  {
+          return data.startAddr;
+  	  }
+  	}
+  	else
+  	{
+        BSL_RX_DataBlock_Fast( data );
+  	}
   }
     stop = GetTickCount();
     seconds = ((float)stop-(float)start)/(float)1000;
@@ -331,7 +340,16 @@ unsigned int MY_RX_TXT_File( char* fileName, char* srcfile, unsigned char fast)
     numBytes += data.numberOfBytes;
     if( !fast)
     {
-      if ( BSL_RX_DataBlock( data ) != BSL_ACK )
+      int ret;
+      for(int retry = 0; retry < 3; retry++)
+      {
+        ret = BSL_RX_DataBlock( data );
+        if (ret == BSL_ACK)
+          break;
+        printf("retry write @%x\n", data.startAddr);
+      }
+
+      if ( ret != BSL_ACK )
       {
           return data.startAddr;
       }

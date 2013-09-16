@@ -492,15 +492,15 @@ unsigned char MY_OpenFile(const char *filename, unsigned char mode)
   unsigned int length = strlen(filename);
 
   TXBuffer.data[0] = TX_FILE_BEGIN;
-  TXBuffer.data[1] = 0;
+  TXBuffer.data[1] = mode;
   TXBuffer.data[2] = 0;
-  TXBuffer.data[3] = mode;
+  TXBuffer.data[3] = 0;
   strcpy(&(TXBuffer.data[4]), filename);
   TXBuffer.size = length + 1 + 4;
 
   answer = BSL_TX_Packet(TXBuffer);
 
-  return answer;  
+  return getBSL_Response(answer);  
 }
 
 unsigned char MY_CloseFile()
@@ -508,7 +508,7 @@ unsigned char MY_CloseFile()
   TXBuffer.data[0] = TX_FILE_END;
   TXBuffer.size = 1;
 
-  return BSL_TX_Packet(TXBuffer);
+  return getBSL_Response(BSL_TX_Packet(TXBuffer));
 }
 
 unsigned char MY_RemoveFile(const char* filename)
