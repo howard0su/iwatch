@@ -9,7 +9,8 @@
 #include <string.h>
 #include <stdio.h>
 
-static char phonenumber[20] = "Unknown";
+static char phonenumber[20];
+static uint8_t mode = 0; // mode - 0: phone 1: Siri mode
 
 /*
  * The dialog shows the option to accept the call, reject call
@@ -26,7 +27,10 @@ static void onDraw(tContext *pContext)
 	GrContextFontSet(pContext, &g_sFontBaby16);
 	if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
 	{
-		GrStringDrawCentered(pContext, "Calling", -1, 72, 50, 0);
+		if (mode)
+			GrStringDrawCentered(pContext, "Talking", -1, 72, 60, 0);
+		else	
+			GrStringDrawCentered(pContext, "Calling", -1, 72, 60, 0);
 		window_button(pContext, KEY_UP, "Vol Up");
 		window_button(pContext, KEY_DOWN, "Vol Down");
 		window_button(pContext, KEY_EXIT, "Hang up");
@@ -38,22 +42,26 @@ static void onDraw(tContext *pContext)
 	}
 	else if (hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
 	{
-		GrStringDrawCentered(pContext, "Ring", 4, 72, 50, 0);
+		GrStringDrawCentered(pContext, "Incoming Call", -1, 72, 60, 0);
 		window_button(pContext, KEY_EXIT, "Reject");
 		window_button(pContext, KEY_ENTER, "Pickup");
-		window_button(pContext, KEY_DOWN, "SMS Reply");
+		// TODO: not implemented
+		//window_button(pContext, KEY_DOWN, "SMS Reply"); 
 	}
 	else
 	{
-		GrStringDrawCentered(pContext, "Finished", -1, 72, 50, 0);	
+		GrStringDrawCentered(pContext, "Finished", -1, 72, 60, 0);	
 		window_close();
 
 		return; // don't need paint others
 	}
 
-    // draw the phone number
-	GrContextFontSet(pContext, &g_sFontBaby16);
-    GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
+	if (!mode)
+	{
+	    // draw the phone number
+		GrContextFontSet(pContext, &g_sFontNova16b);
+	    GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
+	}
 }
 
 static void handleKey(uint8_t key)
@@ -101,6 +109,8 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
 	switch(ev)
 	{
 	case EVENT_WINDOW_CREATED:
+		mode = (uint8_t)rparam;
+		phonenumber[0] = '\0';
 		break;
 	case EVENT_RING:
 		if (lparam == 0xffff)
@@ -124,7 +134,8 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
 
 	case EVENT_WINDOW_CLOSING:
 		if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE
-			|| hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
+			|| hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE
+			|| mode)
 		{
 			hfp_accept_call(0);
 		}

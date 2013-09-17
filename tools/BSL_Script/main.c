@@ -138,55 +138,6 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 	return 1;
   }
 
-  	const char* comname = getPort();
-  	if (comname == NULL)
-  	{
-  		printf("Cannot find watch, please connect to PC and install its driver\n");
-  		return -1;
-  	}
-
-  if (strcmp(argv[1], "watchprog") == 0)
-  {
-  	// revert rst
-  	UART_revert(TEST_PIN);
-  	BSL_setFamily(FAMILY_FLASH);
-  	BSL_setCom( COM_UART );
-
-	if (BSL_initialize_BSL( comname ))
-	{
-		printf("Error open the communication to watch.\n");
-		return -1;
-	}
-
-	reply = BSL_massErase();
-	if( reply != BSL_ACK )
-	{
-		printf("Error erase watch.\n");
-		return -1;
-	}
-
-	 reply = BSL_RX_Password(default_pass);
-	if( reply != BSL_ACK )
-	{
-		printf("Error set password.\n");
-		return -1;
-	}	 
-	 
-	reply = BSL_RX_TXT_File( "iwatch.txt", 1 );
-	if( reply != BSL_ACK )
-	{
-		printf("Error flash the iwatch.txt firmware.\n");
-		return -1;
-	}
-
-	// RESET
-	UART_revert(TEST_PIN);
-	BSL_setFamily(FAMILY_FLASH);
-  	BSL_setCom( COM_UART );
-
-  	return 1;
-  }
-
   openFile( argv[1] );
   while( fgets( line, sizeof line, scriptFile ) )
   {
@@ -514,6 +465,73 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 		}
 		printf("Done\n");
 	}
+/*********SEND_FLASH************************************************************/
+	else if ( memcmp( line, "SEND_FLASH", 10)==0 )
+	{
+	  char flashname[50];
+	  char srcfile[50];
+      sscanf( line, "%*s %s %s", flashname, srcfile );
+      printf("Writing %s to flash %s:\t", srcfile, flashname);
+      reply = MY_RX_TXT_File( flashname , srcfile, 0);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL writing data block starting at %4.4x\n",reply);
+	  }
+	}
+/*********SEND_FLASH************************************************************/
+	else if ( memcmp( line, "SEND_FLASH_FAST", 15)==0 )
+	{
+	  char flashname[50];
+	  char srcfile[50];
+      sscanf( line, "%*s %s %s", flashname, srcfile );
+      printf("Writing %s to flash %s:\t", srcfile, flashname);
+      reply = MY_RX_TXT_File( flashname , srcfile, 1);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL writing data block starting at %4.4x\n",reply);
+	  }
+	}
+/*********SEND_FLASH************************************************************/
+	else if ( memcmp( line, "RECV_FLASH", 10)==0 )
+	{
+	  char flashname[50];
+	  char destfile[50];
+      sscanf( line, "%*s %s %s", flashname, destfile );
+      printf("Read %s from flash to %s:\t", flashname, destfile);
+      reply = MY_TX_TXT_File( flashname , destfile);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL read data block starting at %4.4x\n",reply);
+	  }
+	}
+/*********REMOVE_FLASH************************************************************/
+	else if ( memcmp( line, "REMOVE_FLASH", 12)==0 )
+	{
+	  char flashname[50];
+      sscanf( line, "%*s %s", flashname );
+      printf("Remove %s from flash:\t", flashname);
+      reply = MY_RemoveFile( flashname);
+	  if( reply == BSL_ACK )
+	  {
+        printf("DONE\n");
+	  }
+	  else
+	  {
+        printf("FAIL delete file\n",reply);
+	  }
+	}
 	else
 	{
 	  printf("Hit Uknown Command\n");
@@ -566,12 +584,16 @@ void setMode()
 	}
 	else
 	{
-		final_com = &token[0];
+		if (strcmp(token, "COM?") == 0)
+			final_com = getPort();
+		else
+			final_com = &token[0];
 	}
+    
     BSL_setCom( COM_UART );
-    printf("COM: %s", portname);
+    printf("COM: %s", final_com);
 
-	if (BSL_initialize_BSL( portname ))
+	if (BSL_initialize_BSL( final_com ))
 	{
 		printf("\tERROR\n");
 		errorExit("Cannot open COM port.");

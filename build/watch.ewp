@@ -2441,6 +2441,9 @@
       </excluded>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\protocol.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>
     </file>
     <file>

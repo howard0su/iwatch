@@ -5,6 +5,8 @@
 #include "Template_Driver.h"
 #include <stdio.h>
 #include "backlight.h"
+#include "ant/ant.h"
+#include "ant/antinterface.h"
 
 static uint8_t data;
 
@@ -105,6 +107,10 @@ uint8_t test_motor(uint8_t ev, uint16_t lparam, void* rparam)
     	  sprintf(buf, "Motor Level: %d", data);
  		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
 
+ 		  window_button(pContext, KEY_UP, "+");
+ 		  window_button(pContext, KEY_DOWN, "-");
+ 		  window_button(pContext, KEY_ENTER, "Reset");
+
  		  break;
  		}
 		case EVENT_EXIT_PRESSED:
@@ -158,7 +164,9 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 
     	  sprintf(buf, "Light Level: %d", data);
  		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
-
+ 		  window_button(pContext, KEY_UP, "+");
+ 		  window_button(pContext, KEY_DOWN, "-");
+ 		  window_button(pContext, KEY_ENTER, "Reset");
  		  break;
  		}
 		case EVENT_EXIT_PRESSED:
@@ -206,7 +214,14 @@ uint8_t test_lcd(uint8_t ev, uint16_t lparam, void* rparam)
 		  		GrRectFill(pContext, &rect);
 			}
 		  data = data ^ 1;
+		  window_button(pContext, KEY_UP, "START");
+		  window_button(pContext, KEY_DOWN, "STOP");
  		  break;
+ 		}
+ 		case PROCESS_EVENT_TIMER:
+ 		{
+ 			window_invalid(NULL);
+ 			window_timer(CLOCK_SECOND);
  		}
  		default:
  		return 0;
@@ -218,4 +233,80 @@ uint8_t test_lcd(uint8_t ev, uint16_t lparam, void* rparam)
 uint8_t test_reboot(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	system_rebootToNormal();
+}
+
+static uint8_t onoff;
+uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	switch(ev)
+	{
+		case EVENT_WINDOW_CREATED:
+		onoff = 0;
+		break;
+
+		case EVENT_KEY_PRESSED:
+		{
+			if (lparam == KEY_ENTER)
+			{
+				if (onoff)
+					ant_shutdown();
+				else
+					ant_init(MODE_HRM);
+				onoff ^= 1;
+			}
+
+			if (lparam == KEY_UP)
+			{
+				data++;
+				if (data > 4) data = 4;
+				if (onoff)
+					ANT_ChannelPower(0, data);
+			}
+
+			if (lparam == KEY_DOWN)
+			{
+				if (data > 0)
+					data--;
+				if (onoff)
+					ANT_ChannelPower(0, data);
+			}
+
+			window_invalid(NULL);
+			break;
+		}
+		case EVENT_WINDOW_PAINT:
+		{
+		  tContext *pContext = (tContext*)rparam;
+		  GrContextForegroundSet(pContext, ClrBlack);
+		  GrRectFill(pContext, &client_clip);
+
+		  GrContextForegroundSet(pContext, ClrWhite);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      if (onoff)
+ 		  	GrStringDraw(pContext, "ANT is on", -1, 32, 16, 0);
+ 		  else
+ 		  	GrStringDraw(pContext, "ANT is off", -1, 32, 16, 0);
+
+ 		  char buf[32];
+		  sprintf(buf, "Tx Power Level: %d", data);
+ 		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
+
+ 		  window_button(pContext, KEY_UP, "+");
+ 		  window_button(pContext, KEY_DOWN, "-");
+ 		  if (onoff)
+ 		  	window_button(pContext, KEY_ENTER, "Off");
+ 		  else
+ 		  	window_button(pContext, KEY_ENTER, "On");
+ 		  break;
+ 		}
+ 		case EVENT_WINDOW_CLOSING:
+ 		if (onoff)
+ 			ant_shutdown();
+ 		break;
+
+ 		default:
+ 		return 0;
+	}
+
+	return 1;
 }

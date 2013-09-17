@@ -69,4 +69,5 @@ CuSuite* obexGetSuite(void)
 	CuSuite* suite = CuSuiteNew();
 
 	SUITE_ADD_TEST(suite, testobex);
+	return suite;
 }

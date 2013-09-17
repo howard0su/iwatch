@@ -10,7 +10,7 @@ TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
 WARNING_FLAGS = 
 CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
-	-ffunction-sections -fdata-sections
+	-ffunction-sections -fdata-sections -D__NO_MINGW_LFS
 LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS) -Wl,-gc-sections hid.lib -lsetupapi -luuid
 
 

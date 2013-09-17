@@ -313,7 +313,7 @@ static void handle_CLIP(char* buf)
 {
   char *phone;
   buf += 6;
-  while(*buf != 0 && *buf == '\"')
+  while(*buf != 0 && *buf != '\"')
   {
     buf++;
   }

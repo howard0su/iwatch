@@ -1,4 +1,3 @@
-#include <windows.h>
 #include "contiki.h"
 #include "rtc.h"
 #include "battery.h"
@@ -101,11 +100,13 @@ unsigned long mpu_getsteps()
 void ant_init(ModeEnum mode) {}
 void ant_shutdown(void) {}
 
-
+#ifdef _WINDOWS_H
+#include <windows.h>
 void nanosleep(int millisecond)
 {
     Sleep(millisecond);
 }
+#endif
 
 int spp_send(char* buf, int count)
 {
@@ -146,3 +147,11 @@ void system_rebootToNormal()
   memcpy(buf, fake, 6);
  }
 
+
+uint8_t
+ANT_ChannelPower(
+   uint8_t ucANTChannel_, 
+   uint8_t ucPower_)
+{
+  return 0;
+}

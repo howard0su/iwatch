@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include <stdio.h>
-#include "dev/uart1.h"
+#include "uart1.h"
 #include "isr_compat.h"
 
 #define UARTOUT P1OUT
@@ -14,29 +14,41 @@
 #define UARTTXBIT BIT1
 #define UARTRXBIT BIT2
 
-/**
-* Baudrate
-*/
-#define BAUDRATE 		38400
+#define DCO_SPEED F_CPU
 
-/**
-* Bit time
-*/
-#define UART1_TBIT_DIV_2        (F_CPU / BAUDRATE / 2)
+// 4800 (unused)
+#define BAUD_4800 0x01
+#define BitTime_4800   (DCO_SPEED / 4800)
+#define BitTime_5_4800 (BitTime_4800 / 2)
 
-/**
-* Half bit time
-*/
-#define UART1_TBIT   (F_CPU / BAUDRATE)
+// 9600
+#define BAUD_9600 0x02
+#define BitTime_9600   (DCO_SPEED / 9600)
+#define BitTime_5_9600 (BitTime_9600 / 2)
+
+// 19200
+#define BitTime_19200   (DCO_SPEED / 19200)
+#define BitTime_5_19200 (BitTime_19200 / 2)
+
+// 38400
+#define BitTime_38400   (DCO_SPEED / 38400)
+#define BitTime_5_38400 (BitTime_38400 / 2)
+// 57600
+#define BitTime_57600   (DCO_SPEED / 57600)
+#define BitTime_5_57600 (BitTime_57600 / 2)
+// 115200
+#define BitTime_115200   (DCO_SPEED / 115200)
+#define BitTime_5_115200 (BitTime_115200 / 2)
+
+static uint16_t BitTime;
+static uint16_t BitTime_5;
 
 static int uartTxDaTA0;                                         // UART internal variable for TX
-static volatile char RXByte;                                           // Array to save rx'ed characters
-static volatile int hasReceived;
 
-PROCESS(recv_process, "UART INPUT");
+PROCESS_NAME(protocol_process);
 
 void
-uart1_init(unsigned long ubr)
+uart_init(char rate)
 {
   #if 1
   UARTOUT &= ~(UARTRXBIT + UARTTXBIT); 
@@ -48,161 +60,96 @@ uart1_init(unsigned long ubr)
   TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
   TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
-  process_start(&recv_process, NULL);
+  BitTime = BitTime_9600;
+  BitTime_5 = BitTime_5_9600;
+
   #endif
 }
 
-/*
- * protocol is like 1 byte command + 1 byte VERIFY
- *   7 6 5 4 3 2 1 0
- *   0 0 1 1 1 1 1 1 -> enter BSL
- *   0 0 1 1 1 0 1 0 -> enable debug log
- *
- *   0 0 0 x x x x x -> sync year 0 - 31
- *   0 0 1 0 x x x x -> sync month 0 - 12
- *   0 1 0 x x x x x -> sync day 0 - 31
- *   0 1 1 x x x x x -> sync hour 0 - 23
- *   1 0 x x x x x x -> sync minute 0 - 59
- *   1 1 x x x x x x -> sync second 0 - 59
- */
-static void RunCommand(uint8_t payload)
+void uart_changerate(char rate)
 {
-  if (payload & 0x80)
-  {
-    if (payload & 0xC0)
+    switch (rate)
     {
-      // sync second
-      //rtc_settime();
+        case BAUD_9600:
+            BitTime = BitTime_9600;
+            BitTime_5 = BitTime_5_9600;
+            break;
+        case BAUD_19200:
+            BitTime = BitTime_19200;
+            BitTime_5 = BitTime_5_19200;
+            break;
+        case BAUD_38400:
+            BitTime = BitTime_38400;
+            BitTime_5 = BitTime_5_38400;
+            break;
+        case BAUD_57600:
+            BitTime = BitTime_57600;
+            BitTime_5 = BitTime_5_57600;
+            break;
+        case BAUD_115200:
+            BitTime = BitTime_115200;
+            BitTime_5 = BitTime_5_115200;
+            break;
     }
-    else
-    {
-      // set minute
-    }
-  }
-  else
-  {
-    switch(payload & 0xE0)
-    {
-      case 0x00:
-        break;
-      case 0x20:
-        break;
-      case 0x40:
-        break;
-      case 0x60:
-        break;
-    }
-  }
-
-}
-static enum
-{
-  WAITDATA,
-  LEAD,
-  PAYLOAD,
-  CRC
-}state;
-static uint8_t payload;
-
-PROCESS_THREAD(recv_process, ev, data)
-{
-  PROCESS_BEGIN();
-  state = WAITDATA;
-  while(1)
-  {
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    if (!hasReceived)
-      continue;
-    uint8_t data = RXByte;
-    hasReceived = 0;
-    printf("input: %x\n", (uint16_t)data);
-#if 0
-    switch(state)
-    {
-      case WAITDATA:
-        payload = RXByte;
-        state = LEAD;
-        break;
-      case LEAD:
-        if (RXByte == 0x5A)
-        {
-          state = PAYLOAD;
-        }
-        else
-        {
-          state = WAITDATA;
-        }
-        break;
-      case PAYLOAD:
-        payload = RXByte;
-        state = CRC;
-        break;
-      case CRC:
-        if (payload == ~RXByte)
-        {
-            RunCommand(payload);
-        }
-        state = WAITDATA;
-        break;
-    }
-#endif
-  }
-  PROCESS_END();
 }
 
-int
-putchar(int byte)
+
+void uart_sendByte(uint8_t byte)
 {
-  //return 0;
   while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
   TA0CCR0 = TA0R;                                              // Current state of TA counter
-  TA0CCR0 += UART1_TBIT;                                      // One bit time till first bit
+  TA0CCR0 += BitTime;                                      // One bit time till first bit
   TA0CCTL0 = OUTMOD0 + CCIE;                                  // Set TXD on EQU0, Int
   uartTxDaTA0 = byte;                                         // Load global variable
   uartTxDaTA0 |= 0x100;                                       // Add mark stop bit to TXData
   uartTxDaTA0 <<= 1;                                          // Add space start bit
-
-  return byte;
 }
 
-
+extern int protocol_recv(unsigned char dataByte);
 /**
 * ISR for TXD and RXD
 */
+#define RXBITCNTWITHSTOP 9
 ISR(TIMER0_A1, timer0_a1_interrupt)
 {
-  static unsigned char rxBitCnt = 9;
-  static unsigned char rxData = 0;
+  static int8_t rxBitCnt = RXBITCNTWITHSTOP;
+  static int rxData = 0;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   switch (TA0IV)                      
   {
   case 2:                                      // TACCR1 CCIFG - UART RX
-      TA0CCR1 += UART1_TBIT;                              // Add Offset to CCRx
+      TA0CCR1 += BitTime;                              // Add Offset to CCRx
       if (TA0CCTL1 & CAP)                                 // Capture mode = start bit edge
       {
           TA0CCTL1 &= ~CAP;                               // Switch capture to compare mode
-          TA0CCR1 += UART1_TBIT_DIV_2;                    // Point CCRx to middle of D0
+          TA0CCR1 += BitTime_5;                    // Point CCRx to middle of D0
       }
       else 
       {
           rxData >>= 1;
           if (TA0CCTL1 & SCCI)                            // Get bit waiting in receive latch
           {  
-              rxData |= 0x80;
+              rxData |= 0x100;
           }
           rxBitCnt--;
           if (rxBitCnt == 0)                              // All bits RXed?
           {
-              RXByte = rxData; // Store in global variable
-              hasReceived = 1;
-              rxBitCnt = 9;                               // Re-load bit counter
               TA0CCTL1 |= CAP;                            // Switch compare to capture mode
-              process_poll(&recv_process);
-              LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
+              char RXByte = rxData & 0xFF;                      // Store in global variable
+              rxBitCnt = RXBITCNTWITHSTOP;                // Re-load bit counter
+              rxData = 0;
+              if (protocol_recv(RXByte))
+              {
+                process_poll(&protocol_process);
+                LPM4_EXIT;       // Clear LPM0 bits from 0(SR)
+              }
           }
       }
+      break;
+
+  default:
       break;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
@@ -219,7 +166,7 @@ ISR(TIMER0_A0, Timer0_A0_ISR)
     static unsigned char txBitCnt = 10;
     ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-    TA0CCR0 += UART1_TBIT;                                      // Add Offset to CCRx
+    TA0CCR0 += BitTime;                                      // Add Offset to CCRx
     if (txBitCnt == 0)                                          // All bits TXed?
     {    
         TA0CCTL0 &= ~CCIE;                                      // All bits TXed, disable interrupt
