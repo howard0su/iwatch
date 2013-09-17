@@ -150,3 +150,19 @@ void end_send_file(int handle)
     }
 }
 
+void send_sports_data(uint16_t* data, uint8_t size)
+{
+    stlv_packet p = create_packet();
+    element_handle h = append_element(p, NULL, "A", 1);
+    element_append_data(p, h, (uint8_t*)data, size * sizeof(uint16_t));
+    send_packet(p, NULL, 0);
+}
+
+void send_sports_grid(uint8_t* data, uint8_t size)
+{
+    stlv_packet p = create_packet();
+    element_handle h = append_element(p, NULL, "R", 1);
+    element_append_data(p, h, data, size * sizeof(uint8_t));
+    send_packet(p, NULL, 0);
+}
+
