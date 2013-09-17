@@ -1,5 +1,8 @@
 #include "stlv.h"
+
 #include <stdio.h>
+#include <string.h>
+
 #include "stlv_server.h"
 #include "stlv_transport.h"
 
@@ -69,6 +72,7 @@ element_handle get_next_sub_element(stlv_packet pack, element_handle parent, ele
 
 int get_element_type(stlv_packet pack, element_handle handle, char* buf, int buf_size)
 {
+    UNUSED_VAR(pack);
     int cursor = 0;
     unsigned char* ptr = handle;
     while ((*ptr & 0x80) != 0)
@@ -189,7 +193,7 @@ stlv_packet create_packet()
     printf("create_packet %d-%d/%d\n", _packet_reader, _packet_writer, BUILDER_COUNT);
     if (_packet_reader <= _packet_writer)
     {
-        if (_packet_writer + 1 >= _packet_reader + BUILDER_COUNT)
+        if (_packet_writer + 1 >= (int)(_packet_reader + BUILDER_COUNT))
             return NULL;
     }
     else
@@ -275,7 +279,8 @@ static void set_element_type(stlv_packet p, element_handle h, char* type_buf, in
     h[buf_len - 1] = (unsigned char)(type_buf[buf_len - 1]);
 
     p[HEADFIELD_BODY_LENGTH] += (buf_len + 1);
-    inc_parent_elements_length(p, buf_len + 1); 
+    inc_parent_elements_length(p, buf_len + 1);
+    h[buf_len] = 0; //set element length = 0
 }
 
 element_handle append_element(stlv_packet p, element_handle parent, char* type_buf, int buf_len)

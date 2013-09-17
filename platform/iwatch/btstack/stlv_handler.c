@@ -2,6 +2,8 @@
 #include "stlv_handler.h"
 
 #include <stdio.h>
+#include <string.h>
+
 #include "stlv.h"
 #include "contiki.h"
 #include "window.h"
@@ -76,6 +78,7 @@ void handle_file_end(int fd)
 //TODO: sujun implement this heart beat and get file
 void handle_sports_heartbeat(uint8_t seconds_to_next)
 {
+    UNUSED_VAR(seconds_to_next);
 }
 
 void handle_get_file(char* name)
@@ -89,6 +92,7 @@ void handle_list_file()
 
 void handle_remove_file(char* name)
 {
+    UNUSED_VAR(name);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -155,6 +159,29 @@ int transfer_file(char* filename)
     send_file_block(_f_reader.send_fd);
 
     return 0;
+}
+
+void handle_get_sports_data(uint16_t *data, uint8_t numofdata)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "A", 1);
+
+    element_append_data(p, h, (unsigned char*)&data, sizeof(uint16_t) * numofdata);
+    send_packet(p, 0, 0);
+}
+
+void handle_get_sports_grid()
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "R", 1);
+    ui_config* config = window_readconfig();
+    element_append_data(p, h, (unsigned char*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
+    printf("send_sports_grid(%d)\n", sizeof(uint8_t) * (config->sports_grid + 3));
+    send_packet(p, 0, 0);
 }
 
 

@@ -2,8 +2,9 @@
 #ifndef _STLV_H_
 #define _STLV_H_
 
-#include "stdint.h"
+#include <stdint.h>
 
+#define UNUSED_VAR(a) a = a
 #define STLV_INVALID_HANDLE 0
 #define IS_VALID_STLV_HANDLE(h) (h != STLV_INVALID_HANDLE)
 
@@ -26,7 +27,9 @@
 #define ELEMENT_TYPE_SPORT_HEARTBEAT  'H'
 #define ELEMENT_TYPE_GET_FILE         'G'
 #define ELEMENT_TYPE_LIST_FILES       'L'
-#define ELEMENT_TYPE_REMOVE_FILE      'R'
+#define ELEMENT_TYPE_REMOVE_FILE      'X'
+#define ELEMENT_TYPE_SPORTS_DATA      'A'
+#define ELEMENT_TYPE_SPORTS_GRID      'R'
 
 #define ELEMENT_TYPE_FILE             'F'
 #define     SUB_TYPE_FILE_NAME        'n'

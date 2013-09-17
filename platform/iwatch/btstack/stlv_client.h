@@ -13,5 +13,8 @@ int send_file_data(int fd, uint8_t* data, uint8_t size, void (*callback)(int), i
 void end_send_file(int fd);
 
 void send_file(char* name);
+void send_sports_data(uint16_t* data, uint8_t size);
+void send_sports_grid(uint8_t* data, uint8_t size);
+
 #endif
 
