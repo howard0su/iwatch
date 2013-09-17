@@ -23,15 +23,15 @@
 #include "isr_compat.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "bluetooth.h"
 
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
-PROCESS(uart_process, "UART Driver");
-
 // rx state
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
+static uint8_t   triggered;
 
 static uint8_t   rx_temp_buffer;
 static uint8_t   rx_temp_size = 0;
@@ -72,8 +72,6 @@ void hal_uart_dma_init(void)
   UCA0CTL1 |= UCSSEL_2;
 
   UCA0CTL1 &= ~UCSWRST;             // continue
-
-  process_start(&uart_process, NULL);
   hal_uart_dma_set_baud(115200);
   UCA0IE |= UCRXIE ;  // enable RX interrupts
 }
@@ -123,41 +121,6 @@ int hal_uart_dma_set_baud(uint32_t baud){
   return result;
 }
 
-#define TXDONE 0x01
-#define RXDONE 0x02
-#define CTSUP  0x03
-
-volatile uint8_t flags = 0; 
-
-PROCESS_THREAD(uart_process, ev, data)
-{
-  int txDone;
-  int rxDone;
-  int ctsDone;
-  PROCESS_BEGIN();
-
-  while(1)
-  {
-    PROCESS_WAIT_EVENT();
-  __disable_interrupt();
-  txDone = (flags & TXDONE) != 0;
-  rxDone = (flags & RXDONE) != 0;
-  ctsDone = (flags & CTSUP) != 0;
-  flags = 0;
-  __enable_interrupt();
-
-  if (txDone && tx_done_handler)
-    (*tx_done_handler)();
-
-  if (rxDone && rx_done_handler)
-    (*rx_done_handler)();
-
-  if (ctsDone && cts_irq_handler)
-    (*cts_irq_handler)();
-  }
-  PROCESS_END();
-}
-
 void hal_uart_dma_set_block_received( void (*the_block_handler)(void)){
   rx_done_handler = the_block_handler;
 }
@@ -204,10 +167,16 @@ void hal_uart_dma_shutdown(void) {
 
 int dma_channel_1()
 {
-  flags |= TXDONE;
-  process_poll(&uart_process);
+  if (tx_done_handler)
+    (*tx_done_handler)();
 
-  return 1;
+  if (triggered)
+  {
+    triggered = 0;
+    return 1;
+  }
+  else
+    return 0;
 }
 
 void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
@@ -288,12 +257,14 @@ ISR(USCI_A0, usbRxTxISR)
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
     UCA0IE &= ~UCRXIE;
 
-    flags |= RXDONE;
-    process_poll(&uart_process);
-
-    // force exit low power mode
-    LPM4_EXIT;
-
+    if (rx_done_handler)
+      (*rx_done_handler)();
+    
+    if (triggered)
+    {
+      triggered = 0;
+      LPM4_EXIT;
+    }
     break;
 
   default:
@@ -306,8 +277,20 @@ ISR(USCI_A0, usbRxTxISR)
 // CTS ISR
 int port1_pin3()
 {
-  flags |= CTSUP;
-  process_poll(&uart_process);
+  if (cts_irq_handler)
+    (*cts_irq_handler)();
 
-  return 1;
+  if (triggered)
+  {
+    triggered = 0;
+    return 1;
+  }
+  else  
+    return 0;
+}
+
+void embedded_trigger(void)
+{
+  process_poll(&bluetooth_process);
+  triggered = 1;
 }

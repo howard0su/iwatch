@@ -17,11 +17,6 @@
 
 #include "sys/clock.h"
 
-void embedded_trigger(void)
-{
-  process_poll(&bluetooth_process);
-}
-
 //extern uint8_t bluetooth_uart_active;
 
 void hal_cpu_set_uart_needed_during_sleep(uint8_t enabled)
