@@ -106,15 +106,15 @@ typedef struct {
   char worldclock_name[6][10];
   int8_t worldclock_offset[6];
 
-  uint8_t default_clock;
+  uint8_t default_clock; // 0 - analog, 1 - digit
   // analog clock config
-  uint8_t analog_clock;
+  uint8_t analog_clock;  // num : which clock face
   // digit clock config
-  uint8_t digit_clock;
+  uint8_t digit_clock;   // num : which clock face
 
   // sports watch config
-  uint8_t sports_grid;
-  uint8_t sports_grid_data[5];
+  uint8_t sports_grid;   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+  uint8_t sports_grid_data[5]; // each slot means which grid data to show
   // default
 }ui_config;
 
