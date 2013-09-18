@@ -228,6 +228,18 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
 void hal_uart_dma_set_sleep(uint8_t sleep)
 {
+  if (sleep)
+  {
+    // wait for last byte sent out
+    while(UCA0STAT & UCBUSY);
+    UCA0IE &= ~(UCRXIE | UCTXIE);
+    UCA0CTL1 |= UCSWRST;                          //Reset State
+  }
+  else
+  {
+    UCA0IE |= UCRXIE | UCTXIE;
+    UCA0CTL1 &= ~UCSWRST;                          //Reset State
+  }
 }
 
 // block-wise "DMA" RX/TX UART driver
