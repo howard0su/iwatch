@@ -41,6 +41,7 @@ static void (*rx_done_handler)(void) = NULL;
 static void (*tx_done_handler)(void) = NULL;
 static void (*cts_irq_handler)(void) = NULL;
 
+extern uint8_t SMCLK_NEED;
 /**
 * @brief  Initializes the serial communications peripheral and GPIO ports
 *         to communicate with the PAN BT .. assuming 16 Mhz CPU
@@ -74,6 +75,8 @@ void hal_uart_dma_init(void)
   UCA0CTL1 &= ~UCSWRST;             // continue
   hal_uart_dma_set_baud(115200);
   UCA0IE |= UCRXIE ;  // enable RX interrupts
+
+  SMCLK_NEED++;
 }
 
 /**
@@ -234,11 +237,14 @@ void hal_uart_dma_set_sleep(uint8_t sleep)
     while(UCA0STAT & UCBUSY);
     UCA0IE &= ~(UCRXIE | UCTXIE);
     UCA0CTL1 |= UCSWRST;                          //Reset State
+
+    SMCLK_NEED--;
   }
   else
   {
     UCA0IE |= UCRXIE | UCTXIE;
     UCA0CTL1 &= ~UCSWRST;                          //Reset State
+    SMCLK_NEED++;
   }
 }
 
