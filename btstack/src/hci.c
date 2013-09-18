@@ -1142,7 +1142,6 @@ void hci_run(){
                                 hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, hci_stack.hci_packet_buffer, size);
                             else
                                 log_error("Fail to send another cmd\n");
-                            printf(".");
                             hci_stack.substate = 4; // more init commands
                             break;
                         }
