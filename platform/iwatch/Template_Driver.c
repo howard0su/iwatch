@@ -168,15 +168,15 @@ static void SPIInit()
   SPIDIR |= _SCLK | _SDATA | _SCS;
   SPISEL |= _SCLK | _SDATA;
   SPIOUT &= ~(_SCLK | _SDATA | _SCS);
-
-  UCB0CTL1 &= ~UCSWRST;
 }
 
 static void SPISend(const void* data, unsigned int size)
 {
   PRINTF("Send Data %d bytes\n", size);
+  UCB0CTL1 &= ~UCSWRST;
   state = STATE_SENDING;
   SPIOUT |= _SCS;
+  while(UCB0STAT & UCBUSY);
 
   // USB0 TXIFG trigger
   DMACTL0 = DMA0TSEL_19;
@@ -186,14 +186,26 @@ static void SPISend(const void* data, unsigned int size)
   DMA0DA = (void*)&UCB0TXBUF;
   DMA0SZ = size;                                // Block size
   DMA0CTL &= ~DMAIFG;
-  DMA0CTL = DMASRCINCR_3+DMASBDB+DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
+  DMA0CTL = DMASRCINCR_3 + DMASBDB + DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
 }
 
 int dma_channel_0()
 {
-  process_poll(&lcd_process);
+  SPIOUT &= ~_SCS;
+  state = STATE_NONE;
 
-  return 1;
+  while(UCB0STAT & UCBUSY);
+  UCB0CTL1 |= UCSWRST;
+  
+  if (data.start != 0xff)
+  {
+    process_poll(&lcd_process);
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 // Initializes the display driver.
@@ -239,8 +251,10 @@ memlcd_DriverInit(void)
 
 static void halLcdRefresh(int start, int end)
 {
+  int x = splhigh();
   if (data.start > start)
     data.start = start;
+  splx(x);
   if (data.end < end)
     data.end = end;
 }
@@ -763,9 +777,6 @@ PROCESS_THREAD(lcd_process, ev, d)
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_POLL)
     {
-      SPIOUT &= ~_SCS;
-      state = STATE_NONE;
-
       // if there is an update?
       if (data.start != 0xff)
       {
