@@ -78,6 +78,12 @@ static int bt_control_cc256x_on(void *config){
 	return 0;
 }
 
+static void bt_control_cc256x_hw_error(void)
+{
+    printf("hardware error\n");
+    return;
+}
+
 // UART Baud Rate control from: http://e2e.ti.com/support/low_power_rf/f/660/p/134850/484763.aspx
 static int cc256x_baudrate_cmd(void * config, uint32_t baudrate, uint8_t *hci_cmd_buffer){
     hci_cmd_buffer[0] = 0x36;
@@ -220,7 +226,8 @@ static int bt_control_cc256x_next_cmd(void *config, uint8_t *hci_cmd_buffer){
 static const bt_control_t bt_control_cc256x = {
 	.on = bt_control_cc256x_on,
     .next_cmd = bt_control_cc256x_next_cmd,
-    .baudrate_cmd = cc256x_baudrate_cmd
+    .baudrate_cmd = cc256x_baudrate_cmd,
+    .hw_error = bt_control_cc256x_hw_error
 };
 
 static const hci_uart_config_t hci_uart_config_cc256x = {

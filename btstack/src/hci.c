@@ -672,7 +672,7 @@ static void event_handler(uint8_t *packet, int size){
     // handle BT initialization
     if (hci_stack.state == HCI_STATE_INITIALIZING){
         // handle H4 synchronization loss on restart
-        // if (hci_stack.substate == 1 && packet[0] == HCI_EVENT_HARDWARE_ERROR){
+        // if (packet[0] == HCI_EVENT_HARDWARE_ERROR){
         //    hci_stack.substate = 0;
         // }
         // handle normal init sequence
@@ -680,6 +680,18 @@ static void event_handler(uint8_t *packet, int size){
             // odd: waiting for event
             if (packet[0] == HCI_EVENT_COMMAND_COMPLETE){
                 hci_stack.substate++;
+            }
+            else if (packet[0] == DAEMON_EVENT_HCI_PACKET_SENT)
+            {
+            }
+            else if (packet[0] == HCI_EVENT_HARDWARE_ERROR)
+            {
+                printf("hardware error %x", packet[2]);
+                hci_stack.substate = 0;
+            }
+            else
+            {
+              log_error("Fail initialize command %d\n", packet[0]);
             }
         }
     }
@@ -1130,6 +1142,7 @@ void hci_run(){
                                 hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, hci_stack.hci_packet_buffer, size);
                             else
                                 log_error("Fail to send another cmd\n");
+                            printf(".");
                             hci_stack.substate = 4; // more init commands
                             break;
                         }
