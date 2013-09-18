@@ -102,6 +102,8 @@
 #include "Template_Driver.h"
 #include <string.h>
 #include <stdio.h>
+   
+#include "power.h"
  
 #define SPIOUT  P3OUT
 #define SPIDIR  P3DIR
@@ -173,10 +175,10 @@ static void SPIInit()
 static void SPISend(const void* data, unsigned int size)
 {
   PRINTF("Send Data %d bytes\n", size);
+  while(UCB0STAT & UCBUSY);
   UCB0CTL1 &= ~UCSWRST;
   state = STATE_SENDING;
   SPIOUT |= _SCS;
-  while(UCB0STAT & UCBUSY);
 
   // USB0 TXIFG trigger
   DMACTL0 = DMA0TSEL_19;
@@ -187,25 +189,13 @@ static void SPISend(const void* data, unsigned int size)
   DMA0SZ = size;                                // Block size
   DMA0CTL &= ~DMAIFG;
   DMA0CTL = DMASRCINCR_3 + DMASBDB + DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
+  power_pin(MODULE_LCD);
 }
 
 int dma_channel_0()
 {
-  SPIOUT &= ~_SCS;
-  state = STATE_NONE;
-
-  while(UCB0STAT & UCBUSY);
-  UCB0CTL1 |= UCSWRST;
-  
-  if (data.start != 0xff)
-  {
-    process_poll(&lcd_process);
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  process_poll(&lcd_process);
+  return 1;
 }
 
 // Initializes the display driver.
@@ -777,13 +767,22 @@ PROCESS_THREAD(lcd_process, ev, d)
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_POLL)
     {
-      // if there is an update?
+       SPIOUT &= ~_SCS;
+       state = STATE_NONE;
+
+       // if there is an update?
       if (data.start != 0xff)
       {
         SPISend(&lines[data.start], (data.end - data.start + 1)
                 * sizeof(struct _linebuf) + 2);
         data.start = 0xff;
         data.end = 0;
+      }
+      else
+      {
+        while(UCB0STAT & UCBUSY);
+        UCB0CTL1 |= UCSWRST;
+        power_unpin(MODULE_LCD);
       }
     }
     else if (ev == refresh_event)

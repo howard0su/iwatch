@@ -68,7 +68,8 @@ extern void I2C_Init();
 extern void rtc_init();
 extern void battery_init();
 
-uint8_t SMCLK_NEED = 0;
+static uint8_t msp430_dco_required = 0;
+
 
 /*--------------------------------------------------------------------------*/
 int
@@ -85,6 +86,8 @@ main(int argc, char **argv)
   /* xmem_init(); */
 
   PRINTF("iWatch 0.10 build at " __TIME__ " " __DATE__ "\n");
+  UCSCTL8 &= ~BIT2;
+  
   /*
   * Hardware initialization done!
   */
@@ -131,7 +134,7 @@ main(int argc, char **argv)
   /*
   * This is the scheduler loop.
   */
-  SMCLK_NEED = 0;
+  msp430_dco_required = 0;
 
   watchdog_start();
 
@@ -162,7 +165,7 @@ main(int argc, char **argv)
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
 
-      if (SMCLK_NEED)
+      if (msp430_dco_required)
       {
         __bis_SR_register(GIE | CPUOFF);
       }
@@ -183,3 +186,21 @@ main(int argc, char **argv)
   }
 }
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/* add/remove_lpm_req - for requiring a specific LPM mode. currently Contiki */
+/* jumps to LPM3 to save power, but DMA will not work if DCO is not clocked  */
+/* so some modules might need to enter their LPM requirements                */
+/* NOTE: currently only works with LPM1 (e.g. DCO) requirements.             */
+/*---------------------------------------------------------------------------*/
+void
+power_pin(uint8_t module)
+{
+    msp430_dco_required |= module;
+}
+
+void
+power_unpin(uint8_t module)
+{
+    msp430_dco_required &= ~module;
+}

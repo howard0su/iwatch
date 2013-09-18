@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "i2c.h"
+#include "power.h"
+
 /*
  * Codec NAU1080 for BT
  */
@@ -64,8 +66,6 @@
 #define REG_OUT3_MIXER_CTRL             (0x038)
 #define REG_OUT4_MIXER_CTRL             (0x039)
 
-extern uint8_t SMCLK_NEED;
-
 static const uint16_t config[] =
 {
   0, 0x17d, 0x15, 0x75, //Power Management
@@ -121,8 +121,8 @@ void codec_shutdown()
   PSPKEN[5]
   */
   printf("codec_shutdown\n");
-  SMCLK_NEED--;
   CLKSEL &= ~CLKBIT;     // disable SMCLK
+  power_unpin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS, 1);
   codec_write(REG_POWER_MANAGEMENT1, 0);
@@ -186,7 +186,7 @@ void codec_wakeup()
 {
   printf("codec_wakeup\n");
   CLKSEL |= CLKBIT;     // output SMCLK
-  SMCLK_NEED++;
+  power_pin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS, 1);
   codec_write(REG_POWER_MANAGEMENT1, config[REG_POWER_MANAGEMENT1]);
@@ -209,7 +209,7 @@ void codec_init()
  PCODECDIR |= PCODECBIT;
  PCODECOUT |= PCODECBIT;
 
-  SMCLK_NEED++;
+  power_pin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS, 1);
   //reset codec ?

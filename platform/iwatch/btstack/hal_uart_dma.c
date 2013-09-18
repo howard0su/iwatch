@@ -28,6 +28,8 @@
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
+#include "power.h"
+
 // rx state
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
@@ -41,7 +43,6 @@ static void (*rx_done_handler)(void) = NULL;
 static void (*tx_done_handler)(void) = NULL;
 static void (*cts_irq_handler)(void) = NULL;
 
-extern uint8_t SMCLK_NEED;
 /**
 * @brief  Initializes the serial communications peripheral and GPIO ports
 *         to communicate with the PAN BT .. assuming 16 Mhz CPU
@@ -76,7 +77,7 @@ void hal_uart_dma_init(void)
   hal_uart_dma_set_baud(115200);
   UCA0IE |= UCRXIE ;  // enable RX interrupts
 
-  SMCLK_NEED++;
+  power_pin(MODULE_BT);
 }
 
 /**
@@ -238,14 +239,16 @@ void hal_uart_dma_set_sleep(uint8_t sleep)
     UCA0IE &= ~(UCRXIE | UCTXIE);
     UCA0CTL1 |= UCSWRST;                          //Reset State
 
-    SMCLK_NEED--;
+    power_unpin(MODULE_BT);
   }
   else
   {
     UCA0IE |= UCRXIE | UCTXIE;
     UCA0CTL1 &= ~UCSWRST;                          //Reset State
-    SMCLK_NEED++;
+    power_pin(MODULE_BT);
   }
+  
+  triggered = 1;
 }
 
 // block-wise "DMA" RX/TX UART driver
