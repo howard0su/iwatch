@@ -58,11 +58,14 @@ static void SPI_FLASH_SendCommandAddress(uint8_t opcode, uint32_t address)
 
 static inline void SPI_FLASH_CS_LOW()
 {
+  UCA1CTL1 &= ~UCSWRST;
   SPIOUT &= ~CSPIN;
 }
 
 static inline void SPI_FLASH_CS_HIGH()
 {
+  while(UCA1STAT & UCBUSY);
+  UCA1CTL1 |= UCSWRST;
   SPIOUT |= CSPIN;
   __delay_cycles(10);
 }
@@ -454,8 +457,6 @@ void SPI_FLASH_Init(void)
   SPISEL |= SIPIN | SOPIN;
   SPIOUT &= ~SIPIN;
   SPIOUT |= CSPIN; // pull CS high to disable chip
-
-  UCA1CTL1 &= ~UCSWRST;
 
   SPI_Flash_Reset();
 
