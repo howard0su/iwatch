@@ -31,6 +31,10 @@
 #define ELEMENT_TYPE_SPORTS_DATA      'A'
 #define ELEMENT_TYPE_SPORTS_GRID      'R'
 
+#define ELEMENT_TYPE_ALARM            'I'
+#define     SUB_TYPE_ALARM_OPERATION  'o'
+#define     SUB_TYPE_ALARM_VALUE      'd'
+
 #define ELEMENT_TYPE_FILE             'F'
 #define     SUB_TYPE_FILE_NAME        'n'
 #define     SUB_TYPE_FILE_DATA        'd'

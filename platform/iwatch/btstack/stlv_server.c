@@ -106,6 +106,18 @@ void handle_stlv_packet(unsigned char* packet)
             handle_get_sports_grid();
             break;
 
+        case ELEMENT_TYPE_ALARM:
+            {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                if (data_len != sizeof(alarm_conf_t))
+                {
+                    printf("Alarm element decode failed: length mismatch (%d/%d)", data_len, sizeof(alarm_conf_t));
+                }
+                handle_alarm((alarm_conf_t*)data);
+            }
+            break;
+
         }
 
 

@@ -4,6 +4,7 @@
 #define _STLV_HANDLER_H_
 
 #include <stdint.h>
+#include "stlv_client.h"
 
 //-----------------------message handlers----------------------
 void handle_echo(uint8_t* data, int size);
@@ -33,6 +34,9 @@ void handle_file_end(int fd);
 int transfer_file(char* name);
 void handle_get_sports_data(uint16_t *data, uint8_t numofdata);
 void handle_get_sports_grid();
+
+//-----------------------alarm handlers---------------------
+void handle_alarm(alarm_conf_t* para);
 
 #endif
 

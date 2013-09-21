@@ -97,6 +97,7 @@ void CuAssertPtrEquals_LineMsg(CuTest* tc,
 
 typedef struct
 {
+    char* name;
 	int count;
 	CuTest* list[MAX_TEST_CASES];
 	int failCount;
@@ -104,8 +105,8 @@ typedef struct
 } CuSuite;
 
 
-void CuSuiteInit(CuSuite* testSuite);
-CuSuite* CuSuiteNew(void);
+void CuSuiteInit(CuSuite* testSuite, char* name);
+CuSuite* CuSuiteNew(char* name);
 void CuSuiteDelete(CuSuite *testSuite);
 void CuSuiteAdd(CuSuite* testSuite, CuTest *testCase);
 void CuSuiteAddSuite(CuSuite* testSuite, CuSuite* testSuite2);

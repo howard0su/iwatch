@@ -66,7 +66,7 @@ uint8_t data2[] = {0x4D,0x41,0x50,0x2D,0x65,0x76,0x65,0x6E,0x74,0x2D,0x72,0x65,0
 
 CuSuite* obexGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("obex Test");
 
 	SUITE_ADD_TEST(suite, testobex);
 	return suite;

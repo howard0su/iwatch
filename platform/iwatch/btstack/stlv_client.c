@@ -166,3 +166,13 @@ void send_sports_grid(uint8_t* data, uint8_t size)
     send_packet(p, NULL, 0);
 }
 
+void send_alarm_conf(alarm_conf_t* conf)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "I", 1);
+    element_append_data(p, h, (uint8_t*)conf, sizeof(alarm_conf_t));
+    send_packet(p, NULL, 0);
+}
+

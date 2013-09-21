@@ -158,7 +158,7 @@ void TestDir(CuTest* tc)
 
 CuSuite* cfsGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("cfs Test");
 
 	SUITE_ADD_TEST(suite, test_cfs);
 	SUITE_ADD_TEST(suite, test_remote_db);

@@ -11,7 +11,7 @@ CuSuite* StlvProtocalGetSuite(void);
 void RunAllTests(void)
 {
 	CuString *output = CuStringNew();
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("iwatch");
 
 	CuSuiteAddSuite(suite, cfsGetSuite());
 	CuSuiteAddSuite(suite, obexGetSuite());

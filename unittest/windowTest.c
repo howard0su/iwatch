@@ -514,7 +514,7 @@ void TestPhoneScreen(CuTest* tc)
 
 CuSuite* WindowGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("Window Test");
  
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);

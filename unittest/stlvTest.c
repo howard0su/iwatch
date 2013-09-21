@@ -2,6 +2,8 @@
 #include "CuTest.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
 
 #include "TestUtility/stlv_test_stub.h"
 #include "stlv.h"
@@ -16,13 +18,15 @@
 
 #define TEST_FILE_NAME "testfile"
 
-static void trySendOut()
+static int trySendOut()
 {
+    int counter = 0;
     int prev_count = 0;
     do {
        prev_count = get_send_pack_stub_count();
        tryToSend();
     } while (prev_count != get_send_pack_stub_count());
+    return counter;
 }
 
 static void TestSendEcho(CuTest* tc)
@@ -284,15 +288,33 @@ static void TestSportsGrid(CuTest* tc)
     handle_get_sports_grid();
 }
 
+static void TestAlarmConf(CuTest* tc)
+{
+    UNUSED_VAR(tc);
+
+    alarm_conf_t alarmConf;
+
+    alarmConf.id           = 1;
+    alarmConf.mode         = ALARM_MODE_MONTHLY;
+    alarmConf.day_of_month = 10;
+    alarmConf.day_of_week  = 20;
+    alarmConf.hour         = 12;
+    alarmConf.minute       = 56;
+    send_alarm_conf(&alarmConf);
+
+    trySendOut();
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("STLV Test");
     SUITE_ADD_TEST(suite, TestSendEcho);
     SUITE_ADD_TEST(suite, TestRecvEcho);
     SUITE_ADD_TEST(suite, TestSendFile);
     SUITE_ADD_TEST(suite, TestRecvFile);
     SUITE_ADD_TEST(suite, TestGetFile);
     SUITE_ADD_TEST(suite, TestSportsGrid);
+    SUITE_ADD_TEST(suite, TestAlarmConf);
 
     return suite;
 }
