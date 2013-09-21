@@ -439,7 +439,6 @@ static void handle_CIND0(char* buf)
 static int handle_CIND(char *buf)
 {
   int i, state, group;
-  size_t s;
   char *indicator = NULL;
 
   /* parse current state of all of our indicators.  The list is in the
@@ -583,6 +582,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
         current = next;
       }while(current != NULL);
 
+      rfcomm_grant_credits(rfcomm_channel_id, 1); // get the next packet
       break;
     }
   case HCI_EVENT_PACKET:

@@ -42,6 +42,7 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
         handle_stlv_packet(get_stlv_transport_buffer());
         reset_stlv_transport_buffer();
     }
+    rfcomm_grant_credits(spp_channel_id, 1); // get the next packet
     return;
   }
 
