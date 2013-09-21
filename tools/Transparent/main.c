@@ -138,6 +138,31 @@ void config_usb()
   BitTime_5 = BitTime_5_115200;
 }
 
+#define LIGHTDIR P4DIR
+#define LIGHTOUT P4OUT
+#define LIGHTSEL P4SEL
+#define LIGHT    BIT2
+
+void config_light()
+{
+  LIGHTDIR |= LIGHT;
+  LIGHTSEL &= ~LIGHT;
+
+  LIGHTOUT |= LIGHT;
+}
+
+#define BUTTON BIT2
+
+void config_key()
+{
+    P2DIR &= ~BUTTON;
+    P2SEL &= ~BUTTON;
+    P2IES |= BUTTON;
+    P2REN |= BUTTON;
+    P2OUT |= BUTTON;
+    P2IFG &= ~BUTTON;
+    P2IE |= BUTTON;
+}
 
 void uart_sendByte(uint8_t byte)
 {
@@ -169,8 +194,14 @@ int main( void )
   
   // config usb
   config_usb();
+
+  // config key
+  config_key();
   
-      // set BT SHUTDOWN to 1 (active low)
+  // config the back light
+  config_light();
+
+  // set BT SHUTDOWN to 1 (active low)
   BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
   BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
   BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
@@ -306,6 +337,61 @@ __interrupt void PORT1_ISR(void)
     }
   case 6:
     {
+      break;                          // Pin2
+    }
+  case 8: 
+    {
+     LPM4_EXIT;
+      break;                          // Pin3
+    }
+  case 10: break;                          // Pin4
+  case 12: break;                          // Pin5
+  case 14: break;
+  case 16: break;                          // Pin7
+  default: break;
+  }
+}
+
+#define NMI_VECTOR 2
+#pragma vector=NMI_VECTOR
+__interrupt void _NMIISR(void)
+{
+
+}
+
+#pragma vector=PORT2_VECTOR
+__interrupt void PORT2_ISR(void)
+{
+    switch(__even_in_range(P2IV, 16))
+    {
+       case 0: break;
+  case 2:
+    { 
+      break;                          // Pin0
+    }
+  case 4:
+    {
+      break;                          // Pin1
+    }
+  case 6:
+    {
+      if (LIGHTOUT & LIGHT)
+      {
+        // light is on, we are enabled
+        LIGHTOUT &= ~LIGHT;
+        
+        SFRRPCR &= ~(SYSRSTRE + SYSRSTUP + SYSNMI);
+        SFRIE1 |= NMIIE;
+      }
+      else
+      {
+        // light is off, we are disabled
+        LIGHTOUT |= LIGHT;
+        
+        SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
+        SFRIE1 &= ~NMIIE;
+      }
+      
       break;                          // Pin2
     }
   case 8: 

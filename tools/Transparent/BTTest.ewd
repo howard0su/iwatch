@@ -187,7 +187,7 @@
         </option>
         <option>
           <name>TargetVoltage</name>
-          <state>3.0</state>
+          <state>3.3</state>
         </option>
         <option>
           <name>AllowLockedFlashAccessP7</name>
@@ -203,7 +203,7 @@
         </option>
         <option>
           <name>CRadioProtocolType</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>CCRadioModuleTypeSlave</name>
@@ -268,7 +268,7 @@
         </option>
         <option>
           <name>CRadioAutoManualType</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ExternalCodeDownload</name>
@@ -427,7 +427,7 @@
         </option>
         <option>
           <name>DdfFileName</name>
-          <state></state>
+          <state>$TOOLKIT_DIR$\config\MSP430F5438A.ddf</state>
         </option>
         <option>
           <name>ProcTMS</name>
@@ -557,7 +557,7 @@
         </option>
         <option>
           <name>TargetVoltage</name>
-          <state>###Uninitialized###</state>
+          <state>3.0</state>
         </option>
         <option>
           <name>AllowLockedFlashAccessP7</name>
@@ -618,7 +618,7 @@
         </option>
         <option>
           <name>OTargetVccTypeDefault</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCBetaDll</name>
@@ -626,7 +626,7 @@
         </option>
         <option>
           <name>GPassword</name>
-          <state>###Uninitialized###</state>
+          <state></state>
         </option>
         <option>
           <name>DebugLPM5</name>
@@ -683,7 +683,7 @@
         </option>
         <option>
           <name>SimPspConfigFile</name>
-          <state>###Uninitialized###</state>
+          <state>$TOOLKIT_DIR$\CONFIG\test.psp.config</state>
         </option>
       </data>
     </settings>
