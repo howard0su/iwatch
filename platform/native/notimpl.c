@@ -3,6 +3,8 @@
 #include "battery.h"
 #include "ant/ant.h"
 
+uint8_t shutdown_mode;
+
 void rtc_init(){}
 extern void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
 {

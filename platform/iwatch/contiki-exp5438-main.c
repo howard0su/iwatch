@@ -70,6 +70,7 @@ extern void battery_init();
 
 static uint8_t msp430_dco_required = 0;
 
+uint8_t shutdown_mode = 1;
 
 /*--------------------------------------------------------------------------*/
 int
@@ -165,6 +166,11 @@ main(int argc, char **argv)
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
 
+      if (shutdown_mode)
+      {
+        system_shutdown(); // never return
+      }
+      
       if (msp430_dco_required)
       {
         __bis_SR_register(GIE | CPUOFF);

@@ -7,5 +7,6 @@ void system_rebootToNormal();
 uint8_t system_testing();
 uint8_t system_retail();
 void system_ready();
+void system_shutdown(int shipping);
 
 #endif

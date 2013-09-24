@@ -50,6 +50,7 @@ static const struct MenuItem SetupMenu[] =
   {DATA_BT, "Bluetooth", &btconfig_process},
   {NO_DATA, "Upgrade Firmware", &upgrade_process},
   {NO_DATA, "Self-test", &selftest_process},
+  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
 
@@ -371,5 +372,13 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       return 0;
   }
 
+  return 1;
+}
+
+extern uint8_t shutdown_mode;
+uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  shutdown_mode = 1;
+  
   return 1;
 }

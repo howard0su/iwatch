@@ -239,6 +239,14 @@ memlcd_DriverInit(void)
   printf("Done\n");
 }
 
+void
+memlcd_DriverShutdown(void)
+{
+  P8OUT &= ~BIT2; // set 1 to active display
+  V5VOUT &= ~V5BIT;
+  UCB0CTL1 = UCSWRST;
+}
+
 static void halLcdRefresh(int start, int end)
 {
   int x = splhigh();

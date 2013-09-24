@@ -54,6 +54,12 @@ uint8_t system_testing()
 	return data.system_testing;
 }
 
+void system_reset()
+{
+  // backup rtc
+  PMMCTL0 = PMMPW | PMMSWBOR;
+}
+
 void system_rebootToNormal()
 {
 	struct system_data new_data;
@@ -66,7 +72,7 @@ void system_rebootToNormal()
 	flash_writepage(INFOD, (uint16_t*)&new_data, 128);
 	flash_done();
 
-	for(;;);	 // let watchdog reboot
+        system_reset();
 }
 
 uint8_t system_retail()
@@ -82,6 +88,41 @@ void system_ready()
 		SFRIE1 &= ~NMIIE;
 	}
  }
+
+void system_shutdown(int shipping)
+{
+  // get back reset pin to normal
+  SFRRPCR &= ~(SYSRSTRE + SYSRSTUP + SYSNMI);
+  SFRIE1 |= NMIIE;
+  
+  // stop clock
+  UCSCTL8 &= ~SMCLKREQEN;
+  UCSCTL6 |= SMCLKOFF;
+  
+  P11SEL &= ~BIT0; // no aclk output, so bluetooth should be suspend
+  bluetooth_shutdown();
+  // shutdown LCD
+  memlcd_DriverShutdown();
+  
+  //shutdown mpu6050
+  mpu6050_shutdown();
+  
+  // shutdown I2c
+  I2C_shutdown();
+  
+  // shutdown clock
+  clock_shutdown();
+ 
+  /* turn off the regulator */
+  PMMCTL0_H = PMMPW_H;
+  PMMCTL0_L = PMMREGOFF;
+  
+  __low_power_mode_4();
+  __no_operation();
+  __no_operation();
+
+  system_reset();
+}
 
  void system_getserial(uint8_t *buf)
  {

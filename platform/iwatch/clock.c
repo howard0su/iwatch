@@ -168,6 +168,12 @@ clock_init(void)
   eint();
 
 }
+
+void clock_shutdown(void)
+{
+  TA1CTL = MC0;
+}
+
 /*---------------------------------------------------------------------------*/
 /**
  * Delay the CPU for a multiple of 2.83 us.

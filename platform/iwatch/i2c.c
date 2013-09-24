@@ -44,6 +44,11 @@ void I2C_Init()
   printf("Done\n");
 }
 
+void I2C_shutdown()
+{
+  UCB1CTL1 |= UCSWRST;
+}
+
 int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
 {
   txdata = &reg;

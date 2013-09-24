@@ -196,6 +196,14 @@ void mpu6050_init()
   }
 }
 
+void mpu6050_shutdown(void)
+{
+  MPU_INT_IE  &=  ~MPU_INT_BIT;  // enable IRQ for P1.6
+  I2C_addr(MPU6050_ADDR, 0);
+  mpu_set_sensors(0);
+  I2C_done();
+}
+
 int i2c_write(unsigned char slave_addr, unsigned char reg_addr,
                      unsigned char length, unsigned char const *data)
 {
