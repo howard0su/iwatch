@@ -66,6 +66,11 @@ static void hci_update_scan_enable(void);
 // the STACK is here
 static hci_stack_t       hci_stack;
 
+static const uint16_t       sniff_max_interval = 0x0800;  // time unit: 0.625ms
+static const uint16_t       sniff_min_interval = 1344;
+static const uint16_t       sniff_attempt = 1;
+static const uint16_t       sniff_timeout = 10;
+
 /**
  * get connection for a given handle
  *
@@ -96,8 +101,19 @@ static void hci_connection_timeout_handler(timer_source_t *timer){
         // connections might be timed out
         hci_emit_l2cap_check_timeout(connection);
     }
+    if (connection->sniff_timeout != -1 &&
+        (connection->mode & MODE_VALUES) == ACTIVE &&
+        embedded_get_ticks() > connection->timestamp + embedded_ticks_for_ms(connection->sniff_timeout)){
+        // switch to sniff mode
+        log_debug("try to go to sniff mode\n");
+        connection->mode |= ENTER_SNIFF;
+        hci_run();
+    }
 #endif
-    run_loop_set_timer(timer, HCI_CONNECTION_TIMEOUT_MS);
+    if (connection->sniff_timeout < HCI_CONNECTION_TIMEOUT_MS)
+        run_loop_set_timer(timer, connection->sniff_timeout);
+    else
+        run_loop_set_timer(timer, HCI_CONNECTION_TIMEOUT_MS);
     run_loop_add_timer(timer);
 }
 
@@ -120,7 +136,9 @@ static hci_connection_t * create_connection_for_addr(bd_addr_t addr, uint8_t typ
     if (!conn) return NULL;
     BD_ADDR_COPY(conn->address, addr);
 	conn->type = type;
+    conn->mode = ACTIVE;
     conn->con_handle = 0xffff;
+    conn->sniff_timeout = 0xffff;
     conn->authentication_flags = AUTH_FLAGS_NONE;
     linked_item_set_user(&conn->timeout.item, conn);
     conn->timeout.process = hci_connection_timeout_handler;
@@ -614,6 +632,32 @@ static void event_handler(uint8_t *packet, int size){
             }
             break;
 
+        case HCI_EVENT_MODE_CHANGE_EVENT:
+            {
+                // data: event (8), len (8), status (8), handle (16), current_mode (8), interval (16)
+                handle = READ_BT_16(packet, 3);
+                hci_connection_t * conn = connection_for_handle(handle);
+                if (!packet[2])
+                {
+                    if (conn != 0)
+                    {
+                        uint8_t current_mode = packet[5];
+                        uint16_t interval = READ_BT_16(packet,6);
+                        log_debug("current_mode=%d interval=%d\n",current_mode,interval);
+                        conn->mode = current_mode;
+                    }
+                }
+                else
+                {
+                  log_debug("Change mode event failed with 0x%x\n", packet[2]);
+                }
+                break;
+            }
+        case HCI_EVENT_READ_REMOTE_SUPPORTED_FEATURES_COMPLETE:
+            {
+              log_debug("Remote supported features: %04lX%04lX\n", READ_BT_32(packet, 12), READ_BT_32(packet, 8));
+              break;
+            }
 #ifdef HAVE_BLE
         case HCI_EVENT_LE_META:
             switch (packet[2]) {
@@ -772,7 +816,7 @@ void hci_close(){
     }
     while (hci_stack.connections) {
         hci_shutdown_connection((hci_connection_t *) hci_stack.connections);
-}
+    }
     hci_power_control(HCI_POWER_OFF);
 }
 
@@ -1077,6 +1121,26 @@ void hci_run(){
 
         connection = (hci_connection_t *) it;
 
+        // check if sniff mode is correct
+        if (connection->mode & EXIT_SNIFF)
+        {
+            connection->mode &= ~EXIT_SNIFF;
+            if ((connection->mode & MODE_VALUES) == SNIFF)
+            {
+                log_debug("sending hci_exit_sniff_mode\n");
+                hci_send_cmd(&hci_exit_sniff_mode,connection->con_handle);
+            }
+        }
+        else if (connection->mode & ENTER_SNIFF)
+        {
+            connection->mode &= ~ENTER_SNIFF;
+            if ((connection->mode & MODE_VALUES) == ACTIVE)
+            {
+            log_debug("sending hci_sniff_mode\n");
+            hci_send_cmd(&hci_sniff_mode,connection->con_handle,sniff_max_interval,sniff_min_interval,sniff_attempt,sniff_timeout);
+            }
+        }
+
         if (connection->state == RECEIVED_CONNECTION_REQUEST){
           if (connection->type == 1)
           {
@@ -1277,6 +1341,42 @@ void hci_run(){
             break;
     }
 }
+
+void hci_set_sniff_timeout(hci_con_handle_t handle, uint16_t timeout)
+{
+    hci_connection_t *connection = connection_for_handle( handle);
+    if (connection) 
+    {
+        connection->sniff_timeout = timeout;
+        if (timeout == -1)
+        {
+            connection->mode |= EXIT_SNIFF;
+        }
+        else
+        {
+          if (timeout < HCI_CONNECTION_TIMEOUT_MS)
+          {
+            run_loop_remove_timer(&connection->timeout);
+            run_loop_set_timer(&connection->timeout, timeout);
+            run_loop_add_timer(&connection->timeout);
+          }
+        }
+    }
+
+    hci_run();
+}
+
+void hci_exit_sniff(hci_con_handle_t handle)
+{
+    hci_connection_t *connection = connection_for_handle( handle);
+    if (connection) 
+    {
+        connection->mode |= EXIT_SNIFF;
+    }
+
+    hci_run();
+}
+
 
 int hci_send_cmd_packet(uint8_t *packet, int size){
     bd_addr_t addr;

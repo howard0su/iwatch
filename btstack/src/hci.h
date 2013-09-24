@@ -212,6 +212,17 @@ typedef enum {
     BLUETOOTH_ACTIVE
 } BLUETOOTH_STATE;
 
+typedef enum {
+    ACTIVE=0, 
+    HOLD=1, 
+    SNIFF=2,
+    PARK=3,
+    MODE_VALUES= 0x03,
+    ENTER_SNIFF = 0x40,
+    EXIT_SNIFF = 0x80
+} BLUETOOTH_CONNECTION_MODE;
+
+
 typedef struct {
     // linked list - assert: first field
     linked_item_t    item;
@@ -227,7 +238,14 @@ typedef struct {
 
     // state
     CONNECTION_STATE state;
-    
+
+    // connection mode
+    BLUETOOTH_CONNECTION_MODE mode;
+
+    // sniff timeout
+    // if it is -1, then don't go to sniff mode
+    uint16_t sniff_timeout;
+        
     // errands
     hci_authentication_flags_t authentication_flags;
 
@@ -339,6 +357,8 @@ void     hci_drop_link_key_for_bd_addr(bd_addr_t *addr);
 uint16_t hci_max_acl_data_packet_length(void);
 uint16_t hci_usable_acl_packet_types(void);
 uint8_t* hci_get_outgoing_acl_packet_buffer(void);
+void     hci_set_sniff_timeout(hci_con_handle_t handle, uint16_t timeout);
+void     hci_exit_sniff(hci_con_handle_t handle);
 
 // 
 void hci_emit_state(void);

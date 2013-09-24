@@ -227,7 +227,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
-        log_info("Local supported features: %04lX%04lX\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
+        printf("Local supported features: %04lX%04lX\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
         hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
         break;
       }
@@ -282,6 +282,10 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
+        hci_send_cmd(&hci_write_default_link_policy_settings, 0x000F);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_default_link_policy_settings)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_register_packet_handler(packet_handler);
       }

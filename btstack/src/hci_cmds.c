@@ -234,6 +234,10 @@ const hci_cmd_t hci_remote_name_request_cancel = {
 OPCODE(OGF_LINK_CONTROL, 0x1A), "B"
 // BD_ADDR
 };
+const hci_cmd_t hci_read_remote_supported_features = {
+OPCODE(OGF_LINK_CONTROL, 0x1B), "H"
+// Handle
+};
 const hci_cmd_t hci_accept_synchronous_connection = {
 OPCODE(OGF_LINK_CONTROL, 0x29), "B442212"
 };
@@ -256,6 +260,10 @@ const hci_cmd_t hci_sniff_mode = {
 OPCODE(OGF_LINK_POLICY, 0x03), "H2222"
 // handle, Sniff_Max_Interval, Sniff_Min_Interval, Sniff_Attempt, Sniff_Timeout:
 };
+const hci_cmd_t hci_exit_sniff_mode = {
+OPCODE(OGF_LINK_POLICY, 0x04), "H"
+// handle
+};
 const hci_cmd_t hci_qos_setup = {
 OPCODE(OGF_LINK_POLICY, 0x07), "H114444"
 // handle, flags, service_type, token rate (bytes/s), peak bandwith (bytes/s),
@@ -277,6 +285,10 @@ const hci_cmd_t hci_write_link_policy_settings = {
 OPCODE(OGF_LINK_POLICY, 0x0d), "H2"
 // handle, settings
 };
+const hci_cmd_t hci_sniff_subrating = {
+OPCODE(OGF_LINK_POLICY, 0x11), "H222"
+// handle, Maximum_Latency, Minimum_Remote_Timeout, Minimum_Local_Timeout
+};
 
 /**
  *  Controller & Baseband Commands
@@ -288,6 +300,14 @@ OPCODE(OGF_CONTROLLER_BASEBAND, 0x01), "44"
 const hci_cmd_t hci_reset = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x03), ""
 // no params
+};
+const hci_cmd_t hci_read_default_link_policy_settings = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x0E), ""
+// no params
+};
+const hci_cmd_t hci_write_default_link_policy_settings = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x0F), "2"
+// default_link_policy_settings
 };
 const hci_cmd_t hci_delete_stored_link_key = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x12), "B1"

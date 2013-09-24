@@ -5,7 +5,7 @@
 #include "sdp.h"
 #include "rfcomm.h"
 #include "btstack/sdp_util.h"
-
+#include "btstack/hci_cmds.h"
 #include <string.h>
 #include "config.h"
 #include "debug.h"
@@ -29,10 +29,13 @@ static enum
 static uint16_t hfp_response_size;
 static void*    hfp_response_buffer;
 static uint16_t rfcomm_channel_id = 0;
+static uint16_t rfcomm_connection_handle;
 
 static void hfp_try_respond(uint16_t rfcomm_channel_id){
     if (!hfp_response_size) return;
     if (!rfcomm_channel_id) return;
+
+    hci_exit_sniff(rfcomm_connection_handle);
 
     log_info("HFP: sending %s\n", hfp_response_buffer);
     // update state before sending packet (avoid getting called when new l2cap credit gets emitted)
@@ -171,6 +174,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define R_RING 4
 #define R_CLIP 5
 #define R_BTRH 6
+#define R_BVRA 7
 #define R_UNKNOWN 0xFE
 #define R_ERROR 0xFF
 #define R_CONTINUE 0xFC
@@ -211,6 +215,10 @@ static char* parse_return(char* result, int* code)
   else if (strncmp(result, "RING", 4) == 0)
   {
     *code = R_RING;
+  }
+  else if (strncmp(result, "+BVRA", 5) == 0)
+  {
+    *code = R_BVRA;
   }
   else if (strncmp(result, "OK", 2) == 0)
   {
@@ -524,6 +532,7 @@ static void hfp_state_handler(int code, char* buf)
   else if (code == R_CIEV)
   {
     handle_CIEV(buf);
+    hci_set_sniff_timeout(rfcomm_connection_handle, 3000);
   }
   else if (code == R_RING)
   {
@@ -532,6 +541,10 @@ static void hfp_state_handler(int code, char* buf)
   else if (code == R_CLIP)
   {
     handle_CLIP(buf);
+  }
+  else if (code == R_BVRA)
+  {
+    // handle_BVRA
   }
   else if (code == R_OK || code == R_ERROR)
   {
@@ -622,6 +635,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
           if (state == INITIALIZING)
           {
             state = WAIT_BRSF;
+            rfcomm_connection_handle = READ_BT_16(packet, 9);
             hfp_response_buffer = AT_BRSF;
             hfp_response_size = sizeof(AT_BRSF);
             hfp_try_respond(rfcomm_channel_id);
@@ -632,6 +646,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
           }
           break;
         }
+      case DAEMON_EVENT_HCI_PACKET_SENT:
       case RFCOMM_EVENT_CREDITS:
         {
           hfp_try_respond(rfcomm_channel_id);
