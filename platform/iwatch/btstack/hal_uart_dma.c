@@ -103,16 +103,15 @@ int hal_uart_dma_set_baud(uint32_t baud){
   switch (baud){
 
   case 4000000:
-    UCA0BR0 = 4;
+    UCA0BR0 = 2;
     UCA0BR1 = 0;
-    UCA0MCTL= UCBRS_0;  // + 0.000
+    UCA0MCTL= 0 << 1;  // + 0.000
     break;
 
-
   case 115200:
-    UCA0BR0 = 138;  // from family user guide
+    UCA0BR0 = 69;  // from family user guide
     UCA0BR1 = 0;
-    UCA0MCTL= UCBRS_7;  // + 0.875
+    UCA0MCTL= 4 << 1;
     break;
 
   default:

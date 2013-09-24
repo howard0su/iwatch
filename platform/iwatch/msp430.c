@@ -392,11 +392,12 @@ static void StartCrystalOscillator(void)
    }
 }
 
-const unsigned char VCORE_Level = PMMCOREV_1;
-const unsigned int DCO_Multiplier = 488;
+const unsigned char VCORE_Level = PMMCOREV_0;
+const unsigned int DCO_Multiplier = 244; // 12Mhz
 
 #if 0
-  {PMMCOREV_0, 244},  /* cf8MHZ_t.                          */
+   {PMMCOREV_0, 244},  /* cf8MHZ_t.                          */
+   {PMMCOREV_0, 366},  /* cf12MHZ_t.                          */
    {PMMCOREV_1, 488},  /* cf16MHZ_t.                         */
    {PMMCOREV_2, 610},  /* cf20MHZ_t.                         */
    {PMMCOREV_3, 762}   /* cf25MHZ_t.                         */
