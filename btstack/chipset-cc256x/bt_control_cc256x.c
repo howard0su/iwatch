@@ -151,11 +151,10 @@ static void update_set_power_vector(uint8_t *hci_cmd_buffer){
     }
 }
 
-extern uint8_t system_txpower(uint8_t i);
 static void update_set_class2_single_power(uint8_t * hci_cmd_buffer){
     int i = 0;
     for (i=0;i<3;i++){
-        hci_cmd_buffer[3+i] = system_txpower(i);
+        hci_cmd_buffer[3+i] = get_highest_level_for_given_power(get_max_power_for_modulation_type(i), 4);
     }
 }
 
@@ -173,7 +172,7 @@ static void bt_control_cc256x_update_command(uint8_t *hci_cmd_buffer){
     uint16_t opcode = hci_cmd_buffer[0] | (hci_cmd_buffer[1] << 8);
 
     switch (opcode){
-        case 0xFD87:
+    case 0xFD87:
             update_set_class2_single_power(hci_cmd_buffer);
             break;
         case 0xFD82:

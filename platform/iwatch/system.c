@@ -10,7 +10,6 @@ struct system_data
 	uint8_t system_reset; // 0 - don't reset, 1 - factory reset
 	uint8_t system_testing; // 0 - normal, 1 - factory testing
 	uint8_t serial[6];
-	uint8_t txpower[3]; // 0:GFSK, 1:EDR2, 2:EDR3, valid from 0 - 15, or 0xff to take default
 };
 
 #if defined(__GNUC__)
@@ -21,7 +20,6 @@ __attribute__ ((section(".infod")))
 static const struct system_data data = {
 	1, 0, 1,
 	0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
-	0x0d, 0x0d, 0x0d, 
 };
 #ifndef __GNUC__
 #pragma constseg = default
@@ -76,21 +74,13 @@ uint8_t system_retail()
 	return !data.system_debug; // if this is a debug system
 }
 
-// i = 0:GFSK, 1:EDR2, 2:EDR3
-uint8_t system_txpower(uint8_t i)
-{
-	return data.txpower[i];
-}
-
 void system_ready()
 {
-	#if 0
 	if (system_retail() && !(SFRRPCR & SYSNMI))
 	{
 		SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
 		SFRIE1 &= ~NMIIE;
 	}
-	#endif
  }
 
  void system_getserial(uint8_t *buf)
