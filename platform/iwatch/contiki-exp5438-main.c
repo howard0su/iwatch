@@ -70,7 +70,7 @@ extern void battery_init();
 
 static uint8_t msp430_dco_required = 0;
 
-uint8_t shutdown_mode = 1;
+uint8_t shutdown_mode = 0;
 
 /*--------------------------------------------------------------------------*/
 int
