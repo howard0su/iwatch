@@ -173,11 +173,11 @@ main(int argc, char **argv)
       
       if (msp430_dco_required)
       {
-        __bis_SR_register(GIE | CPUOFF);
+        __low_power_mode_0();
       }
       else
       {
-        __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
+        __low_power_mode_3();
       }
 
       /* We get the current processing time for interrupts that was

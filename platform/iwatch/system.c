@@ -91,6 +91,11 @@ void system_ready()
 
 void system_shutdown(int shipping)
 {
+    __delay_cycles(100000);
+    
+    __disable_interrupt();
+    __no_operation();
+
   // get back reset pin to normal
   SFRRPCR &= ~(SYSRSTRE + SYSRSTUP + SYSNMI);
   SFRIE1 |= NMIIE;
@@ -112,12 +117,16 @@ void system_shutdown(int shipping)
   
   // shutdown clock
   clock_shutdown();
+
+  __delay_cycles(100000);
  
   /* turn off the regulator */
   PMMCTL0_H = PMMPW_H;
   PMMCTL0_L = PMMREGOFF;
   
-  __low_power_mode_4();
+  __disable_interrupt();
+  for(int i =0 ; i < 100; i++)
+    __low_power_mode_4();
   __no_operation();
   __no_operation();
 

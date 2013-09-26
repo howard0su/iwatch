@@ -199,7 +199,7 @@ static int h4_close(){
     hal_uart_dma_set_csr_irq_handler(NULL);
 
     // close device
-    // ...
+    hal_uart_dma_shutdown();
     return 0;
 }
 
