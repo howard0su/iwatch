@@ -21,6 +21,7 @@ extern uint8_t codec_getvolume();
 extern void codec_wakeup();
 extern void codec_init();
 extern void codec_shutdown();
+extern void codec_suspend();
 
 PROCESS_NAME(bluetooth_process);
 

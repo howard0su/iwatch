@@ -148,7 +148,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       if (READ_BT_16(packet, 3) == handle_audio)
       {
         handle_audio = 0;
-        codec_shutdown();
+        codec_suspend();
       }
       // restart advertising
       // hci_send_cmd(&hci_le_set_advertise_enable, 1);
@@ -369,6 +369,8 @@ void bluetooth_shutdown()
   process_exit(&bluetooth_process);
   
   hci_power_control(HCI_POWER_OFF);
+
+  codec_shutdown();
 
   // notify UI that we are shutdown
   process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);

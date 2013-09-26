@@ -125,7 +125,20 @@ static uint16_t codec_read(uint8_t reg)
 #define PCODECOUT P7OUT
 #define PCODECBIT BIT7
 
+#if 0
 void codec_shutdown()
+{
+  codec_suspend();
+
+  AUDOUT |= AUDBIT; // output direction, value = H
+
+  CLKSEL &= ~CLKBIT;     // output SMCLK
+
+  PCODECOUT &= ~PCODECBIT;
+}
+#endif
+
+void codec_suspend()
 {
   /*
   Mute DAC  DACMT[6] = 1
@@ -274,5 +287,5 @@ void codec_init()
 #endif
   I2C_done();
 
-  codec_shutdown();
+  codec_suspend();
 }
