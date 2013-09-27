@@ -360,9 +360,6 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX, int lY,
             //
             while(lCount)
             {
-            // Loop while there are more pixels to draw
-            while(lCount > 0)
-            {
                 // Get the next byte of image data
                 ulByte = *pucData++;
 
@@ -383,10 +380,6 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX, int lY,
 
                 // Start at the beginning of the next byte of image data
                 lX0 = 0;
-            }
-            // The image data has been drawn
-
-            break;
             }
 
             //
