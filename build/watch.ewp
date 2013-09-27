@@ -2107,12 +2107,12 @@
       <name>cc2564</name>
       <file>
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.10.c</name>
-        <excluded>
-          <configuration>Retail</configuration>
-        </excluded>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.5.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bt_control_cc256x.c</name>
@@ -2353,6 +2353,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\fontred13.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontunicode.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\grlib\fonts\logoimg.c</name>
