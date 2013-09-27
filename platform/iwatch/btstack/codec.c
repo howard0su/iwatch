@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "window.h"
-
+#include "bluetooth.h"
 #include <stdint.h>
 #include <stdio.h>
 #include "i2c.h"
@@ -125,7 +125,6 @@ static uint16_t codec_read(uint8_t reg)
 #define PCODECOUT P7OUT
 #define PCODECBIT BIT7
 
-#if 0
 void codec_shutdown()
 {
   codec_suspend();
@@ -136,7 +135,6 @@ void codec_shutdown()
 
   PCODECOUT &= ~PCODECBIT;
 }
-#endif
 
 void codec_suspend()
 {
@@ -201,7 +199,7 @@ void codec_setvolume(uint8_t level)
 }
 
 /* set volume, levle is from 0 - 64 */
-uint8_t codec_getvolume(uint8_t level)
+uint8_t codec_getvolume()
 {
   uint16_t value;
   I2C_addr(CODEC_ADDRESS, 1);
