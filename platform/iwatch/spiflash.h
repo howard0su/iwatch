@@ -1,5 +1,6 @@
 #ifndef _SPIFLASH_H
 #define _SPIFLASH_H
+#include <stdint.h>
 
 #define SPI_FLASH_PageSize      256                                  //页大小
 #define SPI_FLASH_PerWritePageSize      256                          //每页大小

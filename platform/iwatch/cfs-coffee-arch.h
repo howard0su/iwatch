@@ -46,8 +46,8 @@
 /* Coffee configuration parameters. */
 #define COFFEE_SECTOR_SIZE		(4*1024UL)
 #define COFFEE_PAGE_SIZE		(256UL)
-#define COFFEE_START			0
-#define COFFEE_SIZE				256 * COFFEE_SECTOR_SIZE
+#define COFFEE_START			400 * COFFEE_SECTOR_SIZE
+#define COFFEE_SIZE				100 * COFFEE_SECTOR_SIZE
 #define COFFEE_NAME_LENGTH		16
 #define COFFEE_MAX_OPEN_FILES	6
 #define COFFEE_FD_SET_SIZE		8
@@ -66,7 +66,7 @@
 #define COFFEE_ERASE(sector)					\
 		SPI_FLASH_SectorErase(sector * COFFEE_SECTOR_SIZE, COFFEE_SECTOR_SIZE)
 
-#if 1
+#if 0
 #define COFFEE_ERASEALL() \
 		SPI_FLASH_BulkErase()
 #endif

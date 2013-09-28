@@ -402,6 +402,7 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
         return 1;
 }
 
+extern void *xmem_test();
 void TestWideFont(CuTest* tc)
 {
     struct _event _events[] = {
@@ -411,28 +412,10 @@ void TestWideFont(CuTest* tc)
   };
 
   FILE* fp = fopen("fontunicod16pt.bin", "rb");
-  int fd = cfs_open("fontunicode", CFS_WRITE);
-
-  if (fp != NULL && fd != -1)
-  {
-    // copy the file
-    char buf[1024];
-    int length;
-
-    length = fread(buf, 1, 1024, fp);
-    while(length > 0)
-    {
-      int wl = cfs_write(fd, buf, length);
-      if (wl != length)
-      {
-        CuFail(tc, "Failed to write the font file into spi flash because falsh is too small");
-      }
-      length = fread(buf, 1, 1024, fp);
-    }
-    fclose(fp);
-    cfs_close(fd);
-  }
-
+  
+  fread(xmem_test(), 1, 2 * 1024 * 1024, fp); // max 2M
+  fclose(fp);
+  
   CFSFontWrapperLoad("fontunicode");
   run_window_events(testfont, _events);
 }
