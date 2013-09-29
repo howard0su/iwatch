@@ -106,6 +106,10 @@ void system_shutdown(int shipping)
   
   P11SEL &= ~BIT0; // no aclk output, so bluetooth should be suspend
   bluetooth_shutdown();
+  
+  //shutdown backlight or motor
+  backlight_shutdown();
+  
   // shutdown LCD
   memlcd_DriverShutdown();
   
