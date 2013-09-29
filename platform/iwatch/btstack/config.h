@@ -71,3 +71,8 @@
 #define OEHCIDIR		P9DIR
 #define OEHCIOUT		P9OUT
 #define OEHCIBIT		BIT2
+
+//P6.2 1.8v 
+#define BTPOWERDIR		P6DIR
+#define BTPOWEROUT		P6OUT
+#define BTPOWERBIT		BIT2
