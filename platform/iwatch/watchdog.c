@@ -61,7 +61,7 @@ ISR(WDT, watchdog_interrupt)
   }
   putchar('\n');
 #endif /* PRINT_STACK_ON_REBOOT */
-
+  rtc_save();
   watchdog_reboot();
 }
 /*---------------------------------------------------------------------------*/
