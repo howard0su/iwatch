@@ -155,7 +155,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
   state = INITIALIZING;
 }
 
-#define AT_BRSF  "\r\nAT+BRSF=4\r\n"
+#define AT_BRSF  "\r\nAT+BRSF=24\r\n"
 #define AT_CIND0 "\r\nAT+CIND=?\r\n"
 #define AT_CIND  "\r\nAT+CIND?\r\n"
 #define AT_CMER  "\r\nAT+CMER=3,0,0,1\r\n"
