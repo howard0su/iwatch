@@ -644,7 +644,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state>BTTest.d43</state>
+          <state>flash.d43</state>
         </option>
         <option>
           <name>OutputFormat</name>
@@ -838,7 +838,7 @@
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>BTTest.a43</state>
+          <state>flash.a43</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
@@ -947,7 +947,11 @@
         <debug>1</debug>
         <option>
           <name>CUTest</name>
-          <state>###Uninitialized###</state>
+          <state>-I$TOOLKIT_DIR$\inc</state>
+          <state>-@$TOOLKIT_DIR$\bin\iar.cmd</state>
+          <state>-@$PROJ_DIR$\source.txt</state>
+          <state>-@$PROJ_DIR$\include.txt</state>
+          <state>--preinclude=$PROJ_DIR$\IAR_ULPAdvisor_Defs.h</state>
         </option>
         <option>
           <name>ULPRules</name>
@@ -1022,19 +1026,19 @@
         <option>
           <name>GRuntimeLibSelect</name>
           <version>0</version>
-          <state>1</state>
+          <state>4</state>
         </option>
         <option>
           <name>RTDescription</name>
-          <state>Use the normal configuration of the C/EC++ runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
+          <state>Use the legacy C runtime library.</state>
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.h</state>
+          <state></state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\CLIB\cl430f.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -1043,7 +1047,7 @@
         </option>
         <option>
           <name>Input description</name>
-          <state>No specifier n, no float or long long.</state>
+          <state>Full formatting.</state>
         </option>
         <option>
           <name>Output variant</name>
@@ -1052,12 +1056,12 @@
         </option>
         <option>
           <name>Output description</name>
-          <state>No specifier a or A.</state>
+          <state>Full formatting.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
           <version>0</version>
-          <state>1</state>
+          <state>4</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1069,7 +1073,7 @@
         </option>
         <option>
           <name>OGChipSelectMenu</name>
-          <state>MSP430F5438A	MSP430F5438A</state>
+          <state>MSP430F149	MSP430F149</state>
         </option>
         <option>
           <name>GStackHeapOverride</name>
@@ -1077,11 +1081,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>160</state>
+          <state>80</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>160</state>
+          <state>80</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1089,7 +1093,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>80</state>
+          <state>###Uninitialized###</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>
@@ -1550,7 +1554,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state>$FILE_BNAME$.r43</state>
+          <state></state>
         </option>
         <option>
           <name>AMultibyteSupport</name>
@@ -1616,7 +1620,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state>BTTest.txt</state>
+          <state>templproj.txt</state>
         </option>
         <option>
           <name>OutputFormat</name>
@@ -1682,7 +1686,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\lnk430F5438A.xcl</state>
+          <state>$TOOLKIT_DIR$\CONFIG\lnk430F149.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1810,7 +1814,7 @@
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>BTTest.a43</state>
+          <state>templproj.a43</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
@@ -1919,11 +1923,7 @@
         <debug>0</debug>
         <option>
           <name>CUTest</name>
-          <state>-I$TOOLKIT_DIR$\inc</state>
-          <state>-@$TOOLKIT_DIR$\bin\iar.cmd</state>
-          <state>-@$PROJ_DIR$\source.txt</state>
-          <state>-@$PROJ_DIR$\include.txt</state>
-          <state>--preinclude=$PROJ_DIR$\IAR_ULPAdvisor_Defs.h</state>
+          <state>###Uninitialized###</state>
         </option>
         <option>
           <name>ULPRules</name>
@@ -1936,7 +1936,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state>$PROJ_FNAME$.ulp</state>
+          <state></state>
         </option>
         <option>
           <name>ULPStatus</name>
@@ -1951,19 +1951,28 @@
     </settings>
   </configuration>
   <file>
-    <name>$PROJ_DIR$\main.c</name>
-    <excluded>
-      <configuration>Release</configuration>
-    </excluded>
+    <name>$PROJ_DIR$\BSL430_API.c</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\msp430.c</name>
-    <excluded>
-      <configuration>Release</configuration>
-    </excluded>
+    <name>$PROJ_DIR$\BSL430_API.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\test.c</name>
+    <name>$PROJ_DIR$\BSL430_Command_Interpreter.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\BSL430_Command_Interpreter.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\BSL430_PI.h</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\BSL430_PI_TA.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\spiflash.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\spiflash.h</name>
   </file>
 </project>
 

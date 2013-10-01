@@ -9,7 +9,9 @@
 #include "ant/antinterface.h"
 
 static uint8_t data;
-
+static const uint8_t str[] = {
+	45, 78, 135, 101, 75, 109, 213, 139, 198, 48, 185, 48, 200, 48, 0, 0
+};
 uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
@@ -27,17 +29,24 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrContextForegroundSet(pContext, ClrWhite);
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
  		  GrStringDraw(pContext, "Test Buttons", -1, 32, 16, 0);
+
+ 		  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
+	      GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
+	      //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
+	      GrStringDraw(pContext, (char*)str, -1, 2, 40, 0);
+	      GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);    
+
  		  for(int i = 0; i < 4; i++)
  		  {
  		  	char buf[30];
  		  	if (data & (1 << i))
  		  	{
  		  		sprintf(buf, "Key %d is ok", i);
- 		  		GrStringDraw(pContext, buf, -1, 5, 40 + i * 16, 0);
+ 		  		GrStringDraw(pContext, buf, -1, 5, 60 + i * 16, 0);
  		  	}
  		  }
  		  GrContextFontSet(pContext, (tFont*)&g_sFontBaby12);
- 		  GrStringDraw(pContext, "Long press exit to quit", -1, 2, 110, 0);
+ 		  GrStringDraw(pContext, "Long press exit to quit", -1, 2, 120, 0);
 		  break;
 		}
 		case EVENT_KEY_PRESSED:

@@ -7,7 +7,22 @@
 PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
 
-static struct datetime now;
+__no_init static struct datetime now;
+__no_init static uint16_t checksum;
+
+static uint16_t getChecksum()
+{
+  CRCINIRES = 0xFFFF;
+  CRCDIRB_L = now.year >> 8;
+  CRCDIRB_L = now.year & 0xff;
+  CRCDIRB_L = now.month;
+  CRCDIRB_L = now.day;
+  CRCDIRB_L = now.hour;
+  CRCDIRB_L = now.minute;
+  CRCDIRB_L = now.second;
+
+  return CRCINIRES;
+}
 
 void rtc_init()
 {
@@ -16,14 +31,27 @@ void rtc_init()
   // RTC enable, HEX mode, RTC hold
   // enable RTC time event interrupt
 
-  RTCYEAR = 2013;                         // Year = 0x2010
-  RTCMON = 1;                             // Month = 0x04 = April
-  RTCDAY = 1;                            // Day = 0x05 = 5th
-  RTCDOW = rtc_getweekday(13, 5, 1);
-  RTCHOUR = 22;                           // Hour = 0x10
-  RTCMIN = 10;                            // Minute = 0x32
-  RTCSEC = 0;                            // Seconds = 0x45
-
+  if (getChecksum() != checksum)
+  {
+    // caculate the checksum
+    RTCYEAR = 2013;                         // Year = 0x2010
+    RTCMON = 1;                             // Month = 0x04 = April
+    RTCDAY = 1;                            // Day = 0x05 = 5th
+    RTCDOW = rtc_getweekday(13, 5, 1);
+    RTCHOUR = 22;                           // Hour = 0x10
+    RTCMIN = 10;                            // Minute = 0x32
+    RTCSEC = 0;                            // Seconds = 0x45
+  }
+  else
+  {
+    RTCYEAR = now.year;
+    RTCMON = now.month;
+    RTCDAY = now.day;
+    RTCDOW = rtc_getweekday(now.year - 2000, now.month, now.day);
+    RTCHOUR = now.hour;
+    RTCMIN = now.minute;
+    RTCSEC = now.second;
+  }
   //  RTCADOWDAY = 0x2;                         // RTC Day of week alarm = 0x2
   //  RTCADAY = 0x20;                           // RTC Day Alarm = 0x20
   //  RTCAHOUR = 0x10;                          // RTC Hour Alarm
@@ -40,6 +68,7 @@ PROCESS_THREAD(rtc_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
+    checksum = getChecksum();
     process_post(ui_process, EVENT_TIME_CHANGED, &now);
   }
   PROCESS_END();
@@ -54,6 +83,15 @@ uint8_t rtc_getweekday(uint16_t year, uint8_t month, uint8_t day)
   }
 
   return 1 + (( day + 2*month + 3*(month+1)/5 + year + year/4 ) %7);
+}
+
+void rtc_save()
+{
+  BUSYWAIT_UNTIL((RTCCTL01&RTCRDY), CLOCK_SECOND/8);
+  now.minute = RTCMIN;
+  now.second = RTCSEC;
+  
+  checksum = getChecksum();  
 }
 
 void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)

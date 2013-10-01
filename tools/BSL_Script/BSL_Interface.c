@@ -150,6 +150,11 @@ unsigned int BSL_TX_TXT_File( char* fileName, unsigned int addr, unsigned int le
   return BSL_ACK;
 }
 
+int ext_match(const char *name, const char *ext)
+{
+  size_t nl = strlen(name), el = strlen(ext);
+  return nl >= el && !strcmp(name + nl - el, ext);
+}
 
 unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
 {
@@ -159,7 +164,15 @@ unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
   unsigned int numBytes=0;
   //int i;
   //printf( "\n");
+  if (ext_match(fileName, "txt"))
   openTI_TextForRead( fileName );
+  else if (ext_match(fileName, "bin"))
+    open_BinaryForRead(fileName);
+  else
+  {
+    printf("file format is unknown.\n");
+    return -1;
+  }
   start = GetTickCount();
   while( moreDataToRead() )
   {
@@ -174,7 +187,7 @@ unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
   	if( !fast)
   	{
       int ret;
-      for(int retry = 0; retry < 3; retry++)
+      for(int retry = 0; retry < 10; retry++)
       {
         ret = BSL_RX_DataBlock( data );
         if (ret == BSL_ACK)
@@ -191,11 +204,12 @@ unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
   	{
         BSL_RX_DataBlock_Fast( data );
   	}
-  }
     stop = GetTickCount();
     seconds = ((float)stop-(float)start)/(float)1000;
     kbs = ((float)numBytes/(float)1024)/(float)seconds;
     printf( "Wrote %i bytes in %.2f seconds [%.2f Kbytes/s]\n", numBytes, seconds, kbs);
+
+  }
   return BSL_ACK;
 }
 

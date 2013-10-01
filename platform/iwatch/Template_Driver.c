@@ -192,12 +192,6 @@ static void SPISend(const void* data, unsigned int size)
   power_pin(MODULE_LCD);
 }
 
-int dma_channel_0()
-{
-  process_poll(&lcd_process);
-  return 1;
-}
-
 // Initializes the display driver.
 // This function initializes the LCD controller
 //
@@ -718,9 +712,18 @@ Template_DriverColorTranslate(void *pvDisplayData,
 static void
 Template_DriverFlush(void *pvDisplayData)
 {
+  if (state != STATE_NONE)
+    return;
+  
+  int x = splhigh();
   if (data.start != 0xff)
   {
+    splx(x);
     process_post_synch(&lcd_process, refresh_event, &data);
+  }
+  else
+  {
+    splx(x);
   }
 }
 
@@ -756,6 +759,21 @@ const tDisplay g_memlcd_Driver =
 //
 //*****************************************************************************
 
+int dma_channel_0()
+{
+  SPIOUT &= ~_SCS;
+  state = STATE_NONE;
+  if (data.start != 0xff)
+  {
+    process_poll(&lcd_process);
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 PROCESS_THREAD(lcd_process, ev, d)
 {
   PROCESS_BEGIN();
@@ -768,15 +786,14 @@ PROCESS_THREAD(lcd_process, ev, d)
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_POLL)
     {
-       SPIOUT &= ~_SCS;
-       state = STATE_NONE;
-
        // if there is an update?
       if (data.start != 0xff)
       {
         SPISend(&lines[data.start], (data.end - data.start + 1)
                 * sizeof(struct _linebuf) + 2);
+        int x = splhigh();
         data.start = 0xff;
+        splx(x);
         data.end = 0;
       }
       else
@@ -793,7 +810,9 @@ PROCESS_THREAD(lcd_process, ev, d)
         SPISend(&lines[data.start], (data.end - data.start + 1)
                 * sizeof(struct _linebuf) + 2);
 
+        int x = splhigh();
         data.start = 0xff;
+        splx(x);
         data.end = 0;
       }
     }
@@ -803,7 +822,9 @@ PROCESS_THREAD(lcd_process, ev, d)
       {
         SPISend(clear_cmd, 2);
 
+        int x = splhigh();
         data.start = 0xff;
+        splx(x);
         data.end = 0;
       }
     }

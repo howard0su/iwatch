@@ -1,7 +1,5 @@
-#include "contiki.h"
+#include <msp430.h>
 #include <stdio.h>
-#include "sys/rtimer.h"
-#include "isr_compat.h"
 #include "spiflash.h"
 
 #define CLKDIR P3DIR
@@ -443,7 +441,7 @@ void SPI_FLASH_Init(void)
 
   UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPL; // master, 3-pin SPI mode, LSB //UCCKPH
   UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCA1BR0 = 4; // 8MHZ / 4 = 2Mhz
+  UCA1BR0 = 8; // 16MHZ / 8 = 2Mhz
   UCA1BR1 = 0;
   UCA1MCTL = 0;
 
@@ -480,7 +478,7 @@ void SPI_FLASH_Init(void)
   SPI_FLASH_CS_HIGH();
   printf("status register 2 = %x ", FLASH_Status);  
 #endif
-  printf("Find SPI Flash DeviceId = %x\n", (uint16_t)SPI_FLASH_ReadDeviceID());
+  //printf("Find SPI Flash DeviceId = %x\n", (uint16_t)SPI_FLASH_ReadDeviceID());
 
 //  SPI_FLASH_BulkErase();
 }

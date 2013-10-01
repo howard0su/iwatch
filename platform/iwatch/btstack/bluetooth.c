@@ -342,6 +342,9 @@ static void btstack_setup(){
 void bluetooth_init()
 {
   // enable power
+  BTPOWERDIR |= BTPOWERBIT;
+  BTPOWEROUT |= BTPOWERBIT;
+
   OECLKDIR |= OECLKBIT;
   OECLKOUT &= ~OECLKBIT;
 
@@ -356,21 +359,24 @@ void bluetooth_init()
 }
 
 void bluetooth_shutdown()
-{
-  BT_SHUTDOWN_OUT &= ~BT_SHUTDOWN_BIT;  // = 1 - Active low
-
-    // enable power
-  OECLKDIR |= OECLKBIT;
-  OECLKOUT |= OECLKBIT;
-
-  OEHCIDIR |= OEHCIBIT;
-  OEHCIOUT |= OEHCIBIT;
-  
+{  
   process_exit(&bluetooth_process);
   
   hci_power_control(HCI_POWER_OFF);
 
   codec_shutdown();
+
+  BT_SHUTDOWN_OUT &= ~BT_SHUTDOWN_BIT;  // = 1 - Active low
+
+  // disable power
+  OECLKDIR |= OECLKBIT;
+  OECLKOUT |= OECLKBIT;
+
+  OEHCIDIR |= OEHCIBIT;
+  OEHCIOUT |= OEHCIBIT;
+
+  BTPOWERDIR |= BTPOWERBIT;
+  BTPOWEROUT |= BTPOWERBIT;
 
   // notify UI that we are shutdown
   process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);

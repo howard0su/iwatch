@@ -96,6 +96,7 @@ void window_handle_event(uint8_t ev, void* data)
     if (ev == PROCESS_EVENT_INIT)
     {
       backlight_on(0);
+      CFSFontWrapperLoad();
 
       window_loadconfig();
 

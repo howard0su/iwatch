@@ -31,6 +31,13 @@ void backlight_init()
   LIGHTCONTROL = OUTMOD_0;
 }
 
+void backlight_shutdown()
+{
+  MOTORCONTROL = OUTMOD_0;
+  LIGHTCONTROL = OUTMOD_0;
+}
+
+
 void backlight_on(uint8_t level)
 {
   if (level > 16) level = 16;
