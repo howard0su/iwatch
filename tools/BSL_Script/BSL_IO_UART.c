@@ -245,6 +245,7 @@ unsigned char readByte_s(int timeoutMS)
   {
     ClearCommError(hComPort, &errors, &comState);
 	  error_flag = ( GetTickCount() > timeout );
+    Sleep(1);
   }
   while(comState.cbInQue == 0 && error_flag == 0);
   }
