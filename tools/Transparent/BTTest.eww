@@ -4,6 +4,9 @@
   <project>
     <path>$WS_DIR$\BTTest.ewp</path>
   </project>
+  <project>
+    <path>$WS_DIR$\..\falshspi\flash.ewp</path>
+  </project>
   <batchBuild/>
 </workspace>
 
