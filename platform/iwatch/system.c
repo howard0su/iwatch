@@ -1,7 +1,8 @@
 #include "contiki.h"
 #include "cfs/cfs-coffee.h"
 #include "dev/flash.h"
-
+#include "rtc.h"
+#include "dev/watchdog.h"
 #include "system.h"
 
 struct system_data
@@ -57,7 +58,9 @@ uint8_t system_testing()
 void system_reset()
 {
   // backup rtc
-  PMMCTL0 = PMMPW | PMMSWBOR;
+  rtc_save();
+
+  watchdog_reboot();
 }
 
 void system_rebootToNormal()
@@ -72,7 +75,7 @@ void system_rebootToNormal()
 	flash_writepage(INFOD, (uint16_t*)&new_data, 128);
 	flash_done();
 
-        system_reset();
+  system_reset();
 }
 
 uint8_t system_retail()

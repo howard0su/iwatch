@@ -489,11 +489,8 @@ CFSFontWrapperInit(void)
 //
 //*****************************************************************************
 unsigned char *
-CFSFontWrapperLoad(char *pcFilename)
+CFSFontWrapperLoad()
 {
-    printf("Attempting to load font %s from CFS file system.\n",
-               pcFilename);
-
     //
     // Make sure a font is not already open.
     //
@@ -544,7 +541,7 @@ CFSFontWrapperLoad(char *pcFilename)
             //
             // All is well.  Tell the caller the font was opened successfully.
             //
-            printf("Font %s opened successfully.\n", pcFilename);
+            printf("Font opened successfully.\n");
             g_sFontFile.bInUse = true;
             return((unsigned char *)&g_sFontFile);
         }
