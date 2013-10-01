@@ -443,7 +443,7 @@ void SPI_FLASH_Init(void)
 
   UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPL; // master, 3-pin SPI mode, LSB //UCCKPH
   UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCA1BR0 = 8; // 16MHZ / 8 = 2Mhz
+  UCA1BR0 = 4; // 8MHZ / 4 = 2Mhz
   UCA1BR1 = 0;
   UCA1MCTL = 0;
 
