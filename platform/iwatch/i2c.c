@@ -63,7 +63,7 @@ int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND/8);
 
   UCB1IE &= ~(UCTXIE + UCRXIE);
 
@@ -86,7 +86,7 @@ int I2C_writebytes(unsigned char reg, const unsigned char *data, uint8_t len)
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND/8);
 
   UCB1IE &= ~UCTXIE;
 
@@ -104,29 +104,25 @@ int I2C_write(unsigned char reg, unsigned char data)
   rxlen = 0;
 
   state = STATE_RUNNING;
-  UCB1IE |= UCTXIE;                         // Enable TX interrupt
+  UCB1IE |= UCTXIE | UCNACKIE;                         // Enable TX interrupt
 
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND/8);
 
   UCB1IE &= ~UCTXIE;
 
   return state != STATE_DONE;
 }
 
-void  I2C_addr(unsigned char address, uint8_t msb)
+void  I2C_addr(unsigned char address)
 {
   if (UCB1I2CSA == address)
     return;
 
   UCB1CTL1 |= UCSWRST;
   UCB1I2CSA = address;
-  if (msb)
-    UCB1CTL0 |= UCMSB;
-  else
-    UCB1CTL0 &= ~UCMSB;
   UCB1CTL1 &= ~UCSWRST;
 }
 
@@ -141,7 +137,9 @@ ISR(USCI_B1, USCI_B1_ISR)
   {
   case  0: break;                           // Vector  0: No interrupts
   case  2: break;                           // Vector  2: ALIFG
-  case  4: break;                           // Vector  4: NACKIFG
+  case  4: 
+    LPM4_EXIT;
+    break;                           // Vector  4: NACKIFG
   case  6:    		                    // Vector  6: STTIFG
     {
       break;
@@ -164,7 +162,7 @@ ISR(USCI_B1, USCI_B1_ISR)
       {
         UCB1IFG &= ~UCRXIFG;
         state = STATE_DONE;
-        __bic_SR_register_on_exit(LPM4_bits); // Exit LPM0
+        LPM4_EXIT;
       }
 
       // read data to release SCL
@@ -192,7 +190,7 @@ ISR(USCI_B1, USCI_B1_ISR)
       {
         UCB1CTL1 |= UCTXSTP;                  // I2C stop condition
         state = STATE_DONE;
-        __bic_SR_register_on_exit(LPM4_bits); // Exit LPM0
+        LPM4_EXIT;
       }
       else
       {

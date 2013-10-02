@@ -103,7 +103,7 @@ static inline unsigned short inv_orientation_matrix_to_scalar(
 void mpu6050_init()
 {
   // initialize I2C bus
-  I2C_addr(MPU6050_ADDR, 0);
+  I2C_addr(MPU6050_ADDR);
 
   int result;
   unsigned char accel_fsr;
@@ -189,6 +189,7 @@ void mpu6050_init()
 #endif
 
   I2C_done();
+  printf("Done\n");
 
  // if (r)
   {
@@ -199,7 +200,7 @@ void mpu6050_init()
 void mpu6050_shutdown(void)
 {
   MPU_INT_IE  &=  ~MPU_INT_BIT;  // enable IRQ for P1.6
-  I2C_addr(MPU6050_ADDR, 0);
+  I2C_addr(MPU6050_ADDR);
   mpu_set_sensors(0);
   I2C_done();
 }
@@ -268,7 +269,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       * registered). The more parameter is non-zero if there are
       * leftover packets in the FIFO.
       */
-      I2C_addr(MPU6050_ADDR, 0);
+      I2C_addr(MPU6050_ADDR);
         do
         {
           short gyro[3], accel[3];
@@ -315,7 +316,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 unsigned long mpu_getsteps()
 {
   unsigned long steps;
-  I2C_addr(MPU6050_ADDR, 0);
+  I2C_addr(MPU6050_ADDR);
   dmp_get_pedometer_step_count(&steps);
   I2C_done();
 
@@ -325,7 +326,7 @@ unsigned long mpu_getsteps()
 unsigned long mpu_getsteptime()
 {
   unsigned long time;
-  I2C_addr(MPU6050_ADDR, 0);
+  I2C_addr(MPU6050_ADDR);
   dmp_get_pedometer_walk_time(&time);
   I2C_done();
 

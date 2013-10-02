@@ -150,7 +150,7 @@ void codec_suspend()
   CLKSEL &= ~CLKBIT;     // disable SMCLK
   power_unpin(MODULE_CODEC);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   codec_write(REG_POWER_MANAGEMENT1, 0);
   codec_write(REG_POWER_MANAGEMENT2, 0);
   codec_write(REG_POWER_MANAGEMENT3, 0);
@@ -162,7 +162,7 @@ void codec_suspend()
 uint8_t codec_changevolume(int8_t diff)
 {
   uint8_t current;
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   uint16_t value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
   current = value & 0x3F;
   value &= ~0x3F;
@@ -193,7 +193,7 @@ void codec_setvolume(uint8_t level)
   value &= ~0x3F;
   value |= level >> 2;
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
   I2C_done();
 }
@@ -202,7 +202,7 @@ void codec_setvolume(uint8_t level)
 uint8_t codec_getvolume()
 {
   uint16_t value;
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
   I2C_done();
   return value & 0x3F;
@@ -214,7 +214,7 @@ void codec_wakeup()
   CLKSEL |= CLKBIT;     // output SMCLK
   power_pin(MODULE_CODEC);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   codec_write(REG_POWER_MANAGEMENT1, config[REG_POWER_MANAGEMENT1]);
   codec_write(REG_POWER_MANAGEMENT2, config[REG_POWER_MANAGEMENT2]);
   codec_write(REG_POWER_MANAGEMENT3, config[REG_POWER_MANAGEMENT3]);
@@ -237,7 +237,7 @@ void codec_init()
 
   power_pin(MODULE_CODEC);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   //reset codec ?
   codec_write(REG_RESET, 0);
   __delay_cycles(5000);
