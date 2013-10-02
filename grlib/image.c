@@ -444,14 +444,18 @@ InternalImageDraw(const tContext *pContext, const unsigned char *pucImage,
     //
     // Get the image width from the image data.
     //
-    lWidth = *(unsigned short *)pucImage;
-    pucImage += 2;
+    lWidth = *pucImage;
+    pucImage ++;
+    lWidth |= (*pucImage) << 8;
+    pucImage ++;
 
     //
     // Get the image height from the image data.
     //
-    lHeight = *(unsigned short *)pucImage;
-    pucImage += 2;
+    lHeight = *pucImage;
+    pucImage ++;
+    lHeight |= (*pucImage) << 8;
+    pucImage ++;
 
     //
     // Return without doing anything if the entire image lies outside the
