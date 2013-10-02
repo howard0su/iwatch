@@ -58,7 +58,7 @@ int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
   rxlen = len;
 
   state = STATE_RUNNING;
-  UCB1IE |= UCTXIE + UCRXIE;                         // Enable TX interrupt
+  UCB1IE |= UCTXIE + UCRXIE + UCNACKIE;              // Enable TX interrupt
 
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
@@ -81,7 +81,7 @@ int I2C_writebytes(unsigned char reg, const unsigned char *data, uint8_t len)
   rxlen = 0;
 
   state = STATE_RUNNING;
-  UCB1IE |= UCTXIE;                         // Enable TX interrupt
+  UCB1IE |= UCTXIE | UCNACKIE;                         // Enable TX interrupt
 
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
