@@ -32,9 +32,9 @@
 extern void hfp_init();
 extern void hfp_open(const bd_addr_t *remote_addr, uint8_t port);
 
-extern uint8_t hfp_enable_voicerecog();
+extern uint8_t hfp_enable_voicerecog(uint8_t onoff);
 extern uint8_t hfp_accept_call(uint8_t);
 extern void hfp_callback(uint8_t type, uint8_t index, uint8_t value);
 extern uint8_t hfp_getstatus(uint8_t ind);
-
+extern uint8_t hfp_connected();
 #endif

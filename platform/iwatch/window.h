@@ -21,8 +21,10 @@ PROCESS_NAME(system_process);
 #define EVENT_TIME_CHANGED            0x90
 #define EVENT_NOTIFICATION            0x91
 #define EVENT_ANT_DATA                0x92
-#define EVENT_RING_NUM                0x93
-#define EVENT_RING                    0x94
+#define EVENT_BT_RING                 0x93
+#define EVENT_BT_CLIP                 0x94
+#define EVENT_BT_CIEV                 0x95
+#define EVENT_BT_BVRA                 0x96
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xc0
@@ -99,6 +101,7 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xABADFACF
 typedef struct {

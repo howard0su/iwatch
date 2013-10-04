@@ -64,6 +64,7 @@ void window_init()
   current_clip = client_clip;
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
+  printf("WIN: Initialize...");
   GrContextForegroundSet(&context, ClrBlack);
   tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
   GrRectFill(&context, &rect);
@@ -75,7 +76,7 @@ void window_init()
   stackptr = 0;
   //window_open(&menu_process, NULL);
   ui_window = menu_process;
-
+  printf("Done\n");
   return;
 }
 
@@ -136,7 +137,7 @@ void window_handle_event(uint8_t ev, void* data)
       status_process(ev, (uint16_t)data, NULL);
       ui_window(ev, (uint16_t)data, NULL);
     }
-    else if (ev == EVENT_RING)
+    else if (ev == EVENT_BT_CIEV)
     {
       uint16_t d = (uint16_t)data;
       if (window_current() != &phone_process &&
@@ -150,9 +151,17 @@ void window_handle_event(uint8_t ev, void* data)
         ui_window(ev, (uint16_t)data, NULL);
       }
     }
-    else if (ev == EVENT_RING_NUM)
+    else if (ev == EVENT_BT_BVRA)
     {
-      ui_window(EVENT_RING, 0xFFFF, data);
+      if (window_current() != &siri_process && data)
+      {
+        window_open(&siri_process, NULL);
+      }
+      ui_window(ev, (uint16_t)data, NULL);
+    }
+    else if (ev == EVENT_BT_CLIP || ev == EVENT_BT_RING || ev == EVENT_BT_BVRA)
+    {
+      ui_window(ev, 0, data);
     }
     else if (ev == EVENT_NOTIFY_RESULT || ev == EVENT_GESTURE_MATCHED)
     {
@@ -166,13 +175,17 @@ void window_handle_event(uint8_t ev, void* data)
       if (ev == EVENT_KEY_PRESSED && (uint16_t)data == KEY_EXIT)
       {
         uint8_t ret = ui_window(EVENT_EXIT_PRESSED, 0, NULL);
-          if (!ret)
-        window_close();
+        if (!ret)
+            window_close();
       }
       else if (ev == EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_ENTER)
       {
         // switch to phone call interface to show Siri
-        window_open(&phone_process, (void*)1);
+        window_open(&siri_process, (void*)1);
+      }
+      else if (EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_EXIT)
+      {
+        window_close();
       }
       else
       {
