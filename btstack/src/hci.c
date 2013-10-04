@@ -66,10 +66,10 @@ static void hci_update_scan_enable(void);
 // the STACK is here
 static hci_stack_t       hci_stack;
 
-static const uint16_t       sniff_max_interval = 0x0800;  // time unit: 0.625ms
-static const uint16_t       sniff_min_interval = 1344;
+static const uint16_t       sniff_max_interval = 0x348;  // time unit: 0.625ms
+static const uint16_t       sniff_min_interval = 0xA0;
 static const uint16_t       sniff_attempt = 1;
-static const uint16_t       sniff_timeout = 10;
+static const uint16_t       sniff_timeout = 0x10;
 
 /**
  * get connection for a given handle
@@ -282,7 +282,7 @@ int hci_send_acl_packet(uint8_t *packet, int size){
 
     // count packet
     connection->num_acl_packets_sent++;
-    log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
+    //log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
     hci_dump_packet( HCI_ACL_DATA_PACKET, 0, packet, size);
 
     // send packet

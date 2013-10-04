@@ -486,7 +486,7 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
         continuation_offset = READ_NET_16(continuationState, 3);
     }
 
-    log_info("--> sdp_handle_service_search_attribute_request, cont %u/%u, max %u\n", continuation_service_index, continuation_offset, maximumAttributeByteCount);
+    //log_info("--> sdp_handle_service_search_attribute_request, cont %u/%u, max %u\n", continuation_service_index, continuation_offset, maximumAttributeByteCount);
 
     // AttributeLists - starts at offset 7
     uint16_t pos = 7;
@@ -495,7 +495,7 @@ int sdp_handle_service_search_attribute_request(uint8_t * packet, uint16_t remot
     if (continuation_service_index == 0 && continuation_offset == 0){
         uint16_t total_response_size = sdp_get_size_for_service_search_attribute_response(serviceSearchPattern, attributeIDList);
         de_store_descriptor_with_len(&sdp_response_buffer[pos], DE_DES, DE_SIZE_VAR_16, total_response_size);
-        log_info("total response size %u\n", total_response_size);
+        //log_info("total response size %u\n", total_response_size);
         pos += 3;
         maximumAttributeByteCount -= 3;
     }
@@ -599,7 +599,7 @@ static void sdp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
                 remote_mtu = SDP_RESPONSE_BUFFER_SIZE;
             }
 
-            log_info("SDP Request: type %u, transaction id %u, len %u, mtu %u\n", pdu_id, transaction_id, param_len, remote_mtu);
+            //log_info("SDP Request: type %u, transaction id %u, len %u, mtu %u\n", pdu_id, transaction_id, param_len, remote_mtu);
             switch (pdu_id){
 
                 case SDP_ServiceSearchRequest:
