@@ -1096,7 +1096,7 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>900</state>
+          <state>3000</state>
         </option>
         <option>
           <name>GHeapSize2</name>
@@ -2056,6 +2056,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\siri.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\sportselect.c</name>
