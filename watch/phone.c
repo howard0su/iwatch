@@ -6,6 +6,7 @@
 #include "window.h"
 #include "backlight.h"
 #include "hfp.h"
+#include "gesture.h"
 #include "bluetooth.h"
 #include <string.h>
 #include <stdio.h>
@@ -106,7 +107,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     if (!hfp_connected())
       window_close();
     phonenumber[0] = '\0';
-    gesture_init();
+    gesture_init(0);
     break;
   case EVENT_BT_CLIP:
     strcpy(phonenumber, rparam);
@@ -139,6 +140,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     
   case EVENT_WINDOW_CLOSING:
     hfp_accept_call(0);
+    gesture_shutdown();
     break;
   default:
     return 0;

@@ -44,6 +44,7 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
     
   case EVENT_EXIT_PRESSED:
     hfp_enable_voicerecog(0);
+    window_close();
     break;
     
   default:

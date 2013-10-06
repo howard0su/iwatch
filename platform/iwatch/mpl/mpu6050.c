@@ -332,3 +332,13 @@ unsigned long mpu_getsteptime()
 
   return time;
 }
+
+void mpu_gesturemode(int onoff)
+{
+  I2C_addr(MPU6050_ADDR);
+  if (onoff)
+    dmp_set_interrupt_mode(DMP_INT_CONTINUOUS);
+  else
+    dmp_set_interrupt_mode(DMP_INT_GESTURE);
+  I2C_done();
+}
