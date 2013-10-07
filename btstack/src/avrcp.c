@@ -150,7 +150,11 @@ static void handle_attributes(struct avrcp_header *pdu)
              len, &pdu->params[offset]);
       if (callback_handler)
       {
-        callback_handler(AVRCP_EVENT_ATTRIBUTE, attributeid, &pdu->params[offset]);
+        EventAttribute data;
+        data.charset = charsetid;
+        data.data = &pdu->params[offset];
+        data.len = len;
+        callback_handler(AVRCP_EVENT_ATTRIBUTE, attributeid, &data);
       }
       offset += len;
     }

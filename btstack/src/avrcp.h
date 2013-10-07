@@ -65,6 +65,12 @@
 #define AVRCP_EVENT_LENGTH              0xFC
 #define AVRCP_EVENT_STATUS              0xFB
 
+typedef struct _event
+{
+  uint16_t charset;
+  uint16_t len;
+  void *data;
+}EventAttribute;
 
 extern void avrcp_init();
 extern void avrcp_connect(bd_addr_t remote_addr);

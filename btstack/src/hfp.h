@@ -37,4 +37,5 @@ extern uint8_t hfp_accept_call(uint8_t);
 extern void hfp_callback(uint8_t type, uint8_t index, uint8_t value);
 extern uint8_t hfp_getstatus(uint8_t ind);
 extern uint8_t hfp_connected();
+extern bd_addr_t* hfp_remote_addr();
 #endif

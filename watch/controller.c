@@ -17,7 +17,7 @@
 #include "Template_Driver.h"
 #include "avctp.h"
 #include "avrcp.h"
-#include "btstack/bluetooth.h"
+#include "hfp.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -82,15 +82,13 @@ static void OnDraw(tContext *pContext)
   }
 
   // draw title
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
-  GrContextFontSet(pContext, (const tFont*)&g_sFontUnicode);
+  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
+  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova16b);
   GrStringDraw(pContext, title, -1, 12, 118, 0);
-
-  GrContextFontSet(pContext, &g_sFontNova16);
   GrStringDraw(pContext, artist, -1, 12, 135, 0);
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);   
+
 #if 0
   switch(state)
   {
@@ -153,7 +151,11 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
       {
       case AVRCP_MEDIA_ATTRIBUTE_TITLE:
         {
-          strncpy(title, rparam, sizeof(title) - 1);
+          EventAttribute *data = (EventAttribute*)rparam;
+          hexdump(data->data, data->len);
+          if (data->len > sizeof(title))
+            data->len = sizeof(title);
+          memcpy(title, data->data, data->len);
           break;
         }
       case AVRCP_MEDIA_ATTRIBUTE_DURATION:
@@ -162,7 +164,11 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
         }
       case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
         {
-          sprintf(artist, "by %s", (char*)rparam);
+          EventAttribute *data = (EventAttribute*)rparam;
+          hexdump(data->data, data->len);
+          if (data->len > sizeof(artist))
+            data->len = sizeof(artist);
+          memcpy(artist, data->data, data->len);
           avrcp_get_playstatus();
           break;
         }
@@ -213,9 +219,9 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       strcpy(title, "Connecting");
       if (!avctp_connected())
       {
-        if (bluetooth_paired())
+        if (hfp_connected())
         {
-          avctp_connect(*bluetooth_paired_addr());
+          avctp_connect(*hfp_remote_addr());
         }
         else
         {

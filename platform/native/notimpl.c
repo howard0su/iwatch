@@ -98,6 +98,8 @@ unsigned long mpu_getsteptime()
 {return 1257;}
 unsigned long mpu_getsteps()
 {return 1435;}
+void mpu_gesturemode(uint8_t d)
+{}
 
 void ant_init(ModeEnum mode) {}
 void ant_shutdown(void) {}

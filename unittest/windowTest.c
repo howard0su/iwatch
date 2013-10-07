@@ -367,6 +367,7 @@ void TestTestLcd(CuTest* tc)
   run_window_events(&test_lcd, test_events);
 }
 
+static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
 
 static void* font;
 static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
@@ -393,6 +394,8 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrStringDraw(pContext, L"中文测试", -1, 0, 55, 0);
                   GrStringDraw(pContext, L"中国语テスト", -1, 0, 75, 0);
                   GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
+                  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
+                  GrStringDraw(pContext, chinesetext, -1, 0, 105, 0);
                   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);                  
 
                   break;

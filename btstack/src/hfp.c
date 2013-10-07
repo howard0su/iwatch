@@ -31,6 +31,7 @@ static uint16_t hfp_response_size;
 static void*    hfp_response_buffer;
 static uint16_t rfcomm_channel_id = 0;
 static uint16_t rfcomm_connection_handle;
+static bd_addr_t currentbd;
 
 static void hfp_try_respond(uint16_t rfcomm_channel_id){
     if (!hfp_response_size) return;
@@ -546,6 +547,7 @@ static void hfp_state_handler(int code, char* buf)
   }
   else if (state == WAIT_CMEROK && code == R_OK)
   {
+#if 0
     hfp_response_buffer = AT_CMGS;
     hfp_response_size = sizeof(AT_CMGS);
     state = WAIT_CMGSOK;
@@ -561,15 +563,16 @@ static void hfp_state_handler(int code, char* buf)
     {
       printf("Not support SMS\n");
     }
+#endif
     hfp_response_buffer = AT_CLIP;
     hfp_response_size = sizeof(AT_CLIP);
     state = WAIT_OK;
     hfp_try_respond(rfcomm_channel_id);
+    hci_set_sniff_timeout(rfcomm_connection_handle, 3000);
   }
   else if (code == R_CIEV)
   {
     handle_CIEV(buf);
-    hci_set_sniff_timeout(rfcomm_connection_handle, 3000);
   }
   else if (code == R_RING)
   {
@@ -663,6 +666,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
 
       case RFCOMM_EVENT_OPEN_CHANNEL_COMPLETE:
         {
+          // data: event(8), len(8), status (8), address (48), handle (16), server channel(8), rfcomm_cid(16), max frame size(16)
           if (packet[2])
           {
             rfcomm_channel_id = 0;
@@ -676,6 +680,8 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
             hfp_response_buffer = AT_BRSF;
             hfp_response_size = sizeof(AT_BRSF);
             hfp_try_respond(rfcomm_channel_id);
+            
+            bt_flip_addr(currentbd, &packet[3]);
           }
           else
           {
@@ -735,7 +741,10 @@ uint8_t hfp_enable_voicerecog(uint8_t onoff)
 uint8_t hfp_accept_call(uint8_t accept)
 {
   if (hfp_response_size)
+  {
+    log_info("pending %s", hfp_response_buffer);
     return -1;
+  }
 
   if (accept)
   {
@@ -761,4 +770,9 @@ uint8_t hfp_getstatus(uint8_t ind)
 uint8_t hfp_connected()
 {
   return (rfcomm_channel_id != 0);
+}
+
+bd_addr_t* hfp_remote_addr()
+{
+  return &currentbd;
 }

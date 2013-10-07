@@ -66,7 +66,7 @@ static void hci_update_scan_enable(void);
 // the STACK is here
 static hci_stack_t       hci_stack;
 
-static const uint16_t       sniff_max_interval = 0x348;  // time unit: 0.625ms
+static const uint16_t       sniff_max_interval = 0x690;  // time unit: 0.625ms
 static const uint16_t       sniff_min_interval = 0xA0;
 static const uint16_t       sniff_attempt = 1;
 static const uint16_t       sniff_timeout = 0x10;
