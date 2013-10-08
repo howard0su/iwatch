@@ -53,7 +53,7 @@ static void drawClock0(tContext *pContext)
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
-  GrStringDraw(pContext, buf, 2, 100, 85, 0);
+  GrStringDraw(pContext, buf, 2, 100, 65, 0);
 
   GrContextFontSet(pContext, &g_sFontNova13);
   sprintf(buf, "%s %d, %d", month_name[month], day, year);
@@ -218,7 +218,7 @@ static void drawClock5(tContext *pContext)
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
-  GrStringDraw(pContext, buf, 2, 105, 90, 0);
+  GrStringDraw(pContext, buf, 2, 105, 80, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16);
   sprintf(buf, "%02d-%02d-%02d", month, day, year - 2000);
@@ -278,7 +278,7 @@ static void drawClock7(tContext *pContext)
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
-  GrStringDraw(pContext, buf, 2, 105, 105, 0);
+  GrStringDraw(pContext, buf, 2, 105, 85, 0);
 
   GrContextFontSet(pContext, &g_sFontNova13);
   sprintf(buf, "%s %d, %d", month_name[month], day, year);
