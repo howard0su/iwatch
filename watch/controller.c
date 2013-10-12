@@ -33,7 +33,9 @@ static uint8_t state;
 #define PROGRESS_Y 80
 
 static char title[32];
+static uint8_t titleLength;
 static char artist[32];
+static uint8_t artistLength;
 static uint16_t length;
 static uint16_t position;
 
@@ -85,8 +87,8 @@ static void OnDraw(tContext *pContext)
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrStringDraw(pContext, title, -1, 12, 118, 0);
-  GrStringDraw(pContext, artist, -1, 12, 135, 0);
+  GrStringDraw(pContext, title, titleLength, 12, 118, 0);
+  GrStringDraw(pContext, artist, artistLength, 12, 135, 0);
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);   
 
 #if 0
@@ -156,6 +158,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
           if (data->len > sizeof(title))
             data->len = sizeof(title);
           memcpy(title, data->data, data->len);
+          titleLength = data->len;
           break;
         }
       case AVRCP_MEDIA_ATTRIBUTE_DURATION:
@@ -169,6 +172,7 @@ static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
           if (data->len > sizeof(artist))
             data->len = sizeof(artist);
           memcpy(artist, data->data, data->len);
+          artistLength = data->len;
           avrcp_get_playstatus();
           break;
         }
