@@ -21,7 +21,7 @@ void I2C_Init()
 
   UCB1CTL0 = UCMODE_3 + UCMST + UCSYNC; // master, I2c mode, LSB
   UCB1CTL1 = UCSSEL__SMCLK + UCSWRST; // SMCLK for now
-  UCB1BR0 = 160; // 8MHZ / 80 = 100Khz
+  UCB1BR0 = 20; // 8MHZ / 80 = 100Khz
   UCB1BR1 = 0;
 
   // give clk signal to all slaves and wait SDA go back to high

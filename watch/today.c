@@ -1,7 +1,7 @@
 #include "contiki.h"
 
 #include "window.h"
-#include "mpu.h"
+#include "pedometer/pedometer.h"
 #include <stdio.h>
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
@@ -58,8 +58,8 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
-    steps = mpu_getsteps();
-    time = mpu_getsteptime();
+    steps = ped_get_steps();
+    time = 0;
     cal = 130;
     break;
   case EVENT_WINDOW_PAINT:

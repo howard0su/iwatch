@@ -4,23 +4,13 @@
 
 #define SAMPLE_HZ 50
 
-unsigned short step_cnt;
+uint32_t step_cnt;
 static uint16_t interval;
 
 static int16_t last[3];
 
 void ped_step_detect_init(void)
 {
-#if 0
-  sample_count = 0;
-  sample_new = sample_old = 0;
-  min_sample = 65535;
-  max_sample = 0;
-  dc = 65535 / 2;
-  interval = 0;
-  mode = -4;
-  precision = (max_sample - min_sample)/4;
-#endif
   last[0] = last[1] = last[2] = 0;
 }
 
@@ -69,90 +59,30 @@ static int16_t totalaccel(short *data)
   return total;
 }
 
-
 char ped_update_sample(short *data)
 {
- //printf("%d\t%d\t%d\t", data[0], data[1], data[2]);
-#if 0
-  // cacluate the total accel
-  uint16_t sample = totalaccel(data);
-  static uint8_t sample_count;
-  static uint16_t sample_new, sample_old;
-  static uint16_t min_sample, max_sample;
-  static uint16_t dc;
-  static uint16_t precision;
-  static int8_t mode;
-
-  if (sample > max_sample)
-    max_sample = sample;
-  if (sample < min_sample)
-    min_sample = sample;
-  
-  sample_count++;
-  interval++;
-  
-  if (sample_count == SAMPLE_HZ)
-  {
-    sample_count = 0;
-    dc = (min_sample + max_sample)/2;
-    precision = (max_sample - min_sample)/4;
-    printf("min=%d max=%d dc = %d precisioin=%d\n", min_sample, max_sample, dc, precision);
-    min_sample = 65535;
-    max_sample = 0;
-  }
-  
-  printf("[%d] (%d -> %d) ", sample, sample_new, sample_old);
-  sample_old = sample_new;
-  if (sample - sample_new < precision || sample - sample_new > -precision)
-  {
-    printf("\n");
-    return 1;
-  }
-  
-  // yes
-  sample_new = sample;
-  if (sample_old > dc && dc > sample_new)
-  {
-    // check the time
-    if (interval > SAMPLE_HZ/5 && interval < SAMPLE_HZ * 2)
-    {
-      if (mode == 1)
-      {
-        step_cnt+=4;
-        mode++;
-      }
-      else if (mode > 1)
-      {
-        step_cnt++;
-      }
-      else
-      {
-        mode++;
-      }
-      interval = 0;
-    }
-    else
-    {
-      mode = -4;
-    }
-  }
-  
-  printf(" %d\n", mode);
-  
-#else
-  int16_t total = totalaccel(data); 
-  int16_t delta = filter2(total);
+  int16_t total = totalaccel(data);
+  int16_t threshold = filter2(total);
   
   static int holdoff = 0;
+
+  //printf("%d\t%d\t%d\t", data[0], data[1], data[2]);
+
   interval++;
   
+  if (threshold < 2000)
+  {
+    //putchar('\n');
+    return 1;
+  } 
+
   if (holdoff > 0)
   {
     holdoff--;
   }
   else if (holdoff < 0)
   {
-    if (total > delta)
+    if (total > threshold)
     {
     }
     else
@@ -160,18 +90,29 @@ char ped_update_sample(short *data)
       holdoff = SAMPLE_HZ/5;
     }
   }
-  else if (total > delta)
+  else if (total > threshold)
   {
-    //if (interval > SAMPLE_HZ/5 && interval < SAMPLE_HZ * 2)
-    {
-      step_cnt++;
-      interval = 0;
-    }
+    step_cnt++;
+    interval = 0;
     holdoff = -1;
   }
 
- //printf("| %d\t%d\t%d\t%d\n", total, delta, holdoff, step_cnt);
+  //printf("%d\t%d\t%d\t%ld\n", total, threshold, holdoff, step_cnt);
   
-#endif
   return 1;
+}
+
+uint32_t ped_get_steps()
+{
+  return step_cnt;
+}
+
+uint32_t ped_get_calari()
+{
+  return 0;
+}
+
+uint32_t ped_get_distance()
+{
+
 }
