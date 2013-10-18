@@ -76,7 +76,7 @@ ISR(TIMER1_A1, timera1)
 #error Change CLOCK_CONF_SECOND in contiki-conf.h.
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
-        P4OUT ^= BIT3; // flip LCD COM switch
+        LCDEXTCOMMOUT ^= LCDEXTCOMMPIN; // flip LCD COM switch
         ++seconds;
         energest_flush();
       }

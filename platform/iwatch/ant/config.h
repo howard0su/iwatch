@@ -127,8 +127,8 @@
 #define SYSTEM_RST_BIT                       BIT6           // P4.6
 #define SYSTEM_RST_OUT                       P4OUT
 
-#define SYNC_SEN_IFG		             P1IFG
-#define SYNC_SEN_BIT			     BIT5			//P1.5
+#define SYNC_SEN_IFG		                     P1IFG
+#define SYNC_SEN_BIT			                   BIT5			//P1.5
 #define SYNC_SEN_IES                         P1IES
 #define SYNC_SEN_IE                          P1IE
 

@@ -105,18 +105,6 @@
    
 #include "power.h"
  
-#define SPIOUT  P3OUT
-#define SPIDIR  P3DIR
-#define SPISEL  P3SEL
-
-#define V5VOUT  P6OUT
-#define V5VDIR  P6DIR
-#define V5BIT   BIT6
-
-#define _SCLK	BIT3					// SPI clock
-#define _SDATA	BIT1					// SPI data (sent to display)
-#define _SCS	BIT0					// SPI chip select
-
 #define MLCD_WR 0x01					// MLCD write line command
 #define MLCD_CM 0x04					// MLCD clear memory command
 #define MLCD_SM 0x00					// MLCD static mode command
@@ -167,9 +155,9 @@ static void SPIInit()
   UCB0BR1 = 0;
 
   //Configure ports.
-  SPIDIR |= _SCLK | _SDATA | _SCS;
-  SPISEL |= _SCLK | _SDATA;
-  SPIOUT &= ~(_SCLK | _SDATA | _SCS);
+  LCDSPIDIR |= LCD_SCLK | LCD_SDATA | LCD_SCS;
+  LCDSPISEL |= LCD_SCLK | LCD_SDATA;
+  LCDSPIOUT &= ~(LCD_SCLK | LCD_SDATA | LCD_SCS);
 }
 
 static void SPISend(const void* data, unsigned int size)
@@ -178,7 +166,7 @@ static void SPISend(const void* data, unsigned int size)
   while(UCB0STAT & UCBUSY);
   UCB0CTL1 &= ~UCSWRST;
   state = STATE_SENDING;
-  SPIOUT |= _SCS;
+  LCDSPIOUT |= LCD_SCS;
 
   // USB0 TXIFG trigger
   DMACTL0 = DMA0TSEL_19;
@@ -215,12 +203,12 @@ memlcd_DriverInit(void)
   //TA0CCR0 = 4096;
   //TA0CCR1 = 1;
 
-  P4SEL &= ~BIT3;
-  P3DIR |= BIT3; // p4.3 is EXTCOMM
+  LCDEXTCOMMSEL &= ~LCDEXTCOMMPIN;
+  LCDEXTCOMMDIR |= LCDEXTCOMMPIN; // p4.3 is EXTCOMM
 
   // enable disply
-  P8DIR |= BIT2; // p8.2 is display
-  P8OUT |= BIT2; // set 1 to active display
+  LCDENDIR |= LCDENPIN; // p8.2 is display
+  LCDENOUT |= LCDENPIN; // set 1 to active display
 
   // enable 5v
   V5VDIR |= V5BIT;
@@ -236,7 +224,7 @@ memlcd_DriverInit(void)
 void
 memlcd_DriverShutdown(void)
 {
-  P8OUT &= ~BIT2; // set 1 to active display
+  LCDENOUT &= ~LCDENPIN; // set 1 to active display
   V5VOUT &= ~V5BIT;
   UCB0CTL1 = UCSWRST;
 }
@@ -761,7 +749,7 @@ const tDisplay g_memlcd_Driver =
 
 int dma_channel_0()
 {
-  SPIOUT &= ~_SCS;
+  LCDSPIOUT &= ~LCD_SCS;
   state = STATE_NONE;
   if (data.start != 0xff)
   {

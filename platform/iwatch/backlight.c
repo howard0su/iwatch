@@ -2,20 +2,6 @@
 #include "backlight.h"
 #include "sys/ctimer.h"
 
-#define LIGHTDIR P4DIR
-#define LIGHTOUT P4OUT
-#define LIGHTSEL P4SEL
-#define LIGHT    BIT2
-#define LIGHTCONTROL TB0CCTL2
-#define LIGHTLEVEL TB0CCR2
-
-#define MOTORDIR P4DIR
-#define MOTOROUT P4OUT
-#define MOTORSEL P4SEL
-#define MOTOR    BIT1
-#define MOTORCONTROL TB0CCTL1
-#define MOTORLEVEL TB0CCR1
-
 void backlight_init()
 {
   LIGHTDIR |= LIGHT;

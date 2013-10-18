@@ -3,17 +3,6 @@
 #include "uart1.h"
 #include "isr_compat.h"
 
-#define UARTOUT P1OUT
-#define UARTSEL P1SEL
-#define UARTDIR P1DIR
-#define UARTIES P1IES
-#define UARTIE  P1IE
-#define UARTIFG P1IFG
-#define UARTIN  P1IN
-
-#define UARTTXBIT BIT1
-#define UARTRXBIT BIT2
-
 #define DCO_SPEED F_CPU
 
 // 4800 (unused)

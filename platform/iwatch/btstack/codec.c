@@ -113,25 +113,13 @@ static uint16_t codec_read(uint8_t reg)
   return (data[0] << 8) | data[1];
 }
 
-#define AUDOUT P10OUT
-#define AUDDIR P10DIR
-#define AUDBIT BIT6
-
-#define CLKSEL P11SEL
-#define CLKDIR P11DIR
-#define CLKBIT BIT2
-
-#define PCODECDIR P7DIR
-#define PCODECOUT P7OUT
-#define PCODECBIT BIT7
-
 void codec_shutdown()
 {
   codec_suspend();
 
   AUDOUT |= AUDBIT; // output direction, value = H
 
-  CLKSEL &= ~CLKBIT;     // output SMCLK
+  SMCLKSEL &= ~SMCLKBIT;     // output SMCLK
 
   PCODECOUT &= ~PCODECBIT;
 }
@@ -147,7 +135,7 @@ void codec_suspend()
   PSPKEN[5]
   */
   printf("codec_shutdown\n");
-  CLKSEL &= ~CLKBIT;     // disable SMCLK
+  SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
   power_unpin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS);
@@ -211,7 +199,7 @@ uint8_t codec_getvolume()
 void codec_wakeup()
 {
   printf("codec_wakeup\n");
-  CLKSEL |= CLKBIT;     // output SMCLK
+  SMCLKSEL |= SMCLKBIT;     // output SMCLK
   power_pin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS);
@@ -229,11 +217,11 @@ void codec_init()
   AUDDIR |= AUDBIT;
   AUDOUT &= ~AUDBIT; // output direction, value = H
 
-  CLKDIR |= CLKBIT;
-  CLKSEL |= CLKBIT;     // output SMCLK
+  SMCLKDIR |= SMCLKBIT;
+  SMCLKSEL |= SMCLKBIT;     // output SMCLK
 
- PCODECDIR |= PCODECBIT;
- PCODECOUT |= PCODECBIT;
+  PCODECDIR |= PCODECBIT;
+  PCODECOUT |= PCODECBIT;
 
   power_pin(MODULE_CODEC);
 

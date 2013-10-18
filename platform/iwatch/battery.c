@@ -3,17 +3,6 @@
 #include "isr_compat.h"
 #include <stdio.h>
 
-#define BATINDIR P6DIR
-#define BATINSEL P6SEL
-#define BATININ  P6IN
-#define BATINPIN BIT7
-#define BATLEVEL BIT4
-
-#define BATOUTDIR P7DIR
-#define BATOUTREN P7REN
-#define BATOUTOUT P7OUT
-#define BATOUTPIN BIT5
-
 static uint8_t level;
 
 static void setoutputfloat()

@@ -4,18 +4,6 @@
 #include "isr_compat.h"
 #include "spiflash.h"
 
-#define CLKDIR P3DIR
-#define CLKSEL P3SEL
-#define CLKOUT P3OUT
-#define CLKPIN BIT6
-
-#define SPIDIR P5DIR
-#define SPISEL P5SEL
-#define SPIOUT P5OUT
-#define SIPIN  BIT6
-#define SOPIN  BIT7
-#define CSPIN  BIT5
-
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
