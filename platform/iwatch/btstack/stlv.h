@@ -30,6 +30,8 @@
 #define ELEMENT_TYPE_REMOVE_FILE      'X'
 #define ELEMENT_TYPE_SPORTS_DATA      'A'
 #define ELEMENT_TYPE_SPORTS_GRID      'R'
+#define ELEMENT_TYPE_SN               'S'
+#define ELEMENT_TYPE_WATCHFACE        'W'
 
 #define ELEMENT_TYPE_ALARM            'I'
 #define     SUB_TYPE_ALARM_OPERATION  'o'
@@ -46,6 +48,7 @@
 #define     ELEMENT_TYPE_MESSAGE_TW       'T'
 #define         SUB_TYPE_MESSAGE_IDENTITY 'i'
 #define         SUB_TYPE_MESSAGE_MESSAGE  'd'
+
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;

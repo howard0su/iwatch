@@ -38,5 +38,7 @@ void handle_get_sports_grid();
 //-----------------------alarm handlers---------------------
 void handle_alarm(alarm_conf_t* para);
 
+void handle_get_device_id();
+
 #endif
 

@@ -37,5 +37,7 @@ typedef struct _alarm_conf_t
 }alarm_conf_t;
 
 void send_alarm_conf(alarm_conf_t* data);
+
+void send_device_id(char* device_id);
 #endif
 

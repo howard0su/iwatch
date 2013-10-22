@@ -118,6 +118,10 @@ void handle_stlv_packet(unsigned char* packet)
             }
             break;
 
+        case ELEMENT_TYPE_SN:
+
+            break;
+
         }
 
 
