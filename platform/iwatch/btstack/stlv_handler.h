@@ -12,7 +12,7 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
 void handle_message(uint8_t msg_type, char* ident, char* message);
 
 //-----------------------data----------------------
-void handle_sports_heartbeat(uint8_t seconds_to_next);
+void handle_sports_heartbeat(char* activity_id);
 
 //TODO: sujun provides this file name/prefix
 #define FILE_NAME_FILE_LIST
@@ -39,6 +39,8 @@ void handle_get_sports_grid();
 void handle_alarm(alarm_conf_t* para);
 
 void handle_get_device_id();
+
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance);
 
 #endif
 

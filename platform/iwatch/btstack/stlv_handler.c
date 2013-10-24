@@ -40,6 +40,19 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
     case ELEMENT_TYPE_MESSAGE_TW:
         icon = ICON_TWITTER;
         break;
+
+    case ELEMENT_TYPE_MESSAGE_WEATHER:
+    case ELEMENT_TYPE_MESSAGE_BATTERY:
+    case ELEMENT_TYPE_MESSAGE_CALL:
+    case ELEMENT_TYPE_MESSAGE_REMINDER:
+        //TODO: impelment all these
+        icon = ICON_MSG;
+        break;
+    case ELEMENT_TYPE_MESSAGE_RANGE:
+        //TODO: this is special: phone out of range is merely an option
+        //in message, if the value is "off" turn off the alarm
+        //in message, if the value is "on" turn on the alarm
+        break;
     default:
         return;
         break;
@@ -76,9 +89,9 @@ void handle_file_end(int fd)
 }
 
 //TODO: sujun implement this heart beat and get file
-void handle_sports_heartbeat(uint8_t seconds_to_next)
+void handle_sports_heartbeat(char* activity_id)
 {
-    UNUSED_VAR(seconds_to_next);
+    UNUSED_VAR(activity_id);
 }
 
 void handle_get_file(char* name)
@@ -86,13 +99,25 @@ void handle_get_file(char* name)
     transfer_file(name);
 }
 
-void handle_list_file()
+void handle_list_file(char* prefix)
 {
+    UNUSED_VAR(prefix);
 }
 
 void handle_remove_file(char* name)
 {
     UNUSED_VAR(name);
+}
+
+void handle_get_device_id()
+{
+}
+
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance)
+{
+    UNUSED_VAR(spd); // meters/second * 100
+    UNUSED_VAR(alt); // meters * 10
+    UNUSED_VAR(distance); // meters
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -197,10 +222,4 @@ void handle_alarm(alarm_conf_t* para)
         //set or add an alarm
     }
 }
-
-void handle_get_device_id()
-{
-    send_device_id("123");
-}
-
 

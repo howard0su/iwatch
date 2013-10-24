@@ -186,3 +186,13 @@ void send_device_id(char* device_id)
     send_packet(p, NULL, 0);
 }
 
+void send_file_list(char* files)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "L", 1);
+    element_append_string(p, h, files);
+    send_packet(p, NULL, 0);
+}
+
