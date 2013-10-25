@@ -19,30 +19,30 @@ unsigned short ped_step_detect(void)
   return step_cnt;
 }
 
-static int16_t filter(int16_t value, int16_t *slot)
+static inline int16_t filter(int16_t value, int16_t *slot)
 {
   int16_t ret = value - *slot; 
-  *slot = ret / 8 + *slot;
+  *slot = ret >> 3 + *slot;
   
   return ret;
 }
 
-static int16_t filter2(int16_t value)
+static inline int16_t filter2(int16_t value)
 {
-  static int32_t lastsample = 0;
+  static int16_t lastsample = 0;
   
-  uint32_t ret;
+  uint16_t ret;
   if (value > lastsample)
-    ret = (value - lastsample) / 2 + lastsample;
+    ret = (value - lastsample) >> 1 + lastsample;
   else
-    ret = (value - lastsample) / 16 + lastsample;
+    ret = (value - lastsample) >> 4 + lastsample;
   
   lastsample = ret;
   
-  return ret / 2; // gt = 1/2 
+  return ret >> 1; // gt = 1/2 
 }
 
-static int16_t totalaccel(short *data)
+static int16_t totalaccel(int16_t *data)
 {
   int16_t total = 0;
   
@@ -59,14 +59,14 @@ static int16_t totalaccel(short *data)
   return total;
 }
 
-char ped_update_sample(short *data)
+char ped_update_sample(int16_t *data)
 {
   int16_t total = totalaccel(data);
   int16_t threshold = filter2(total);
   
   static int holdoff = 0;
 
-  //printf("%d\t%d\t%d\t", data[0], data[1], data[2]);
+  printf("%d\t%d\t%d\n", data[0], data[1], data[2]);
 
   interval++;
   
@@ -87,7 +87,7 @@ char ped_update_sample(short *data)
     }
     else
     {
-      holdoff = SAMPLE_HZ/5;
+      holdoff = 1;
     }
   }
   else if (total > threshold)
@@ -114,5 +114,5 @@ uint32_t ped_get_calari()
 
 uint32_t ped_get_distance()
 {
-
+  return 0;
 }

@@ -128,7 +128,7 @@ int i2c_write(unsigned char slave_addr, unsigned char reg_addr,
   return I2C_writebytes(reg_addr, data, length);
 }
 
-int i2c_read(unsigned char slave_addr, unsigned char reg_addr, unsigned char length, unsigned char *data)
+int i2c_read(unsigned char slave_addr, unsigned char reg_addr, unsigned short length, unsigned char *data)
 {
   //printf("read %d len=%d\n", reg_addr, length);
   return I2C_readbytes(reg_addr, data, length);
@@ -156,11 +156,10 @@ int port1_pin6()
   return 0;
 }
 
-static enum {STATE_RUNNING, STATE_SLEEP} state = STATE_RUNNING;
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
   PROCESS_BEGIN();
-  etimer_set(&timer, CLOCK_SECOND);
+  etimer_set(&timer, CLOCK_SECOND * 3);
   process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
   while(1)
   {
@@ -172,17 +171,21 @@ PROCESS_THREAD(mpu6050_process, ev, data)
         unsigned char more = 0;
         do
         {
-          short accel[3];
-          char data[6];
-          int result = mpu_read_fifo_stream(6, (char*)data, &more);
+          int16_t accel[3];
+          char data[1020];
+          unsigned short length = sizeof(data);
+          int result = mpu_read_fifo_all(&length, (unsigned char*)data, &more);
+
           if (result == 0)
           {
-            accel[0] = (data[0] << 8) | data[1];
-            accel[1] = (data[2] << 8) | data[3];
-            accel[2] = (data[4] << 8) | data[5];
-            ped_update_sample(accel);
-            gesture_processdata(accel);
-
+            for (int index = 0; index < length; index += 6)
+            {
+              accel[0] = (data[index + 0] << 8) | data[index + 1];
+              accel[1] = (data[index + 2] << 8) | data[index + 3];
+              accel[2] = (data[index + 4] << 8) | data[index + 5];
+              ped_update_sample(accel);
+              gesture_processdata(accel);
+            }
             continue;
           }
           else if (result == -1)

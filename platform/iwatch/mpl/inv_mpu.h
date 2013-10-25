@@ -123,5 +123,7 @@ int mpu_read_reg(unsigned char reg, unsigned char *data);
 int mpu_run_self_test(long *gyro, long *accel);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
 
+int mpu_read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *more);
+
 #endif  /* #ifndef _INV_MPU_H_ */
 

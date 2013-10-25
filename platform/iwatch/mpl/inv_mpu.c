@@ -42,7 +42,7 @@
  */
 extern int i2c_write(unsigned char slave_addr, unsigned char reg_addr,
                      unsigned char length, unsigned char const *data);
-extern int i2c_read(unsigned char slave_addr, unsigned char reg_addr, unsigned char length, unsigned char *data);
+extern int i2c_read(unsigned char slave_addr, unsigned char reg_addr, unsigned short length, unsigned char *data);
 extern void delay_ms(unsigned long num_ms);
 extern void get_ms(unsigned long *count);
 extern int msp430_reg_int_cb(void (*cb)(void));
@@ -1697,6 +1697,41 @@ int mpu_read_fifo_stream(unsigned short length, unsigned char *data,
 
     if (i2c_read(st.hw->addr, st.reg->fifo_r_w, length, data))
         return -1;
+    
+    return 0;
+}
+
+// read block size into data, legnth input as buffer size, output is number of *bytes*
+int mpu_read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *more)
+{
+    unsigned char tmp[2];
+    unsigned short fifo_count;
+
+    if (!st.chip_cfg.sensors)
+        return -1;
+    
+    if (i2c_read(st.hw->addr, st.reg->fifo_count_h, 2, tmp))
+        return -1;
+    fifo_count = (tmp[0] << 8) | tmp[1];
+    if (fifo_count > (st.hw->max_fifo >> 1)) {
+        /* FIFO is 50% full, better check overflow bit. */
+        if (i2c_read(st.hw->addr, st.reg->int_status, 1, tmp))
+            return -1;
+        if (tmp[0] & BIT_FIFO_OVERFLOW) {
+            mpu_reset_fifo();
+            return -2;
+        }
+    }
+
+    if (*length >= fifo_count)
+      *length = fifo_count;
+    else
+      *more = 1;
+    
+    printf("there is %d\n", fifo_count);
+
+    if (i2c_read(st.hw->addr, st.reg->fifo_r_w, *length, data))
+      return -1;
     
     return 0;
 }

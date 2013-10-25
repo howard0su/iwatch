@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static uint8_t *rxdata;
-static uint8_t rxlen;
+static uint16_t rxlen;
 static const uint8_t *payload;
 static uint8_t payloadlen;
 static const uint8_t *txdata;
@@ -49,7 +49,7 @@ void I2C_shutdown()
   UCB1CTL1 |= UCSWRST;
 }
 
-int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
+int I2C_readbytes(unsigned char reg, unsigned char *data, uint16_t len)
 {
   txdata = &reg;
   txlen = 1;

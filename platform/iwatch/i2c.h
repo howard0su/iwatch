@@ -1,7 +1,7 @@
 #ifndef _I2C_H_
 #define _I2C_H_
 extern void I2C_Init();
-extern int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len);
+extern int I2C_readbytes(unsigned char reg, unsigned char *data, uint16_t len);
 extern int I2C_writebytes(unsigned char reg, const unsigned char *data, uint8_t len);
 extern int I2C_write(unsigned char reg, unsigned char data);
 
