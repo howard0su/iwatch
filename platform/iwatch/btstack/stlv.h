@@ -30,6 +30,8 @@
 #define ELEMENT_TYPE_REMOVE_FILE      'X'
 #define ELEMENT_TYPE_SPORTS_DATA      'A'
 #define ELEMENT_TYPE_SPORTS_GRID      'R'
+#define ELEMENT_TYPE_SN               'S'
+#define ELEMENT_TYPE_WATCHFACE        'W'
 
 #define ELEMENT_TYPE_ALARM            'I'
 #define     SUB_TYPE_ALARM_OPERATION  'o'
@@ -44,8 +46,22 @@
 #define     ELEMENT_TYPE_MESSAGE_SMS      'S'
 #define     ELEMENT_TYPE_MESSAGE_FB       'F'
 #define     ELEMENT_TYPE_MESSAGE_TW       'T'
+#define     ELEMENT_TYPE_MESSAGE_WEATHER  'W'
+#define     ELEMENT_TYPE_MESSAGE_BATTERY  'B'
+#define     ELEMENT_TYPE_MESSAGE_CALL     'C'
+#define     ELEMENT_TYPE_MESSAGE_REMINDER 'R'
+#define     ELEMENT_TYPE_MESSAGE_RANGE    'L'
 #define         SUB_TYPE_MESSAGE_IDENTITY 'i'
 #define         SUB_TYPE_MESSAGE_MESSAGE  'd'
+
+#define ELEMENT_TYPE_GPS            'Z'
+#define     SUB_TYPE_GPS_UTC        't'
+#define     SUB_TYPE_GPS_LAT        'l'
+#define     SUB_TYPE_GPS_LON        'n'
+#define     SUB_TYPE_GPS_ALT        'a'
+#define     SUB_TYPE_GPS_SPD        's'
+#define     SUB_TYPE_GPS_DIS        'd'
+
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;

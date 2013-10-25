@@ -8,6 +8,7 @@
 static void handle_file(stlv_packet pack, element_handle handle);
 static void print_stlv_string(unsigned char* data, int len);
 static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handle handle);
+static void handle_gps_data(stlv_packet pack, element_handle handle);
 
 void handle_stlv_packet(unsigned char* packet)
 {
@@ -76,24 +77,43 @@ void handle_stlv_packet(unsigned char* packet)
             break;
 
         case ELEMENT_TYPE_LIST_FILES:
-           handle_list_file();
-           break;
+            {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                STLV_BUF_BEGIN_TEMP_STRING(data, data_len);
+                handle_list_file((char*)data);
+                STLV_BUF_END_TEMP_STRING(data, data_len);
+            }
+            break;
 
         case ELEMENT_TYPE_REMOVE_FILE:
             {
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                 STLV_BUF_BEGIN_TEMP_STRING(data, data_len);
-                handle_remove_file((char*)data);
+                uint8_t file_name_pos = 0;
+                for (uint8_t i = 0; i < data_len; ++i)
+                {
+                    if (data[i] == ';')
+                        data[i] = '\0';
+
+                    if (data[i] == '\0')
+                    {
+                        handle_remove_file((char*)(&data[file_name_pos]));
+                        file_name_pos = i + 1;
+                    }
+                }
                 STLV_BUF_END_TEMP_STRING(data, data_len);
             }
            break;
 
         case ELEMENT_TYPE_SPORT_HEARTBEAT:
             {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                uint8_t seconds_to_next = *data;
-                handle_sports_heartbeat(seconds_to_next);
+                STLV_BUF_BEGIN_TEMP_STRING(data, data_len);
+                handle_sports_heartbeat((char*)data);
+                STLV_BUF_END_TEMP_STRING(data, data_len);
             }
             break;
 #if 0
@@ -116,6 +136,14 @@ void handle_stlv_packet(unsigned char* packet)
                 }
                 handle_alarm((alarm_conf_t*)data);
             }
+            break;
+
+        case ELEMENT_TYPE_SN:
+            handle_get_device_id();
+            break;
+
+        case ELEMENT_TYPE_GPS:
+            handle_gps_data(pack, handle);
             break;
 
         }
@@ -204,3 +232,44 @@ static void handle_msg_element(uint8_t msg_type, stlv_packet pack, element_handl
 
 }
 
+static void handle_gps_data(stlv_packet pack, element_handle handle)
+{
+    char type_buf[MAX_ELEMENT_TYPE_BUFSIZE];
+
+    uint16_t gps_spd = 0;
+    uint16_t gps_alt = 0;
+    uint32_t gps_dis = 0;
+
+    element_handle element = get_first_sub_element(pack, handle);
+    while (IS_VALID_STLV_HANDLE(element))
+    {
+        int type_len = get_element_type(pack, element, type_buf, sizeof(type_buf));
+        switch (type_buf[0])
+        {
+            case SUB_TYPE_GPS_ALT:
+                {
+                    uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                    gps_alt = *((uint16_t*)data);
+                }
+                break;
+
+            case SUB_TYPE_GPS_SPD:
+                {
+                    uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                    gps_spd = *((uint16_t*)data);
+                }
+                break;
+
+            case SUB_TYPE_GPS_DIS:
+                {
+                    uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                    gps_dis = *((uint32_t*)data);
+                }
+               break;
+        }
+        element = get_next_sub_element(pack, handle, element);
+    }
+
+    handle_gps_info(gps_spd, gps_alt, gps_dis);
+
+}
