@@ -14,14 +14,6 @@ void handle_message(uint8_t msg_type, char* ident, char* message);
 //-----------------------data----------------------
 void handle_sports_heartbeat(char* activity_id);
 
-//TODO: sujun provides this file name/prefix
-#define FILE_NAME_FILE_LIST
-#define FILE_NAME_UI_CONF
-#define FILE_NAME_SPORT_DATA
-#define FILE_NAME_WATCH_STATUS
-#define FILE_PREFIX_GESTURE
-#define FILE_PREFIX_WATCHFACE
-#define FILE_PREFIX_GADGIT
 void handle_get_file(char* name);
 void handle_list_file();
 void handle_remove_file(char* name);

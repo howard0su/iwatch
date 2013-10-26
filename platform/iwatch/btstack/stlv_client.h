@@ -18,13 +18,14 @@ void send_sports_grid(uint8_t* data, uint8_t size);
 
 
 //-----------------------send alarm conf------------------------
-#define ALARM_MODE_NO_EXIST 0
-#define ALARM_MODE_DISABLE  1
-#define ALARM_MODE_ONCE     2
-#define ALARM_MODE_HOURLY   3
-#define ALARM_MODE_DAILY    4
-#define ALARM_MODE_WEEKLY   5
-#define ALARM_MODE_MONTHLY  6
+#define ALARM_MODE_NO_EXIST 0x00
+#define ALARM_MODE_DISABLE  0x01
+#define ALARM_MODE_ONCE     0x02
+#define ALARM_MODE_HOURLY   0x03
+#define ALARM_MODE_DAILY    0x04
+#define ALARM_MODE_WEEKLY   0x05
+#define ALARM_MODE_MONTHLY  0x06
+#define ALARM_VIBRATE_FLAG  0x10
 
 typedef struct _alarm_conf_t
 {
