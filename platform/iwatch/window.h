@@ -1,6 +1,7 @@
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
 #include "grlib/grlib.h"
+#include <stdint.h>
 
 PROCESS_NAME(system_process);
 
@@ -20,7 +21,7 @@ PROCESS_NAME(system_process);
 // parameter is used as rparam
 #define EVENT_TIME_CHANGED            0x90
 #define EVENT_NOTIFICATION            0x91
-#define EVENT_ANT_DATA                0x92
+#define EVENT_SPORT_DATA              0x92
 #define EVENT_BT_RING                 0x93
 #define EVENT_BT_CLIP                 0x94
 #define EVENT_BT_CIEV                 0x95
@@ -58,6 +59,7 @@ extern void window_timer(clock_time_t time);
 extern void window_close(void);
 extern windowproc window_current();
 extern tContext* window_context();
+extern void window_postmessage(uint8_t event, uint16_t lparam, void *rparam);
 
 // Common control
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
@@ -130,5 +132,18 @@ extern const char * const month_name[];
 extern const char * const month_shortname[];
 extern const char * const week_shortname[];
 extern const char* toEnglish(uint8_t number, char* buffer);
+
+// #define EVENT_SPORT_DATA              0x92
+// lparam defined as below
+#define DATA_WORKOUT  0
+#define DATA_SPEED    1
+#define DATA_HEARTRATE  2
+#define DATA_CALS   3
+#define DATA_DISTANCE 4
+#define DATA_SPEED_AVG  5
+#define DATA_ALTITUTE 6
+#define DATA_TIME   7
+#define DATA_SPEED_TOP  8
+
 
 #endif

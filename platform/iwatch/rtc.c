@@ -9,6 +9,7 @@ PROCESS_NAME(system_process);
 
 __no_init static struct datetime now;
 __no_init static uint16_t checksum;
+static uint8_t source;
 
 static uint16_t getChecksum()
 {
@@ -20,6 +21,11 @@ static uint16_t getChecksum()
   CRCDIRB_L = now.hour;
   CRCDIRB_L = now.minute;
   CRCDIRB_L = now.second;
+
+  CRCDIRB_L = now.ahour;
+  CRCDIRB_L = now.aminute;
+  CRCDIRB_L = now.aday;
+  CRCDIRB_L = now.adow;
 
   return CRCINIRES;
 }
@@ -51,6 +57,8 @@ void rtc_init()
     RTCHOUR = now.hour;
     RTCMIN = now.minute;
     RTCSEC = now.second;
+
+    rtc_setalarm(now.aday, now.adow, now.ahour, now.aminute);
   }
   //  RTCADOWDAY = 0x2;                         // RTC Day of week alarm = 0x2
   //  RTCADAY = 0x20;                           // RTC Day Alarm = 0x20
@@ -68,8 +76,16 @@ PROCESS_THREAD(rtc_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    checksum = getChecksum();
-    process_post(ui_process, EVENT_TIME_CHANGED, &now);
+    if (source == 0)
+    {
+      checksum = getChecksum();
+      process_post(ui_process, EVENT_TIME_CHANGED, &now);
+    }
+    else
+    {
+      // notification of alarm
+      window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, 0);
+    }
   }
   PROCESS_END();
 }
@@ -140,9 +156,44 @@ uint8_t rtc_getmaxday(uint16_t year, uint8_t month)
   }
 }
 
-void rtc_setalarm()
+void rtc_setalarm(uint8_t aday, uint8_t adow, uint8_t ahour, uint8_t aminute)
 {
+  int enable = 0;
+  RTCCTL0 &= ~RTCAIE;
+  RTCCTL0 &= ~RTCAIFG;
 
+  if (adow & 0x80) 
+  {
+    RTCADOW = adow;
+    now.adow = adow;
+    enable = 1;
+  }
+
+  if (aday & 0x80)
+  {
+   RTCADAY = aday;
+   now.aday = aday;
+   enable =1;
+  }
+
+  if (aminute & 0x80)
+  {
+    RTCAMIN = aminute;
+    now.aminute = aminute;
+    enable = 1;
+  }
+  
+  if (ahour & 0x80)
+  {
+    RTCAHOUR = ahour;
+    now.ahour = ahour;
+    enable = 1;
+  }
+
+  if (enable)
+  {
+    RTCCTL0 |= RTCAIE;
+  }
 }
 
 void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
@@ -203,6 +254,7 @@ ISR(RTC, RTC_ISR)
     break;
   case RTC_RTCRDYIFG:                     // RTCRDYIFG
     {
+      source = 0;
       now.hour   = RTCHOUR;
       now.minute = RTCMIN;
       now.second = RTCSEC;
@@ -215,6 +267,7 @@ ISR(RTC, RTC_ISR)
     }
   case RTC_RTCTEVIFG:                     // RTCEVIFG
     {
+      source = 0;
       now.hour   = RTCHOUR;
       now.minute = RTCMIN;
       now.second = RTCSEC;
@@ -226,10 +279,16 @@ ISR(RTC, RTC_ISR)
       break;
     }
   case RTC_RTCAIFG:                       // RTCAIFG
-    break;
+    {
+      source = 1;
+      process_poll(&rtc_process);
+      LPM4_EXIT;
+      break;
+    }
   case RTC_RT0PSIFG:                      // RT0PSIFG
     break;
   case RTC_RT1PSIFG:                      // RT1PSIFG
+    source = 0;
     process_poll(&rtc_process);
     LPM4_EXIT;
     break;

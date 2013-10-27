@@ -346,7 +346,7 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
       }
       if(bCommonPage)
       {
-        process_post(ui_process, EVENT_ANT_DATA, (void*)pstPage0Data->ucComputedHeartRate);
+        window_postmessage(EVENT_SPORT_DATA, DATA_HEARTRATE, (void*)pstPage0Data->ucComputedHeartRate);
         printf("Time of last heart beat event: %u.", (ULONG)(pstPage0Data->usBeatTime/1024));
         printf("%03u s\n", (ULONG)((((pstPage0Data->usBeatTime % 1024) * HRM_PRECISION) + 512) / 1024));
         printf("Heart beat count: %u\n", pstPage0Data->ucBeatCount);

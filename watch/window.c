@@ -126,7 +126,7 @@ void window_handle_event(uint8_t ev, void* data)
         ui_window(ev, 0, data);
       }
     }
-    else if (ev == EVENT_TIME_CHANGED || ev == EVENT_ANT_DATA)
+    else if (ev == EVENT_TIME_CHANGED)
     {
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
@@ -344,4 +344,12 @@ windowproc window_current()
 tContext* window_context()
 {
   return &context;
+}
+
+/*
+ * call window procedure sync
+ */
+void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
+{
+  ui_window(event, lparam, rparam);
 }

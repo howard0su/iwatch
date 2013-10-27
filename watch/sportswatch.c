@@ -13,19 +13,9 @@
 #define GRID_4 			1
 #define GRID_5 			2
 
-#define DATA_WORKOUT	0
-#define DATA_SPEED 		1
-#define DATA_HEARTRATE 	2
-#define DATA_CALS		3
-#define DATA_DISTANCE	4
-#define DATA_SPEED_AVG	5
-#define DATA_ALTITUTE	6
-#define DATA_TIME		7
-#define DATA_SPEED_TOP	8
-
 // the data for each grid
-static uint16_t data[5];
-static uint16_t workout_time;
+static uint32_t data[5];
+static uint32_t workout_time;
 // configuration for sport watch
 // in ui_config
 //  grid type
@@ -236,7 +226,7 @@ static void onDraw(tContext *pContext)
   }
 }
 
-static void updateData(uint8_t datatype, uint16_t value)
+static void updateData(uint8_t datatype, uint32_t value)
 {
   int slot = findDataGrid(datatype);
 
@@ -278,10 +268,10 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 
       break;
     }
-  case EVENT_ANT_DATA:
+  case EVENT_SPORT_DATA:
     {
-      printf("got ant data\n");
-      updateData(DATA_HEARTRATE, (uint16_t)rparam);
+      printf("got a sport data \n");
+      updateData(lparam, (uint32_t)rparam);
       break;
     }
   case EVENT_TIME_CHANGED:

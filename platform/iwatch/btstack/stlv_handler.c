@@ -115,9 +115,9 @@ void handle_get_device_id()
 
 void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance)
 {
-    UNUSED_VAR(spd); // meters/second * 100
-    UNUSED_VAR(alt); // meters * 10
-    UNUSED_VAR(distance); // meters
+    window_postmessage(EVENT_SPORT_DATA, DATA_SPEED, (void*)spd);
+    window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)alt);
+    window_postmessage(EVENT_SPORT_DATA, DATA_DISTANCE, (void*)distance);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -205,21 +205,32 @@ void handle_get_sports_grid()
     element_handle h = append_element(p, NULL, "R", 1);
     ui_config* config = window_readconfig();
     element_append_data(p, h, (unsigned char*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
-    printf("send_sports_grid(%d)\n", sizeof(uint8_t) * (config->sports_grid + 3));
+    printf("send_sports_grid(%d)\n", (int)sizeof(uint8_t) * (config->sports_grid + 3));
     send_packet(p, 0, 0);
 }
 
-//TODO: sujun
 void handle_alarm(alarm_conf_t* para)
 {
-    UNUSED_VAR(para);
-    if (para->mode == ALARM_MODE_NO_EXIST)
+    switch(para->mode)
     {
-        //return data by calling send_alarm_conf();
-    }
-    else
-    {
-        //set or add an alarm
+        case ALARM_MODE_DISABLE:
+        case ALARM_MODE_NO_EXIST:
+            rtc_setalarm(0,0,0,0);
+            break;
+        case ALARM_MODE_MONTHLY:
+            rtc_setalarm(para->day_of_month | 0x80, 0, para->hour | 0x80, para->minute | 0x80);
+            break;
+        case ALARM_MODE_HOURLY:
+            rtc_setalarm(0, 0, 0, para->minute | 0x80);
+            break;
+        case ALARM_MODE_DAILY:
+            rtc_setalarm(0, 0, para->hour | 0x80, para->minute | 0x80);
+            break;
+        case ALARM_MODE_WEEKLY:
+            rtc_setalarm(0, para->day_of_week | 0x80, para->hour | 0x80, para->minute | 0x80);
+            break;
+        case ALARM_MODE_ONCE:
+            // no way
+            break;
     }
 }
-
