@@ -29,6 +29,7 @@ PROCESS(mpu6050_process, "MPU6050 Driver");
 /* Starting sampling rate. */
 #define DEFAULT_MPU_HZ  (50)
 
+static uint16_t read_interval = CLOCK_SECOND;
 static struct etimer timer;
 
 static void tap_cb(unsigned char direction, unsigned char count)
@@ -159,7 +160,7 @@ int port1_pin6()
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
   PROCESS_BEGIN();
-  etimer_set(&timer, CLOCK_SECOND * 3);
+  etimer_set(&timer, read_interval);
   process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
   while(1)
   {
@@ -201,7 +202,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 
       }while(more);
       I2C_done();
-      etimer_reset(&timer);
+      etimer_set(&timer, read_interval);
     }
   }
 
@@ -210,7 +211,16 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 
 void mpu_gesturemode(int d)
 {
-  
+  if (d)
+  {
+    // enable gesture mode
+    // we need get the sampling more quick
+    read_interval = CLOCK_SECOND >> 4; // every 4/1 sec
+  }
+  else
+  {
+    read_interval = CLOCK_SECOND * 3; // every 3 second we read fifo buffer
+  }
 }
 
 #if 0

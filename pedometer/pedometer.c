@@ -66,7 +66,7 @@ char ped_update_sample(int16_t *data)
   
   static int holdoff = 0;
 
-  printf("%d\t%d\t%d\n", data[0], data[1], data[2]);
+  printf("%d, %d, %d, ", data[0], data[1], data[2]);
 
   interval++;
   

@@ -58,6 +58,8 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
+  case PROCESS_EVENT_TIMER:
+    window_timer(CLOCK_SECOND * 5);
     steps = ped_get_steps();
     time = 0;
     cal = 130;
