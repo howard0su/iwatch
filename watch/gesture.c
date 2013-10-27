@@ -103,7 +103,7 @@ static uint16_t Dist(const int8_t* p1, const int8_t *p2)
   return t;
 }
 
-#define SCALE_2G 128
+#define SCALE_2G 2047
 #define SCALE_1G (SCALE_2G/2)
 
 static int8_t Normalize(int16_t data)
