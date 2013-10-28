@@ -70,7 +70,7 @@ void window_init()
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, ClrWhite);
-  GrImageDraw(&context, logoPixel, 0, 60);
+  GrImageDraw(&context, logoPixel, 8, 60);
 
   GrFlush(&context);
   stackptr = 0;

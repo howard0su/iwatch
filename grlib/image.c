@@ -488,7 +488,7 @@ InternalImageDraw(const tContext *pContext, const unsigned char *pucImage,
     //
     if((lX + lWidth - 1) > pContext->sClipRegion.sXMax)
     {
-        lX2 = pContext->sClipRegion.sXMax - lX;
+        lX2 = pContext->sClipRegion.sXMax;
     }
     else
     {
