@@ -10,7 +10,7 @@ static void drawItem(tContext *pContext,
                      uint8_t y,
                      const char* name,
                      uint8_t hour, uint8_t minute,
-                     uint8_t today)
+                     uint8_t month, uint8_t day)
 {
   const char *ampm;
   char buf[20];
@@ -26,6 +26,9 @@ static void drawItem(tContext *pContext,
   else
     ampm = "AM";
 
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrLineDrawH(pContext, 0, 144,  y);
+
   GrContextFontSet(pContext, (tFont*)&g_sFontNova16);
   GrStringDraw(pContext, name, -1, 12, y + 10, 0);
 
@@ -33,19 +36,8 @@ static void drawItem(tContext *pContext,
   sprintf(buf, "%02d:%02d %s", hour, minute, ampm);
   GrStringDraw(pContext, buf, -1, 12, y + 28, 0);
 
-  const char* str;
-  switch(today)
-  {
-  case 0:
-    str = "today";
-    break;
-  case 1:
-    str = "tomorrow";
-    break;
-  case 2:
-    str = "yesterday";
-    break;
-  }
+  char str[8];
+  sprintf(str, "%d/%d", month, day);
 
   int height = GrStringHeightGet(pContext);
   int width = GrStringWidthGet(pContext, str, -1);
@@ -55,12 +47,11 @@ static void drawItem(tContext *pContext,
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrStringDraw(pContext, str, -1, 88, y + 28, 0);
-
-  GrContextForegroundSet(pContext, ClrWhite);
 }
 
 static void onDraw(tContext *pContext)
 {
+  uint8_t month, day;
   // clear the screen
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
@@ -72,23 +63,31 @@ static void onDraw(tContext *pContext)
     int8_t hour;
     uint8_t minute;
     rtc_readtime((uint8_t*)&hour, &minute, NULL);
+    rtc_readdate(NULL, &month, &day, NULL);
 
-    uint8_t today = 0;
     int8_t offset = window_readconfig()->worldclock_offset[i + index];
     hour += offset;
     if (hour > 24)
     {
-      today = 1;
+      day++;
       hour -= 24;
     }
     else if (hour < 0)
     {
-      today = 2;
+      day--;
       hour += 24;
     }
 
     drawItem(pContext, 16 + i * 50,  window_readconfig()->worldclock_name[i + index],
-             hour, minute, today);
+             hour, minute, month, day);
+
+    GrContextForegroundSet(pContext, ClrWhite);
+    for(int i = 0; i < 6; i++)
+    {
+      GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+
+      GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
+    }
   }
 }
 
