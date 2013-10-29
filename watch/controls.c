@@ -68,62 +68,52 @@ void window_progress(tContext *pContext, long lY, uint8_t step)
   }
 }
 
+static const tRectangle button_rect[] = 
+{
+ {11, 145, 68, 161},
+ {11, 25, 68, 41},
+ {77, 25, 131, 41},
+ {77, 145, 131, 161},
+};
+
 /*
 * Draw the button text for the keys
 * If text is NULL, draw a empty box
 */
 void window_button(tContext *pContext, uint8_t key, const char* text)
 {
-#define SPACE 2
-  uint8_t width, height;
-  int x, y;
-
   GrContextFontSet(pContext, &g_sFontRed13);
-  if (!text)
-  {
-    width = 100;
-  }
-  else
-  {
-    width = GrStringWidthGet(pContext, text, -1);
-  }
-
-  height = GrStringHeightGet(pContext);
-
-  if (key == KEY_UP || key == KEY_DOWN)
-  {
-    x = LCD_X_SIZE - width - SPACE;
-  }
-  else
-  {
-    x = SPACE;
-  }
-
-  if (key == KEY_ENTER || key == KEY_DOWN)
-  {
-    y = 135;
-  }
-  else
-  {
-    y = 30;
-  }
 
   // draw black box
-  const tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
-
   if (text)
   {
+    const tRectangle *rect = &button_rect[key];
     GrContextForegroundSet(pContext, ClrWhite);
-    GrRectFillRound(pContext, &rect, 2);
+    GrRectFill(pContext, rect);
+
+    // draw triagle
+    for(int i = 0; i <= (rect->sYMax - rect->sYMin) /2 ; i++)
+    {
+      if (rect->sXMin < 20)
+      {
+        GrLineDrawH(pContext, rect->sXMin - i, rect->sXMin, rect->sYMin + i);
+        GrLineDrawH(pContext, rect->sXMin - i, rect->sXMin, rect->sYMax - i);
+      }
+      else
+      {
+        GrLineDrawH(pContext, rect->sXMax, rect->sXMax + i, rect->sYMin + i);
+        GrLineDrawH(pContext, rect->sXMax, rect->sXMax + i, rect->sYMax - i);
+      }
+    }
+
     GrContextForegroundSet(pContext, ClrBlack);
-    GrStringDraw(pContext, text, -1, x, y + 1, 0);
+    GrStringDrawCentered(pContext, text, -1, (rect->sXMin + rect->sXMax) /2, (rect->sYMin + rect->sYMax) /2, 0);
   }
   else
   {
     GrContextForegroundSet(pContext, ClrBlack);
-    GrRectFillRound(pContext, &rect, 2);
+    GrRectFill(pContext, &button_rect[key]);
   }
 
   GrContextForegroundSet(pContext, ClrWhite);
-#undef SPACE
 }
