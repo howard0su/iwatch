@@ -61,6 +61,7 @@ GRLIB0 = \
 	image.c \
 	line.c \
 	rectangle.c \
+	triagle.c \
 	string.c
 
 GRLIB_FONTS = \
@@ -133,7 +134,8 @@ SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/stlvTest.c \
  unittest/gestureTest.c \
  unittest/TestUtility/stlv_test_stub.c \
- unittest/hfpTest.c
+ unittest/hfpTest.c \
+ pedometer/pedometer.c
 
 
 OBJDIR = objs.native

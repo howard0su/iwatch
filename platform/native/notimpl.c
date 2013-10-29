@@ -13,6 +13,11 @@ void rtc_settime(uint8_t hour, uint8_t min, uint8_t sec)
 {
 }
 
+void rtc_setalarm(uint8_t aday, uint8_t adow, uint8_t ahour, uint8_t aminute)
+{
+
+}
+
 void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 {
   if (hour) *hour = 17;
@@ -145,6 +150,11 @@ void system_rebootToNormal()
 
 }
 
+int mpu6050_selftest()
+{
+  return 0;
+}
+
  void system_getserial(uint8_t *buf)
  {
   char fake[6] = {43,44,45,86,97,0xff};
@@ -159,3 +169,4 @@ ANT_ChannelPower(
 {
   return 0;
 }
+

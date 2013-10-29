@@ -2304,6 +2304,11 @@ extern const tFontWrapper g_sFontUnicode;
 extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
 extern void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin);
 extern int NumLeadingZeros(long x);
+
+extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
+                                             long lXB, long lYB,
+                                             long lXC, long lYC);
+
 //*****************************************************************************
 //
 // Close the Doxygen group.

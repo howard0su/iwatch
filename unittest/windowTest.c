@@ -111,8 +111,18 @@ static struct _event test_events[] = {
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-   // 
+   // countdown watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, PROCESS_EVENT_TIMER, 0, 0},
+   {1, PROCESS_EVENT_TIMER, 0, 0},
+   {1, PROCESS_EVENT_TIMER, 0, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
@@ -227,6 +237,7 @@ static void run_window_events(windowproc window, struct _event *events)
   }
 }
 
+extern const tRectangle status_clip;
 static void test_window(windowproc window, void* data)
 {
  struct _event my_events[] = {
@@ -237,7 +248,8 @@ static void test_window(windowproc window, void* data)
   };
 
   run_window_events(window, my_events);
-
+  GrContextClipRegionSet(&context, &status_clip);
+  status_process(EVENT_WINDOW_PAINT, 0, &context);
 }
 
 static void test_window_stopwatch(windowproc window, void* data)
@@ -431,8 +443,8 @@ void TestWindows(CuTest *tc)
   test_window(&script_process, "/script1.amx");
   test_window(&script_process, "/notexist.amx");
 
-  for(int i = 0; fonts[i]; i++)
-    test_window(&testfont, (void*)fonts[i]);
+  //for(int i = 0; fonts[i]; i++)
+  //  test_window(&testfont, (void*)fonts[i]);
   test_window(&worldclock_process, NULL);
 
   test_window(&today_process, NULL);
@@ -440,8 +452,6 @@ void TestWindows(CuTest *tc)
   test_window(&sporttype_process, NULL);
 
   test_window(&calendar_process, NULL);
-
-  test_window(&today_process, NULL);
 
   test_window(&countdown_process, NULL);
 
@@ -498,6 +508,22 @@ void TestPhoneScreen(CuTest* tc)
   run_window_events(phone_process, test_events);
 }
 
+
+void TestTriagle(CuTest* tc)
+{
+  GrContextForegroundSet(&context, ClrBlack);
+  GrRectFill(&context, &client_clip);
+
+  GrContextForegroundSet(&context, ClrWhite);
+
+  GrTriagleFill(&context, 82, 68, 79, 80, 80, 80);
+
+  GrTriagleFill(&context, 110, 70, 70, 100, 130, 140);
+  GrTriagleFill(&context, 10, 10, 30, 10, 40, 40);
+ 
+  GrFlush(&context);
+}
+
 CuSuite* WindowGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew("Window Test");
@@ -507,6 +533,7 @@ CuSuite* WindowGetSuite(void)
   window_init();
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
+  SUITE_ADD_TEST(suite, TestTriagle);
   SUITE_ADD_TEST(suite, TestWideFont);
 
   SUITE_ADD_TEST(suite, TestSportWatch);
