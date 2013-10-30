@@ -16,6 +16,7 @@
 #include "window.h"
 #include "grlib/grlib.h"
 #include "cordic.h"
+#include "backlight.h"
 
 static enum _state{
   STATE_CONFIG_HOUR,
@@ -223,13 +224,13 @@ static int process_event(uint8_t ev, uint16_t data)
         times[STATE_CONFIG_HOUR] = (lefttime/3600) % 60;
         if (lefttime == 0)
         {
+          // trigger notification
+          motor_on(240, CLOCK_SECOND);
           state = STATE_CONFIG_READY;
         }
         else
         {
           window_timer(CLOCK_SECOND);
-          window_invalid(&progress_range);
-          return 1;
         }
       }
       else

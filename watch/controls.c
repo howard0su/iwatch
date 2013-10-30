@@ -71,8 +71,8 @@ void window_progress(tContext *pContext, long lY, uint8_t step)
 static const tRectangle button_rect[] = 
 {
  {11, 145, 68, 161},
- {11, 25, 68, 41},
- {77, 25, 131, 41},
+ {11, 28, 68, 44},
+ {77, 28, 131, 44},
  {77, 145, 131, 161},
 };
 
