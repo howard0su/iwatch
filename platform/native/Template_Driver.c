@@ -729,7 +729,7 @@ void screenshot()
     uint8_t buf[LCD_X_SIZE/8];
     for(int j = 0; j < LCD_X_SIZE/8; j++)
     {
-     buf[j] = flip(lines[i].pixels[j]);
+     buf[j] = ~(flip(lines[i].pixels[j]));
     }
     fwrite(buf, LCD_X_SIZE/8, 1, fp);
   }
