@@ -1818,7 +1818,7 @@
         </option>
         <option>
           <name>IoEmulation</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XcRTLibraryFile</name>
@@ -1872,7 +1872,7 @@
         </option>
         <option>
           <name>BufferedTermOutput</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XExtraOptionsCheck</name>
@@ -2394,6 +2394,9 @@
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\Template_Driver.h</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\grlib\triagle.c</name>
+    </file>
   </group>
   <group>
     <name>mpl</name>
@@ -2402,9 +2405,27 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu_dmp_motion_driver.c</name>
+      <excluded>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\mpu6050.c</name>
+    </file>
+  </group>
+  <group>
+    <name>pedometer</name>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\pedometer.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\pedometer.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\ti_pedometer.r43</name>
+      <excluded>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
   </group>
   <group>
@@ -2414,6 +2435,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\battery.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\board.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\button-sensor.c</name>
