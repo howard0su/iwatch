@@ -1728,7 +1728,7 @@ int mpu_read_fifo_all(unsigned short *length, unsigned char *data, unsigned char
     else
       *more = 1;
     
-    printf("there is %d\n", fifo_count);
+    //printf("there is %d\n", fifo_count);
 
     if (i2c_read(st.hw->addr, st.reg->fifo_r_w, *length, data))
       return -1;

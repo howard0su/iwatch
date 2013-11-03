@@ -6,5 +6,10 @@ void ped_step_detect_init(void);
 unsigned short ped_step_detect(void);
 char ped_update_sample(int16_t *);
 
-uint32_t ped_get_steps();
+uint16_t ped_get_steps();
+uint16_t ped_get_calorie();
+uint16_t ped_get_time();
+uint16_t ped_get_distance();
+
+void ped_reset();
 #endif

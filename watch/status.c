@@ -7,6 +7,7 @@
 #include "btstack/bluetooth.h"
 #include "battery.h"
 #include "rtc.h"
+#include "pedometer/pedometer.h"
 
 #include <stdio.h>
 
@@ -121,6 +122,11 @@ static void OnDraw(tContext* pContext)
     char buf[20];
     uint8_t ampm = 0;
     rtc_readtime(&hour, &minute, NULL);
+    if (hour == 0 && minute == 0)
+    {
+      ped_reset();
+    }
+
     if (hour > 12)
     {
       hour -= 12;

@@ -215,7 +215,7 @@ void mpu_gesturemode(int d)
   {
     // enable gesture mode
     // we need get the sampling more quick
-    read_interval = CLOCK_SECOND >> 4; // every 4/1 sec
+    read_interval = CLOCK_SECOND >> 3; // every 8/1 sec
   }
   else
   {

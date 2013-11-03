@@ -6,7 +6,6 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-static unsigned long steps, time, cal;
 static enum {
   STEPS,
   TIME,
@@ -38,16 +37,16 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextFontSet(pContext, &g_sFontNova38);
 
-  sprintf(buf, "%d", steps);
+  sprintf(buf, "%d", ped_get_steps());
   drawItem(pContext, 0, 'l', "Steps Taken", buf);
 
-  sprintf(buf, "%d", time);
+  sprintf(buf, "%d", ped_get_time());
   drawItem(pContext, 1, 0, "Walk Time", buf);
 
-  sprintf(buf, "%d", cal);
+  sprintf(buf, "%d", ped_get_calorie());
   drawItem(pContext, 2, 0, "Caloris", buf);
 
-  sprintf(buf, "%d mi", 12);
+  sprintf(buf, "%d m", ped_get_distance());
   drawItem(pContext, 3, 0, "Distance", buf);
 
   // draw progress
@@ -60,9 +59,7 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CREATED:
   case PROCESS_EVENT_TIMER:
     window_timer(CLOCK_SECOND * 5);
-    steps = ped_get_steps();
-    time = 0;
-    cal = 130;
+    window_invalid(NULL);
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);

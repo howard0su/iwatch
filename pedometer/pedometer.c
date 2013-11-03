@@ -1,10 +1,15 @@
+#include "contiki.h"
 #include <stdint.h>
 #include "pedometer.h"
 #include <stdio.h>
-
+#include "window.h"
 #define SAMPLE_HZ 50
 
-uint32_t step_cnt;
+static uint16_t step_cnt;
+static uint32_t step_time;
+static uint32_t step_cal;
+static uint32_t step_dist;
+
 static uint16_t interval;
 
 static int16_t last[3];
@@ -59,6 +64,50 @@ static int16_t totalaccel(int16_t *data)
   return total;
 }
 
+static void increasestep(uint16_t interval)
+{
+  step_cnt++;
+
+  if (interval < SAMPLE_HZ * 2)
+  {
+    step_time += interval;
+    uint16_t dist;
+    ui_config *config = window_readconfig();
+
+    if (interval > SAMPLE_HZ / 2)
+    {
+      dist = config->height / 5;
+    }
+    else if (interval > SAMPLE_HZ / 3)
+    {
+      dist = config->height / 4;
+    }
+    else if (interval > SAMPLE_HZ / 4)
+    {
+      dist = config->height / 3;
+    }
+    else if (interval > SAMPLE_HZ / 5)
+    {
+      dist = config->height / 2;
+    }
+    else if (interval > SAMPLE_HZ / 6)
+    {
+      dist = config->height * 5 / 6;
+    }
+    else if (interval > SAMPLE_HZ / 8)
+    {
+      dist = config->height;
+    }
+    else
+    {
+      dist = config->height * 6 / 5;
+    }
+
+    step_dist += dist;
+    step_cal += dist * config->weight * 5 / 4;
+  }
+}
+
 char ped_update_sample(int16_t *data)
 {
   int16_t total = totalaccel(data);
@@ -66,7 +115,7 @@ char ped_update_sample(int16_t *data)
   
   static int holdoff = 0;
 
-  printf("%d, %d, %d, ", data[0], data[1], data[2]);
+  //printf("%d, %d, %d, ", data[0], data[1], data[2]);
 
   interval++;
   
@@ -92,7 +141,7 @@ char ped_update_sample(int16_t *data)
   }
   else if (total > threshold)
   {
-    step_cnt++;
+    increasestep(interval);
     interval = 0;
     holdoff = -1;
   }
@@ -102,17 +151,30 @@ char ped_update_sample(int16_t *data)
   return 1;
 }
 
-uint32_t ped_get_steps()
+uint16_t ped_get_steps()
 {
   return step_cnt;
 }
 
-uint32_t ped_get_calari()
+uint16_t ped_get_calorie()
 {
-  return 0;
+  return (uint16_t)(step_cal / 100);
 }
 
-uint32_t ped_get_distance()
+uint16_t ped_get_distance()
 {
-  return 0;
+  return (uint16_t)(step_dist / 100);
+}
+
+uint16_t ped_get_time()
+{
+  return (uint16_t)(step_time / SAMPLE_HZ / 60);
+}
+
+void ped_reset()
+{
+  step_cnt = 0;
+  step_time = 0;
+  step_cal = 0;
+  step_dist = 0;
 }
