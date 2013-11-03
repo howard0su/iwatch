@@ -33,7 +33,8 @@ static ui_config ui_config_data =
   2,
 
   1,
-  0, 1, 2, 3, 4
+  0, 1, 2, 3, 4,
+  60, 170
 };
 
 

@@ -122,6 +122,9 @@ typedef struct {
   uint8_t sports_grid;   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
   uint8_t sports_grid_data[5]; // each slot means which grid data to show
   // default
+
+  uint8_t weight; // in kg
+  uint8_t height; // in cm
 }ui_config;
 
 extern ui_config* window_readconfig();

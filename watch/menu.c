@@ -87,6 +87,8 @@ static const struct MenuItem TestMenu[] =
   {0, "Light", &test_light},
   {0, "LCD", &test_lcd},
   {0, "ANT+", &test_ant},
+  {0, "MPU6050", &test_mpu6050},
+  {0, "Bluetooth", &test_bluetooth},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };
@@ -137,9 +139,10 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
         return;
       case DATA_DATE:
       {
-        uint8_t month, day;
-        rtc_readdate(NULL, &month, &day, NULL);
-        sprintf(buf, "%s %d", month_shortname[month], day);
+        uint8_t  month, day;
+        uint16_t year;
+        rtc_readdate(&year, &month, &day, NULL);
+        sprintf(buf, "%s %d %02d", month_shortname[month], day, year - 2000);
         break;
       }
       case DATA_TIME:
