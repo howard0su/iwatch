@@ -52,6 +52,7 @@ static void hfp_try_respond(uint16_t rfcomm_channel_id){
     }
 }
 
+static bd_addr_t event_addr;
 static service_record_item_t hfp_service_record;
 static const uint8_t   hfp_service_buffer[85] =
 {
@@ -544,6 +545,7 @@ static void hfp_state_handler(int code, char* buf)
     hfp_response_size = sizeof(AT_CMER);
     state = WAIT_CMEROK;
     hfp_try_respond(rfcomm_channel_id);
+    sdpc_open(event_addr);
   }
   else if (state == WAIT_CMEROK && code == R_OK)
   {
@@ -645,7 +647,6 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
       case RFCOMM_EVENT_INCOMING_CONNECTION:
         {
           uint8_t   rfcomm_channel_nr;
-          bd_addr_t event_addr;
           // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
           bt_flip_addr(event_addr, &packet[2]);
           rfcomm_channel_nr = packet[8];
