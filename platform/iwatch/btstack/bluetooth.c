@@ -401,3 +401,38 @@ const char* bluetooth_address()
 {
   return bd_addr_to_str(host_addr);
 }
+
+static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
+{
+  // handle events, ignore data
+  if (packet_type != HCI_EVENT_PACKET)
+  {
+    return;
+  }
+
+  switch (packet[0]) {
+  case HCI_EVENT_COMMAND_COMPLETE:
+    {
+      if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_filter)){
+        printf("set event filter done. ret=%x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        hci_send_cmd(&hci_write_scan_enable, 0x03);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
+        printf("scan enable finish. ret=%x \n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        hci_send_cmd(&hci_enable_device_under_test_mode);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_enable_device_under_test_mode)){
+        printf("device is in DUT mode. ret = %x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+      }
+    }
+  }
+}
+void bluetooth_enableDUTMode()
+{
+  // enable DUT
+  l2cap_register_packet_handler(dut_packet_handler);
+
+  hci_send_cmd(&hci_set_event_filter, 0x02, 0x00, 0x03);
+}

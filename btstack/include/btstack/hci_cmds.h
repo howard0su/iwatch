@@ -302,6 +302,7 @@ extern const hci_cmd_t hci_remote_name_request_cancel;
 extern const hci_cmd_t hci_read_remote_supported_features;
 extern const hci_cmd_t hci_accept_synchronous_connection;
 extern const hci_cmd_t hci_reset;
+extern const hci_cmd_t hci_set_event_filter;
 extern const hci_cmd_t hci_read_default_link_policy_settings;
 extern const hci_cmd_t hci_write_default_link_policy_settings;
 extern const hci_cmd_t hci_role_discovery;
@@ -364,6 +365,8 @@ extern const hci_cmd_t hci_vs_write_codec_config;
 extern const hci_cmd_t hci_vs_write_codec_config_enhanced;
 extern const hci_cmd_t hci_vs_le_enable;
 extern const hci_cmd_t hci_vs_write_sco_config;
+
+extern const hci_cmd_t hci_enable_device_under_test_mode;
 
 extern const hci_cmd_t l2cap_accept_connection;
 extern const hci_cmd_t l2cap_create_channel;

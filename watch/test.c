@@ -34,12 +34,13 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
  		  GrStringDraw(pContext, "Test Buttons", -1, 32, 16, 0);
 
+#if 0
  		  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
 	      GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
 	      //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
 	      GrStringDraw(pContext, (char*)str, -1, 2, 40, 0);
 	      GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);    
-
+#endif
  		  for(int i = 0; i < 4; i++)
  		  {
  		  	char buf[30];
@@ -462,6 +463,36 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 
  		}
  		break;
+
+ 		default:
+ 		return 0;
+	}
+
+	return 1;
+}
+
+
+uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd)];
+	switch(ev)
+	{
+		case EVENT_WINDOW_CREATED:
+			bluetooth_enableDUTMode();
+		break;
+
+		case EVENT_WINDOW_PAINT:
+		{
+		  tContext *pContext = (tContext*)rparam;
+		  GrContextForegroundSet(pContext, ClrBlack);
+		  GrRectFill(pContext, &client_clip);
+
+		  GrContextForegroundSet(pContext, ClrWhite);
+      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      
+	  	GrStringDraw(pContext, "BT DUT mode is on", -1, 32, 16, 0);
+ 		  break;
+ 		}
 
  		default:
  		return 0;

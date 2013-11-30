@@ -301,6 +301,11 @@ const hci_cmd_t hci_reset = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x03), ""
 // no params
 };
+const hci_cmd_t hci_set_event_filter = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x05), "111"
+// filterType, conditionType, condition
+};
+
 const hci_cmd_t hci_read_default_link_policy_settings = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x0E), ""
 // no params
@@ -590,6 +595,13 @@ const hci_cmd_t hci_le_test_end = {
     // return: status, number of packets (8)
 };
 #endif
+
+
+// test commands
+const hci_cmd_t hci_enable_device_under_test_mode = {
+    OPCODE(OGF_TEST, 0x03), ""
+};
+
 
 // BTstack commands
 const hci_cmd_t btstack_get_state = {
