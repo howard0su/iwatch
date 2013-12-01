@@ -32,6 +32,8 @@
 #define ELEMENT_TYPE_SPORTS_GRID      'R'
 #define ELEMENT_TYPE_SN               'S'
 #define ELEMENT_TYPE_WATCHFACE        'W'
+#define ELEMENT_TYPE_GESTURE_CONTROL  'D'
+#define ELEMENT_TYPE_WATCHCONFIG      'P'
 
 #define ELEMENT_TYPE_ALARM            'I'
 #define     SUB_TYPE_ALARM_OPERATION  'o'
@@ -54,13 +56,15 @@
 #define         SUB_TYPE_MESSAGE_IDENTITY 'i'
 #define         SUB_TYPE_MESSAGE_MESSAGE  'd'
 
-#define ELEMENT_TYPE_GPS            'Z'
-#define     SUB_TYPE_GPS_UTC        't'
-#define     SUB_TYPE_GPS_LAT        'l'
-#define     SUB_TYPE_GPS_LON        'n'
-#define     SUB_TYPE_GPS_ALT        'a'
-#define     SUB_TYPE_GPS_SPD        's'
-#define     SUB_TYPE_GPS_DIS        'd'
+#define ELEMENT_TYPE_ACTIVITY       'Z'
+#define     SUB_TYPE_ACTIVITY_UTC   't'
+#define     SUB_TYPE_ACTIVITY_LAT   'l'
+#define     SUB_TYPE_ACTIVITY_LON   'n'
+#define     SUB_TYPE_ACTIVITY_ALT   'a'
+#define     SUB_TYPE_ACTIVITY_SPD   's'
+#define     SUB_TYPE_ACTIVITY_DIS   'd'
+#define     SUB_TYPE_ACTIVITY_HRT   'h'
+#define     SUB_TYPE_ACTIVITY_CAL   'c'
 
 
 typedef unsigned char* element_handle;

@@ -134,7 +134,10 @@ void handle_stlv_packet(unsigned char* packet)
                 {
                     printf("Alarm element decode failed: length mismatch (%d/%d)", data_len, sizeof(alarm_conf_t));
                 }
-                handle_alarm((alarm_conf_t*)data);
+                else
+                {
+                    handle_alarm((alarm_conf_t*)data);
+                }
             }
             break;
 
@@ -142,11 +145,36 @@ void handle_stlv_packet(unsigned char* packet)
             handle_get_device_id();
             break;
 
-        case ELEMENT_TYPE_GPS:
+        case ELEMENT_TYPE_ACTIVITY:
             handle_gps_data(pack, handle);
             break;
 
+        case ELEMENT_TYPE_GESTURE_CONTROL:
+            {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                if (data_len != 1)
+                {
+                    printf("gesture control decode failed: length mismatch (%d/1)", data_len);
+                }
+                else
+                {
+                    handle_gesture_control(*data);
+                }
+            }
+            break;
+
+        case ELEMENT_TYPE_WATCHCONFIG:
+            {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
+                uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                UNUSED_VAR(data_len);
+                handle_set_watch_config((struct ui_config*)data);
+            }
+            break;
+
         }
+
 
 
         handle = get_next_element(pack, handle);
@@ -246,21 +274,21 @@ static void handle_gps_data(stlv_packet pack, element_handle handle)
         int type_len = get_element_type(pack, element, type_buf, sizeof(type_buf));
         switch (type_buf[0])
         {
-            case SUB_TYPE_GPS_ALT:
+            case SUB_TYPE_ACTIVITY_ALT:
                 {
                     uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                     gps_alt = *((uint16_t*)data);
                 }
                 break;
 
-            case SUB_TYPE_GPS_SPD:
+            case SUB_TYPE_ACTIVITY_SPD:
                 {
                     uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                     gps_spd = *((uint16_t*)data);
                 }
                 break;
 
-            case SUB_TYPE_GPS_DIS:
+            case SUB_TYPE_ACTIVITY_DIS:
                 {
                     uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                     gps_dis = *((uint32_t*)data);
@@ -270,6 +298,6 @@ static void handle_gps_data(stlv_packet pack, element_handle handle)
         element = get_next_sub_element(pack, handle, element);
     }
 
-    handle_gps_info(gps_spd, gps_alt, gps_dis);
+    handle_gps_info(gps_spd, gps_alt, gps_dis, 0);
 
 }

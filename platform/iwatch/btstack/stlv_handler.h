@@ -26,13 +26,21 @@ void handle_file_end(int fd);
 int transfer_file(char* name);
 void handle_get_sports_data(uint16_t *data, uint8_t numofdata);
 void handle_get_sports_grid();
+void handle_set_sports_grid();
 
 //-----------------------alarm handlers---------------------
 void handle_alarm(alarm_conf_t* para);
 
 void handle_get_device_id();
 
-void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance);
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories);
+
+#define GESTURE_FLAG_ENABLE 0x01
+#define GESTURE_FLAG_LEFT   0x02
+void handle_gesture_control(uint8_t flag);
+
+struct ui_config;
+void handle_set_watch_config(struct ui_config* conf);
 
 #endif
 

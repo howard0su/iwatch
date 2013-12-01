@@ -10,6 +10,7 @@
 #include "rtc.h"
 #include "cfs/cfs.h"
 #include "stlv_client.h"
+#include "window.h"
 
 void handle_echo(uint8_t* data, int data_len)
 {
@@ -113,9 +114,9 @@ void handle_get_device_id()
 {
 }
 
-void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance)
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories)
 {
-    window_postmessage(EVENT_SPORT_DATA, DATA_SPEED, (void*)spd);
+    window_postmessage(EVENT_SPORT_DATA, DATA_SPEED,    (void*)spd);
     window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)alt);
     window_postmessage(EVENT_SPORT_DATA, DATA_DISTANCE, (void*)distance);
 }
@@ -204,7 +205,7 @@ void handle_get_sports_grid()
         return;
     element_handle h = append_element(p, NULL, "R", 1);
     ui_config* config = window_readconfig();
-    element_append_data(p, h, (unsigned char*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
+    element_append_data(p, h, (uint8_t*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
     printf("send_sports_grid(%d)\n", (int)sizeof(uint8_t) * (config->sports_grid + 3));
     send_packet(p, 0, 0);
 }
@@ -234,3 +235,23 @@ void handle_alarm(alarm_conf_t* para)
             break;
     }
 }
+
+void handle_gesture_control(uint8_t flag)
+{
+    UNUSED_VAR(flag);
+    //TODO
+    //#define GESTURE_FLAG_ENABLE 0x01
+    //#define GESTURE_FLAG_LEFT   0x02
+}
+
+void handle_set_watch_config(struct ui_config* config)
+{
+    //TODO: help check this
+    ui_config* online_config = window_readconfig();
+    if (online_config != NULL)
+    {
+        memcpy(online_config, config, sizeof(ui_config));
+        window_writeconfig();
+    }
+}
+
