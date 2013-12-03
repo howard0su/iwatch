@@ -29,6 +29,10 @@
 #define ELEMENT_TYPE_LIST_FILES       'L'
 #define ELEMENT_TYPE_REMOVE_FILE      'X'
 #define ELEMENT_TYPE_SPORTS_DATA      'A'
+#define     SUB_TYPE_SPORTS_DATA_ID       'i'
+#define     SUB_TYPE_SPORTS_DATA_DATA     'd'
+#define     SUB_TYPE_SPORTS_DATA_FLAG     'f'
+
 #define ELEMENT_TYPE_SPORTS_GRID      'R'
 #define ELEMENT_TYPE_SN               'S'
 #define ELEMENT_TYPE_WATCHFACE        'W'
@@ -65,6 +69,7 @@
 #define     SUB_TYPE_ACTIVITY_DIS   'd'
 #define     SUB_TYPE_ACTIVITY_HRT   'h'
 #define     SUB_TYPE_ACTIVITY_CAL   'c'
+#define     SUB_TYPE_ACTIVITY_ID    'i'
 
 
 typedef unsigned char* element_handle;

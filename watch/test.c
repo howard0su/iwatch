@@ -412,14 +412,14 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 			{
 				memcpy(buf, HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
 				buf[4] = data;
-				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
+				//hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
 			}
 			else
 			{
 				buf[0] = 0x88;
 				buf[1] = 0xFD;
 				buf[2] = 0;
-				hci_send_cmd_packet(buf, 3);
+				//hci_send_cmd_packet(buf, 3);
 			}
 
 			window_invalid(NULL);
@@ -459,7 +459,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 			buf[0] = 0x88;
 			buf[1] = 0xFD;
 			buf[2] = 0;
-			hci_send_cmd_packet(buf, 3);
+			//hci_send_cmd_packet(buf, 3);
 
  		}
  		break;
@@ -478,7 +478,7 @@ uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:
-			bluetooth_enableDUTMode();
+			//bluetooth_enableDUTMode();
 		break;
 
 		case EVENT_WINDOW_PAINT:

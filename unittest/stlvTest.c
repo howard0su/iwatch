@@ -281,6 +281,7 @@ static void TestRemoveFiles(CuTest* tc)
 
 static void TestSportsGrid(CuTest* tc)
 {
+    UNUSED_VAR(tc);
     handle_get_sports_grid();
     handle_get_sports_grid();
     handle_get_sports_grid();
@@ -305,6 +306,12 @@ static void TestAlarmConf(CuTest* tc)
     trySendOut();
 }
 
+static void TestNotification(CuTest* tc)
+{
+    UNUSED_VAR(tc);
+
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew("STLV Test");
@@ -315,6 +322,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestGetFile);
     SUITE_ADD_TEST(suite, TestSportsGrid);
     SUITE_ADD_TEST(suite, TestAlarmConf);
+    SUITE_ADD_TEST(suite, TestNotification);
 
     return suite;
 }

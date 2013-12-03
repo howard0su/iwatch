@@ -150,11 +150,20 @@ void end_send_file(int handle)
     }
 }
 
-void send_sports_data(uint16_t* data, uint8_t size)
+void send_sports_data(uint8_t id, uint8_t flag, uint16_t* data, uint8_t size)
 {
     stlv_packet p = create_packet();
     element_handle h = append_element(p, NULL, "A", 1);
-    element_append_data(p, h, (uint8_t*)data, size * sizeof(uint16_t));
+
+    element_handle elm_id = append_element(p, h, "i", 1);
+    element_append_char(p, elm_id, id);
+
+    element_handle elm_flag = append_element(p, h, "f", 1);
+    element_append_char(p, elm_flag, flag);
+
+    element_handle elm_data = append_element(p, h, "d", 1);
+    element_append_data(p, elm_data, (uint8_t*)data, size * sizeof(uint16_t));
+
     send_packet(p, NULL, 0);
 }
 
