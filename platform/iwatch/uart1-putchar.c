@@ -39,7 +39,6 @@ PROCESS_NAME(protocol_process);
 void
 uart_init(char rate)
 {
-  #if 1
   UARTOUT &= ~(UARTRXBIT + UARTTXBIT); 
   UARTSEL |= UARTTXBIT + UARTRXBIT;                             // Timer function for TXD/RXD pins
   UARTDIR |= UARTTXBIT;                                         // Set all pins but RXD to output
@@ -49,10 +48,8 @@ uart_init(char rate)
   TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
   TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
-  BitTime = BitTime_9600;
-  BitTime_5 = BitTime_5_9600;
-
-  #endif
+  BitTime = BitTime_115200;
+  BitTime_5 = BitTime_5_115200;
 }
 
 void uart_changerate(char rate)
