@@ -34,7 +34,7 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
  		  GrStringDraw(pContext, "Test Buttons", -1, 32, 16, 0);
 
-#if 0
+#if 1
  		  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
 	      GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
 	      //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
