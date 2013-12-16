@@ -96,15 +96,18 @@ void mpu6050_init()
 
   I2C_done();
   printf("Done\n");
+  process_start(&mpu6050_process, NULL);
 
- // if (r)
+  if (mpu6050_selftest() == 0)
   {
-    process_start(&mpu6050_process, NULL);
+    printf("\n$$OK MPU6050\n");
     return;
   }
 
+
+
 error:
-  printf("Failed\n");
+  printf("\n$$FAIL MPU6050\n");
   process_post(ui_process, EVENT_MPU_STATUS, (void*)0);
   return;
 }
@@ -219,7 +222,7 @@ void mpu_gesturemode(int d)
   }
   else
   {
-    read_interval = CLOCK_SECOND * 3; // every 3 second we read fifo buffer
+    read_interval = CLOCK_SECOND; // every 3 second we read fifo buffer
   }
 }
 

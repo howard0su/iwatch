@@ -255,7 +255,7 @@ void codec_init()
   }
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
-  printf("initialize codec sucess\n");
+  printf("$$OK CODEC\n");
 
 #if 0
   for(int i = 1; i <= 0x38; i++)

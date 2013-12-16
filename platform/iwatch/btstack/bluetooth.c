@@ -223,11 +223,20 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
         bt_flip_addr(host_addr, &packet[6]);
-        log_info("BD ADDR: %s\n", bd_addr_to_str(host_addr));
+        printf("BD ADDR: %s\n", bd_addr_to_str(host_addr));
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
         printf("Local supported features: %04lX%04lX\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
+#if 0
+        uint8_t addr[6];
+        system_getserial(addr);
+        hci_send_cmd(&hci_vs_write_bd_addr, addr);
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_bd_addr)){
+        printf("Changed BD Address\n");
+#endif
         hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
         break;
       }
@@ -288,6 +297,12 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_default_link_policy_settings)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_register_packet_handler(packet_handler);
+        printf("\n$$OK BLUETOOTH\n");
+
+
+        // as testing
+        ant_shutdown();
+        printf("\n$$END\n");
       }
       break;
     }

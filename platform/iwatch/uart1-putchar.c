@@ -48,8 +48,8 @@ uart_init(char rate)
   TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
   TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
-  BitTime = BitTime_115200;
-  BitTime_5 = BitTime_5_115200;
+  BitTime = BitTime_57600;
+  BitTime_5 = BitTime_5_57600;
 }
 
 void uart_changerate(char rate)
@@ -101,7 +101,7 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
   static int8_t rxBitCnt = RXBITCNTWITHSTOP;
   static int rxData = 0;
 
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  //ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   switch (TA0IV)                      
   {
@@ -138,7 +138,7 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
   default:
       break;
   }
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+  //ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
 
@@ -150,7 +150,7 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
 ISR(TIMER0_A0, Timer0_A0_ISR)
 {
     static unsigned char txBitCnt = 10;
-    ENERGEST_ON(ENERGEST_TYPE_IRQ);
+    //ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
     TA0CCR0 += BitTime;                                      // Add Offset to CCRx
     if (txBitCnt == 0)                                          // All bits TXed?
@@ -171,5 +171,5 @@ ISR(TIMER0_A0, Timer0_A0_ISR)
         uartTxDaTA0 >>= 1;
         txBitCnt--;
     }
-    ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+    //ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
