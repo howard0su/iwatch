@@ -74,6 +74,7 @@ void SPI_FLASH_BufferWrite(uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByt
 * 功能：SPIFLASH多个数据函数，外部调用
 *********************************************************************************************/
 void SPI_FLASH_BufferRead(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
+void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
 /******************************************************************************************
 *函数名：SPI_FLASH_ReadID()
 * 参数：void
