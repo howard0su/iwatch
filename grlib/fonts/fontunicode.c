@@ -23,6 +23,8 @@
 #define SPI_OFFSET 0
 
 typedef int FILEHANDLE;
+#define BufferRead(pBuffer, ReadAddr, NumByteToRead) \
+    SPI_FLASH_BufferRead_Raw(pBuffer, ReadAddr, NumByteToRead)
 
 //*****************************************************************************
 //
@@ -230,7 +232,7 @@ static tBoolean
 CFSWrapperFontBlockHeaderGet(FILEHANDLE pFile, tFontBlock *pBlock,
                              unsigned long ulIndex)
 {
-    SPI_FLASH_BufferRead((uint8_t*)pBlock,  
+    BufferRead((uint8_t*)pBlock,  
                          sizeof(tFontWide) + (sizeof(tFontBlock) * ulIndex),
                          sizeof(tFontBlock));
     //
@@ -406,7 +408,7 @@ CFSWrapperFontGlyphDataGet(unsigned char *pucFontId,
                             ((ulCodepoint - pBlock->ulStartCodepoint) *
                             sizeof(unsigned long));
             
-            SPI_FLASH_BufferRead((uint8_t*)&ulGlyphOffset, 
+            BufferRead((uint8_t*)&ulGlyphOffset, 
                                  ulTableOffset,
                                  sizeof(unsigned long));
 
@@ -425,13 +427,13 @@ CFSWrapperFontGlyphDataGet(unsigned char *pucFontId,
             // block not the start of the file (so we add the table offset
             // here).
             //
-            SPI_FLASH_BufferRead(pFont->pucGlyphStore,
+            BufferRead(pFont->pucGlyphStore,
                                  pBlock->ulGlyphTableOffset + ulGlyphOffset,
                                  1);
             //
             // Now read the glyph data.
             //
-            SPI_FLASH_BufferRead(pFont->pucGlyphStore + 1, 
+            BufferRead(pFont->pucGlyphStore + 1, 
                                  pBlock->ulGlyphTableOffset + ulGlyphOffset + 1,
                                  pFont->pucGlyphStore[0] - 1);
 
@@ -508,7 +510,7 @@ CFSFontWrapperLoad()
     // We opened the file successfully.  Does it seem to contain a valid
     // font?  Read the header and see.
     //
-    SPI_FLASH_BufferRead((uint8_t*)&g_sFontFile.sFontHeader,
+    BufferRead((uint8_t*)&g_sFontFile.sFontHeader,
                          0,
                          sizeof(tFontWide));
     
@@ -536,12 +538,12 @@ CFSFontWrapperLoad()
                     MAX_FONT_BLOCKS * sizeof(tFontBlock) :
                     g_sFontFile.sFontHeader.usNumBlocks * sizeof(tFontBlock);
 
-        SPI_FLASH_BufferRead((uint8_t*)&g_sFontFile.pBlocks,  sizeof(tFontWide), ulToRead);
+        BufferRead((uint8_t*)&g_sFontFile.pBlocks,  sizeof(tFontWide), ulToRead);
         {
             //
             // All is well.  Tell the caller the font was opened successfully.
             //
-            printf("Font opened successfully.\n");
+            printf("\n$$OK FONT\n");
             g_sFontFile.bInUse = true;
             return((unsigned char *)&g_sFontFile);
         }
