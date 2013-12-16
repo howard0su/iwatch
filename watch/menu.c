@@ -82,6 +82,7 @@ static const struct MenuItem MainMenu[] =
 
 static const struct MenuItem TestMenu[] = 
 {
+  {DATA_BTADDR, "", NULL},
   {0, "Button", &test_button},
   {0, "Motor", &test_motor},
   {0, "Light", &test_light},
