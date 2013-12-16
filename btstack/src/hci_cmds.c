@@ -727,6 +727,10 @@ extern const hci_cmd_t rfcomm_register_service_with_initial_credits;
  * TI vendor specific code
  * http://processors.wiki.ti.com/index.php/CC256x_VS_HCI_Commands
  */
+const hci_cmd_t hci_vs_write_bd_addr = {
+  OPCODE(OGF_VENDOR, 0xFC06), "B"
+};
+
 const hci_cmd_t hci_vs_write_codec_config = {
   OPCODE(OGF_VENDOR, 0xFD06), "214211122122112212211"
 };
