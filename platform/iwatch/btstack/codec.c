@@ -150,50 +150,38 @@ void codec_suspend()
 uint8_t codec_changevolume(int8_t diff)
 {
   uint8_t current;
-  I2C_addr(CODEC_ADDRESS);
-  uint16_t value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
-  current = value & 0x3F;
-  value &= ~0x3F;
-  
-  if (diff > 0)
-  {
-    if (current + diff <= 0x3f)
-      current += diff;
-  }
-  else
-  {
-    if (current > -diff)
-      current += diff;
-  }
-
-  value |= current;
-  
-  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
-  I2C_done();
+  current = codec_getvolume();
+  current += diff;
+  codec_setvolume(current);
 
   return current;
 }
 
-/* set volume, levle is from 0 - 255 */
+/* set volume, levle is from 0 - 8 */
 void codec_setvolume(uint8_t level)
 {
+  if (level > 8) level = 8;
+
   uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
   value &= ~0x3F;
-  value |= level >> 2;
+  value |= (53 + level) & 0x3F;
 
   I2C_addr(CODEC_ADDRESS);
   codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
   I2C_done();
 }
 
-/* set volume, levle is from 0 - 64 */
+/* set volume, levle is from 0 - 10 */
 uint8_t codec_getvolume()
 {
-  uint16_t value;
+  uint8_t value;
   I2C_addr(CODEC_ADDRESS);
   value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
   I2C_done();
-  return value & 0x3F;
+  if ((value & 0x3F) < 53)
+    return 0;
+  else
+    return ((value & 0x3F) - 53);
 }
 
 void codec_wakeup()
