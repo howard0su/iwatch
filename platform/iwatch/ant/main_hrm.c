@@ -195,6 +195,7 @@ void ProcessANTCBSCRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
                ulBSAccumRevs += (ULONG)((pstPage0Data->usCumSpeedRevCount - pstPrev0Data->usCumSpeedRevCount) & MAX_USHORT);
                ulBCAccumCadence += (ULONG)((pstPage0Data->usCumCadenceRevCount - pstPrev0Data->usCumCadenceRevCount) & MAX_USHORT);
 
+#if 0
                printf("Current speed time: %u", (ULONG)(pstPage0Data->usLastTime1024 / 1024));
                printf(".%03u s\n", (ULONG)((((pstPage0Data->usLastTime1024 % 1024) * CBSC_PRECISION)+(ULONG)512)/(ULONG)1024));
                printf("Delta speed time: %u", (ULONG)(stSpeedData.usDeltaValue / 1024));
@@ -212,6 +213,9 @@ void ProcessANTCBSCRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
                printf(".%03u RPM\n", stCadenceData.usFracValue);
                printf("Accumulated cadence: 0x%04X", (USHORT)((ulBCAccumCadence >> 16) & MAX_USHORT));
                printf("%04X\n\n\n", (USHORT)(ulBCAccumCadence & MAX_USHORT)); //display limited by 16-bit CPU
+#endif
+               window_postmessage(EVENT_SPORT_DATA, DATA_SPEED, (void*)(window_readconfig()->circumference * (stSpeedData.ulIntValue * CBSC_PRECISION + stSpeedData.usFracValue)));
+               window_postmessage(EVENT_SPORT_DATA, DATA_CADENCE, (void*)stCadenceData.ulIntValue);
 
                //move current data to the past
                pstPrev0Data->usCumCadenceRevCount = pstPage0Data->usCumCadenceRevCount;
@@ -293,10 +297,10 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
           ulHours /= (ULONG)3600; //finish the calculations: hours = 1hr == 3600s
           ulMinutes /= (ULONG)60; //finish the calculations: minutes = 1min == 60s
 
-          printf("Cumulative operating time: %dd ", ulDays);
-          printf("%dh ", ulHours);
-          printf("%dm ", ulMinutes);
-          printf("%ds\n\n", ulSeconds);
+          //printf("Cumulative operating time: %dd ", ulDays);
+          //printf("%dh ", ulHours);
+          //printf("%dm ", ulMinutes);
+          //printf("%ds\n\n", ulSeconds);
           bCommonPage = TRUE;
           break;
         }
@@ -304,8 +308,8 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
         {
           HRMPage2_Data* pstPage2Data = HRMRX_GetPage2();
 
-          printf("Manufacturer ID: %u\n", pstPage2Data->ucManId);
-          printf("Serial No (upper 16-bits): 0x%X\n", pstPage2Data->ulSerialNumber);
+          //printf("Manufacturer ID: %u\n", pstPage2Data->ucManId);
+          //printf("Serial No (upper 16-bits): 0x%X\n", pstPage2Data->ulSerialNumber);
           bCommonPage = TRUE;
           break;
         }
@@ -313,9 +317,9 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
         {
           HRMPage3_Data* pstPage3Data = HRMRX_GetPage3();
 
-          printf("Hardware Rev ID %u ", pstPage3Data->ucHwVersion);
-          printf("Model %u\n", pstPage3Data->ucModelNumber);
-          printf("Software Ver ID %u\n", pstPage3Data->ucSwVersion);
+          //printf("Hardware Rev ID %u ", pstPage3Data->ucHwVersion);
+          //printf("Model %u\n", pstPage3Data->ucModelNumber);
+          //printf("Software Ver ID %u\n", pstPage3Data->ucSwVersion);
           bCommonPage = TRUE;
           break;
         }
@@ -323,14 +327,14 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
         {
           HRMPage4_Data* pstPage4Data = HRMRX_GetPage4();
 
-          printf("Previous heart beat event: %u.", (ULONG)(pstPage4Data->usPreviousBeat/1024));
-          printf("%03u s\n", (ULONG)((((pstPage4Data->usPreviousBeat % 1024) * HRM_PRECISION) + 512) / 1024));
+          //printf("Previous heart beat event: %u.", (ULONG)(pstPage4Data->usPreviousBeat/1024));
+          //printf("%03u s\n", (ULONG)((((pstPage4Data->usPreviousBeat % 1024) * HRM_PRECISION) + 512) / 1024));
 
           if((pstPage0Data->ucBeatCount - ucPreviousBeatCount) == 1)	// ensure that there is only one beat between time intervals
           {
             USHORT usR_RInterval = pstPage0Data->usBeatTime - pstPage4Data->usPreviousBeat;	// subtracting the event time gives the R-R interval
-            printf("R-R Interval: %u.", (ULONG)(usR_RInterval/1024));
-            printf("%03u s\n", (ULONG)((((usR_RInterval % 1024) * HRM_PRECISION) + 512) / 1024));
+            //printf("R-R Interval: %u.", (ULONG)(usR_RInterval/1024));
+            //printf("%03u s\n", (ULONG)((((usR_RInterval % 1024) * HRM_PRECISION) + 512) / 1024));
           }
           ucPreviousBeatCount = pstPage0Data->ucBeatCount;
 
@@ -347,10 +351,10 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
       if(bCommonPage)
       {
         window_postmessage(EVENT_SPORT_DATA, DATA_HEARTRATE, (void*)pstPage0Data->ucComputedHeartRate);
-        printf("Time of last heart beat event: %u.", (ULONG)(pstPage0Data->usBeatTime/1024));
-        printf("%03u s\n", (ULONG)((((pstPage0Data->usBeatTime % 1024) * HRM_PRECISION) + 512) / 1024));
-        printf("Heart beat count: %u\n", pstPage0Data->ucBeatCount);
-        printf("Instantaneous heart rate: %u bpm\n\n", pstPage0Data->ucComputedHeartRate);
+        //printf("Time of last heart beat event: %u.", (ULONG)(pstPage0Data->usBeatTime/1024));
+        //printf("%03u s\n", (ULONG)((((pstPage0Data->usBeatTime % 1024) * HRM_PRECISION) + 512) / 1024));
+        //printf("Heart beat count: %u\n", pstPage0Data->ucBeatCount);
+        //printf("Instantaneous heart rate: %u bpm\n\n", pstPage0Data->ucComputedHeartRate);
       }
       break;
     }

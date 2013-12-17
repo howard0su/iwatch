@@ -41,10 +41,10 @@ static const struct _datapoints datapoints[] =
   {DATA_DISTANCE,  "Distance",           "mile", 0},
   {DATA_CALS,      "Burned Calories",    "cal",  0},
   {DATA_SPEED_AVG, "Avg Speed",          "mph",  0},
-  {DATA_SPEED,     "Speed",              "mph",  0},
   {DATA_ALTITUTE,  "Altitude",           "ft",   0},
   {DATA_TIME,      "Time of the Day",    NULL,   0},
-  {DATA_SPEED_TOP, "Top Speed",          "mph",  0}
+  {DATA_SPEED_TOP, "Top Speed",          "mph",  0},
+  {DATA_CADENCE,   "Cadence",            "cpm",    0}
 };
 
 static const tRectangle region_3grid[] =
