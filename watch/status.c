@@ -98,14 +98,14 @@ static void OnDraw(tContext* pContext)
     char icon = ICON_RUN;
     // draw activity
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, &icon, 1, 54, 0, 0);
+    GrStringDraw(pContext, &icon, 1, 48, 0, 0);
     unsigned long steps;
     // todo: fetch goal
-    int part = 12000 / 5;
+    int part = 10000 / 5;
     steps = 100;
-    for(int i = 1; i < 6; i++)
+    for(int i = 0; i < 5; i++)
     {
-      tRectangle rect = {67 + i * 5, 6, 70 + i * 5, 9};
+      tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
       if (i * part <= steps)
       {
         GrRectFill(pContext, &rect);
