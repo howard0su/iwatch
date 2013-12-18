@@ -361,6 +361,7 @@ extern const hci_cmd_t hci_le_start_encryption;
 extern const hci_cmd_t hci_le_test_end;
 extern const hci_cmd_t hci_le_transmitter_test;
 
+extern const hci_cmd_t hci_vs_write_bd_addr;
 extern const hci_cmd_t hci_vs_write_codec_config;
 extern const hci_cmd_t hci_vs_write_codec_config_enhanced;
 extern const hci_cmd_t hci_vs_le_enable;

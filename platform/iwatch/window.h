@@ -105,7 +105,7 @@ extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
 
-#define UI_CONFIG_SIGNATURE 0xABADFACF
+#define UI_CONFIG_SIGNATURE 0xABADFACE
 typedef struct {
   uint32_t signature;
   // world clock config
@@ -125,6 +125,8 @@ typedef struct {
 
   uint8_t weight; // in kg
   uint8_t height; // in cm
+
+  uint8_t circumference;
 }ui_config;
 
 extern ui_config* window_readconfig();
@@ -148,6 +150,6 @@ extern const char* toEnglish(uint8_t number, char* buffer);
 #define DATA_ALTITUTE   6
 #define DATA_TIME       7
 #define DATA_SPEED_TOP  8
-
+#define DATA_CADENCE 9
 
 #endif

@@ -53,6 +53,9 @@
 #include "backlight.h"
 #include "window.h"
 
+#include "ant/ant.h"
+#include "ant/antinterface.h"
+
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
@@ -122,10 +125,14 @@ main(int argc, char **argv)
 
   mpu6050_init();
 
+  motor_on(200, CLOCK_SECOND / 2);
+  
 //  if (!bluetooth_paired())
   {
     bluetooth_discoverable(1);
   }
+
+  ant_init(MODE_HRM);
 
   protocol_init();
   protocol_start(1);
@@ -137,7 +144,7 @@ main(int argc, char **argv)
   */
   msp430_dco_required = 0;
 
-  watchdog_start();
+ // watchdog_start();
 
   while(1) {
     int r;

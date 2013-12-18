@@ -34,7 +34,7 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
  		  GrStringDraw(pContext, "Test Buttons", -1, 32, 16, 0);
 
-#if 0
+#if 1
  		  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
 	      GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
 	      //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
@@ -406,20 +406,18 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 				data--;
 			}
 
-			// copy
-
 			if (onoff)
 			{
 				memcpy(buf, HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
 				buf[4] = data;
-				//hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
+				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
 			}
 			else
 			{
 				buf[0] = 0x88;
 				buf[1] = 0xFD;
 				buf[2] = 0;
-				//hci_send_cmd_packet(buf, 3);
+				hci_send_cmd_packet(buf, 3);
 			}
 
 			window_invalid(NULL);
@@ -459,8 +457,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 			buf[0] = 0x88;
 			buf[1] = 0xFD;
 			buf[2] = 0;
-			//hci_send_cmd_packet(buf, 3);
-
+			hci_send_cmd_packet(buf, 3);
  		}
  		break;
 

@@ -41,7 +41,7 @@ void I2C_Init()
   P5SEL |= BIT4;
 
   UCB1CTL1 &= ~UCSWRST;
-  printf("Done\n");
+  printf("\n$$OK I2C\n");
 }
 
 void I2C_shutdown()

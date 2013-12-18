@@ -273,6 +273,34 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 }
 
 /******************************************************************************************
+*函数名：SPI_FLASH_BufferRead()
+* 参数：u8* pBuffer, u32 ReadAddr, u16 NumByteToRead 数据指针，读出的地址，读出的个数
+* 返回值：void
+* 功能：SPIFLASH多个数据函数，外部调用
+*********************************************************************************************/
+void SPI_FLASH_BufferRead_Raw(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
+{
+  PRINTF("Read from Disk: offset:%lx size:%d\n", ReadAddr, NumByteToRead);
+  u16 n = NumByteToRead;
+
+   /* 使能片选 */
+  SPI_FLASH_CS_LOW();
+  /*发送读数据指令*/
+  SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
+  while (NumByteToRead--) /* 循环读取数据*/
+  {
+    /*读取一个字节数据*/
+    *pBuffer = SPI_FLASH_SendByte(Dummy_Byte);
+    /*数据指针加1*/
+    pBuffer++;
+  }
+  /*失能片选*/
+  SPI_FLASH_CS_HIGH();
+
+  hexdump(pBuffer - n, n);
+}
+
+/******************************************************************************************
 *函数名：SPI_FLASH_ReadID()
 * 参数：void
 * 返回值：u32 器件ID
@@ -446,8 +474,9 @@ void SPI_FLASH_Init(void)
   SPIOUT &= ~SIPIN;
   SPIOUT |= CSPIN; // pull CS high to disable chip
 
-  SPI_Flash_Reset();
+  //SPI_Flash_Reset();
 
+  printf("\n$$OK SPIFLASH\n");
 #if 0
   uint8_t FLASH_Status;
   SPI_FLASH_CS_LOW();

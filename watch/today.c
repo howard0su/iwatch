@@ -7,10 +7,9 @@
 #include "Template_Driver.h"
 
 static enum {
-  STEPS,
-  TIME,
-  CALORIES,
-}state = STEPS;
+  WALK = 0,
+  SPORT = 1
+}state = WALK;
 
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
 {
@@ -37,19 +36,45 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextFontSet(pContext, &g_sFontNova38);
 
-  sprintf(buf, "%d", ped_get_steps());
-  drawItem(pContext, 0, 'l', "Steps Taken", buf);
+  if (state == WALK)
+  {
+    sprintf(buf, "%d", ped_get_steps());
+    drawItem(pContext, 0, 'y', "Steps Taken", buf);
 
-  sprintf(buf, "%d", ped_get_time());
-  drawItem(pContext, 1, 0, "Walk Time", buf);
+    sprintf(buf, "%d", ped_get_time());
+    drawItem(pContext, 1, 'z', "Walk Time", buf);
 
-  sprintf(buf, "%d", ped_get_calorie());
-  drawItem(pContext, 2, 0, "Caloris", buf);
+    sprintf(buf, "%d", ped_get_calorie());
+    drawItem(pContext, 2, 'z'+1, "Caloris", buf);
 
-  sprintf(buf, "%d m", ped_get_distance());
-  drawItem(pContext, 3, 0, "Distance", buf);
+    sprintf(buf, "%d m", ped_get_distance());
+    drawItem(pContext, 3, 'z'+2, "Distance", buf);
 
-  // draw progress
+    // draw progress
+
+  }
+  else
+  {
+    sprintf(buf, "%d", ped_get_steps());
+    drawItem(pContext, 0, 'y', "Steps Taken", buf);
+
+    sprintf(buf, "%d", ped_get_time());
+    drawItem(pContext, 1, 'z', "Walk Time", buf);
+
+    sprintf(buf, "%d", ped_get_calorie());
+    drawItem(pContext, 2, 'z'+1, "Caloris", buf);
+
+    sprintf(buf, "%d m", ped_get_distance());
+    drawItem(pContext, 3, 'z'+2, "Distance", buf);    
+  }
+
+  GrContextForegroundSet(pContext, ClrWhite);
+  for(int i = 0; i < 6; i++)
+  {
+    GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+
+    GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
+  }
 }
 
 uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -65,16 +90,9 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
     onDraw((tContext*)rparam);
     break;
   case EVENT_KEY_PRESSED:
-    if (lparam == KEY_DOWN)
+    if (lparam == KEY_DOWN || lparam == KEY_UP)
     {
-      state++;
-      if (state > CALORIES)
-        state = STEPS;
-    }
-    else if (lparam == KEY_UP)
-    {
-      if (state != 0)
-        state--;
+      state = 1 - state;
     }
     window_invalid(NULL);
     break;
