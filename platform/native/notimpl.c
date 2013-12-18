@@ -2,7 +2,7 @@
 #include "rtc.h"
 #include "battery.h"
 #include "ant/ant.h"
-
+#include "dev/xmm.h"
 uint8_t shutdown_mode;
 
 void rtc_init(){}
@@ -170,3 +170,13 @@ ANT_ChannelPower(
   return 0;
 }
 
+
+void hci_send_cmd_packet()
+{
+  
+}
+
+void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
+{
+  xmem_pread(buf,   size,   offset);
+}
