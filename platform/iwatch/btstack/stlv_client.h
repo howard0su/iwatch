@@ -12,16 +12,24 @@ int begin_send_file(char* name);
 int send_file_data(int fd, uint8_t* data, uint8_t size, void (*callback)(int), int para);
 void end_send_file(int fd);
 
+//the normal interface to send file
 void send_file(char* name);
 
+//files should be ';' seperated file names
+void send_file_list(char* files);
+
+//sports data
 #define SPORTS_DATA_FLAG_START 0x01
 #define SPORTS_DATA_FLAG_STOP  0x02
+#define SPORTS_DATA_FLAG_BIKE  0x10
+#define SPORTS_DATA_FLAG_RUN   0x20
 void send_sports_data(uint8_t id, uint8_t flag, uint16_t* data, uint8_t size);
 void send_sports_grid(uint8_t* data, uint8_t size);
+
+//notification
 void send_notification(uint8_t sub_type, char* from, char* message);
 
-
-//-----------------------send alarm conf------------------------
+//alarm
 #define ALARM_MODE_NO_EXIST 0x00
 #define ALARM_MODE_DISABLE  0x01
 #define ALARM_MODE_ONCE     0x02
@@ -43,10 +51,8 @@ typedef struct _alarm_conf_t
 
 void send_alarm_conf(alarm_conf_t* data);
 
+//device id
 void send_device_id(char* device_id);
-
-//files should be ';' seperated file names
-void send_file_list(char* files);
 
 #endif
 

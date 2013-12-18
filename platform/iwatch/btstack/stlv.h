@@ -75,6 +75,12 @@
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;
 
+#define BTSTACK_TYPE_UNKNOWN 0
+#define BTSTACK_TYPE_RFCOMM  1
+#define BTSTACK_TYPE_GATT    2
+void set_btstack_type(uint8_t type);
+uint8_t get_btstack_type();
+
 //parse packet
 int get_version(stlv_packet pack);
 int get_body_length(stlv_packet pack);

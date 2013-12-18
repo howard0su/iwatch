@@ -6,6 +6,18 @@
 #include "stlv_server.h"
 #include "stlv_transport.h"
 
+
+static uint8_t s_btstack_type = BTSTACK_TYPE_UNKNOWN;
+void set_btstack_type(uint8_t type)
+{
+    s_btstack_type = type;
+}
+
+uint8_t get_btstack_type()
+{
+    return s_btstack_type;
+}
+
 #define GET_PACKET_END(pack) (pack + STLV_HEAD_SIZE + get_body_length(pack))
 
 int get_version(stlv_packet pack)

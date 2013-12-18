@@ -44,8 +44,6 @@ const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
 static tContext context;
 static struct etimer timer, status_timer, backlight_timer;
 
-static void window_loadconfig();
-
 // the real stack is like this
 //     uistack[4]
 //     uistack[3]
@@ -297,7 +295,7 @@ void window_close()
 
 #define WINDOWCONFIG "_uiconfig"
 
-static void window_loadconfig()
+void window_loadconfig()
 {
   ui_config data;
   printf("load config file");
