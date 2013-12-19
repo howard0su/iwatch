@@ -203,7 +203,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
-  const uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff };
+  const uint8_t adv_data[] = { 
+         0x02,  0x01, 0x09,
+         16+1, 0x06, 0x54, 0xf1, 0xad, 0xde, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0xf1, 0xad, 0xde
+     };
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
@@ -258,7 +261,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
-        hci_send_cmd(&hci_le_set_advertising_parameters,  0x0400, 0x0800, 0, 0, 0, &event_addr, 0x07, 0);
+        hci_send_cmd(&hci_le_set_advertising_parameters,  0x2000, 0x4000, 0, 0, 0, &event_addr, 0x07, 0);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
@@ -305,6 +308,20 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         printf("\n$$END\n");
       }
       break;
+
+    case BTSTACK_EVENT_DISCOVERABLE_ENABLED:
+      {
+        if (packet[2])
+        {
+          printf("enabled advertising\n");
+          hci_send_cmd(&hci_le_set_advertise_enable, 1);
+        }
+        else
+        {
+          hci_send_cmd(&hci_le_set_advertise_enable, 0);
+        }
+        break;
+      }
     }
   }
 }
