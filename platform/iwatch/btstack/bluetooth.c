@@ -91,6 +91,21 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
   }
 }
 
+// read requests
+static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
+ log_info("Read Callback, handle %04x\n", handle);
+  switch(handle){
+  case 0x000b:
+    buffer[buffer_size]=0;
+    printf("New text: %s\n", buffer);
+    break;
+  case 0x000d:
+    printf("New value: %u\n", buffer[0]);
+    break;
+  }
+}
+
+
 static uint16_t handle_audio = 0;
 static bd_addr_t host_addr;
 
@@ -352,6 +367,7 @@ static void btstack_setup(){
   // set up ATT
   att_set_db(profile_data);
   att_set_write_callback(att_write_callback);
+  att_set_read_callback(att_read_callback);
   //att_dump_attributes();
   att_connection.mtu = 100;
 

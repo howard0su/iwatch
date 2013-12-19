@@ -116,9 +116,10 @@ void handle_get_device_id()
 
 void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories)
 {
-    window_postmessage(EVENT_SPORT_DATA, DATA_SPEED,    (void*)spd);
-    window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)alt);
-    window_postmessage(EVENT_SPORT_DATA, DATA_DISTANCE, (void*)distance);
+    UNUSED_VAR(calories);
+    window_postmessage(EVENT_SPORT_DATA, DATA_SPEED,    (void*)&spd);
+    window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)&alt);
+    window_postmessage(EVENT_SPORT_DATA, DATA_DISTANCE, (void*)&distance);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -216,7 +217,7 @@ void handle_alarm(alarm_conf_t* para)
     {
         case ALARM_MODE_DISABLE:
         case ALARM_MODE_NO_EXIST:
-            rtc_setalarm(0,0,0,0);
+            rtc_setalarm(0, 0, 0, 0);
             break;
         case ALARM_MODE_MONTHLY:
             rtc_setalarm(para->day_of_month | 0x80, 0, para->hour | 0x80, para->minute | 0x80);
@@ -252,6 +253,7 @@ void handle_set_watch_config(struct ui_config* config)
     {
         memcpy(online_config, config, sizeof(ui_config));
         window_writeconfig();
+        window_loadconfig();
     }
 }
 
