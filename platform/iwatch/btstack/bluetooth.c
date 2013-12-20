@@ -132,6 +132,11 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     }
     break;
 
+    case DAEMON_EVENT_HCI_PACKET_SENT:
+        att_try_respond();
+        break; 
+
+
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
     {
       if (packet[2]) {
@@ -237,6 +242,10 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       hci_send_cmd(&hci_read_local_supported_features);
     }
     break;
+
+  case DAEMON_EVENT_HCI_PACKET_SENT:
+        att_try_respond();
+        break; 
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
