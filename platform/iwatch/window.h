@@ -108,6 +108,7 @@ extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
 #define UI_CONFIG_SIGNATURE 0xABADFACE
 typedef struct {
   uint32_t signature;
+
   // world clock config
   char worldclock_name[6][10];
   int8_t worldclock_offset[6];
@@ -122,6 +123,11 @@ typedef struct {
   uint8_t sports_grid;   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
   uint8_t sports_grid_data[5]; // each slot means which grid data to show
   // default
+
+  //goals
+  uint16_t goal_steps;
+  uint16_t goal_distance;
+  uint16_t goal_calories;
 
   uint8_t weight; // in kg
   uint8_t height; // in cm
@@ -150,6 +156,6 @@ extern const char* toEnglish(uint8_t number, char* buffer);
 #define DATA_ALTITUTE   6
 #define DATA_TIME       7
 #define DATA_SPEED_TOP  8
-#define DATA_CADENCE 9
+#define DATA_CADENCE    9
 
 #endif

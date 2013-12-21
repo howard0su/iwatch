@@ -10,7 +10,6 @@
 #include "rtc.h"
 #include "cfs/cfs.h"
 #include "stlv_client.h"
-#include "window.h"
 
 void handle_echo(uint8_t* data, int data_len)
 {
@@ -21,6 +20,53 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
 {
     rtc_setdate(2000 + year, month, day);
     rtc_settime(hour, minute, second);
+
+    //for test
+    struct cfs_dir dir;
+    int ret = cfs_opendir(&dir, "");
+    if (ret == -1)
+    {
+        printf("cfs_opendir() failed: %d\n", ret);
+        return;
+    }
+
+    while (ret != -1)
+    {
+        struct cfs_dirent dirent;
+        ret = cfs_readdir(&dir, &dirent);
+        if (ret != -1)
+        {
+            printf("file:%s, %d\n", dirent.name, dirent.size);
+        }
+    }
+
+    cfs_closedir(&dir);
+
+    //test sports data sync
+    //#define DATA_WORKOUT    0
+    //#define DATA_SPEED      1
+    //#define DATA_HEARTRATE  2
+    //#define DATA_CALS       3
+    //#define DATA_DISTANCE   4
+    //#define DATA_SPEED_AVG  5
+    //#define DATA_ALTITUTE   6
+    //#define DATA_TIME       7
+    //#define DATA_SPEED_TOP  8
+    //#define DATA_CADENCE    9
+    //uint8_t test_grid[4];
+    //test_grid[0] = DATA_SPEED;
+    //test_grid[1] = DATA_SPEED_AVG;
+    //test_grid[2] = DATA_DISTANCE;
+    //test_grid[3] = DATA_CALS;
+    //send_sports_grid(test_grid, sizeof(test_grid));
+
+    uint16_t test_data[10];
+    for (uint8_t i = 0; i < 10; ++i)
+    {
+        test_data[i] = i;
+    }
+    send_sports_data(1, 0x11, test_data, 10);
+
 }
 
 #define ICON_FACEBOOK 's'
@@ -65,6 +111,7 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 
 int handle_file_begin(char* name)
 {
+    printf("handle_file_begin(%s)", name);
     int fd = cfs_open(name, CFS_WRITE);
     if (fd == -1)
     {
@@ -76,6 +123,7 @@ int handle_file_begin(char* name)
 
 int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
+    printf("handle_file_end(%x, data, %d)", fd, size);
     if (fd != -1)
     {
         return cfs_write(fd, data, size);
@@ -86,36 +134,89 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
 
 void handle_file_end(int fd)
 {
+    printf("handle_file_end(%x)", fd);
     cfs_close(fd);
-}
-
-//TODO: sujun implement this heart beat and get file
-void handle_sports_heartbeat(char* activity_id)
-{
-    UNUSED_VAR(activity_id);
 }
 
 void handle_get_file(char* name)
 {
+    printf("handle_get_file(%s)", name);
     transfer_file(name);
 }
 
+static char* filter_filename_by_prefix(char* prefix, char* filename)
+{
+    char* pp = prefix;
+    char* pf = filename;
+    while (*pp != '\0' && *pf != '\0')
+    {
+        if (*pp != *pf)
+        {
+            return 0;
+        }
+        ++pp;
+        ++pf;
+    }
+    if (*pf != '\0')
+        return pf;
+    else
+        return 0;
+}
+
+//TODO: help verify
 void handle_list_file(char* prefix)
 {
-    UNUSED_VAR(prefix);
+    printf("handle_list_file(%s)", prefix);
+
+    char buf[200] = "";
+    uint8_t buf_size = 0;
+    struct cfs_dir dir;
+    int ret = cfs_opendir(&dir, "");
+    if (ret == -1)
+    {
+        printf("cfs_opendir() failed: %d", ret);
+        return;
+    }
+
+    while (ret != -1)
+    {
+        struct cfs_dirent dirent;
+        ret = cfs_readdir(&dir, &dirent);
+        if (ret != -1)
+        {
+            printf("file:%s, %d\n", dirent.name, dirent.size);
+
+            char* short_name = filter_filename_by_prefix(prefix, dirent.name);
+            uint8_t len = strlen(short_name) + 1;
+            if (buf_size + len >= sizeof(buf) - 1)
+                break;
+            strcat(buf, short_name);
+            strcat(buf, ";");
+            buf_size += len;
+        }
+    }
+
+    cfs_closedir(&dir);
+
+    send_file_list(buf);
+
 }
 
 void handle_remove_file(char* name)
 {
-    UNUSED_VAR(name);
+    printf("handle_remove_file(%s)", name);
+    cfs_remove(name);
 }
 
 void handle_get_device_id()
 {
+    //TODO: return device id
+    printf("handle_get_device_id()");
 }
 
 void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories)
 {
+    printf("handle_gps_info(%d, %d, %d, %d)", spd, alt, distance, calories);
     UNUSED_VAR(calories);
     window_postmessage(EVENT_SPORT_DATA, DATA_SPEED,    (void*)&spd);
     window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)&alt);
@@ -213,6 +314,14 @@ void handle_get_sports_grid()
 
 void handle_alarm(alarm_conf_t* para)
 {
+    printf("set alarm:\n");
+    printf("  id           = %d\n", para->id);
+    printf("  mode         = %d\n", para->mode);
+    printf("  day_of_month = %d\n", para->day_of_month);
+    printf("  day_of_week  = %d\n", para->day_of_week);
+    printf("  hour         = %d\n", para->hour);
+    printf("  minute       = %d\n", para->minute);
+
     switch(para->mode)
     {
         case ALARM_MODE_DISABLE:
@@ -245,9 +354,24 @@ void handle_gesture_control(uint8_t flag)
     //#define GESTURE_FLAG_LEFT   0x02
 }
 
-void handle_set_watch_config(struct ui_config* config)
+void handle_set_watch_config(ui_config* config)
 {
     //TODO: help check this
+    printf("set_watch_config:\n");
+    printf("  signature     = %d\n", config->signature);
+    printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
+    printf("  analog_clock  = %d\n", config->analog_clock);  // num : which clock face
+    printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
+    printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+    printf("  goal_steps    = %d\n", config->goal_steps);
+    printf("  goal_distance = %d\n", config->goal_distance);
+    printf("  goal_calories = %d\n", config->goal_calories);
+    printf("  weight        = %d\n", config->weight); // in kg
+    printf("  height        = %d\n", config->height); // in cm
+    printf("  circumference = %d\n", config->circumference);
+
+    printf("    :");
+    printf("    set_watch_config:");
     ui_config* online_config = window_readconfig();
     if (online_config != NULL)
     {

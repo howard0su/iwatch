@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 #include "stlv_client.h"
+#include "contiki.h"
+#include "window.h"
 
 //-----------------------message handlers----------------------
 void handle_echo(uint8_t* data, int size);
@@ -12,7 +14,6 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
 void handle_message(uint8_t msg_type, char* ident, char* message);
 
 //-----------------------data----------------------
-void handle_sports_heartbeat(char* activity_id);
 
 void handle_get_file(char* name);
 void handle_list_file();
@@ -39,8 +40,7 @@ void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t cal
 #define GESTURE_FLAG_LEFT   0x02
 void handle_gesture_control(uint8_t flag);
 
-struct ui_config;
-void handle_set_watch_config(struct ui_config* conf);
+void handle_set_watch_config(ui_config* conf);
 
 #endif
 

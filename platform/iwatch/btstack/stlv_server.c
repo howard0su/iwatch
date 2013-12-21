@@ -19,6 +19,7 @@ void handle_stlv_packet(unsigned char* packet)
     while (IS_VALID_STLV_HANDLE(handle))
     {
         int type_len = get_element_type(pack, handle, type_buf, sizeof(type_buf));
+        printf("Read Element: %x\n", type_buf[0]);
         switch (type_buf[0])
         {
         case ELEMENT_TYPE_ECHO:
@@ -107,6 +108,7 @@ void handle_stlv_packet(unsigned char* packet)
             }
            break;
 
+#if 0
         case ELEMENT_TYPE_SPORT_HEARTBEAT:
             {
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
@@ -116,7 +118,6 @@ void handle_stlv_packet(unsigned char* packet)
                 STLV_BUF_END_TEMP_STRING(data, data_len);
             }
             break;
-#if 0
         case ELEMENT_TYPE_SPORTS_DATA:
             handle_get_sports_data();
             break;
@@ -166,10 +167,11 @@ void handle_stlv_packet(unsigned char* packet)
 
         case ELEMENT_TYPE_WATCHCONFIG:
             {
+                printf("Set Watch UI Config");
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                 UNUSED_VAR(data_len);
-                handle_set_watch_config((struct ui_config*)data);
+                handle_set_watch_config((ui_config*)data);
             }
             break;
 
