@@ -287,7 +287,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         tobesend[0] = workout_time;
         for(int i = 1; i < sportnum; i++)
             tobesend[i + 1] = data[i];
-        send_sports_data(0, 0, tobesend, sportnum + 1);
+        send_sports_data(0, SPORTS_DATA_FLAG_START, tobesend, sportnum + 1);
       }
 #if 0
       // push the data into CFS
@@ -352,6 +352,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     }
     rtc_enablechange(0);
     ant_shutdown();
+    uint16_t dumm_data[4];
+    send_sports_data(0, SPORTS_DATA_FLAG_STOP, dumm_data, 4);
     break;
   default:
     return 0;

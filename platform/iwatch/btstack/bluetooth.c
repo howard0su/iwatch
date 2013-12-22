@@ -77,32 +77,41 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
 // test profile
 #include "profile.h"
 
+static uint8_t test_value = 0;
+
 // write requests
 static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
-  log_info("WRITE Callback, handle %04x\n", handle);
   switch(handle){
   case 0x000b:
-    buffer[buffer_size]=0;
-    printf("New text: %s\n", buffer);
-    break;
+    if (buffer != 0)
+    {
+        printf("get data: %x\n", buffer[0]);
+        test_value = buffer[0];
+    }
+   break;
   case 0x000d:
-    printf("New value: %u\n", buffer[0]);
+    printf("unhandle\n");
     break;
   }
 }
 
 // read requests
 static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
- log_info("Read Callback, handle %04x\n", handle);
   switch(handle){
   case 0x000b:
-    buffer[buffer_size]=0;
-    printf("New text: %s\n", buffer);
+    if (buffer != 0)
+    {
+        buffer[0] = test_value;
+        printf("set data: %x\n", buffer[0]);
+    }
+    return 1;
     break;
   case 0x000d:
-    printf("New value: %u\n", buffer[0]);
+    printf("unhandle\n");
+    return 1;
     break;
   }
+  return 0;
 }
 
 
@@ -125,7 +134,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     switch (packet[2]) {
     case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
       // reset connection MTU
-      att_connection.mtu = 120;
+      att_connection.mtu = 23;
       break;
     default:
       break;
@@ -223,7 +232,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
-  uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff }; 
+  uint8_t adv_data[] = { 02, 01, 05, 03, 02, 0xf0, 0xff }; 
   //const uint8_t adv_data[] = { 
   //       0x02,  0x01, 0x09,
   //       16+1, 0x06, 0x54, 0xf1, 0xad, 0xde, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0xf1, 0xad, 0xde
@@ -379,7 +388,7 @@ static void btstack_setup(){
   att_set_write_callback(att_write_callback);
   att_set_read_callback(att_read_callback);
   //att_dump_attributes();
-  att_connection.mtu = 100;
+  att_connection.mtu = 27;
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();
