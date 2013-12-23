@@ -106,12 +106,13 @@ static void mas_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
           }
           else
           {
-            rfcomm_channel_id = READ_BT_16(packet, 9);
+            rfcomm_channel_id = READ_BT_16(packet, 12);
             printf("MAS connection is created channel = %d.\n", rfcomm_channel_id);
             obex_connect_request(&mas_obex, MAS_TARGET, sizeof(MAS_TARGET));
           }
           break;
         }
+      case DAEMON_EVENT_HCI_PACKET_SENT:
       case RFCOMM_EVENT_CREDITS:
         {
           mas_try_respond(rfcomm_channel_id);
