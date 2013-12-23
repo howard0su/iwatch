@@ -11,7 +11,9 @@
 
 #define MNS_CHANNEL 17
 
-static void mns_callback(int code, const uint8_t* lparam, uint16_t rparam);
+extern void mas_getmessage(char* id);
+
+static void mns_callback(int code, uint8_t* lparam, uint16_t rparam);
 static void mns_send(void *data, uint16_t length);
 
 static service_record_item_t mns_service_record;
@@ -107,7 +109,8 @@ static void mns_try_respond(uint16_t rfcomm_channel_id){
     }
     else
     {
-      hexdump(mns_response_buffer, size);
+      printf("data is sent\n");
+      //hexdump(mns_response_buffer, size);
     }
 }
 
@@ -119,9 +122,9 @@ static void mns_send(void *data, uint16_t length)
   mns_try_respond(rfcomm_channel_id);  
 }
 
-static void mns_callback(int code, const uint8_t* header, uint16_t length)
+static void mns_callback(int code, uint8_t* header, uint16_t length)
 {
-  printf("Callback with code %d\n", code);
+  printf("MNS Callback with code %d\n", code);
   uint8_t buf[20];
 
   switch(code)
@@ -157,11 +160,11 @@ static void mns_callback(int code, const uint8_t* header, uint16_t length)
       header = obex_header_get_next(header, &length);
     }
 
-    obex_create_request(&mns_obex, 500, buf);
-    obex_send(&mns_obex, buf, 0);
-
+    uint8_t *ptr = obex_create_connect_request(&mns_obex, 500, buf);
+    obex_send(&mns_obex, buf, ptr - buf);
     break;
   case OBEX_CB_PUT:
+#if 0
     while(header != NULL && length > 0)
     {
       switch(*header)
@@ -170,15 +173,16 @@ static void mns_callback(int code, const uint8_t* header, uint16_t length)
         {
           uint16_t length = READ_NET_16((uint8_t*)header, 1);
           hexdump((uint8_t*)header + 3, length);
-          obex_create_request(&mns_obex, 0x20, buf);
-          obex_send(&mns_obex, buf, 0);
           break;
         }
       }
 
       header = obex_header_get_next(header, &length);
     }
+    obex_create_request(&mns_obex, 0x20, buf);
+    obex_send(&mns_obex, buf, 0);
     break;
+#endif
   case OBEX_CB_PUT | OBEX_CBFLAG_FINAL:
     while(header != NULL && length > 0)
     {
@@ -187,15 +191,53 @@ static void mns_callback(int code, const uint8_t* header, uint16_t length)
         case OBEX_HEADER_BODY:
         case OBEX_HEADER_ENDBODY:
         {
-          uint16_t length = READ_NET_16((uint8_t*)header, 1);
-          hexdump((uint8_t*)header + 3, length);
-          obex_create_request(&mns_obex, 0xA0, buf);
-          obex_send(&mns_obex, buf, 0);
+          // compose a request to MAS connection
+          uint16_t len = READ_NET_16((uint8_t*)header, 1);
+          // mark the end
+          hexdump(header, len + 1);
+          header[len+1] = '\0';
+          printf("header:%s\n", header + 3);
+          #define HEADER "handle = \""
+          // TODO: handle this better with xml lib
+          char *start = strstr(header + 3, HEADER);
+          if (start == NULL)
+          {
+            printf("fail to find start\n");
+            break;
+          }
+          start += sizeof(HEADER) - 1; // skip "
+          char* end = strchr(start, '\"');
+          if (end != NULL)
+          {
+            *end = 0;
+            mas_getmessage(start);
+          }
+          else
+            printf("fail to find end\n");
           break;
         }
+
+        case OBEX_HEADER_APPPARMS:
+        case OBEX_HEADER_TYPE:
+        {
+          uint16_t len = READ_NET_16((uint8_t*)header, 1);
+          printf("type %x\n", *header);
+          hexdump((uint8_t*)header + 3, len - 2);
+          break;
+        }
+        case OBEX_HEADER_CONNID:
+        printf("connid\n");
+        hexdump((uint8_t*)header + 1, 4);   
+        break;
+
+        default:
+
       }
       header = obex_header_get_next(header, &length);
     }
+    ptr = obex_create_request(&mns_obex, 200, buf);
+    obex_send(&mns_obex, buf, ptr - buf);
+
     break;
   }
 }

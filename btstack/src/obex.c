@@ -20,10 +20,10 @@
 #define WAIT_RESPONE 3
 #define COMPBINE_PACKET 0x80
 
-static void obex_handle_request(const struct obex* obex, const operation_obex* data)
+static void obex_handle_request(const struct obex* obex, operation_obex* data)
 {
   uint16_t length = data->length << 8 | data->length >> 8;
-  const connection_obex *conn = (const connection_obex*)data;
+  connection_obex *conn = (connection_obex*)data;
 
   switch (data->opcode)
   {
@@ -59,7 +59,7 @@ static void obex_handle_response(const struct obex* obex, const operation_obex* 
 
 }
 
-const uint8_t *obex_header_get_next(const uint8_t *prev, /* in,out*/ uint16_t *length_left)
+uint8_t *obex_header_get_next(uint8_t *prev, /* in,out*/ uint16_t *length_left)
 {
   if (*length_left == 0)
     return NULL;
@@ -91,9 +91,9 @@ const uint8_t *obex_header_get_next(const uint8_t *prev, /* in,out*/ uint16_t *l
   return NULL;
 }
 
-static void obex_handle_connected(const struct obex* obex, const connection_obex* data)
+static void obex_handle_connected(const struct obex* obex, connection_obex* data)
 {
-  const uint8_t *ptr = data->data;
+  uint8_t *ptr = data->data;
   uint16_t length = data->length << 8 | data->length >> 8;
   length -= sizeof(connection_obex);
 
@@ -178,16 +178,18 @@ void obex_handle(const struct obex* obex, const uint8_t* packet, uint16_t length
   }
 }
 
-uint8_t* obex_header_add_text(uint8_t *buf, int code, const wchar_t* text)
+/*text should be in utf-8 format*/
+uint8_t* obex_header_add_text(uint8_t *buf, int code, const char* text)
 {
   // assert code
   assert((code & 0xC0) == 0x00);
   buf[0] = code;
-  int length = wcslen(text) + 1;
-  net_store_16(buf, 1, length * 2 + 3);
-  memcpy(buf + 3, text, length * 2);
+  int length = strlen(text);
+  net_store_16(buf, 1, length + 4 + 3);
+  memcpy(buf + 3, text, length);
+  memset(buf + 3 + length, 0, 4);
 
-  return buf + 3 + length * 2;
+  return buf + 4 + 3 + length;
 }
 
 uint8_t* obex_header_add_bytes(uint8_t *buf, int code, const uint8_t *data, int length)
@@ -243,8 +245,9 @@ uint8_t* obex_create_connect_request(const struct obex* obex, int opcode, uint8_
 
 void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length)
 {
-  log_info("obex_send %d\n", length);
+  printf("obex_send: %d\n", length);
   net_store_16(buf, 1, length);
+  hexdump(buf, length);
   obex->send(buf, length);  
 }
 

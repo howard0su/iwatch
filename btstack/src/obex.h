@@ -32,7 +32,7 @@ struct obex_state
 struct obex
 {
 	struct obex_state *state;
-	void (*state_callback)(int code, const uint8_t* headers, uint16_t length);
+	void (*state_callback)(int code, uint8_t* headers, uint16_t length);
 	void (*send)(void* data, uint16_t length);
 };
 
@@ -73,10 +73,10 @@ uint8_t* obex_create_request(const struct obex* obex, int opcode, uint8_t* buf);
 uint8_t* obex_create_connect_request(const struct obex* obex, int opcode, uint8_t* buf);
 void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length);
 
-uint8_t* obex_header_add_text(uint8_t *buf, int code, const wchar_t* text);
+uint8_t* obex_header_add_text(uint8_t *buf, int code, const char* text);
 uint8_t* obex_header_add_bytes(uint8_t *buf, int code, const uint8_t *data, int length);
 uint8_t *obex_header_add_byte(uint8_t *buf, int code, uint8_t data);
 uint8_t *obex_header_add_uint32(uint8_t *buf, int code, uint32_t data);
-const uint8_t *obex_header_get_next(const uint8_t *prev, /* in,out*/ uint16_t *length_left);
+uint8_t *obex_header_get_next(uint8_t *prev, /* in,out*/ uint16_t *length_left);
 
 #endif

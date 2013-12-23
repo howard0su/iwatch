@@ -18,7 +18,7 @@ static const uint8_t MAS_TARGET[16] =
  0xbb, 0x58, 0x2b, 0x40, 0x42, 0x0c, 0x11, 0xdb, 0xb0, 0xde, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66
 };
 
-static void mas_callback(int code, const uint8_t* lparam, uint16_t rparam);
+static void mas_callback(int code, uint8_t* lparam, uint16_t rparam);
 static void mas_send(void *data, uint16_t length);
 static uint16_t rfcomm_channel_id;
 static struct obex_state mas_obex_state;
@@ -51,8 +51,17 @@ const static uint8_t appparams_notify[] =
 {
   0x0e,0x01,0x01
 };
-
 const static char type_notify[] = "x-bt/MAP-NotificationRegistration";
+
+const static uint8_t appparams_getmessage[] = 
+{
+  0x0a, 0x01, 0x00, // Attachment
+  0x14, 0x01, 0x01, //Charset
+  0x15, 0x01, 0x00,//FractionRequest
+};
+
+const static char type_getmessage[] = "x-bt/message";
+
 static uint8_t mas_buf[256];
 
 static void mas_send(void *data, uint16_t length)
@@ -63,7 +72,20 @@ static void mas_send(void *data, uint16_t length)
   mas_try_respond(rfcomm_channel_id);  
 }
 
-static void mas_callback(int code, const uint8_t* lparam, uint16_t rparam)
+void mas_getmessage(char* id)
+{
+  printf("get message for %s\n", id);
+  uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_PUT + OBEX_OP_FINAL, mas_buf);
+  
+  ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, mas_obex.state->connection);
+  ptr = obex_header_add_text(ptr, OBEX_HEADER_NAME, id);
+  ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_getmessage, sizeof(type_getmessage));
+  ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_getmessage, sizeof(appparams_getmessage));
+    
+  obex_send(&mas_obex, mas_buf, ptr - mas_buf);  
+}
+
+static void mas_callback(int code, uint8_t* lparam, uint16_t rparam)
 {
   printf("Callback with code %d\n", code);
   switch(code)
