@@ -47,10 +47,12 @@ extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
+#define DEFAULT_MTU 120
+
 static att_connection_t att_connection;
 static uint16_t         att_response_handle = 0;
 static uint16_t         att_response_size   = 0;
-static uint8_t          att_response_buffer[28];
+static uint8_t          att_response_buffer[DEFAULT_MTU];
 
 static bd_addr_t currentbd;
 
@@ -134,7 +136,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     switch (packet[2]) {
     case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
       // reset connection MTU
-      att_connection.mtu = 23;
+      att_connection.mtu = DEFAULT_MTU;
       break;
     default:
       break;
@@ -388,7 +390,7 @@ static void btstack_setup(){
   att_set_write_callback(att_write_callback);
   att_set_read_callback(att_read_callback);
   //att_dump_attributes();
-  att_connection.mtu = 27;
+  att_connection.mtu = DEFAULT_MTU;
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();
