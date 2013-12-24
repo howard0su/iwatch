@@ -78,9 +78,9 @@ void bt_flip_addr(bd_addr_t dest, const bd_addr_t src){
 void hexdump(const void *data, int size){
     int i;
     for (i=0; i<size;i++){
-        log_info("%02X ", ((uint8_t *)data)[i]);
+        printf("%02X ", ((uint8_t *)data)[i]);
     }
-    log_info("\n");
+    printf("\n");
 }
 
 void printUUID(const uint8_t *uuid) {

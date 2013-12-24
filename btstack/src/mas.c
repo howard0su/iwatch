@@ -43,6 +43,7 @@ static void mas_try_respond(uint16_t rfcomm_channel_id){
     }
     else
     {
+      printf("MAS Sent %d byte: ", size);
       hexdump(mas_response_buffer, size);
     }
 }
@@ -57,12 +58,12 @@ const static uint8_t appparams_getmessage[] =
 {
   0x0a, 0x01, 0x00, // Attachment
   0x14, 0x01, 0x01, //Charset
-  0x15, 0x01, 0x00,//FractionRequest
+//  0x15, 0x01, 0x00,//FractionRequest
 };
 
 const static char type_getmessage[] = "x-bt/message";
 
-static uint8_t mas_buf[256];
+static uint8_t mas_buf[100];
 
 static void mas_send(void *data, uint16_t length)
 {
@@ -111,8 +112,22 @@ static void mas_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
   switch(packet_type)
   {
   case RFCOMM_DATA_PACKET:
+    printf("MAS received: ");
     hexdump(packet, size);
     obex_handle(&mas_obex, packet, size);
+    rfcomm_grant_credits(rfcomm_channel_id, 1); // get the next packet
+    break;
+  case DAEMON_EVENT_PACKET:
+    switch(packet[0])    
+    {
+      case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+      case DAEMON_EVENT_HCI_PACKET_SENT:
+      case RFCOMM_EVENT_CREDITS:
+        {
+          mas_try_respond(rfcomm_channel_id);
+          break;
+        }
+    }
     break;
   case HCI_EVENT_PACKET:
     {
@@ -134,6 +149,7 @@ static void mas_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
           }
           break;
         }
+      case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
       case DAEMON_EVENT_HCI_PACKET_SENT:
       case RFCOMM_EVENT_CREDITS:
         {

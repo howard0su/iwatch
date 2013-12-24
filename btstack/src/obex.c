@@ -245,7 +245,7 @@ uint8_t* obex_create_connect_request(const struct obex* obex, int opcode, uint8_
 
 void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length)
 {
-  printf("obex_send: %d\n", length);
+  printf("obex_send %d bytes: ", length);
   net_store_16(buf, 1, length);
   hexdump(buf, length);
   obex->send(buf, length);  

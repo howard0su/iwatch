@@ -118,8 +118,8 @@ static void mns_try_respond(uint16_t rfcomm_channel_id){
     }
     else
     {
-      printf("data is sent\n");
-      //hexdump(mns_response_buffer, size);
+      printf("MNS Sent %d byte: ", size);
+      hexdump(mns_response_buffer, size);
     }
 }
 
@@ -131,10 +131,11 @@ static void mns_send(void *data, uint16_t length)
   mns_try_respond(rfcomm_channel_id);  
 }
 
+static uint8_t buf[20];
 static void mns_callback(int code, uint8_t* header, uint16_t length)
 {
   printf("MNS Callback with code %d\n", code);
-  uint8_t buf[20];
+  uint8_t *ptr, *handler = NULL;
 
   switch(code)
   {
@@ -169,7 +170,7 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
       header = obex_header_get_next(header, &length);
     }
 
-    uint8_t *ptr = obex_create_connect_request(&mns_obex, 500, buf);
+    ptr = obex_create_connect_request(&mns_obex, 500, buf);
     obex_send(&mns_obex, buf, ptr - buf);
     break;
   case OBEX_CB_PUT:
@@ -203,23 +204,25 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
           // compose a request to MAS connection
           uint16_t len = READ_NET_16((uint8_t*)header, 1);
           // mark the end
-          hexdump(header, len + 1);
+          //hexdump(header, len);
           header[len+1] = '\0';
-          printf("header:%s\n", header + 3);
-          #define HEADER "handle = \""
-          // TODO: handle this better with xml lib
-          char *start = strstr(header + 3, HEADER);
-          if (start == NULL)
+          printf("BODY %s: ", header + 3);
+          char *start;
+          if (!((start = strstr(header + 3, "handle"))
+            && (start = strchr(start, '='))
+            && (start = strchr(start, '"'))))
           {
             printf("fail to find start\n");
             break;
           }
-          start += sizeof(HEADER) - 1; // skip "
-          char* end = strchr(start, '\"');
+          start++;
+
+          char* end = strchr(start, '"');
           if (end != NULL)
           {
             *end = 0;
-            mas_getmessage(start);
+            handler = start;
+            mas_getmessage(handler);
           }
           else
             printf("fail to find end\n");
@@ -230,23 +233,30 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
         case OBEX_HEADER_TYPE:
         {
           uint16_t len = READ_NET_16((uint8_t*)header, 1);
-          printf("type %x\n", *header);
-          hexdump((uint8_t*)header + 3, len - 2);
+          printf("type %x: ", *header);
+          hexdump((uint8_t*)header, len);
           break;
         }
         case OBEX_HEADER_CONNID:
-        printf("connid\n");
-        hexdump((uint8_t*)header + 1, 4);   
-        break;
-
-        default:
-
+        {
+          printf("connid ");
+          hexdump((uint8_t*)header + 1, 4);   
+          break;
+        }
       }
       header = obex_header_get_next(header, &length);
     }
-    ptr = obex_create_request(&mns_obex, 200, buf);
-    obex_send(&mns_obex, buf, ptr - buf);
 
+    if (handler)
+    {
+      ptr = obex_create_request(&mns_obex, 0xA0, buf);
+      obex_send(&mns_obex, buf, ptr - buf);
+    }
+    else
+    {
+      ptr = obex_create_request(&mns_obex, 0xD0, buf);
+      obex_send(&mns_obex, buf, ptr - buf);   
+    }
     break;
   }
 }
@@ -256,8 +266,22 @@ static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
   switch(packet_type)
   {
   case RFCOMM_DATA_PACKET:
+    printf("MNS received %d bytes: ", size);
     hexdump(packet, size);
     obex_handle(&mns_obex, packet, size);
+    rfcomm_grant_credits(rfcomm_channel_id, 1); // get the next packet
+    break;
+  case DAEMON_EVENT_PACKET:
+    switch(packet[0])    
+    {
+      case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+      case DAEMON_EVENT_HCI_PACKET_SENT:
+      case RFCOMM_EVENT_CREDITS:
+        {
+          mns_try_respond(rfcomm_channel_id);
+          break;
+        }
+    }
     break;
   case HCI_EVENT_PACKET:
     {
@@ -296,6 +320,8 @@ static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
           }
           break;
         }
+      case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+      case DAEMON_EVENT_HCI_PACKET_SENT:
       case RFCOMM_EVENT_CREDITS:
         {
           mns_try_respond(rfcomm_channel_id);

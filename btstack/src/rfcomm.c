@@ -798,6 +798,16 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
   case DAEMON_EVENT_HCI_PACKET_SENT:
     // testing DMA done code
     rfcomm_run();
+    // pass this event to every channel
+    linked_item_t * next;
+    for (linked_item_t * it = (linked_item_t *) rfcomm_channels; it ; it = next){
+
+      next = it->next;    // be prepared for removal of channel in state machine
+
+      rfcomm_channel_t * channel = ((rfcomm_channel_t *) it);
+      uint8_t event[1] = { DAEMON_EVENT_HCI_PACKET_SENT };
+      rfcomm_dispatch(channel, DAEMON_EVENT_PACKET, event, sizeof(event));      
+    }    
     break;
 
   case L2CAP_EVENT_CHANNEL_CLOSED:
