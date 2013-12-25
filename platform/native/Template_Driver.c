@@ -547,7 +547,7 @@ Template_DriverLineDrawV(void *pvDisplayData, long lX, long lY1, long lY2,
         // Draw this pixel of the line.
         //
         pucData = &(lines[lY1].pixels[lX/8]);
-        *pucData = (*pucData & lX) | ulValue;
+        *pucData = (*pucData & lXMask) | ulValue;
     }
 
     halLcdRefresh(lY1, lY2); 
