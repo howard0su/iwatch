@@ -49,7 +49,6 @@ static const struct MenuItem SetupMenu[] =
   {DATA_TIME, "Time", &configtime_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
   {NO_DATA, "Upgrade Firmware", &upgrade_process},
-//  {NO_DATA, "Self-test", &selftest_process},
   {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
@@ -91,6 +90,7 @@ static const struct MenuItem TestMenu[] =
   {0, "MPU6050", &test_mpu6050},
   {0, "Bluetooth", &test_bluetooth},
   {0, "BT DUT", &test_dut},
+  {NO_DATA, "Self-test", &selftest_process},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };
