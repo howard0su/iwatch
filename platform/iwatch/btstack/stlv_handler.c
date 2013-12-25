@@ -346,12 +346,17 @@ void handle_alarm(alarm_conf_t* para)
     }
 }
 
-void handle_gesture_control(uint8_t flag)
+void handle_gesture_control(uint8_t flag, uint8_t action_map[])
 {
-    UNUSED_VAR(flag);
-    //TODO
-    //#define GESTURE_FLAG_ENABLE 0x01
-    //#define GESTURE_FLAG_LEFT   0x02
+    ui_config* online_config = window_readconfig();
+    if (online_config != NULL)
+    {
+        online_config->gesture_flag = flag;
+        for (uint8_t i = 0; i < 4; ++i)
+            online_config->gesture_map[i] = action_map[i];
+        window_writeconfig();
+        window_loadconfig();
+    }
 }
 
 void handle_set_watch_config(ui_config* config)

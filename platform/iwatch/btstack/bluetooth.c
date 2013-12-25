@@ -42,17 +42,19 @@
 #include "att.h"
 
 #include "bluetooth.h"
+#include "ble_handler.h"
 
 extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
-#define DEFAULT_MTU 120
+#define DEFAULT_MTU 27
+#define RESET_MTU   23
 
 static att_connection_t att_connection;
 static uint16_t         att_response_handle = 0;
 static uint16_t         att_response_size   = 0;
-static uint8_t          att_response_buffer[DEFAULT_MTU];
+static uint8_t          att_response_buffer[DEFAULT_MTU + 1];
 
 static bd_addr_t currentbd;
 
@@ -83,37 +85,62 @@ static uint8_t test_value = 0;
 
 // write requests
 static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
-  switch(handle){
-  case 0x000b:
-    if (buffer != 0)
+
+    printf("ATT Write Handle: 0x%4x, size:%d\n", handle, buffer_size);
+
+    ble_handle_t* ble_handle = get_ble_handle(handle);
+    if (ble_handle == NULL)
     {
-        printf("get data: %x\n", buffer[0]);
-        test_value = buffer[0];
+        printf("No correspondent handle\n");
+        return;
     }
-   break;
-  case 0x000d:
-    printf("unhandle\n");
-    break;
-  }
+
+    if (buffer == NULL)
+    {
+        printf("Null Buffer\n");
+        return;
+    }
+
+    uint8_t local_buf_size = ble_handle->size * get_type_unit_size(ble_handle->type);
+    if (buffer_size > local_buf_size)
+    {
+        printf("Incoming buffer out of bound : %d/%d\n", buffer_size, local_buf_size);
+        return;
+    }
+
+    uint8_t* pbuf = get_handle_buf(handle);
+    memcmp(pbuf, buffer, buffer_size);
+
 }
 
 // read requests
 static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
-  switch(handle){
-  case 0x000b:
-    if (buffer != 0)
+
+    printf("ATT Read Handle: 0x%4x, size:%d\n", handle, buffer_size);
+
+    ble_handle_t* ble_handle = get_ble_handle(handle);
+    if (ble_handle == NULL)
     {
-        buffer[0] = test_value;
-        printf("set data: %x\n", buffer[0]);
+        printf("No correspondent handle\n");
+        return 0;
     }
-    return 1;
-    break;
-  case 0x000d:
-    printf("unhandle\n");
-    return 1;
-    break;
-  }
-  return 0;
+
+    uint8_t local_buf_size = ble_handle->size * get_type_unit_size(ble_handle->type);
+    if (buffer == NULL)
+    {
+        printf("Null Buffer\n");
+        return local_buf_size;
+    }
+
+    if (buffer_size < local_buf_size)
+    {
+        printf("Not enough target buffer: %d/%d\n", buffer_size, local_buf_size);
+        return 0;
+    }
+
+    uint8_t* pbuf = get_handle_buf(handle);
+    memcmp(buffer, pbuf, local_buf_size);
+    return local_buf_size;
 }
 
 
@@ -136,7 +163,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     switch (packet[2]) {
     case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
       // reset connection MTU
-      att_connection.mtu = DEFAULT_MTU;
+      att_connection.mtu = RESET_MTU;
       break;
     default:
       break;
@@ -305,7 +332,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
-        hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
+        hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
@@ -386,6 +413,7 @@ static void btstack_setup(){
   rfcomm_init();
 
   // set up ATT
+  //create_ble_handle_db();
   att_set_db(profile_data);
   att_set_write_callback(att_write_callback);
   att_set_read_callback(att_read_callback);

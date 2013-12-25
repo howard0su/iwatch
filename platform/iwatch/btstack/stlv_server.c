@@ -154,13 +154,13 @@ void handle_stlv_packet(unsigned char* packet)
             {
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                if (data_len != 1)
+                if (data_len != 5)
                 {
                     printf("gesture control decode failed: length mismatch (%d/1)", data_len);
                 }
                 else
                 {
-                    handle_gesture_control(*data);
+                    handle_gesture_control(*data, data + 1);
                 }
             }
             break;
