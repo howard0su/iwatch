@@ -241,6 +241,7 @@ static void updateData(uint8_t datatype, uint32_t value)
 static uint8_t fileidx, sportnum;
 static int fileid;
 static uint16_t entrycount;
+static uint8_t sports_type = 0;
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   UNUSED_VAR(lparam);
@@ -250,10 +251,14 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       if (rparam == (void*)0)
       {
+          //running
+          sports_type = SPORTS_DATA_FLAG_RUN;
         ant_init(MODE_HRM);
       }
       else
       {
+          //cycling
+          sports_type = SPORTS_DATA_FLAG_BIKE;
         ant_init(MODE_CBSC);
       }
       rtc_enablechange(SECOND_CHANGE);
@@ -287,7 +292,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         tobesend[0] = workout_time;
         for(int i = 1; i < sportnum; i++)
             tobesend[i + 1] = data[i];
-        send_sports_data(0, SPORTS_DATA_FLAG_START, tobesend, sportnum + 1);
+        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, tobesend, sportnum + 1);
       }
 #if 0
       // push the data into CFS
@@ -353,7 +358,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     rtc_enablechange(0);
     ant_shutdown();
     uint16_t dumm_data[4];
-    send_sports_data(0, SPORTS_DATA_FLAG_STOP, dumm_data, 4);
+    send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dumm_data, 4);
     break;
   default:
     return 0;

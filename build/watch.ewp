@@ -2185,6 +2185,9 @@
       </file>
     </group>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_handler.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\bluetooth.c</name>
     </file>
     <file>

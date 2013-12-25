@@ -38,7 +38,7 @@ void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t cal
 
 #define GESTURE_FLAG_ENABLE 0x01
 #define GESTURE_FLAG_LEFT   0x02
-void handle_gesture_control(uint8_t flag);
+void handle_gesture_control(uint8_t flag, uint8_t action_map[]);
 
 void handle_set_watch_config(ui_config* conf);
 

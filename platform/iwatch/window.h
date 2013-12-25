@@ -132,6 +132,12 @@ typedef struct {
   uint8_t weight; // in kg
   uint8_t height; // in cm
 
+  //gesture
+  //#define GESTURE_FLAG_ENABLE 0x01
+  //#define GESTURE_FLAG_LEFT   0x02
+  uint8_t gesture_flag;
+  uint8_t gesture_map[4];
+
   uint8_t circumference;
 }ui_config;
 
