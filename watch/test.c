@@ -116,10 +116,10 @@ uint8_t test_motor(uint8_t ev, uint16_t lparam, void* rparam)
 
 		  GrContextForegroundSet(pContext, ClrWhite);
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
- 		  GrStringDraw(pContext, "Test Motor", -1, 32, 16, 0);
+ 		  GrStringDraw(pContext, "Test Motor", -1, 32, 50, 0);
 
     	  sprintf(buf, "Motor Level: %d", data);
- 		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
+ 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
 
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
@@ -174,10 +174,10 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 
 		  GrContextForegroundSet(pContext, ClrWhite);
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
- 		  GrStringDraw(pContext, "Test Lights", -1, 32, 16, 0);
+ 		  GrStringDraw(pContext, "Test Lights", -1, 32, 50, 0);
 
-    	  sprintf(buf, "Light Level: %d", data);
- 		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
+    	sprintf(buf, "Light Level: %d", data);
+ 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
  		  window_button(pContext, KEY_ENTER, "Reset");
@@ -296,13 +296,13 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrContextForegroundSet(pContext, ClrWhite);
   	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
   	      if (onoff)
- 		  	GrStringDraw(pContext, "ANT is on", -1, 32, 16, 0);
+ 		  	GrStringDraw(pContext, "ANT is on", -1, 32, 50, 0);
  		  else
- 		  	GrStringDraw(pContext, "ANT is off", -1, 32, 16, 0);
+ 		  	GrStringDraw(pContext, "ANT is off", -1, 32, 50, 0);
 
  		  char buf[32];
 		  sprintf(buf, "Tx Power Level: %d", data);
- 		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
+ 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
 
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
@@ -352,14 +352,14 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
       GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
 		  if (data == 0)
 		  {
-				GrStringDraw(pContext, "MPU6050 passed self testing", -1, 32, 16, 0);
+				GrStringDraw(pContext, "MPU6050 passed self testing", -1, 32, 50, 0);
 		  }
 		  else
 		  {
-		  	GrStringDraw(pContext, "MPUT6050 failed self testing", -1, 32, 16, 0);
+		  	GrStringDraw(pContext, "MPUT6050 failed self testing", -1, 32, 50, 0);
 		  }
 
-		  GrStringDraw(pContext, "watch face up", -1, 32, 34, 0);
+		  GrStringDraw(pContext, "watch face up", -1, 32, 70, 0);
 			window_button(pContext, KEY_ENTER, "Retest");
 
  		  break;
@@ -379,6 +379,12 @@ static const uint8_t HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd[] =
     0x85, 0xFD, 12, 0x03, 0, 0xFF, 0x01, 0x02, 0x00, 0x1b, 0x00, 15, 0x01, 0xFF, 0x01
 };
 
+static const uint8_t HCI_VS_DRPb_Tester_Con_TX_Cmd[] = 
+{
+	0x84, 0xFD, 12, 0x00, 0x00, 0x00, 0x07, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+
 uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd)];
@@ -393,7 +399,8 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 		{
 			if (lparam == KEY_ENTER)
 			{
-				onoff = 1 - onoff;
+				onoff++;
+				if (onoff == 6) onoff = 0;
 			}
 
 			if (lparam == KEY_UP && data <= 78)
@@ -406,18 +413,30 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 				data--;
 			}
 
-			if (onoff)
+			switch(onoff)
 			{
-				memcpy(buf, HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
-				buf[4] = data;
-				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
-			}
-			else
-			{
+				case 0:
 				buf[0] = 0x88;
 				buf[1] = 0xFD;
 				buf[2] = 0;
 				hci_send_cmd_packet(buf, 3);
+				break;
+
+				case 1:
+				memcpy(buf, HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
+				buf[4] = data;
+				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
+				break;
+
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				memcpy(buf, HCI_VS_DRPb_Tester_Con_TX_Cmd, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
+				buf[3] = onoff - 1;
+				buf[5] = data;
+				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
+				break;
 			}
 
 			window_invalid(NULL);
@@ -426,28 +445,50 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 		case EVENT_WINDOW_PAINT:
 		{
 		  tContext *pContext = (tContext*)rparam;
+		  const char *text;
 		  GrContextForegroundSet(pContext, ClrBlack);
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
       GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
-      if (onoff)
- 		  	GrStringDraw(pContext, "BT RX/TX is on", -1, 32, 16, 0);
- 		  else
- 		  	GrStringDraw(pContext, "BT RX/TX is off", -1, 32, 16, 0);
+      switch(onoff)
+      {
+ 		  	case 0:
+ 		  	text = "BT RX/TX is off";
+ 		  	break;
+
+ 		  	case 1:
+ 		  	text = "Packet_TX_RX on";
+ 		  	break;
+
+ 		  	case 2:
+ 		  	text = "Con_TX GFSK";
+ 		  	break;
+
+ 		  	case 3:
+ 		  	text = "Con_TX DQPSK";
+ 		  	break;
+
+ 		  	case 4:
+ 		  	text = "Con_TX 8DPSK";
+ 		  	break;
+
+ 		  	case 5:
+ 		  	text = "Con_TX BLE";
+ 		  	break;
+ 		  
+			}
+			GrStringDraw(pContext, text, -1, 32, 50, 0);
 
  		  char buf[32];
 		  sprintf(buf, "Freqency: %dMhz", data < 40 ? 
 		  									2402 + data * 2:
 		  									2403 + (data - 40) * 2);
- 		  GrStringDraw(pContext, buf, -1, 5, 40, 0);
+ 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
 
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
- 		  if (onoff)
- 		  	window_button(pContext, KEY_ENTER, "Off");
- 		  else
- 		  	window_button(pContext, KEY_ENTER, "On");
+	  	window_button(pContext, KEY_ENTER, "Switch");
  		  break;
  		}
  		case EVENT_WINDOW_CLOSING:
@@ -487,7 +528,7 @@ uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrContextForegroundSet(pContext, ClrWhite);
       GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
       
-	  	GrStringDraw(pContext, "BT DUT mode is on", -1, 32, 16, 0);
+	  	GrStringDraw(pContext, "BT DUT mode is on", -1, 32, 50, 0);
  		  break;
  		}
 
