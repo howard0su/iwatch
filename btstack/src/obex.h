@@ -1,6 +1,7 @@
 #ifndef _OBEX_H_
 #define _OBEX_H_
 #include <wchar.h>
+#include <stdint.h>
 
 #define OBEX_OP_CONNECT 	0x00
 #define OBEX_OP_DISCONNECT 	0x01
