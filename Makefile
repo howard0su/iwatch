@@ -10,7 +10,7 @@ ECHO	= echo
 
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
-WARNING_FLAGS = -W -Wall
+#WARNING_FLAGS = -W -Wall
 CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections
 LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS)
