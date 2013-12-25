@@ -2,7 +2,8 @@
 #include "rtc.h"
 #include "battery.h"
 #include "ant/ant.h"
-#include "dev/xmem.h"
+#include <stdio.h>
+#include <string.h>
 uint8_t shutdown_mode;
 
 void rtc_init(){}
@@ -176,7 +177,14 @@ void hci_send_cmd_packet()
   
 }
 
+FILE *fp;
 void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
 {
-  xmem_pread(pBuffer,   NumByteToRead,   ReadAddr);
+  if (fp == NULL)
+  {
+    fp = fopen("./fontunicod16pt.bin", "rb");
+  }
+
+  fseek(fp, ReadAddr, SEEK_SET);
+  fread(pBuffer,   NumByteToRead, 1, fp);
 }
