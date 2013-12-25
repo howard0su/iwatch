@@ -64,12 +64,27 @@ BATTERY_STATE battery_state(void)
     return BATTERY_CHARGING;
 }
 
+// map battery level to 0-15 scale
+const uint8_t curve[] = 
+{
+  189, 196, 199, 201, 203, 205, 206, 207, 209, 210, 211, 212, 213, 213, 214, 214
+};
+
+/* return battery level from 0 - 15 */
 uint8_t battery_level(void)
 {
 //  printf("battery level : %d\n", level);
   if (!(ADC12CTL1 & ADC12BUSY))
     ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
-  return level;
+
+  uint8_t ret;
+  for(ret = 1; ret < sizeof(curve); ret++)
+  {
+    if (level < curve[ret])
+      return ret - 1;
+  }
+
+  return 15;
 }
 
 ISR(ADC12, _ADC12_ISR)

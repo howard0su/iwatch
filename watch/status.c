@@ -150,31 +150,36 @@ static void check_battery()
   uint8_t level = battery_level();
   uint8_t state = battery_state();
 
+  status &= ~BATTERY_STATUS;
   if (state == BATTERY_DISCHARGING)
   {
-    status &= ~BATTERY_STATUS;
-    // not charging
-    if (level < 190)
+    switch(level)
     {
+      case 0: case 1: case 2:
       status |= BATTERY_EMPTY;
-    }
-    else if (level < 200)
+      break;
+      case 3: case 4: case 5: case 6:
       status |= BATTERY_LESS;
-    else if (level < 212)
+      break;
+      case 7: case 8: case 9: case 10: case 11: case 12: case 13:
       status |= BATTERY_MORE;
-    else
+      break;
+      default:
       status |= BATTERY_FULL;
+  }
   }
   else if (state == BATTERY_CHARGING)
   {
-    if ((status & BATTERY_STATUS) == BATTERY_MORE_CHARGE)
+    if (level >= 15)
     {
-      status &= ~BATTERY_STATUS;
+      status |= BATTERY_FULL;
+    }
+    else if ((status & BATTERY_STATUS) == BATTERY_MORE_CHARGE)
+    {
       status |= BATTERY_LESS_CHARGE;
     }
     else
     {
-      status &= ~BATTERY_STATUS;
       status |= BATTERY_MORE_CHARGE;
     }
   }
