@@ -24,7 +24,7 @@ static enum _state{
   STATE_CONFIG_SECOND,
 
   STATE_CONFIG_READY, // the order above is assumed in the logic, don't change
-
+  STATE_CONFIG_DONE,
   STATE_RUNNING
 }state;
 
@@ -118,6 +118,18 @@ static void OnDraw(tContext *pContext)
         OnDrawProgress(pContext);
 
       break;
+    }
+  case STATE_CONFIG_DONE:
+    {
+      window_drawtime(pContext, 27, times, 1 << state);
+
+      window_button(pContext, KEY_DOWN, "RESET");
+
+      // display progress bar
+      if (totaltime != lefttime)
+        OnDrawProgress(pContext);
+
+      break;      
     }
   case STATE_RUNNING:
     {
@@ -226,7 +238,7 @@ static int process_event(uint8_t ev, uint16_t data)
         {
           // trigger notification
           motor_on(240, CLOCK_SECOND);
-          state = STATE_CONFIG_READY;
+          state = STATE_CONFIG_DONE;
         }
         else
         {
