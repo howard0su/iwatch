@@ -2,7 +2,7 @@
 #include "rtc.h"
 #include "battery.h"
 #include "ant/ant.h"
-#include "dev/xmm.h"
+#include "dev/xmem.h"
 uint8_t shutdown_mode;
 
 void rtc_init(){}
@@ -27,7 +27,7 @@ void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday)
 {
   if (year) *year = 2013;
-  if (month) *month = 5;
+  if (month) *month = 1;
   if (day) *day = 29;
   if (weekday) *weekday = 3;
 }
@@ -178,5 +178,5 @@ void hci_send_cmd_packet()
 
 void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
 {
-  xmem_pread(buf,   size,   offset);
+  xmem_pread(pBuffer,   NumByteToRead,   ReadAddr);
 }
