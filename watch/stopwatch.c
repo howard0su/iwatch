@@ -19,6 +19,8 @@ static uint8_t topView;
 static uint8_t saved_times[MAX_STOP][3]; // saved time
 static uint8_t delta_times[MAX_STOP - 1][3]; // delta
 
+#define NUMBASE 78
+
 static void OnDraw(tContext* pContext)
 {
   // clear the screen
@@ -28,7 +30,7 @@ static void OnDraw(tContext* pContext)
 
   // draw the countdown time
   GrContextFontSet(pContext, &g_sFontNova28b);
-  window_drawtime(pContext, 35, times, 0);
+  window_drawtime(pContext, 45, times, 0);
 
   if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 65))
   {
@@ -40,11 +42,11 @@ static void OnDraw(tContext* pContext)
     for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
       sprintf(buf, "%02d", i + 1);
-      GrStringDraw(pContext, buf, -1, 2, (i - topView) * 20 + 90, 0);
+      GrStringDraw(pContext, buf, -1, 2, (i - topView) * 20 + NUMBASE, 0);
 
       sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
-      GrStringDraw(pContext, buf, -1, 28, (i - topView) * 20 + 90, 0);
-      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + 110);
+      GrStringDraw(pContext, buf, -1, 28, (i - topView) * 20 + NUMBASE, 0);
+      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 20);
     }
 
     GrContextFontSet(pContext, &g_sFontNova12b);
@@ -56,15 +58,30 @@ static void OnDraw(tContext* pContext)
       if (delta_times[i - 1][0] != 0)
       {
         sprintf(buf, "+%02d:%02d:%02d", delta_times[i - 1][0], delta_times[i - 1][1],delta_times[i - 1][2]);
-        GrStringDraw(pContext, buf, -1, 80, (i - topView) * 20 + 93, 0);
+        GrStringDraw(pContext, buf, -1, 80, (i - topView) * 20 + NUMBASE +  3, 0);
       }
       else
       {
         sprintf(buf, "+%02d:%02d", delta_times[i - 1][1],delta_times[i - 1][2]);
-        GrStringDraw(pContext, buf, -1, 100, (i - topView) * 20 + 93, 0);
+        GrStringDraw(pContext, buf, -1, 100, (i - topView) * 20 + NUMBASE + 3, 0);
       }
       
     }
+  }
+
+  switch(state)
+  {
+    case STATE_INIT:
+    window_button(pContext, KEY_ENTER, "START");
+    break;
+    case STATE_RUNNING:
+    window_button(pContext, KEY_ENTER, "STOP");
+    window_button(pContext, KEY_EXIT,  "STOPALL");
+    break;
+    case STATE_STOP:
+    window_button(pContext, KEY_UP, "UP");
+    window_button(pContext, KEY_DOWN, "DOWN");
+    break;
   }
 }
 

@@ -112,7 +112,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {8, 17 + index * MENU_SPACE, 136, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   GrContextForegroundSet(pContext, !selected);
@@ -211,6 +211,26 @@ static void OnDraw(tContext *pContext)
   if (item->name != NULL)
   {
     // there is something more
+  }
+
+  if (NUM_MENU_A_PAGE < menuLength)
+  {
+    // draw progress bar
+    #define STEPS 100
+    int length = NUM_MENU_A_PAGE * STEPS / menuLength;
+    int start = currentTop * STEPS / menuLength;
+
+    tRectangle rect = {136, 30, 143, 30 + STEPS + 10};
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrRectFillRound(pContext, &rect, 3);
+    GrContextForegroundSet(pContext, ClrBlack);
+    printf("len:%d start:%d\n", length, start);
+    rect.sXMin += 2;
+    rect.sXMax -= 2;
+
+    rect.sYMin += 4 + start;
+    rect.sYMax = rect.sYMin + length;
+    GrRectFill(pContext, &rect);
   }
 }
 

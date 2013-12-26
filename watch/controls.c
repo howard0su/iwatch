@@ -29,8 +29,8 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
 
-      tRectangle rect = {startx + i * width_all, y, startx + i * width_all + width_digit, y + height};
-      GrRectFill(pContext, &rect);
+      tRectangle rect = {startx + i * width_all + 2, y, startx + i * width_all + width_digit + 1, y + height};
+      GrRectFillRound(pContext, &rect, 3);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
