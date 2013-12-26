@@ -372,18 +372,12 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 	return 1;
 }
 
-
+extern void bluetooth_enableConTxMode(int mode, int freq);
 static const uint8_t HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd[] = 
 {
     //HCI_VS_DRPb_Tester_Packet_TX_RX
     0x85, 0xFD, 12, 0x03, 0, 0xFF, 0x01, 0x02, 0x00, 0x1b, 0x00, 15, 0x01, 0xFF, 0x01
 };
-
-static const uint8_t HCI_VS_DRPb_Tester_Con_TX_Cmd[] = 
-{
-	0x84, 0xFD, 12, 0x00, 0x00, 0x00, 0x07, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
 
 uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -432,10 +426,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 				case 3:
 				case 4:
 				case 5:
-				memcpy(buf, HCI_VS_DRPb_Tester_Con_TX_Cmd, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
-				buf[3] = onoff - 1;
-				buf[5] = data;
-				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
+				bluetooth_enableConTxMode(onoff - 1, data);
 				break;
 			}
 

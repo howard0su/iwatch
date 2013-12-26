@@ -526,10 +526,66 @@ static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t
     }
   }
 }
+
 void bluetooth_enableDUTMode()
 {
   // enable DUT
   l2cap_register_packet_handler(dut_packet_handler);
 
   hci_send_cmd(&hci_set_event_filter, 0x02, 0x00, 0x03);
+}
+
+
+#define COMMAND_COMPLETE_EVENT_RAW(event, opcode) ( event[0] == HCI_EVENT_COMMAND_COMPLETE && READ_BT_16(event,3) == opcode)
+static const uint8_t HCI_VS_DRPb_Tester_Con_TX_Cmd[] = 
+{
+  0x84, 0xFD, 12, 0x00, 0x00, 0x00, 0x07, 0, 0, 0, 0, 0, 0, 0, 0
+};
+static const uint8_t HCI_VS_Write_Hardware_Register_Cmd[] = 
+{
+  0x01, 0xFF, 6, 0x0c, 0x18, 0x19, 0x00, 0x01, 0x01
+};
+static const uint8_t HCI_VS_DRPb_Enable_RF_Calibration_Cmd[] =
+{
+  0x80, 0xFD, 6, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01
+};
+
+static void contx_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
+{
+  // handle events, ignore data
+  if (packet_type != HCI_EVENT_PACKET)
+  {
+    return;
+  }
+
+  switch (packet[0]) {
+  case HCI_EVENT_COMMAND_COMPLETE:
+    {
+      if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFD84)){
+        printf("HCI_VS_DRPb_Tester_Con_TX_Cmd done.\n");
+        hci_send_cmd_packet((uint8_t*)HCI_VS_Write_Hardware_Register_Cmd, sizeof(HCI_VS_Write_Hardware_Register_Cmd));
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFF01)){
+        printf("HCI_VS_Write_Hardware_Register_Cmd done.\n");
+        hci_send_cmd_packet((uint8_t*)HCI_VS_DRPb_Enable_RF_Calibration_Cmd, sizeof(HCI_VS_DRPb_Enable_RF_Calibration_Cmd));
+        break;
+      }
+      else if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFD80)){
+        printf("HCI_VS_DRPb_Enable_RF_Calibration_Cmd done.\n");
+        break;
+      }
+    }
+  }
+}
+
+void bluetooth_enableConTxMode(int mode, int freq)
+{
+
+  l2cap_register_packet_handler(contx_packet_handler);
+  uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd)];
+    memcpy(buf, HCI_VS_DRPb_Tester_Con_TX_Cmd, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
+    buf[3] = mode;
+    buf[5] = freq;
+    hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
 }
