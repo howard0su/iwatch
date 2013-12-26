@@ -33,14 +33,17 @@ static void OnDraw(tContext* pContext)
   if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 65))
   {
     GrContextFontSet(pContext, &g_sFontNova16b);
-    printf("stop: %d current: %d\n", currentStop, topView);
+    //printf("stop: %d current: %d\n", currentStop, topView);
     char buf[20];
 
     // draw the stoped times
     for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
-      sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
+      sprintf(buf, "%02d", i + 1);
       GrStringDraw(pContext, buf, -1, 2, (i - topView) * 20 + 90, 0);
+
+      sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
+      GrStringDraw(pContext, buf, -1, 28, (i - topView) * 20 + 90, 0);
       GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + 110);
     }
 
