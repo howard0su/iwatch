@@ -216,7 +216,7 @@ static void OnDraw(tContext *pContext)
   if (NUM_MENU_A_PAGE < menuLength)
   {
     // draw progress bar
-    #define STEPS 100
+    #define STEPS 115
     int length = NUM_MENU_A_PAGE * STEPS / menuLength;
     int start = currentTop * STEPS / menuLength;
 
@@ -224,7 +224,7 @@ static void OnDraw(tContext *pContext)
     GrContextForegroundSet(pContext, ClrWhite);
     GrRectFillRound(pContext, &rect, 3);
     GrContextForegroundSet(pContext, ClrBlack);
-    printf("len:%d start:%d\n", length, start);
+
     rect.sXMin += 2;
     rect.sXMax -= 2;
 
