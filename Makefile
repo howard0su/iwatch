@@ -134,9 +134,7 @@ SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/stlvTest.c \
  unittest/gestureTest.c \
  unittest/TestUtility/stlv_test_stub.c \
- unittest/hfpTest.c \
- pedometer/pedometer.c
-
+ unittest/hfpTest.c 
 
 OBJDIR = objs.native
 OBJS0 = $(SRCS:.c=.o)

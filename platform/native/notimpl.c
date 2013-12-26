@@ -188,3 +188,18 @@ void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumB
   fseek(fp, ReadAddr, SEEK_SET);
   fread(pBuffer,   NumByteToRead, 1, fp);
 }
+
+void bluetooth_enableConTxMode(int mode, int freq)
+{
+}
+
+uint16_t ped_get_steps()
+{
+  return 100;
+}
+
+uint16_t ped_get_calorie() {return 10;}
+uint16_t ped_get_time() {return 10;}
+uint16_t ped_get_distance(){return 10;}
+
+void ped_reset(){}
