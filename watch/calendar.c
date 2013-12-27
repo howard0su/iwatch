@@ -83,13 +83,13 @@ static void OnDraw(tContext *pContext)
   if (month == 1)
     sprintf(buf, "%s %d", month_shortname[11], year - 1);
   else
-    sprintf(buf, "%s %d", month_shortname[month - 1], year);
+    sprintf(buf, "%s %d", month_shortname[month - 2], year);
   window_button(pContext, KEY_ENTER, buf);
 
   if (month == 12)
     sprintf(buf, "%s %d", month_shortname[0], year + 1);
   else
-    sprintf(buf, "%s %d", month_shortname[month+1], year);
+    sprintf(buf, "%s %d", month_shortname[month], year);
   window_button(pContext, KEY_DOWN, buf);
 }
 

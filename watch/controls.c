@@ -29,8 +29,8 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
 
-      tRectangle rect = {startx + i * width_all, y, startx + i * width_all + width_digit, y + height};
-      GrRectFill(pContext, &rect);
+      tRectangle rect = {startx + i * width_all + 2, y, startx + i * width_all + width_digit + 1, y + height};
+      GrRectFillRound(pContext, &rect, 3);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
@@ -53,17 +53,17 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
 
 void window_progress(tContext *pContext, long lY, uint8_t step)
 {
-  tRectangle rect = {20, lY, 125, lY + 16};
+  tRectangle rect = {18, lY, 127, lY + 8};
   GrContextForegroundSet(pContext, ClrWhite);
-  GrRectFill(pContext, &rect);
+  GrRectFillRound(pContext, &rect, 3);
   GrContextForegroundSet(pContext, ClrBlack);
 
   if (step < 100)
   {
-    rect.sXMin = 22;
-    rect.sYMin = lY + 2;
-    rect.sYMax = lY + 14;
-    rect.sXMax = 22 + step;
+    rect.sXMin += 4;
+    rect.sYMin += 2;
+    rect.sYMax -= 2;
+    rect.sXMax = rect.sXMin + step;
     GrRectFill(pContext, &rect);
   }
 }

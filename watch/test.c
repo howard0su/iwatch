@@ -372,18 +372,12 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 	return 1;
 }
 
-
+extern void bluetooth_enableConTxMode(int mode, int freq);
 static const uint8_t HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd[] = 
 {
     //HCI_VS_DRPb_Tester_Packet_TX_RX
     0x85, 0xFD, 12, 0x03, 0, 0xFF, 0x01, 0x02, 0x00, 0x1b, 0x00, 15, 0x01, 0xFF, 0x01
 };
-
-static const uint8_t HCI_VS_DRPb_Tester_Con_TX_Cmd[] = 
-{
-	0x84, 0xFD, 12, 0x00, 0x00, 0x00, 0x07, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
 
 uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -400,7 +394,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 			if (lparam == KEY_ENTER)
 			{
 				onoff++;
-				if (onoff == 6) onoff = 0;
+				if (onoff == 10) onoff = 0;
 			}
 
 			if (lparam == KEY_UP && data <= 78)
@@ -422,20 +416,46 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 				hci_send_cmd_packet(buf, 3);
 				break;
 
-				case 1:
+				default:
 				memcpy(buf, HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
 				buf[4] = data;
-				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
-				break;
+				if (onoff != 0x09)
+					buf[6] = onoff - 1;
+				else
+					buf[6] = onoff;
 
-				case 2:
-				case 3:
-				case 4:
-				case 5:
-				memcpy(buf, HCI_VS_DRPb_Tester_Con_TX_Cmd, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
-				buf[3] = onoff - 1;
-				buf[5] = data;
-				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Con_TX_Cmd));
+				switch(onoff)
+				{
+					case 1:
+					buf[9] = 17;
+					break;
+					case 2:
+					buf[9] = 27;
+					break;
+					case 3:
+					buf[9] = 121;
+					break;
+					case 4:
+					buf[9] = 183;
+					break;
+					case 5:
+					buf[9] = 224;
+					break;
+					case 6:
+					buf[9] = 255;
+					break;
+					case 7:
+					buf[9] = 54;
+					break;
+					case 8:
+					buf[9] = 255;
+					break;
+					case 9:
+					buf[9] = 83;
+					break;
+				}
+
+				hci_send_cmd_packet(buf, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
 				break;
 			}
 
@@ -458,25 +478,40 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
  		  	break;
 
  		  	case 1:
- 		  	text = "Packet_TX_RX on";
+ 		  	text = "DM1";
  		  	break;
 
  		  	case 2:
- 		  	text = "Con_TX GFSK";
+ 		  	text = "DH1";
  		  	break;
 
  		  	case 3:
- 		  	text = "Con_TX DQPSK";
+ 		  	text = "DM3";
  		  	break;
 
  		  	case 4:
- 		  	text = "Con_TX 8DPSK";
+ 		  	text = "DH3";
  		  	break;
 
  		  	case 5:
- 		  	text = "Con_TX BLE";
+ 		  	text = "DM5";
  		  	break;
  		  
+ 		  	case 6:
+ 		  	text = "DH5";
+ 		  	break;
+
+ 		  	case 7:
+ 		  	text = "2-DH1";
+ 		  	break;
+
+ 		  	case 8:
+ 		  	text = "2-DH3";
+ 		  	break;
+
+ 		  	case 9:
+ 		  	text = "3-DH1";
+ 		  	break;
 			}
 			GrStringDraw(pContext, text, -1, 32, 50, 0);
 

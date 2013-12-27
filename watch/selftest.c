@@ -99,7 +99,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
     case EVENT_WINDOW_CREATED:
       {
-		test_cfs();
+		//test_cfs();
 		window_timer(CLOCK_SECOND * 5);
 		break;
       }

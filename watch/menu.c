@@ -49,7 +49,6 @@ static const struct MenuItem SetupMenu[] =
   {DATA_TIME, "Time", &configtime_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
   {NO_DATA, "Upgrade Firmware", &upgrade_process},
-//  {NO_DATA, "Self-test", &selftest_process},
   {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
@@ -91,6 +90,7 @@ static const struct MenuItem TestMenu[] =
   {0, "MPU6050", &test_mpu6050},
   {0, "Bluetooth", &test_bluetooth},
   {0, "BT DUT", &test_dut},
+  {NO_DATA, "Self-test", &selftest_process},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };
@@ -112,7 +112,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {8, 17 + index * MENU_SPACE, 136, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   GrContextForegroundSet(pContext, !selected);
@@ -211,6 +211,26 @@ static void OnDraw(tContext *pContext)
   if (item->name != NULL)
   {
     // there is something more
+  }
+
+  if (NUM_MENU_A_PAGE < menuLength)
+  {
+    // draw progress bar
+    #define STEPS 115
+    int length = NUM_MENU_A_PAGE * STEPS / menuLength;
+    int start = currentTop * STEPS / menuLength;
+
+    tRectangle rect = {136, 30, 143, 30 + STEPS + 10};
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrRectFillRound(pContext, &rect, 3);
+    GrContextForegroundSet(pContext, ClrBlack);
+
+    rect.sXMin += 2;
+    rect.sXMax -= 2;
+
+    rect.sYMin += 4 + start;
+    rect.sYMax = rect.sYMin + length;
+    GrRectFill(pContext, &rect);
   }
 }
 

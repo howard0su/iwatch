@@ -39,15 +39,17 @@ static void onDraw(tContext *pContext)
     GrStringDraw(pContext, &message_icon, 1, 12, 23, 0);
   }
 
+  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
+  GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
+
   // draw title
-  GrContextFontSet(pContext, &g_sFontNova16b);    
   GrStringDraw(pContext, message_title, -1, 34, 23, 0);
   // draw the line
   GrLineDrawH(pContext, 5, 126, 40);
   //draw message
-  // todo, how to wrap the text
-  GrContextFontSet(pContext, &g_sFontRed13);
   GrStringDrawWrap(pContext, message, 8, 43, LCD_X_SIZE - 16,  16);
+
+  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 
   switch(message_buttons)
   {
