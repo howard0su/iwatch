@@ -102,6 +102,7 @@ uint8_t calendar_process(uint8_t ev, uint16_t lparam, void* rparam)
     now_month = month;
     now_year = year;
     now_day = day;
+    return 0x80;
   }
   else if (ev == EVENT_KEY_PRESSED)
   {

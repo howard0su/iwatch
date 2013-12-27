@@ -517,7 +517,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       ui_config* config = window_readconfig();
       sportnum = config->sports_grid + 4;
 
-      break;
+      return 0x80; // disable status
     }
   case EVENT_SPORT_DATA:
     {

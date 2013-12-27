@@ -122,10 +122,6 @@ static void OnDraw(tContext* pContext)
     char buf[20];
     uint8_t ampm = 0;
     rtc_readtime(&hour, &minute, NULL);
-    if (hour == 0 && minute == 0)
-    {
-      ped_reset();
-    }
 
     if (hour > 12)
     {
@@ -199,9 +195,18 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
     OnDraw((tContext*)rparam);
     break;
   case PROCESS_EVENT_TIMER:
+    {
+      uint8_t hour, minute, second;
+      rtc_readtime(&hour, &minute, &second);
+      if (hour == 0 && minute == 0 && second <= 19)
+      {
+        ped_reset();
+      }
     check_battery();
+      write_walkstatus();
     status ^= MID_STATUS;
     break;
+    }
   case EVENT_BT_STATUS:
     if (lparam == BT_INITIALIZED)
       status |= BLUETOOTH_STATUS;

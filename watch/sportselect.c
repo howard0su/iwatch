@@ -49,7 +49,7 @@ uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev){
   case EVENT_WINDOW_CREATED:
-  	break;
+    return 0x80;
   case EVENT_WINDOW_PAINT:
   	onDraw((tContext*)rparam);
   	break;
