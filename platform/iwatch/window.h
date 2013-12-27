@@ -138,6 +138,8 @@ typedef struct {
   uint8_t gesture_flag;
   uint8_t gesture_map[4];
 
+  uint16_t lap_length;
+
   uint8_t circumference;
 }ui_config;
 
@@ -153,18 +155,65 @@ extern const char* toEnglish(uint8_t number, char* buffer);
 
 // #define EVENT_SPORT_DATA              0x92
 // lparam defined as below
-enum
+enum SPORTS_DATA_TYPE
 {
-    DATA_WORKOUT     = 0,
-    DATA_SPEED      ,  //1
-    DATA_HEARTRATE  ,  //2
-    DATA_CALS       ,  //3
-    DATA_DISTANCE   ,  //4
-    DATA_SPEED_AVG  ,  //5
-    DATA_ALTITUTE   ,  //6
-    DATA_TIME       ,  //7
-    DATA_SPEED_TOP  ,  //8
-    DATA_CADENCE    ,  //9
+    SPORTS_TIME = 0,
+    SPORTS_SPEED_MAX,
+    SPORTS_TIME_LAST_GPS,
+
+    SPORTS_SPEED,
+    SPORTS_ALT,
+    SPORTS_DISTANCE,
+    SPORTS_ALT_START,
+
+    SPORTS_HEARTRATE,
+    SPORTS_HEARTRATE_AVG,
+    SPORTS_HEARTRATE_MAX,
+    SPORTS_TIME_LAST_HEARTRATE,
+
+    SPORTS_CADENCE,
+    SPORTS_TIME_LAP_BEGIN,
+    SPORTS_LAP_BEST,
+
+    SPORTS_STEPS,
+    SPORTS_PED_SPEED,
+    SPORTS_PED_DISTANCE,
+    SPORTS_PED_CALORIES,
+    SPORTS_PED_LAST_STEPS,
+    SPORTS_TIME_LAST_PED,
+
+    SPORTS_DATA_MAX
+};
+
+//GRID
+enum SPORTS_GRID
+{
+    GRID_WORKOUT = 0,
+    GRID_SPEED,
+    GRID_HEARTRATE,
+    GRID_CALS,
+
+    GRID_DISTANCE,
+    GRID_SPEED_AVG,
+    GRID_ALTITUTE,
+    GRID_TIME,
+
+    GRID_SPEED_TOP,
+    GRID_CADENCE,
+    GRID_PACE,
+    GRID_HEARTRATE_AVG,
+
+    GRID_HEARTRATE_MAX,
+    GRID_ELEVATION,
+    GRID_LAPTIME_CUR,
+    GRID_LAPTIME_BEST,
+
+    GRID_FLOORS,
+    GRID_STEPS,
+    GRID_PACE_AVG,
+    GRID_LAPTIME_AVG,
+
+    GRID_MAX,
 };
 
 #endif

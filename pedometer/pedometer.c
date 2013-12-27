@@ -64,56 +64,63 @@ static uint16_t totalaccel(int16_t *data)
   return total;
 }
 
-static void sendspeed(int cmpersec)
+static void sendinformation(uint16_t cmpersec)
 {
   if (window_current() == sportswatch_process)
   {
-    window_postmessage(EVENT_SPORT_DATA, SPORTS_SPEED, (void*)(cmpersec));
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_PED_SPEED, (void*)(cmpersec));
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_PED_DISTANCE, (void*)(ped_get_distance()));
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_STEPS, (void*)(ped_get_steps()));
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_PED_CALORIES, (void*)(ped_get_calorie()));
   }
 }
 
-static inline void increasestep(uint16_t interval)
+uint16_t calc_step_len(uint16_t interval, uint8_t height)
 {
-  if (interval < SAMPLE_HZ / 5)
-    return;
+    uint16_t dist;
+    if (interval < SAMPLE_HZ * 2)
+        return 0;
 
+    if (interval > SAMPLE_HZ)
+    {
+      dist = height / 5;
+    }
+    else if (interval > SAMPLE_HZ  * 2 / 3)
+    {
+      dist = height / 4;
+    }
+    else if (interval > SAMPLE_HZ / 2)
+    {
+      dist = height / 3;
+    }
+    else if (interval > SAMPLE_HZ * 2/ 5)
+    {
+      dist = height / 2;
+    }
+    else if (interval > SAMPLE_HZ / 3)
+    {
+      dist = height * 5 / 6;
+    }
+    else if (interval > SAMPLE_HZ / 4)
+    {
+      dist = height;
+    }
+    else
+    {
+      dist = height * 6 / 5;
+    }
+    return dist;
+}
+
+static void increasestep(uint16_t interval)
+{
   step_cnt++;
 
   if (interval < SAMPLE_HZ * 2)
   {
+    ui_config* config = window_readconfig();
     step_time += interval;
-    uint16_t dist;
-    ui_config *config = window_readconfig();
-
-    if (interval > SAMPLE_HZ)
-    {
-      dist = config->height / 5;
-
-    }
-    else if (interval > SAMPLE_HZ  * 2 / 3)
-    {
-      dist = config->height / 4;
-    }
-    else if (interval > SAMPLE_HZ / 2)
-    {
-      dist = config->height / 3;
-    }
-    else if (interval > SAMPLE_HZ * 2/ 5)
-    {
-      dist = config->height / 2;
-    }
-    else if (interval > SAMPLE_HZ / 3)
-    {
-      dist = config->height * 5 / 6;
-    }
-    else if (interval > SAMPLE_HZ / 4)
-    {
-      dist = config->height;
-    }
-    else
-    {
-      dist = config->height * 6 / 5;
-    }
+    uint16_t dist =  calc_step_len(interval, config->height);
 
     step_dist += dist;
     step_cal += dist * config->weight * 5 / 4;
