@@ -1,3 +1,8 @@
+
+#ifdef __WIN32 
+#include <windows.h>
+#endif
+
 #include "contiki.h"
 #include "rtc.h"
 #include "battery.h"
@@ -111,7 +116,6 @@ void ant_init(ModeEnum mode) {}
 void ant_shutdown(void) {}
 
 #ifdef _WINDOWS_H
-#include <windows.h>
 void nanosleep(int millisecond)
 {
     Sleep(millisecond);
@@ -203,3 +207,15 @@ uint16_t ped_get_time() {return 10;}
 uint16_t ped_get_distance(){return 10;}
 
 void ped_reset(){}
+
+
+uint16_t __swap_bytes(uint16_t d)
+{
+  
+  uint8_t *p = (uint8_t*)&d;
+  uint8_t tmp = p[1];
+  p[1] = p[0];
+  p[0] = tmp;
+
+  return d;
+}
