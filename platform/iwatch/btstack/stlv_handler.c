@@ -219,9 +219,9 @@ void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t cal
 {
     printf("handle_gps_info(%d, %d, %d, %d)\n", spd, alt, distance, calories);
     UNUSED_VAR(calories);
-    window_postmessage(EVENT_SPORT_DATA, DATA_SPEED,    (void*)&spd);
-    window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)&alt);
-    window_postmessage(EVENT_SPORT_DATA, DATA_DISTANCE, (void*)&distance);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_SPEED,    (void*)&spd);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_ALT,      (void*)&alt);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_DISTANCE, (void*)&distance);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1

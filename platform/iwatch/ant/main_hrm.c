@@ -214,8 +214,8 @@ void ProcessANTCBSCRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
                printf("Accumulated cadence: 0x%04X", (USHORT)((ulBCAccumCadence >> 16) & MAX_USHORT));
                printf("%04X\n\n\n", (USHORT)(ulBCAccumCadence & MAX_USHORT)); //display limited by 16-bit CPU
 #endif
-               window_postmessage(EVENT_SPORT_DATA, DATA_SPEED, (void*)(window_readconfig()->circumference * (stSpeedData.ulIntValue * CBSC_PRECISION + stSpeedData.usFracValue)));
-               window_postmessage(EVENT_SPORT_DATA, DATA_CADENCE, (void*)stCadenceData.ulIntValue);
+               window_postmessage(EVENT_SPORT_DATA, SPORTS_SPEED, (void*)(window_readconfig()->circumference * (stSpeedData.ulIntValue * CBSC_PRECISION + stSpeedData.usFracValue)));
+               window_postmessage(EVENT_SPORT_DATA, SPORTS_CADENCE, (void*)stCadenceData.ulIntValue);
 
                //move current data to the past
                pstPrev0Data->usCumCadenceRevCount = pstPage0Data->usCumCadenceRevCount;
@@ -350,7 +350,7 @@ void ProcessANTHRMRXEvents(ANTPLUS_EVENT_RETURN* pstEvent_)
       }
       if(bCommonPage)
       {
-        window_postmessage(EVENT_SPORT_DATA, DATA_HEARTRATE, (void*)pstPage0Data->ucComputedHeartRate);
+        window_postmessage(EVENT_SPORT_DATA, SPORTS_HEARTRATE, (void*)pstPage0Data->ucComputedHeartRate);
         //printf("Time of last heart beat event: %u.", (ULONG)(pstPage0Data->usBeatTime/1024));
         //printf("%03u s\n", (ULONG)((((pstPage0Data->usBeatTime % 1024) * HRM_PRECISION) + 512) / 1024));
         //printf("Heart beat count: %u\n", pstPage0Data->ucBeatCount);

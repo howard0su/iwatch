@@ -10,6 +10,7 @@ uint16_t ped_get_steps();
 uint16_t ped_get_calorie();
 uint16_t ped_get_time();
 uint16_t ped_get_distance();
+uint16_t calc_step_len(uint16_t interval, uint8_t height);
 
 void ped_reset();
 #endif

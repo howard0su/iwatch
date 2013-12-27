@@ -64,44 +64,52 @@ static int16_t totalaccel(int16_t *data)
   return total;
 }
 
+uint16_t calc_step_len(uint16_t interval, uint8_t height)
+{
+    uint16_t dist;
+    if (interval < SAMPLE_HZ * 2)
+        return 0;
+
+    if (interval > SAMPLE_HZ / 2)
+    {
+      dist = height / 5;
+    }
+    else if (interval > SAMPLE_HZ / 3)
+    {
+      dist = height / 4;
+    }
+    else if (interval > SAMPLE_HZ / 4)
+    {
+      dist = height / 3;
+    }
+    else if (interval > SAMPLE_HZ / 5)
+    {
+      dist = height / 2;
+    }
+    else if (interval > SAMPLE_HZ / 6)
+    {
+      dist = height * 5 / 6;
+    }
+    else if (interval > SAMPLE_HZ / 8)
+    {
+      dist = height;
+    }
+    else
+    {
+      dist = height * 6 / 5;
+    }
+    return dist;
+}
+
 static void increasestep(uint16_t interval)
 {
   step_cnt++;
 
   if (interval < SAMPLE_HZ * 2)
   {
+    ui_config* config = window_readconfig();
     step_time += interval;
-    uint16_t dist;
-    ui_config *config = window_readconfig();
-
-    if (interval > SAMPLE_HZ / 2)
-    {
-      dist = config->height / 5;
-    }
-    else if (interval > SAMPLE_HZ / 3)
-    {
-      dist = config->height / 4;
-    }
-    else if (interval > SAMPLE_HZ / 4)
-    {
-      dist = config->height / 3;
-    }
-    else if (interval > SAMPLE_HZ / 5)
-    {
-      dist = config->height / 2;
-    }
-    else if (interval > SAMPLE_HZ / 6)
-    {
-      dist = config->height * 5 / 6;
-    }
-    else if (interval > SAMPLE_HZ / 8)
-    {
-      dist = config->height;
-    }
-    else
-    {
-      dist = config->height * 6 / 5;
-    }
+    uint16_t dist =  calc_step_len(interval, config->height);
 
     step_dist += dist;
     step_cal += dist * config->weight * 5 / 4;
