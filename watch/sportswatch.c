@@ -6,8 +6,10 @@
 #include "ant/ant.h"
 #include "stlv.h"
 #include "stlv_client.h"
+#include "ble_handler.h"
 #include <stdio.h>
 #include <cfs/cfs.h>
+#include "btstack/include/btstack/utils.h"
 
 #define GRID_3 			0
 #define GRID_4 			1
@@ -38,13 +40,13 @@ static const struct _datapoints datapoints[] =
   {DATA_WORKOUT,   "Total Workout Time", NULL,   0},
   {DATA_SPEED,     "Speed",              "mph",  0},
   {DATA_HEARTRATE, "Heart Rate",         "bpm",  0},
-  {DATA_DISTANCE,  "Distance",           "mile", 0},
   {DATA_CALS,      "Burned Calories",    "cal",  0},
+  {DATA_DISTANCE,  "Distance",           "mile", 0},
   {DATA_SPEED_AVG, "Avg Speed",          "mph",  0},
   {DATA_ALTITUTE,  "Altitude",           "ft",   0},
   {DATA_TIME,      "Time of the Day",    NULL,   0},
   {DATA_SPEED_TOP, "Top Speed",          "mph",  0},
-  {DATA_CADENCE,   "Cadence",            "cpm",    0}
+  {DATA_CADENCE,   "Cadence",            "cpm",  0}
 };
 
 static const tRectangle region_3grid[] =
@@ -269,7 +271,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       fileidx = 0;
 
       ui_config* config = window_readconfig();
-      sportnum = config->sports_grid + 3;
+      sportnum = config->sports_grid + 4;
 
       break;
     }
@@ -288,11 +290,22 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
           workout_time % upload_data_interval == 0)
       {
         // send data to phone
-        uint16_t tobesend[6];
-        tobesend[0] = workout_time;
-        for(int i = 1; i < sportnum; i++)
-            tobesend[i + 1] = data[i];
-        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, tobesend, sportnum + 1);
+        uint16_t stlv_data[6] = {0};
+        uint32_t ble_data_buf[5] = {0};
+        for(int i = 0; i < sportnum; i++)
+        {
+            stlv_data[i]    = htons(data[i]);
+            ble_data_buf[i] = stlv_data[i];
+        }
+
+        //STLV over RFCOMM
+        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, stlv_data, sportnum);
+
+        //BLE
+        uint32_t ble_desc_buf[2] = {1, 0};
+        write_uint32_array(BLE_HANDLE_SPORTS_DESC, ble_desc_buf, 2);
+        write_uint32_array(BLE_HANDLE_SPORTS_DATA, ble_data_buf, 5);
+
       }
 #if 0
       // push the data into CFS

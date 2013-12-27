@@ -153,15 +153,18 @@ extern const char* toEnglish(uint8_t number, char* buffer);
 
 // #define EVENT_SPORT_DATA              0x92
 // lparam defined as below
-#define DATA_WORKOUT    0
-#define DATA_SPEED      1
-#define DATA_HEARTRATE  2
-#define DATA_CALS       3
-#define DATA_DISTANCE   4
-#define DATA_SPEED_AVG  5
-#define DATA_ALTITUTE   6
-#define DATA_TIME       7
-#define DATA_SPEED_TOP  8
-#define DATA_CADENCE    9
+enum
+{
+    DATA_WORKOUT     = 0,
+    DATA_SPEED      ,  //1
+    DATA_HEARTRATE  ,  //2
+    DATA_CALS       ,  //3
+    DATA_DISTANCE   ,  //4
+    DATA_SPEED_AVG  ,  //5
+    DATA_ALTITUTE   ,  //6
+    DATA_TIME       ,  //7
+    DATA_SPEED_TOP  ,  //8
+    DATA_CADENCE    ,  //9
+};
 
 #endif
