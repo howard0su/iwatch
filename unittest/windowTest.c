@@ -130,7 +130,13 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
+    // sport watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, DATA_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, DATA_DISTANCE},
+   {1, EVENT_TIME_CHANGED, (void*)0, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
