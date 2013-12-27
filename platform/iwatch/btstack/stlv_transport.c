@@ -148,11 +148,14 @@ short get_stlv_transport_buffer_size()
 
 short handle_stvl_transport(unsigned char* packet, uint16_t size)
 {
+    printf("handle_stlv_transport:size = %d\n", size);
     if ((packet[0] & SPP_FLAG_BEGIN) != 0)
         _recv_packet_size = 0;
 
     if (_recv_packet_size + size - 1 > STLV_PACKET_MAX_SIZE)
     {
+
+        printf("handle_stlv_transport error: packet too large(%d)\n", _recv_packet_size);
         _recv_packet_size = 0;
         return -1;
     }

@@ -10,6 +10,7 @@
 #include "rtc.h"
 #include "cfs/cfs.h"
 #include "stlv_client.h"
+#include "btstack/include/btstack/utils.h"
 
 void handle_echo(uint8_t* data, int data_len)
 {
@@ -111,7 +112,7 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 
 int handle_file_begin(char* name)
 {
-    printf("handle_file_begin(%s)", name);
+    printf("handle_file_begin(%s)\n", name);
     int fd = cfs_open(name, CFS_WRITE);
     if (fd == -1)
     {
@@ -123,7 +124,7 @@ int handle_file_begin(char* name)
 
 int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
-    printf("handle_file_end(%x, data, %d)", fd, size);
+    printf("handle_file_end(%x, data, %d)\n", fd, size);
     if (fd != -1)
     {
         return cfs_write(fd, data, size);
@@ -134,13 +135,13 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
 
 void handle_file_end(int fd)
 {
-    printf("handle_file_end(%x)", fd);
+    printf("handle_file_end(%x)\n", fd);
     cfs_close(fd);
 }
 
 void handle_get_file(char* name)
 {
-    printf("handle_get_file(%s)", name);
+    printf("handle_get_file(%s)\n", name);
     transfer_file(name);
 }
 
@@ -166,7 +167,7 @@ static char* filter_filename_by_prefix(char* prefix, char* filename)
 //TODO: help verify
 void handle_list_file(char* prefix)
 {
-    printf("handle_list_file(%s)", prefix);
+    printf("handle_list_file(%s)\n", prefix);
 
     char buf[200] = "";
     uint8_t buf_size = 0;
@@ -174,7 +175,7 @@ void handle_list_file(char* prefix)
     int ret = cfs_opendir(&dir, "");
     if (ret == -1)
     {
-        printf("cfs_opendir() failed: %d", ret);
+        printf("cfs_opendir() failed: %d\n", ret);
         return;
     }
 
@@ -204,19 +205,19 @@ void handle_list_file(char* prefix)
 
 void handle_remove_file(char* name)
 {
-    printf("handle_remove_file(%s)", name);
+    printf("handle_remove_file(%s)\n", name);
     cfs_remove(name);
 }
 
 void handle_get_device_id()
 {
     //TODO: return device id
-    printf("handle_get_device_id()");
+    printf("handle_get_device_id()\n");
 }
 
 void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories)
 {
-    printf("handle_gps_info(%d, %d, %d, %d)", spd, alt, distance, calories);
+    printf("handle_gps_info(%d, %d, %d, %d)\n", spd, alt, distance, calories);
     UNUSED_VAR(calories);
     window_postmessage(EVENT_SPORT_DATA, DATA_SPEED,    (void*)&spd);
     window_postmessage(EVENT_SPORT_DATA, DATA_ALTITUTE, (void*)&alt);
@@ -307,8 +308,8 @@ void handle_get_sports_grid()
         return;
     element_handle h = append_element(p, NULL, "R", 1);
     ui_config* config = window_readconfig();
-    element_append_data(p, h, (uint8_t*)&config->sports_grid, sizeof(uint8_t) * (config->sports_grid + 3));
-    printf("send_sports_grid(%d)\n", (int)sizeof(uint8_t) * (config->sports_grid + 3));
+    element_append_data(p, h, (uint8_t*)&config->sports_grid_data, sizeof(config->sports_grid_data));
+    printf("send_sports_grid(%d)\n", sizeof(config->sports_grid_data));
     send_packet(p, 0, 0);
 }
 
@@ -362,12 +363,24 @@ void handle_gesture_control(uint8_t flag, uint8_t action_map[])
 void handle_set_watch_config(ui_config* config)
 {
     //TODO: help check this
+
+    //adjust values: big endian to little endian
+    config->goal_steps    = htons(config->goal_steps);
+    config->goal_distance = htons(config->goal_distance);
+    config->goal_calories = htons(config->goal_calories);
+
     printf("set_watch_config:\n");
     printf("  signature     = %d\n", config->signature);
     printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
     printf("  analog_clock  = %d\n", config->analog_clock);  // num : which clock face
     printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
     printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+    printf("  sports_grids  = %d, %d, %d, %d, %d\n",
+            config->sports_grid_data[0],
+            config->sports_grid_data[1],
+            config->sports_grid_data[2],
+            config->sports_grid_data[3],
+            config->sports_grid_data[4]);
     printf("  goal_steps    = %d\n", config->goal_steps);
     printf("  goal_distance = %d\n", config->goal_distance);
     printf("  goal_calories = %d\n", config->goal_calories);
@@ -375,8 +388,7 @@ void handle_set_watch_config(ui_config* config)
     printf("  height        = %d\n", config->height); // in cm
     printf("  circumference = %d\n", config->circumference);
 
-    printf("    :");
-    printf("    set_watch_config:");
+
     ui_config* online_config = window_readconfig();
     if (online_config != NULL)
     {

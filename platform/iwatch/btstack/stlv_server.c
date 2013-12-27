@@ -170,8 +170,8 @@ void handle_stlv_packet(unsigned char* packet)
                 printf("Set Watch UI Config");
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                UNUSED_VAR(data_len);
-                handle_set_watch_config((ui_config*)data);
+                if (data_len <= (int)sizeof(ui_config))
+                    handle_set_watch_config((ui_config*)data);
             }
             break;
 
