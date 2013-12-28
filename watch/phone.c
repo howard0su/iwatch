@@ -42,8 +42,8 @@ static void onDraw(tContext *pContext)
   else if (hfp_getstatus(HFP_CIND_CALLSETUP) == HFP_CIND_CALLSETUP_INCOMING)
   {
       GrStringDrawCentered(pContext, "Incoming Call", -1, 72, 60, 0);
-      window_button(pContext, KEY_EXIT, "Reject");
-      window_button(pContext, KEY_ENTER, "Pickup");
+      window_button(pContext, KEY_EXIT, "Decline");
+      window_button(pContext, KEY_ENTER, "Answer");
   }
   else if (hfp_getstatus(HFP_CIND_CALLSETUP) == HFP_CIND_CALLSETUP_OUTGOING)
   {
