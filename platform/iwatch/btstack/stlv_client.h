@@ -21,6 +21,7 @@ void send_file_list(char* files);
 //sports data
 #define SPORTS_DATA_FLAG_START 0x01
 #define SPORTS_DATA_FLAG_STOP  0x02
+#define SPORTS_DATA_FLAG_PRE   0x04
 #define SPORTS_DATA_FLAG_BIKE  0x10
 #define SPORTS_DATA_FLAG_RUN   0x20
 void send_sports_data(uint8_t id, uint8_t flag, uint16_t* data, uint8_t size);

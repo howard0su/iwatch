@@ -203,7 +203,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         ped_reset();
       }
     check_battery();
-      write_walkstatus();
+      //write_walkstatus();
     status ^= MID_STATUS;
     break;
     }

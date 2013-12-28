@@ -282,8 +282,9 @@ static void handle_gps_data(stlv_packet pack, element_handle handle)
                     uint8_t* data = get_element_data_buffer(pack, element, type_buf, type_len);
                     uint8_t  data_size = get_element_data_size(pack, element, type_buf, type_len);
                     printf("gps.alt=%d:%02x %02x\n", data_size, data[0], data[1]);
-                    gps_alt = *((uint16_t*)data);
-                    gps_alt = htons(gps_alt);
+                    //gps_alt = *((uint16_t*)data);
+                    //gps_alt = htons(gps_alt);
+                    gps_alt = READ_NET_16(data, 0);
                 }
                 break;
 
@@ -292,8 +293,9 @@ static void handle_gps_data(stlv_packet pack, element_handle handle)
                     uint8_t* data = get_element_data_buffer(pack, element, type_buf, type_len);
                     uint8_t  data_size = get_element_data_size(pack, element, type_buf, type_len);
                     printf("gps.spd=%d:%02x %02x\n", data_size, data[0], data[1]);
-                    gps_spd = *((uint16_t*)data);
-                    gps_spd = htons(gps_spd);
+                    //gps_spd = *((uint16_t*)data);
+                    //gps_spd = htons(gps_spd);
+                    gps_spd = READ_NET_16(data, 0);
                 }
                 break;
 
