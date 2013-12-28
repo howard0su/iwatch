@@ -24,6 +24,7 @@ static enum _state{
   STATE_CONFIG_SECOND,
 
   STATE_CONFIG_READY, // the order above is assumed in the logic, don't change
+  STATE_CONFIG_PAUSE,
   STATE_CONFIG_DONE,
   STATE_RUNNING
 }state;
@@ -119,6 +120,19 @@ static void OnDraw(tContext *pContext)
 
       break;
     }
+  case STATE_CONFIG_PAUSE:
+    {
+      window_drawtime(pContext, 27, times, 1 << state);
+
+      window_button(pContext, KEY_DOWN, "RESET");
+      window_button(pContext, KEY_ENTER, "Continue");
+
+      // display progress bar
+      if (totaltime != lefttime)
+        OnDrawProgress(pContext);
+
+      break;
+    }
   case STATE_CONFIG_DONE:
     {
       window_drawtime(pContext, 27, times, 1 << state);
@@ -178,7 +192,12 @@ static int process_event(uint8_t ev, uint16_t data)
         break;
       case KEY_ENTER:
         if (state == STATE_CONFIG_HOUR)
-          state = STATE_CONFIG_READY;
+        {
+          if (times[0] != 0  || times[1] != 0  || times[2] != 0)
+            state = STATE_CONFIG_READY;
+          else
+            state = STATE_CONFIG_SECOND;
+        }
         else
           state--;
         break;
@@ -187,6 +206,7 @@ static int process_event(uint8_t ev, uint16_t data)
 
       return 1;
     }
+  case STATE_CONFIG_PAUSE:
   case STATE_CONFIG_READY:
     {
       if (ev != EVENT_KEY_PRESSED)
@@ -199,8 +219,11 @@ static int process_event(uint8_t ev, uint16_t data)
       }
       else if (data == KEY_ENTER)
       {
-        lefttime = totaltime = times[STATE_CONFIG_SECOND] + times[STATE_CONFIG_MINUTE] * 60
+        if (state == STATE_CONFIG_READY)
+        {
+          lefttime = totaltime = times[STATE_CONFIG_SECOND] + times[STATE_CONFIG_MINUTE] * 60
               + times[STATE_CONFIG_HOUR] * 3600;
+        }
         // setup timer every second
         window_timer(CLOCK_SECOND);
 
@@ -218,7 +241,7 @@ static int process_event(uint8_t ev, uint16_t data)
         {
           // pause
           window_timer(0);
-          state = STATE_CONFIG_READY;
+          state = STATE_CONFIG_PAUSE;
         }
         else if (data == KEY_ENTER)
         {
@@ -237,7 +260,7 @@ static int process_event(uint8_t ev, uint16_t data)
         if (lefttime == 0)
         {
           // trigger notification
-          motor_on(240, CLOCK_SECOND);
+          motor_on(240, CLOCK_SECOND * 2);
           state = STATE_CONFIG_DONE;
         }
         else
