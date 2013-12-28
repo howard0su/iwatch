@@ -74,6 +74,7 @@ uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
   {
+    motor_on(210, CLOCK_SECOND * 2);
     break;
   }
   case EVENT_WINDOW_PAINT:
