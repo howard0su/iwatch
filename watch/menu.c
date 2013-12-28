@@ -74,7 +74,7 @@ static const struct MenuItem MainMenu[] =
   {'g', "Countdown Timer", &countdown_process},
   {'k', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
-  {'l', "Watch Setup", &menu_process},
+  {'l', "Setup", &menu_process},
   {0,   "About", &menu_process},
   {0, NULL, NULL}
 };

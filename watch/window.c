@@ -46,6 +46,7 @@ static ui_config ui_config_data =
 
 const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
 const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
+const tRectangle fullscreen_clip = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
 static tContext context;
 static struct etimer timer, status_timer, backlight_timer;
 
@@ -59,6 +60,7 @@ static struct etimer timer, status_timer, backlight_timer;
 #define MAX_STACK 10
 #define ui_window (stack[stackptr])
 static windowproc stack[MAX_STACK]; // assume 6 is enough
+static uint16_t statusflag = 0; // max 16
 static uint8_t stackptr = 0;
 
 void window_init()
@@ -90,10 +92,25 @@ void window_open(windowproc dialog, void* data)
 
   stackptr++;
   ui_window = dialog;
-  ui_window(EVENT_WINDOW_CREATED, 0, data);
+  if (ui_window(EVENT_WINDOW_CREATED, 0, data) == 0x80)
+  {
+    // special case, no status window
+    statusflag |= 1 << stackptr;
+  }
+
+  if (((statusflag & (1 << stackptr)) != 0) ^ (((statusflag & (1 << (stackptr -1))) != 0)))
+  {
+    status_invalid();
+  }
+
   ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
 
   window_invalid(NULL);
+}
+
+static int window_isstatusoff()
+{
+  return (statusflag & (1 << stackptr));
 }
 
 void window_handle_event(uint8_t ev, void* data)
@@ -205,7 +222,10 @@ void window_handle_event(uint8_t ev, void* data)
       {
         ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
         GrContextForegroundSet(&context, ClrWhite);
-        GrContextClipRegionSet(&context, &current_clip);
+        if (window_isstatusoff())
+          GrContextClipRegionSet(&context, &fullscreen_clip);
+        else
+          GrContextClipRegionSet(&context, &current_clip);
         ui_window(EVENT_WINDOW_PAINT, 0, &context);
         current_clip.sXMin = 255;
         current_clip.sXMax = 0;
@@ -216,9 +236,18 @@ void window_handle_event(uint8_t ev, void* data)
       if (ui_window_flag & WINDOW_FLAGS_STATUSUPDATE)
       {
         ui_window_flag &= ~WINDOW_FLAGS_STATUSUPDATE;
-        GrContextForegroundSet(&context, ClrWhite);
+        
         GrContextClipRegionSet(&context, &status_clip);
-        status_process(EVENT_WINDOW_PAINT, 0, &context);
+        if (window_isstatusoff())
+        {
+          GrContextForegroundSet(&context, ClrBlack);
+          GrRectFill(&context, &status_clip);
+        }
+        else
+        {
+          GrContextForegroundSet(&context, ClrWhite);
+          status_process(EVENT_WINDOW_PAINT, 0, &context);
+        }
       }
 
       GrFlush(&context);
@@ -288,14 +317,21 @@ void window_close()
     return;
 
   ui_window(EVENT_WINDOW_CLOSING, 0, NULL);
+  
+  if (((statusflag & (1 << stackptr)) != 0) ^ (((statusflag & (1 << (stackptr -1))) != 0)))
+  {
+    status_invalid();
+  }
 
+  statusflag &= ~(1 << stackptr);
   stackptr--;
   ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
   GrContextForegroundSet(&context, ClrWhite);
   GrContextClipRegionSet(&context, &client_clip);
   ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
-  ui_window(EVENT_WINDOW_PAINT, 0, &context);
-  GrFlush(&context);
+//  ui_window(EVENT_WINDOW_PAINT, 0, &context);
+//  GrFlush(&context);
+  window_invalid(NULL);
 }
 
 #define WINDOWCONFIG "_uiconfig"
@@ -303,7 +339,7 @@ void window_close()
 void window_loadconfig()
 {
   ui_config data;
-  printf("load config file");
+  printf("load config file\n");
   int fd = cfs_open(WINDOWCONFIG, CFS_READ);
   if (fd != -1)
   {

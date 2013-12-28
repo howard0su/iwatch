@@ -101,6 +101,7 @@ WATCH = \
     watch/calendar.c \
     watch/stopwatch.c \
     watch/sportswatch.c \
+    watch/sportwait.c \
     watch/sportselect.c \
     watch/phone.c \
     watch/notification.c \
