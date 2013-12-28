@@ -17,8 +17,8 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   
   GrContextFontSet(pContext, &g_sFontBaby16);
-  GrStringDraw(pContext, "Voice Command", -1, 32, 16, 0);
-  window_button(pContext, KEY_EXIT, "Hang up");
+  GrStringDraw(pContext, "Voice Commander", -1, 32, 90, 0);
+  window_button(pContext, KEY_EXIT, "Finish");
 }
 
 uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -41,7 +41,7 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;
-    
+
   case EVENT_EXIT_PRESSED:
     hfp_enable_voicerecog(0);
     window_close();
