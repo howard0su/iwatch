@@ -109,6 +109,8 @@ uint16_t calc_step_len(uint16_t interval, uint8_t height)
     {
       dist = height * 6 / 5;
     }
+
+    sendinformation(dist * SAMPLE_HZ / interval);
     return dist;
 }
 
