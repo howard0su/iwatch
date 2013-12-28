@@ -40,7 +40,7 @@ static void onDraw(tContext *pContext)
   }
 
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
+  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
 
   // draw title
   GrStringDraw(pContext, message_title, -1, 34, 23, 0);

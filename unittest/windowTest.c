@@ -483,7 +483,9 @@ void TestWindows(CuTest *tc)
     }
 
   window_notify("Facebook", "From: Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
-  //window_close();
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
 
   printf("test finished!\n");
 }
@@ -532,6 +534,14 @@ void TestTriagle(CuTest* tc)
   GrFlush(&context);
 }
 
+void TestNotification(CuTest *tc)
+{
+  window_notify("error", "This is mssage in english", 0, 0);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+}
+
 CuSuite* WindowGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew("Window Test");
@@ -550,7 +560,7 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestLcd);
   SUITE_ADD_TEST(suite, TestTestAnt);
   SUITE_ADD_TEST(suite, TestPhoneScreen);
-
+  SUITE_ADD_TEST(suite, TestNotification);
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);
