@@ -97,7 +97,7 @@ uint8_t worldclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     index = 0;
-    break;
+    return 0x80;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;

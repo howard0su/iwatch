@@ -29,31 +29,40 @@ static void onDraw(tContext *pContext)
   if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
   {
     GrStringDrawCentered(pContext, "Calling", -1, 72, 60, 0);
+    window_button(pContext, KEY_EXIT, "Hang up");
+
+    // volume
     window_button(pContext, KEY_UP, "Vol Up");
     window_button(pContext, KEY_DOWN, "Vol Down");
-    window_button(pContext, KEY_EXIT, "Hang up");
-    // volume
     char buf[32];
     sprintf(buf, "Volume: %d", codec_getvolume());
     GrContextFontSet(pContext, &g_sFontBaby16);
     GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
   }
-  else if (hfp_getstatus(HFP_CIND_CALLSETUP) != HFP_CIND_CALLSETUP_NONE)
+  else if (hfp_getstatus(HFP_CIND_CALLSETUP) == HFP_CIND_CALLSETUP_INCOMING)
   {
-    GrStringDrawCentered(pContext, "Incoming Call", -1, 72, 60, 0);
-    window_button(pContext, KEY_EXIT, "Reject");
-    window_button(pContext, KEY_ENTER, "Pickup");
-    // TODO: not implemented
-    //window_button(pContext, KEY_DOWN, "SMS Reply"); 
+      GrStringDrawCentered(pContext, "Incoming Call", -1, 72, 60, 0);
+      window_button(pContext, KEY_EXIT, "Decline");
+      window_button(pContext, KEY_ENTER, "Answer");
+  }
+  else if (hfp_getstatus(HFP_CIND_CALLSETUP) == HFP_CIND_CALLSETUP_OUTGOING)
+  {
+      GrStringDrawCentered(pContext, "Outgoing Call", -1, 72, 60, 0);
+      window_button(pContext, KEY_EXIT, "Finish");
+  }
+  else if (hfp_getstatus(HFP_CIND_CALLSETUP) == HFP_CIND_CALLSETUP_ALERTING)
+  {
+      GrStringDrawCentered(pContext, "Outgoing Call", -1, 72, 60, 0);
+      window_button(pContext, KEY_EXIT, "Finish");
   }
   else
   {
-    GrStringDrawCentered(pContext, "Finished", -1, 72, 60, 0);	
+    GrStringDrawCentered(pContext, "Call is finished", -1, 72, 60, 0);	
     window_close();
     
     return; // don't need paint others
   }
-  
+
   // draw the phone number
   GrContextFontSet(pContext, &g_sFontNova16b);
   GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
@@ -118,7 +127,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (lparam & 0x0f == 1)
       {
-        motor_on(200, CLOCK_SECOND/4);
+        motor_on(210, CLOCK_SECOND/2);
       }
       window_invalid(NULL);
     }
@@ -126,9 +135,16 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       window_invalid(NULL);
     }
+    else if ((lparam >> 8) == HFP_CIND_CALLSETUP)
+    {
+      if (lparam & 0x0f == 0)
+      {
+        window_close();
+      }
+    }
     break;
   case EVENT_BT_RING:
-    motor_on(200, CLOCK_SECOND/8);
+    motor_on(200, CLOCK_SECOND * 2 /3);
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
@@ -138,10 +154,11 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     handleKey((uint8_t)lparam);
     break;
     
-  case EVENT_WINDOW_CLOSING:
+  case EVENT_EXIT_PRESSED:
     hfp_accept_call(0);
     gesture_shutdown();
     break;
+    
   default:
     return 0;
   }

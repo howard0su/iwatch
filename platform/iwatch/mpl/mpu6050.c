@@ -28,6 +28,7 @@ PROCESS(mpu6050_process, "MPU6050 Driver");
 
 /* Starting sampling rate. */
 #define DEFAULT_MPU_HZ  (50)
+#define GESTURE_MPU_HZ  (150)
 
 static uint16_t read_interval = CLOCK_SECOND;
 static struct etimer timer;
@@ -218,10 +219,12 @@ void mpu_gesturemode(int d)
   {
     // enable gesture mode
     // we need get the sampling more quick
+    mpu_set_sample_rate(GESTURE_MPU_HZ);
     read_interval = CLOCK_SECOND >> 3; // every 8/1 sec
   }
   else
   {
+    mpu_set_sample_rate(DEFAULT_MPU_HZ);
     read_interval = CLOCK_SECOND; // every 3 second we read fifo buffer
   }
 }

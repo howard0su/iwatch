@@ -76,7 +76,7 @@ extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_
 #define NOTIFY_RESULT_ACCEPT 1
 #define NOTIFY_RESULT_REJECT 2
 
-extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
+//extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
 
