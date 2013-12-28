@@ -68,13 +68,12 @@ static void onDraw(tContext *pContext)
 }
 
 // notify window process
-uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
+static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
   {
-    motor_on(210, CLOCK_SECOND * 2);
     break;
   }
   case EVENT_WINDOW_PAINT:
@@ -110,7 +109,7 @@ void window_notify(const char* title, const char* msg, uint8_t buttons, char ico
   message = msg;
   message_buttons = buttons;
   message_icon = icon;
-  motor_on(200, CLOCK_SECOND / 2);
+  motor_on(200, CLOCK_SECOND);
 
   if (window_current() == notify_process)
     window_invalid(NULL);
