@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "stlv.h"
 #include "stlv_handler.h"
+#include "btstack/include/btstack/utils.h"
 
 static void handle_file(stlv_packet pack, element_handle handle);
 static void print_stlv_string(unsigned char* data, int len);
@@ -266,8 +267,8 @@ static void handle_gps_data(stlv_packet pack, element_handle handle)
 {
     char type_buf[MAX_ELEMENT_TYPE_BUFSIZE];
 
-    uint16_t gps_spd = 0;
-    uint16_t gps_alt = 0;
+    uint16_t gps_spd = 0xffff;
+    uint16_t gps_alt = 0xffff;
     uint32_t gps_dis = 0;
 
     element_handle element = get_first_sub_element(pack, handle);
@@ -278,28 +279,36 @@ static void handle_gps_data(stlv_packet pack, element_handle handle)
         {
             case SUB_TYPE_ACTIVITY_ALT:
                 {
-                    uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                    uint8_t* data = get_element_data_buffer(pack, element, type_buf, type_len);
+                    uint8_t  data_size = get_element_data_size(pack, element, type_buf, type_len);
+                    printf("gps.alt=%d:%02x %02x\n", data_size, data[0], data[1]);
                     gps_alt = *((uint16_t*)data);
+                    gps_alt = htons(gps_alt);
                 }
                 break;
 
             case SUB_TYPE_ACTIVITY_SPD:
                 {
-                    uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
+                    uint8_t* data = get_element_data_buffer(pack, element, type_buf, type_len);
+                    uint8_t  data_size = get_element_data_size(pack, element, type_buf, type_len);
+                    printf("gps.spd=%d:%02x %02x\n", data_size, data[0], data[1]);
                     gps_spd = *((uint16_t*)data);
+                    gps_spd = htons(gps_spd);
                 }
                 break;
 
             case SUB_TYPE_ACTIVITY_DIS:
                 {
-                    uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                    gps_dis = *((uint32_t*)data);
+                    uint8_t* data = get_element_data_buffer(pack, element, type_buf, type_len);
+                    uint8_t  data_size = get_element_data_size(pack, element, type_buf, type_len);
+                    printf("gps.dis=%d:%02x %02x %02x %02x\n", data_size, data[0], data[1], data[2], data[3]);
+                    gps_dis = READ_NET_32(data, 0);
                 }
                break;
         }
         element = get_next_sub_element(pack, handle, element);
     }
 
-    handle_gps_info(gps_spd, gps_alt, gps_dis, 0);
+    handle_gps_info(gps_spd, gps_alt, gps_dis);
 
 }

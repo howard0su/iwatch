@@ -34,7 +34,7 @@ void handle_alarm(alarm_conf_t* para);
 
 void handle_get_device_id();
 
-void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories);
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance);
 
 #define GESTURE_FLAG_ENABLE 0x01
 #define GESTURE_FLAG_LEFT   0x02

@@ -42,9 +42,9 @@ typedef struct _ble_handle_t
 //    const char* characteristic;
 //    const char* name;
     uint8_t handle;
-    uint8_t  type;
-    uint8_t  size;
-    uint8_t  offset;
+    uint8_t type;
+    uint8_t size;
+    uint8_t offset;
 }ble_handle_t;
 
 ble_handle_t* get_ble_handle(uint16_t handle);
