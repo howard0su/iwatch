@@ -495,13 +495,13 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       {
           //running
           sports_type = SPORTS_DATA_FLAG_RUN;
-        ant_init(MODE_HRM);
+        //ant_init(MODE_HRM);
       }
       else
       {
           //cycling
           sports_type = SPORTS_DATA_FLAG_BIKE;
-        ant_init(MODE_CBSC);
+        //ant_init(MODE_CBSC);
       }
       rtc_enablechange(SECOND_CHANGE);
       for (int i = 0; i < (int)(sizeof(grid_data)/sizeof(grid_data[0])); i++)

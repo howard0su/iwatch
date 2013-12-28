@@ -2064,6 +2064,9 @@
       <name>$PROJ_DIR$\..\watch\sportselect.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\sportwait.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\sportswatch.c</name>
     </file>
     <file>

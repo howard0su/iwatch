@@ -104,6 +104,7 @@ extern uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xABADFACE
 typedef struct {

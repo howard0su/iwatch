@@ -60,7 +60,8 @@ uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam)
   		selection++;
   	if (lparam == KEY_ENTER)
   	{
-  		window_open(&sportswatch_process, (void*)selection);
+      window_close();
+  		window_open(&sportwait_process, (void*)selection);
   		return 1;
   	}
   	window_invalid(NULL);
