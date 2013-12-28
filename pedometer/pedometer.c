@@ -32,11 +32,11 @@ static inline int16_t filter(int16_t value, int16_t *slot)
   return ret;
 }
 
-static inline uint16_t filter2(uint16_t value)
+static inline uint32_t filter2(uint32_t value)
 {
-  static uint16_t lastsample = 0;
+  static uint32_t lastsample = 0;
   
-  uint16_t ret;
+  uint32_t ret;
   if (value > lastsample)
     ret = (value - lastsample) / 2  + lastsample;
   else
@@ -47,9 +47,9 @@ static inline uint16_t filter2(uint16_t value)
   return ret / 2; // gt = 1/2 
 }
 
-static uint16_t totalaccel(int16_t *data)
+static uint32_t totalaccel(int16_t *data)
 {
-  uint16_t total = 0;
+  uint32_t total = 0;
   
   // compute each axis abs
   for(int i = 0; i < 3; i++)
@@ -118,7 +118,7 @@ static void increasestep(uint16_t interval)
 {
   step_cnt++;
 
-  if (interval < SAMPLE_HZ * 2)
+//uint32_tuint32_t  if (interval < SAMPLE_HZ * 2)
   {
     ui_config* config = window_readconfig();
     step_time += interval;
@@ -145,7 +145,7 @@ char ped_update_sample(int16_t *data)
   data[1] = window[0][1] + window[1][1] + window[2][1] + window[3][1];
   data[2] = window[0][2] + window[1][2] + window[2][2] + window[3][2];
 
-  uint16_t total = totalaccel(data);
+  uint32_t total = totalaccel(data);
   uint16_t threshold = filter2(total);
   
   static int holdoff = 0;
