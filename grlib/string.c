@@ -2822,11 +2822,12 @@ void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, l
     start = 0;
     while(text[start] != '\0')
     {
+      end = 0;
       end0 = start;
       do{
       end0++;
 
-      if (text[end0] == ' ')
+      if (text[end0] == ' ' || text[end0] == '\0')
         end = end0;
 
        // find a spaace
@@ -2840,13 +2841,28 @@ void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, l
      {
          end = end0;
      }
+     else
+     {
+        if (end == 0) 
+        {
+            // no way to put this string, then we just wrappt it
+            end = end0;
+        }
+        else
+        {
+            end0 = end;
+        }
+     }
 
     // now we need draw
     GrStringDraw(pContext, text + start, end - start, startx, starty, 0);
      if (text[end0] == '\0')
-       break;
+       return;
      start = end + 1;
      starty += margin;
+
+     if (starty > pContext->sClipRegion.sYMax)
+        return;
    }
 }
 //*****************************************************************************
