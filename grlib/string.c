@@ -2815,34 +2815,35 @@ GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
     return(ulLen);
 }
 
-void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin)
+void GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
 {
-  int start, end, end0, w;
+     int start, end, end0, w;
+     unsigned long ulChar, ulSkip;
 
     start = 0;
-    while(text[start] != '\0')
+    for(;;)
     {
       end = 0;
       end0 = start;
       do{
-      end0++;
-
-      if (text[end0] == ' ' || text[end0] == '\0')
-        end = end0;
-
-       // find a spaace
-      //while((text[end0] != ' ' && text[end0] != '\n') && text[end0] != '\0')
-      //   end0++;
  
-      w = GrStringWidthGet(pContext, text + start, end0 - start + 1);
-    }while(w < width && text[end0] != '\0'&& text[end0] != '\n');
+            //
+            // Get the next character to render.
+            //
+            ulChar = GrStringNextCharGet(pContext, pcString + end0, -1, &ulSkip);
+            end0 += ulSkip;
+
+            //
+            // If we ran out of characters to render, return immediately.
+            //
+            if(!ulChar || ulChar == ' ')
+            {
+                end = end0;
+            }
+     
+            w = GrStringWidthGet(pContext, pcString + start, end0 - start + 1);
+        }while(w < width && ulChar != '\0'&& ulChar != '\n');
  
-    if (text[end0] == '\0' || text[end0] == '\n')
-     {
-         end = end0;
-     }
-     else
-     {
         if (end == 0) 
         {
             // no way to put this string, then we just wrappt it
@@ -2852,11 +2853,10 @@ void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, l
         {
             end0 = end;
         }
-     }
 
     // now we need draw
-    GrStringDraw(pContext, text + start, end - start, startx, starty, 0);
-     if (text[end0] == '\0')
+    GrStringDraw(pContext, pcString + start, end - start, startx, starty, 0);
+     if (ulChar == '\0')
        return;
      start = end + 1;
      starty += margin;
