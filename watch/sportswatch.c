@@ -38,38 +38,36 @@ static uint32_t workout_time;
 #define FORMAT_NONE 0
 #define FORMAT_TIME 1
 #define FORMAT_SPD  2
-#define FORMAT_ALT  3
 
 struct _datapoints
 {
-  uint8_t data;
   const char *name; // use \t to seperate the string
   const char *unit;
-  uint8_t format;
+  const uint8_t format;
 };
 
 static const struct _datapoints datapoints[] =
 {
-  {GRID_WORKOUT,       "Total Workout Time", NULL,   0},
-  {GRID_SPEED,         "Speed",              "mph",  0},
-  {GRID_HEARTRATE,     "Heart Rate",         "bpm",  0},
-  {GRID_CALS,          "Burned Calories",    "cal",  0},
-  {GRID_DISTANCE,      "Distance",           "mile", 0},
-  {GRID_SPEED_AVG,     "Avg Speed",          "mph",  0},
-  {GRID_ALTITUTE,      "Altitude",           "ft",   0},
-  {GRID_TIME,          "Time of the Day",    NULL,   0},
-  {GRID_SPEED_TOP,     "Top Speed",          "mph",  0},
-  {GRID_CADENCE,       "Cadence",            "cpm",  0},
-  {GRID_PACE,          "Pace",               "cpm",  0},
-  {GRID_HEARTRATE_AVG, "Avg. Heart Rate",    "cpm",  0},
-  {GRID_HEARTRATE_MAX, "Top Heart Rate",     "cpm",  0},
-  {GRID_ELEVATION,     "Elevation Gain",     "cpm",  0},
-  {GRID_LAPTIME_CUR,   "Current Lap",        "cpm",  0},
-  {GRID_LAPTIME_BEST,  "Best Lap",           "cpm",  0},
-  {GRID_FLOORS,        "Floors",             "cpm",  0},
-  {GRID_STEPS,         "Steps",              "cpm",  0},
-  {GRID_PACE_AVG,      "Avg. Pace",          "cpm",  0},
-  {GRID_LAPTIME_AVG,   "Avg. Lap",           "cpm",  0},
+  {"Total Workout Time", NULL,   FORMAT_NONE},
+  {"Speed",              "mph",  FORMAT_SPD},
+  {"Heart Rate",         "bpm",  FORMAT_NONE},
+  {"Burned Calories",    "cal",  FORMAT_NONE},
+  {"Distance",           "mile", FORMAT_NONE},
+  {"Avg Speed",          "mph",  FORMAT_NONE},
+  {"Altitude",           "ft",   FORMAT_NONE},
+  {"Time of the Day",    NULL,   FORMAT_TIME},
+  {"Top Speed",          "mph",  FORMAT_SPD},
+  {"Cadence",            "cpm",  FORMAT_NONE},
+  {"Pace",               NULL,   FORMAT_TIME},
+  {"Avg. Heart Rate",    "bpm",  FORMAT_NONE},
+  {"Top Heart Rate",     "bpm",  FORMAT_NONE},
+  {"Elevation Gain",     "ft",   FORMAT_NONE},
+  {"Current Lap",        NULL,   FORMAT_TIME},
+  {"Best Lap",           NULL,   FORMAT_TIME},
+  {"Floors",             "cpm",  FORMAT_NONE},
+  {"Steps",              NULL,   FORMAT_NONE},
+  {"Avg. Pace",          NULL,   FORMAT_TIME},
+  {"Avg. Lap",           NULL,   FORMAT_TIME},
 };
 
 static const tRectangle region_3grid[] =
@@ -171,7 +169,7 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint16_t data)
       sprintf(buf, "%02d:%02d", data/60, data%60);
       break;
     case FORMAT_SPD:
-      sprintf(buf, "%d.%02d", data/100, data%100);
+      sprintf(buf, "%d.%01d", data/100, data%100);
       break;
     default:
       sprintf(buf, "%d", data);
@@ -263,7 +261,7 @@ static void updateDistance(uint32_t value, uint32_t* gris_mask)
       uint32_t newval = value % lap_len;
       if (oldval > newval)
       {
-          uint32_t lap_time = workout_time - base_data[SPORTS_TIME_LAP_BEGIN]; 
+          uint32_t lap_time = workout_time - base_data[SPORTS_TIME_LAP_BEGIN];
           if (lap_time < base_data[SPORTS_LAP_BEST])
           {
               base_data[SPORTS_LAP_BEST] = lap_time;
@@ -283,7 +281,7 @@ static void updateHeartRate(uint32_t value, uint32_t* gris_mask)
         base_data[SPORTS_HEARTRATE_MAX] = value;
         (*gris_mask) |= (1 << GRID_HEARTRATE_MAX);
     }
-    
+
     if (workout_time > 0)
     {
         base_data[SPORTS_HEARTRATE_AVG] = (
@@ -321,7 +319,7 @@ void updateSteps(uint32_t value, uint32_t* gris_mask)
         //{
         //    uint16_t interval = (value - base_data[SPORTS_LAST_STEPS]) * 2 / time_interval;
         //    uint16_t step_len = calc_step_len(interval);
-        //    uint16_t distance = (value - base_data[SPORTS_LAST_STEPS]) * step_len; 
+        //    uint16_t distance = (value - base_data[SPORTS_LAST_STEPS]) * step_len;
         //    uint16_t speed    = distance / time_interval;
 
         //    base_data[SPORTS_TIME_LAST_PED] = workout_time;
@@ -337,41 +335,61 @@ static uint32_t updateBaseData(uint8_t datatype, uint32_t value)
   if (datatype >= SPORTS_DATA_MAX)
       return 0;
 
+  if (datatype != 0)
+    printf("updateBaseData(%u, %u)\n", datatype, value);
+
   uint32_t grids_mask = 0;
   switch (datatype)
   {
       case SPORTS_TIME:
           grids_mask |= (1 << GRID_WORKOUT);
+          base_data[datatype] = value; //the raw value must be updated at last
           break;
 
       case SPORTS_DISTANCE:
           updateDistance(value, &grids_mask);
           grids_mask |= (1 << GRID_DISTANCE);
+          base_data[SPORTS_TIME_LAST_GPS] = workout_time;
+          base_data[datatype] += value; //the raw value must be updated at last
           break;
 
       case SPORTS_HEARTRATE:
           updateHeartRate(value, &grids_mask);
           grids_mask |= (1 << GRID_HEARTRATE);
+          base_data[datatype] = value; //the raw value must be updated at last
           break;
 
       case SPORTS_SPEED:
-          updateSpeed(value, &grids_mask);
-          grids_mask |= (1 << GRID_SPEED);
+          if (value != 0xffffffff)
+          {
+               updateSpeed(value, &grids_mask);
+               grids_mask |= (1 << GRID_SPEED);
+               base_data[SPORTS_TIME_LAST_GPS] = workout_time;
+               base_data[datatype] = value; //the raw value must be updated at last
+          }
           break;
 
       case SPORTS_ALT:
-          updateAlt(value, &grids_mask);
-          grids_mask |= (1 << GRID_ALTITUTE);
+          if (value != 0xffffffff)
+          {
+              updateAlt(value, &grids_mask);
+              grids_mask |= (1 << GRID_ALTITUTE);
 
-          base_data[SPORTS_TIME_LAST_GPS] = workout_time;
+              base_data[SPORTS_TIME_LAST_GPS] = workout_time;
+              base_data[datatype] = value; //the raw value must be updated at last
+          }
           break;
 
       case SPORTS_STEPS:
           updateSteps(value, &grids_mask);
           grids_mask |= (1 << GRID_STEPS);
+          base_data[datatype] = value; //the raw value must be updated at last
+          break;
+
+      default:
+          base_data[datatype] = value; //the raw value must be updated at last
           break;
   }
-  base_data[datatype] = value; //the raw value must be updated at last
   return grids_mask;
 }
 
@@ -401,6 +419,7 @@ static uint32_t getGridDataItem(uint8_t slot)
     };
 
     uint8_t sport_data_id = s_grid_data_map[slot];
+    printf("sport_data_id=%d\n", sport_data_id);
     if (sport_data_id != SPORTS_DATA_MAX)
         return base_data[sport_data_id];
 
@@ -450,7 +469,7 @@ static uint32_t getGridDataItem(uint8_t slot)
 
 static void updateGridData(uint32_t mask)
 {
-    ui_config* config = window_readconfig(); 
+    ui_config* config = window_readconfig();
 
     for (int j = 0; j < GRID_MAX; ++j)
     {
@@ -460,7 +479,9 @@ static void updateGridData(uint32_t mask)
         int slot = findDataGrid(j);
         if (slot != -1)
         {
-            grid_data[slot] = getGridDataItem(slot);
+            grid_data[slot] = getGridDataItem(j);
+            if (j != 0)
+                printf("updateGridData(id=%s):%d\n", datapoints[j].name, grid_data[slot]);
             window_invalid(&regions[config->sports_grid][slot]);
         }
     }

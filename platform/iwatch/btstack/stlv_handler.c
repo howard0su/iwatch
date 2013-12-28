@@ -42,32 +42,6 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
     }
 
     cfs_closedir(&dir);
-
-    //test sports data sync
-    //#define DATA_WORKOUT    0
-    //#define DATA_SPEED      1
-    //#define DATA_HEARTRATE  2
-    //#define DATA_CALS       3
-    //#define DATA_DISTANCE   4
-    //#define DATA_SPEED_AVG  5
-    //#define DATA_ALTITUTE   6
-    //#define DATA_TIME       7
-    //#define DATA_SPEED_TOP  8
-    //#define DATA_CADENCE    9
-    //uint8_t test_grid[4];
-    //test_grid[0] = DATA_SPEED;
-    //test_grid[1] = DATA_SPEED_AVG;
-    //test_grid[2] = DATA_DISTANCE;
-    //test_grid[3] = DATA_CALS;
-    //send_sports_grid(test_grid, sizeof(test_grid));
-
-    uint16_t test_data[10];
-    for (uint8_t i = 0; i < 10; ++i)
-    {
-        test_data[i] = i;
-    }
-    send_sports_data(1, 0x11, test_data, 10);
-
 }
 
 #define ICON_FACEBOOK 's'
@@ -215,13 +189,15 @@ void handle_get_device_id()
     printf("handle_get_device_id()\n");
 }
 
-void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance, uint16_t calories)
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance)
 {
-    printf("handle_gps_info(%d, %d, %d, %d)\n", spd, alt, distance, calories);
-    UNUSED_VAR(calories);
-    window_postmessage(EVENT_SPORT_DATA, SPORTS_SPEED,    (void*)&spd);
-    window_postmessage(EVENT_SPORT_DATA, SPORTS_ALT,      (void*)&alt);
-    window_postmessage(EVENT_SPORT_DATA, SPORTS_DISTANCE, (void*)&distance);
+    printf("handle_gps_info(%d, %d, %d)\n", spd, alt, distance);
+    uint32_t lspd = (spd == 0xffff ? 0xffffffff : spd);
+    uint32_t lalt = (alt == 0xffff ? 0xffffffff : alt);
+
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_SPEED,    (void*)lspd);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_ALT,      (void*)lalt);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_DISTANCE, (void*)distance);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -365,9 +341,9 @@ void handle_set_watch_config(ui_config* config)
     //TODO: help check this
 
     //adjust values: big endian to little endian
-    config->goal_steps    = htons(config->goal_steps);
-    config->goal_distance = htons(config->goal_distance);
-    config->goal_calories = htons(config->goal_calories);
+    //config->goal_steps    = htons(config->goal_steps);
+    //config->goal_distance = htons(config->goal_distance);
+    //config->goal_calories = htons(config->goal_calories);
 
     printf("set_watch_config:\n");
     printf("  signature     = %d\n", config->signature);
