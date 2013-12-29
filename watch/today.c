@@ -5,11 +5,15 @@
 #include <stdio.h>
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "memory.h"
 
 static enum {
   WALK = 0,
   SPORT = 1
-}state = WALK;
+};
+
+#define state d.today.state
+
 
 #define LINEMARGIN 25
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
@@ -91,6 +95,8 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
+    state = WALK;
+    // fallthrough
   case PROCESS_EVENT_TIMER:
     window_timer(CLOCK_SECOND * 5);
     window_invalid(NULL);

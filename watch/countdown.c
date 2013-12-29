@@ -18,6 +18,8 @@
 #include "cordic.h"
 #include "backlight.h"
 
+#include "memory.h"
+
 static enum _state{
   STATE_CONFIG_HOUR,
   STATE_CONFIG_MINUTE,
@@ -27,12 +29,12 @@ static enum _state{
   STATE_CONFIG_PAUSE,
   STATE_CONFIG_DONE,
   STATE_RUNNING
-}state;
+};
 
-static uint8_t times[3];
-static uint32_t totaltime, lefttime;
-
-
+#define state d.countdown.state
+#define times d.countdown.times
+#define totaltime d.countdown.totaltime
+#define lefttime d.countdown.lefttime
 
 #define CENTER_X 75
 #define CENTER_Y 95

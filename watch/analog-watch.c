@@ -20,7 +20,7 @@
 #include "cordic.h"
 #include <stdio.h>
 #include <string.h>
-
+#include "memory.h"
 /*
 * This implement the digit watch
 * Wake up every 1 second and update the watch
@@ -33,8 +33,11 @@
 #define MIN_HAND_LEN 50
 #define HOUR_HAND_LEN 36
 
-static uint8_t hour, minute, sec;
+#define _hour d.analog.hour
+#define _minute d.analog.minute
+#define _sec d.analog.sec
 static uint8_t selection;
+
 typedef void (*draw_function)(tContext *pContext);
 
 static void drawFace0(tContext *pContext)
@@ -175,7 +178,7 @@ static void drawHand0(tContext *pContext)
   uint16_t x, y;
 
   // minute hand = length = 70
-  angle = minute * 6+ sec /10;
+  angle = _minute * 6+ _sec /10;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   x = CENTER_X + ((MIN_HAND_LEN * (sin_val >> 8)) >> 7);
   y = CENTER_Y - ((MIN_HAND_LEN * (cos_val >> 8)) >> 7);
@@ -183,7 +186,7 @@ static void drawHand0(tContext *pContext)
   GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
 
   // hour hand 45
-  angle = hour * 30 + minute / 2;
+  angle = _hour * 30 + _minute / 2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   x = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
   y = CENTER_Y - ((HOUR_HAND_LEN * (cos_val >> 8)) >> 7);
@@ -203,7 +206,7 @@ static void drawHand1(tContext *pContext)
   GrCircleDraw(pContext, CENTER_X, CENTER_Y, 10);
 
   // minute hand = length = 70
-  angle = minute * 6+ sec /10;
+  angle = _minute * 6+ _sec /10;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   ex = CENTER_X + ((MIN_HAND_LEN * (sin_val >> 8)) >> 7);
   ey = CENTER_Y - ((MIN_HAND_LEN * (cos_val >> 8)) >> 7);
@@ -213,7 +216,7 @@ static void drawHand1(tContext *pContext)
   GrLineDraw(pContext, sx, sy, ex, ey);
 
   // hour hand 45
-  angle = hour * 30 + minute / 2;
+  angle = _hour * 30 + _minute / 2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   ex = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
   ey = CENTER_Y - ((HOUR_HAND_LEN * (cos_val >> 8)) >> 7);
@@ -247,7 +250,7 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   if (ev == EVENT_WINDOW_CREATED)
   {
-    rtc_readtime(&hour, &minute, &sec);
+    rtc_readtime(&_hour, &_minute, &_sec);
     if (rparam == NULL)
       selection = window_readconfig()->analog_clock;
     else
@@ -268,9 +271,9 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
   else if (ev == EVENT_TIME_CHANGED)
   {
     struct datetime* dt = (struct datetime*)rparam;
-    hour = dt->hour;
-    minute = dt->minute;
-    sec = dt->second;
+    _hour = dt->hour;
+    _minute = dt->minute;
+    _sec = dt->second;
     window_invalid(NULL);
   }
   else if (ev == EVENT_KEY_PRESSED)

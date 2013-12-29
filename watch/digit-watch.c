@@ -18,19 +18,21 @@
 #include "math.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "memory.h"
 
 #include <stdio.h> // for sprintf
 #include <string.h>
 
-static uint8_t hour0, minute;
-static uint8_t selection;
+#define _hour0 d.digit.hour0
+#define _minute d.digit.minute
+static uint8_t _selection;
 
 typedef void (*draw_function)(tContext *pContext);
 
 static void drawClock0(tContext *pContext)
 {
   uint16_t year;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   uint8_t month, day;
   uint8_t ampm = 0;
   char buf[20];
@@ -46,7 +48,7 @@ static void drawClock0(tContext *pContext)
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44);
 
-  sprintf(buf, "%02d:%02d", hour, minute);
+  sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 50, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16b);
@@ -63,7 +65,7 @@ static void drawClock0(tContext *pContext)
 static void drawClock1(tContext *pContext)
 {
   uint8_t ampm = 0;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   char buf[20];
 
   // draw time
@@ -79,7 +81,7 @@ static void drawClock1(tContext *pContext)
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE/ 2, 45, 0);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit52b);
-  sprintf(buf, "%02d", minute);
+  sprintf(buf, "%02d", _minute);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 90, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16b);
@@ -92,7 +94,7 @@ static void drawClock1(tContext *pContext)
 static void drawClock2(tContext *pContext)
 {
   uint8_t ampm = 0;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   char buf[20];
   const char* buffer;
 
@@ -108,7 +110,7 @@ static void drawClock2(tContext *pContext)
   GrStringDraw(pContext, buffer, -1, 10, 50, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16b);
-  buffer = toEnglish(minute, buf);
+  buffer = toEnglish(_minute, buf);
   GrStringDraw(pContext, buffer, -1, 10, 85, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16);
@@ -126,7 +128,7 @@ static void drawClock2(tContext *pContext)
 static void drawClock3(tContext *pContext)
 {
   uint8_t ampm = 0;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   char buf[20];
   const char* buffer;
 
@@ -147,7 +149,7 @@ static void drawClock3(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   
   GrContextFontSet(pContext, &g_sFontNova16b);
-  buffer = toEnglish(minute, buf);
+  buffer = toEnglish(_minute, buf);
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE / 2, 80, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16);
@@ -173,7 +175,7 @@ static void drawClock8(tContext *pContext)
 static void drawClock4(tContext *pContext)
 {
   uint16_t year;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   uint8_t month, day;
   char buf[20];
 
@@ -181,7 +183,7 @@ static void drawClock4(tContext *pContext)
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
 
-  sprintf(buf, "%02d:%02d", hour, minute);
+  sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 65, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16);
@@ -195,7 +197,7 @@ static void drawClock4(tContext *pContext)
 static void drawClock5(tContext *pContext)
 {
   uint16_t year;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   uint8_t month, day;
   uint8_t ampm = 0;
   char buf[20];
@@ -211,7 +213,7 @@ static void drawClock5(tContext *pContext)
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
 
-  sprintf(buf, "%02d:%02d", hour, minute);  
+  sprintf(buf, "%02d:%02d", hour, _minute);  
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 65, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16b);
@@ -228,7 +230,7 @@ static void drawClock5(tContext *pContext)
 static void drawClock6(tContext *pContext)
 {
   uint16_t year;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   uint8_t month, day;
   char buf[20];
 
@@ -242,7 +244,7 @@ static void drawClock6(tContext *pContext)
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 50, 0);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
-  sprintf(buf, "%02d", minute);
+  sprintf(buf, "%02d", _minute);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 95, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16b);
@@ -255,7 +257,7 @@ static void drawClock6(tContext *pContext)
 static void drawClock7(tContext *pContext)
 {
   uint16_t year;
-  uint8_t hour = hour0;
+  uint8_t hour = _hour0;
   uint8_t month, day;
   uint8_t ampm = 0;
   char buf[20];
@@ -271,7 +273,7 @@ static void drawClock7(tContext *pContext)
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
 
-  sprintf(buf, "%02d:%02d", hour, minute);
+  sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 70, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16b);
@@ -285,8 +287,7 @@ static void drawClock7(tContext *pContext)
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 35, 0);
 }
 
-
-draw_function ClockSelections[] =
+static const draw_function Clock_selections[] =
 {
   drawClock0,
   drawClock1,
@@ -303,11 +304,11 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   if (ev == EVENT_WINDOW_CREATED)
   {
-    rtc_readtime(&hour0, &minute, NULL);
+    rtc_readtime(&_hour0, &_minute, NULL);
     if (rparam == NULL)
-      selection = window_readconfig()->digit_clock;
+      _selection = window_readconfig()->digit_clock;
     else
-      selection = (uint8_t)rparam - 1;
+      _selection = (uint8_t)rparam - 1;
     rtc_enablechange(MINUTE_CHANGE);
   }
   else if (ev == EVENT_WINDOW_PAINT)
@@ -318,32 +319,32 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     GrRectFill(pContext, &client_clip);
     GrContextForegroundSet(pContext, ClrWhite);
 
-    ClockSelections[selection](pContext);
+    Clock_selections[_selection](pContext);
   }
   else if (ev == EVENT_TIME_CHANGED)
   {
     struct datetime* dt = (struct datetime*)rparam;
-    hour0 = dt->hour;
-    minute = dt->minute;
+    _hour0 = dt->hour;
+    _minute = dt->minute;
     window_invalid(NULL);
   }
   else if (ev == EVENT_KEY_PRESSED)
   {
     if (lparam == KEY_DOWN)
     {
-      selection += 0x1;
-      if (selection > sizeof(ClockSelections)/sizeof(draw_function) - 1)
+      _selection += 0x1;
+      if (_selection > sizeof(Clock_selections)/sizeof(draw_function) - 1)
       {
-        selection = 0x00;
+        _selection = 0x00;
       }
       window_invalid(NULL);
     }
     else if (lparam == KEY_UP)
     {
-      selection -= 0x1;
-      if (selection == 0xff)
+      _selection -= 0x1;
+      if (_selection == 0xff)
       {
-        selection = sizeof(ClockSelections)/sizeof(draw_function) - 1;
+        _selection = sizeof(Clock_selections)/sizeof(draw_function) - 1;
       }
       window_invalid(NULL);
     }
@@ -353,9 +354,9 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     rtc_enablechange(0);
 
     window_readconfig()->default_clock = 1;
-    if (selection != window_readconfig()->digit_clock)
+    if (_selection != window_readconfig()->digit_clock)
     {
-      window_readconfig()->digit_clock = selection;
+      window_readconfig()->digit_clock = _selection;
       window_writeconfig();
     }
   }

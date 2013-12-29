@@ -9,6 +9,7 @@
 #include "cfs/cfs.h"
 #include "btstack/src/hfp.h"
 #include "system.h"
+#include "memory.h"
 
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
@@ -20,6 +21,8 @@ static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
 extern const unsigned char logoPixel[];
+
+union _data d;
 
 static ui_config ui_config_data =
 {
