@@ -2858,7 +2858,7 @@ void GrStringDrawWrap(const tContext* pContext, const char* pcString, long start
     GrStringDraw(pContext, pcString + start, end - start, startx, starty, 0);
      if (ulChar == '\0')
        return;
-     start = end + 1;
+     start = end;
      starty += margin;
 
      if (starty > pContext->sClipRegion.sYMax)

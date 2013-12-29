@@ -91,7 +91,7 @@ void test_cfs()
   }
 
 }
-
+void handle_message(uint8_t msg_type, char* ident, char* message);
 
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -186,7 +186,8 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       	//	hfp_enable_voicerecog();
       	else if (lparam == KEY_UP)
       	{
-      		printf("\nStart Recoding...\n");
+      		handle_message('S', "From: +8615618273349", "Message: Shd/dhdjbdjhdbd#shs#bdhjsbxhxjjxhdhdhhdjjdjd");
+          printf("\nStart Recoding...\n");
       		gesture_init(1); // recording
       		state = RECORDING;
       	}
