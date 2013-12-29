@@ -139,7 +139,6 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
   switch (packet_type) {
   case L2CAP_DATA_PACKET:
     {
-      hexdump(packet, size);
       struct avctp_header *avctph = (struct avctp_header*)packet;
       struct avc_header *avch = (struct avc_header*)(avctph+1);
       uint8_t *buf;
@@ -189,8 +188,13 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       }
 
       if (current_pid == pid)
+      {
         (*packet_handler)(avch->code, buf, size);
-
+      }
+      else
+      {
+        printf("unknow pid %dn", pid);
+      }
       break;
     }
   case HCI_EVENT_PACKET:
@@ -264,6 +268,11 @@ int avctp_send_passthrough(uint8_t op)
 
   need_send_release = 1;
 
+  if (avctp_response_size != 0)
+  {
+    log_error("avctp override unsent data\n");
+  }
+
   avctp_response_size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + 2;
   avctp_response_buffer = avctp_buf;
 
@@ -301,6 +310,11 @@ static int avctp_send(uint8_t transaction, uint8_t cr,
 
   memcpy(pdu, operands, operand_count);
 
+  if (avctp_response_size != 0)
+  {
+    log_error("avctp override unsent data\n");
+  }
+  
   avctp_response_size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + operand_count;
   avctp_response_buffer = avctp_buf;
 

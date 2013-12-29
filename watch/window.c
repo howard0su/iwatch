@@ -152,7 +152,7 @@ void window_handle_event(uint8_t ev, void* data)
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
     }
-    else if (ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS)
+    else if (ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS || ev == EVENT_AV)
     {
       system_ready();
       status_process(ev, (uint16_t)data, NULL);

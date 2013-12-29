@@ -26,6 +26,7 @@ PROCESS_NAME(system_process);
 #define EVENT_BT_CLIP                 0x94
 #define EVENT_BT_CIEV                 0x95
 #define EVENT_BT_BVRA                 0x96
+#define EVENT_AV                      0x97
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xc0
