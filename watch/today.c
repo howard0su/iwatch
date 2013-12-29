@@ -57,7 +57,7 @@ static void onDraw(tContext *pContext)
     int steps = ped_get_steps();
 
     window_progress(pContext, 28 + 4 * LINEMARGIN, steps * 100 / goal);
-    sprintf(buf, "%d%% of goal of %d", steps * 100 / goal, goal);
+    sprintf(buf, "%d%% of goal of %d", steps < goal ? steps * 100 / goal:100, goal);
     GrContextForegroundSet(pContext, ClrWhite);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 144, 0);
   }
