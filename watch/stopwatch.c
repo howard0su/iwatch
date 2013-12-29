@@ -5,19 +5,23 @@
 #include "rtc.h"
 #include <stdio.h>
 
-static uint8_t times[3]; // minute, second, 10ms
-static uint8_t counter;
+#define MAX_STOP 15 // memory.h has hardcoded 15
+#include "memory.h"
+    
+#define  state d.stop.state
+#define  times d.stop.times
+#define  counter d.stop.counter
+#define  currentStop d.stop.currentStop
+#define  topView  d.stop.topView
+#define  saved_times d.stop.saved_times
+#define delta_times d.stop.delta_times 
+
 static enum
 {
   STATE_RUNNING = 0,
   STATE_STOP,
   STATE_INIT
-}state;
-#define MAX_STOP 15
-static uint8_t currentStop;
-static uint8_t topView;
-static uint8_t saved_times[MAX_STOP][3]; // saved time
-static uint8_t delta_times[MAX_STOP - 1][3]; // delta
+};
 
 #define NUMBASE 78
 

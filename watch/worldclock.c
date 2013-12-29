@@ -3,8 +3,9 @@
 #include "window.h"
 #include "rtc.h"
 #include <stdio.h>
+#include "memory.h"
 
-static uint8_t index;
+#define index d.world.index
 
 static void drawItem(tContext *pContext,
                      uint8_t y,

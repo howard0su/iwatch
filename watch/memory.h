@@ -31,6 +31,38 @@ extern union _data
   {
     uint8_t state;
   }today;
+
+  struct
+  {
+    const char *title;
+    char titlebuf[120];
+    const char *artist;
+    char artistbuf[120];
+    uint16_t length;
+    uint16_t position;
+  }music;
+
+  struct
+  {
+    uint8_t state;
+    uint16_t memory[800];
+  }host;
+
+  struct
+  {
+    uint8_t index;
+  }world;
+
+  struct
+  {
+    uint8_t state;
+    uint8_t times[3]; // minute, second, 10ms
+    uint8_t counter;
+    uint8_t currentStop;
+    uint8_t topView;
+    uint8_t saved_times[15][3]; // saved time
+    uint8_t delta_times[15][3]; // delta
+  }stop;
 }d;
 
 #endif

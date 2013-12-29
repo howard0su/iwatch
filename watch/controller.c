@@ -32,12 +32,13 @@ static uint8_t state;
 
 #define PROGRESS_Y 80
 
-static const char *title;
-static char titlebuf[60];
-static const char *artist;
-static char artistbuf[30];
-static uint16_t length;
-static uint16_t position;
+#define title d.music.title
+
+#define titlebuf d.music.titlebuf
+#define artist d.music.artist
+#define artistbuf d.music.artistbuf
+#define length d.music.length
+#define position d.music.position
 
 static void OnDraw(tContext *pContext)
 {
