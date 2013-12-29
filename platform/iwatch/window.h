@@ -138,6 +138,7 @@ typedef struct {
   //#define GESTURE_FLAG_LEFT   0x02
   uint8_t gesture_flag;
   uint8_t gesture_map[4];
+  uint8_t is_ukuint;
 
   uint16_t lap_length;
 
@@ -180,8 +181,10 @@ enum SPORTS_DATA_TYPE
     SPORTS_PED_SPEED,
     SPORTS_PED_DISTANCE,
     SPORTS_PED_CALORIES,
-    SPORTS_PED_LAST_STEPS,
+    SPORTS_PED_STEPS_START,
     SPORTS_TIME_LAST_PED,
+
+    SPORTS_CALS,
 
     SPORTS_DATA_MAX
 };

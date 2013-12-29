@@ -23,25 +23,25 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
     rtc_settime(hour, minute, second);
 
     //for test
-    struct cfs_dir dir;
-    int ret = cfs_opendir(&dir, "");
-    if (ret == -1)
-    {
-        printf("cfs_opendir() failed: %d\n", ret);
-        return;
-    }
+    //struct cfs_dir dir;
+    //int ret = cfs_opendir(&dir, "");
+    //if (ret == -1)
+    //{
+    //    printf("cfs_opendir() failed: %d\n", ret);
+    //    return;
+    //}
 
-    while (ret != -1)
-    {
-        struct cfs_dirent dirent;
-        ret = cfs_readdir(&dir, &dirent);
-        if (ret != -1)
-        {
-            printf("file:%s, %d\n", dirent.name, dirent.size);
-        }
-    }
+    //while (ret != -1)
+    //{
+    //    struct cfs_dirent dirent;
+    //    ret = cfs_readdir(&dir, &dirent);
+    //    if (ret != -1)
+    //    {
+    //        printf("file:%s, %d\n", dirent.name, dirent.size);
+    //    }
+    //}
 
-    cfs_closedir(&dir);
+    //cfs_closedir(&dir);
 }
 
 #define ICON_FACEBOOK 's'
@@ -341,14 +341,18 @@ void handle_set_watch_config(ui_config* config)
     //TODO: help check this
 
     //adjust values: big endian to little endian
-    //config->goal_steps    = htons(config->goal_steps);
-    //config->goal_distance = htons(config->goal_distance);
-    //config->goal_calories = htons(config->goal_calories);
+    config->goal_steps    = htons(config->goal_steps);
+    config->goal_distance = htons(config->goal_distance);
+    config->goal_calories = htons(config->goal_calories);
+    config->lap_length    = htons(config->lap_length);
+
+    if (config->weight < 20) config->weight = 20;
+    if (config->height < 60) config->height = 60;
 
     printf("set_watch_config:\n");
     printf("  signature     = %d\n", config->signature);
     printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
-    printf("  analog_clock  = %d\n", config->analog_clock);  // num : which clock face
+    printf("  analog_clock  = %d\n", config->analog_clock);  // num : which lock face
     printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
     printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
     printf("  sports_grids  = %d, %d, %d, %d, %d\n",
@@ -362,6 +366,8 @@ void handle_set_watch_config(ui_config* config)
     printf("  goal_calories = %d\n", config->goal_calories);
     printf("  weight        = %d\n", config->weight); // in kg
     printf("  height        = %d\n", config->height); // in cm
+    printf("  is_ukuint     = %d\n", config->is_ukuint);
+    printf("  lap_len       = %d\n", config->lap_length);
     printf("  circumference = %d\n", config->circumference);
 
 

@@ -47,16 +47,16 @@ void motor_stop(void *ptr)
 
 void motor_on(uint8_t level, clock_time_t length)
 {
-  if (level > 16) level = 16;
-  if (level == 0)
-  {
-    motor_stop(NULL);
-  }
-  else
-  {
-    MOTORCONTROL = OUTMOD_7;
-    MOTORLEVEL = level;
-    if (length > 0)
-      ctimer_set(&motor_timer, length, motor_stop, NULL);
-  }
+//  if (level > 16) level = 16;
+//  if (level == 0)
+//  {
+//    motor_stop(NULL);
+//  }
+//  else
+//  {
+//    MOTORCONTROL = OUTMOD_7;
+//    MOTORLEVEL = level;
+//    if (length > 0)
+//      ctimer_set(&motor_timer, length, motor_stop, NULL);
+//  }
 }
