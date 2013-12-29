@@ -47,7 +47,7 @@ static void onDraw(tContext *pContext)
   // draw the line
   GrLineDrawH(pContext, 5, 126, 40);
   //draw message
-  GrStringDrawWrap(pContext, message, 8, 43, LCD_X_SIZE - 16,  16);
+  GrStringDrawWrap(pContext, message, 8, 43, LCD_X_SIZE - 26,  16);
 
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 
@@ -74,7 +74,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
   {
-    break;
+    return 0x80;
   }
   case EVENT_WINDOW_PAINT:
     {

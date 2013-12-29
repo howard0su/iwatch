@@ -144,14 +144,26 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
         uint8_t  month, day;
         uint16_t year;
         rtc_readdate(&year, &month, &day, NULL);
-        sprintf(buf, "%s %d %02d", month_shortname[month], day, year - 2000);
+        sprintf(buf, "%s %d, %04d", month_shortname[month - 1], day, year);
         break;
       }
       case DATA_TIME:
       {
         uint8_t hour, minute;
+        char buf0[2];
+        uint8_t ampm = 0;
         rtc_readtime(&hour, &minute, NULL);
-        sprintf(buf, "%02d:%02d", hour, minute);
+          // draw time
+        if (hour > 12)
+        {
+          ampm = 1; // pm
+          hour -= 12;
+        }  
+        if (ampm) buf0[0] = 'P';
+          else buf0[0] = 'A';
+        buf0[1] = 'M';
+
+        sprintf(buf, "%02d:%02d %c%c", hour, minute, buf0[0], buf0[1]);
         break;
       }
       case DATA_BT:
@@ -216,11 +228,11 @@ static void OnDraw(tContext *pContext)
   if (NUM_MENU_A_PAGE < menuLength)
   {
     // draw progress bar
-    #define STEPS 115
+    #define STEPS 120
     int length = NUM_MENU_A_PAGE * STEPS / menuLength;
     int start = currentTop * STEPS / menuLength;
 
-    tRectangle rect = {136, 30, 143, 30 + STEPS + 10};
+    tRectangle rect = {136, 20, 143, 20 + STEPS + 10};
     GrContextForegroundSet(pContext, ClrWhite);
     GrRectFillRound(pContext, &rect, 3);
     GrContextForegroundSet(pContext, ClrBlack);

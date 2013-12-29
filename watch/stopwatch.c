@@ -76,7 +76,7 @@ static void OnDraw(tContext* pContext)
     break;
     case STATE_RUNNING:
     window_button(pContext, KEY_ENTER, "STOP");
-    window_button(pContext, KEY_EXIT,  "STOPALL");
+    window_button(pContext, KEY_EXIT,  "STOP ALL");
     break;
     case STATE_STOP:
     window_button(pContext, KEY_UP, "UP");
@@ -98,6 +98,7 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
     case EVENT_WINDOW_CREATED:
     state = STATE_INIT;
     topView = currentStop = 0;
+    times[0] = times[1] = times[2] = 0;
     break;
     case EVENT_WINDOW_PAINT:
     OnDraw((tContext*)rparam);
@@ -105,7 +106,7 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
     case EVENT_TIME_CHANGED:
     {
       // 32Hz interrupt
-      tRectangle rect = {0, 30, LCD_Y_SIZE, 64};
+      tRectangle rect = {0, 30, LCD_Y_SIZE, 70};
       counter+=2;
       if (counter >= 32)
       {

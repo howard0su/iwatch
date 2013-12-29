@@ -17,7 +17,7 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   
   GrContextFontSet(pContext, &g_sFontBaby16);
-  GrStringDraw(pContext, "Voice Commander", -1, 32, 90, 0);
+  GrStringDrawCentered(pContext, "Voice Commander", -1, 58, 90, 0);
   window_button(pContext, KEY_EXIT, "Finish");
 }
 

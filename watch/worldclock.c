@@ -84,9 +84,10 @@ static void onDraw(tContext *pContext)
     GrContextForegroundSet(pContext, ClrWhite);
     for(int i = 0; i < 6; i++)
     {
-      GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
-
-      GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
+      if (index)
+        GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+      else
+        GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
     }
   }
 }

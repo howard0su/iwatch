@@ -56,7 +56,7 @@ static void drawClock0(tContext *pContext)
   GrStringDraw(pContext, buf, 2, 100, 65, 0);
 
   GrContextFontSet(pContext, &g_sFontNova13);
-  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 135, 0);
 }
 
@@ -185,7 +185,7 @@ static void drawClock4(tContext *pContext)
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 65, 0);
 
   GrContextFontSet(pContext, &g_sFontNova16);
-  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   tRectangle rect = {8, 100, LCD_X_SIZE-8, 120};
   GrRectFillRound(pContext, &rect, 6);
   GrContextForegroundSet(pContext, ClrBlack);
@@ -247,7 +247,7 @@ static void drawClock6(tContext *pContext)
 
   GrContextFontSet(pContext, &g_sFontNova16b);
   GrContextForegroundSet(pContext, ClrWhite);
-  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 135, 0);
 }
 
@@ -281,7 +281,7 @@ static void drawClock7(tContext *pContext)
   GrStringDraw(pContext, buf, 2, 105, 85, 0);
 
   GrContextFontSet(pContext, &g_sFontNova13);
-  sprintf(buf, "%s %d, %d", month_name[month], day, year);
+  sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 35, 0);
 }
 
