@@ -228,7 +228,7 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
       {
         avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
-      window_postmessage(EVENT_AV, EVENT_AV_DISCONNECTED, 0);
+      window_postmessage(EVENT_AV, EVENT_AV_CONNECTED, 0);
       break;
     }
 
