@@ -254,7 +254,10 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
     }
     else
     {
-      ptr = obex_create_request(&mns_obex, 0xD0, buf);
+      if (code & OBEX_CBFLAG_FINAL)
+        ptr = obex_create_request(&mns_obex, 0xD0, buf);
+      else      
+        ptr = obex_create_request(&mns_obex, 0x90, buf);
       obex_send(&mns_obex, buf, ptr - buf);   
     }
     break;

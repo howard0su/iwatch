@@ -56,8 +56,8 @@ const static char type_notify[] = "x-bt/MAP-NotificationRegistration";
 
 const static uint8_t appparams_getmessage[] = 
 {
-  0x0a, 0x01, 0x01, // Attachment
-  0x14, 0x01, 0x01, //Charset
+  0x0a, 0x01, 0x00, // Attachment
+  0x14, 0x01, 0x00, //Charset
   0x15, 0x01, 0x00,//FractionRequest
 };
 
@@ -76,10 +76,17 @@ static void mas_send(void *data, uint16_t length)
 void mas_getmessage(char* id)
 {
   printf("get message for %s\n", id);
+  uint16_t unicodestr[64];
+  int i;
+  for(i = 0; id[i] != '\0' && i < sizeof(unicodestr) / 2; i++)
+  {
+    unicodestr[i] = __swap_bytes((uint16_t)id[i]);
+  }
+
   uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_GET + OBEX_OP_FINAL, mas_buf);
   
   ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, mas_obex.state->connection);
-  ptr = obex_header_add_text(ptr, OBEX_HEADER_NAME, id);
+  ptr = obex_header_add_text(ptr, OBEX_HEADER_NAME, unicodestr, i);
   ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_getmessage, sizeof(type_getmessage));
   ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_getmessage, sizeof(appparams_getmessage));
     
