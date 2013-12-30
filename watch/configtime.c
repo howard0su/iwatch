@@ -3,19 +3,19 @@
 #include "math.h"
 #include "grlib/grlib.h"
 #include "rtc.h"
+#include "memory.h"
 
-static uint8_t times[3];
-//       times[0], times[1], times[2];
-//reuse times[0], times[1],  times[2];
+#define SECOND  d.config.t[2]
+#define MINUTE  d.config.t[1]
+#define HOUR    d.config.t[0]
 
-#define SECOND times[2]
-#define MINUTE times[1]
-#define HOUR   times[0]
+#define DAY     d.config.t[2]
+#define MONTH   d.config.t[1]
+#define YEAR    d.config.t[0]
 
-#define DAY times[2]
-#define MONTH times[1]
-#define YEAR   times[0]
+#define times   d.config.t
 
+#define state   d.config.state
 
 
 static enum _state{
@@ -24,7 +24,7 @@ static enum _state{
   STATE_CONFIG_SECOND, // date
 
   STATE_CONFIG_READY, // the order above is assumed in the logic, don't change
-}state;
+};
 
 
 static void OnDraw(tContext *pContext)

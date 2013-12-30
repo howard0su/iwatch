@@ -5,11 +5,15 @@
 #include <stdio.h>
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "memory.h"
 
 static enum {
   WALK = 0,
   SPORT = 1
-}state = WALK;
+};
+
+#define state d.today.state
+
 
 #define LINEMARGIN 25
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
@@ -57,7 +61,7 @@ static void onDraw(tContext *pContext)
     int steps = ped_get_steps();
 
     window_progress(pContext, 28 + 4 * LINEMARGIN, steps * 100 / goal);
-    sprintf(buf, "%d%% of goal of %d", steps * 100 / goal, goal);
+    sprintf(buf, "%d%% of goal of %d", steps < goal ? steps * 100 / goal:100, goal);
     GrContextForegroundSet(pContext, ClrWhite);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 144, 0);
   }
@@ -91,6 +95,8 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
+    state = WALK;
+    // fallthrough
   case PROCESS_EVENT_TIMER:
     window_timer(CLOCK_SECOND * 5);
     window_invalid(NULL);

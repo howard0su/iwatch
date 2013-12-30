@@ -3,8 +3,9 @@
 #include "window.h"
 #include "rtc.h"
 #include <stdio.h>
+#include "memory.h"
 
-static uint8_t index;
+#define index d.world.index
 
 static void drawItem(tContext *pContext,
                      uint8_t y,
@@ -84,9 +85,10 @@ static void onDraw(tContext *pContext)
     GrContextForegroundSet(pContext, ClrWhite);
     for(int i = 0; i < 6; i++)
     {
-      GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
-
-      GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
+      if (index)
+        GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+      else
+        GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
     }
   }
 }

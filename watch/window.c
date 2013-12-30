@@ -9,6 +9,7 @@
 #include "cfs/cfs.h"
 #include "btstack/src/hfp.h"
 #include "system.h"
+#include "memory.h"
 
 PROCESS(system_process, "System process");
 AUTOSTART_PROCESSES(&system_process);
@@ -20,6 +21,8 @@ static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
 extern const unsigned char logoPixel[];
+
+union _data d;
 
 static ui_config ui_config_data =
 {
@@ -153,7 +156,7 @@ void window_handle_event(uint8_t ev, void* data)
       // event converter to pass data as rparameter
       ui_window(ev, 0, data);
     }
-    else if (ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS)
+    else if (ev == EVENT_BT_STATUS || ev == EVENT_ANT_STATUS || ev == EVENT_AV)
     {
       system_ready();
       status_process(ev, (uint16_t)data, NULL);
@@ -300,7 +303,14 @@ void window_invalid(const tRectangle *rect)
   }
   else
   {
-    current_clip = client_clip;
+    if (window_isstatusoff())
+    {
+      current_clip = fullscreen_clip;
+    }
+    else
+    {
+      current_clip = client_clip; 
+    }
   }
 
   ui_window_flag |= WINDOW_FLAGS_REFRESH;

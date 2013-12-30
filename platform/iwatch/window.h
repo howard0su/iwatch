@@ -26,6 +26,7 @@ PROCESS_NAME(system_process);
 #define EVENT_BT_CLIP                 0x94
 #define EVENT_BT_CIEV                 0x95
 #define EVENT_BT_BVRA                 0x96
+#define EVENT_AV                      0x97
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xc0
@@ -76,7 +77,7 @@ extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_
 #define NOTIFY_RESULT_ACCEPT 1
 #define NOTIFY_RESULT_REJECT 2
 
-//extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
+extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
 

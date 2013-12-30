@@ -33,8 +33,8 @@ void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday)
 {
   if (year) *year = 2013;
-  if (month) *month = 1;
-  if (day) *day = 29;
+  if (month) *month = 12;
+  if (day) *day = 12;
   if (weekday) *weekday = 3;
 }
 
@@ -199,7 +199,7 @@ void bluetooth_enableConTxMode(int mode, int freq)
 
 uint16_t ped_get_steps()
 {
-  return 100;
+  return 60000;
 }
 
 uint16_t ped_get_calorie() {return 10;}

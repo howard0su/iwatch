@@ -5,19 +5,23 @@
 #include "rtc.h"
 #include <stdio.h>
 
-static uint8_t times[3]; // minute, second, 10ms
-static uint8_t counter;
+#define MAX_STOP 15 // memory.h has hardcoded 15
+#include "memory.h"
+    
+#define  state d.stop.state
+#define  times d.stop.times
+#define  counter d.stop.counter
+#define  currentStop d.stop.currentStop
+#define  topView  d.stop.topView
+#define  saved_times d.stop.saved_times
+#define delta_times d.stop.delta_times 
+
 static enum
 {
   STATE_RUNNING = 0,
   STATE_STOP,
   STATE_INIT
-}state;
-#define MAX_STOP 15
-static uint8_t currentStop;
-static uint8_t topView;
-static uint8_t saved_times[MAX_STOP][3]; // saved time
-static uint8_t delta_times[MAX_STOP - 1][3]; // delta
+};
 
 #define NUMBASE 78
 
@@ -76,7 +80,7 @@ static void OnDraw(tContext* pContext)
     break;
     case STATE_RUNNING:
     window_button(pContext, KEY_ENTER, "STOP");
-    window_button(pContext, KEY_EXIT,  "STOPALL");
+    window_button(pContext, KEY_EXIT,  "STOP ALL");
     break;
     case STATE_STOP:
     window_button(pContext, KEY_UP, "UP");
@@ -98,6 +102,7 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
     case EVENT_WINDOW_CREATED:
     state = STATE_INIT;
     topView = currentStop = 0;
+    times[0] = times[1] = times[2] = 0;
     break;
     case EVENT_WINDOW_PAINT:
     OnDraw((tContext*)rparam);
@@ -105,7 +110,7 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
     case EVENT_TIME_CHANGED:
     {
       // 32Hz interrupt
-      tRectangle rect = {0, 30, LCD_Y_SIZE, 64};
+      tRectangle rect = {0, 30, LCD_Y_SIZE, 70};
       counter+=2;
       if (counter >= 32)
       {

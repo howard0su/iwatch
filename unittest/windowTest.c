@@ -146,6 +146,10 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
    {-1}
 };
 
@@ -532,22 +536,25 @@ void TestTriagle(CuTest* tc)
 
 void handle_message(uint8_t msg_type, char* ident, char* message);
 const uint8_t chinesedata[] = {
+  'o', 'k', 'a', 'y', '.',
+0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
+0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA,
 0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
 0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA
 };
 void TestNotification(CuTest *tc)
 {
-  handle_message('S', "From: +8615618273349", "Message: Shd/dhdjbdjhdbd#shs#bdhjsbxhxjjxhdhdhhdjjdjd");
+  handle_message('S', "+8615618273349", "123456780abcdefghijklmnopqrstuvwxyz");
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();
 
-  window_notify("Facebook", "From: Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
+  window_notify("Facebook", "Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();
 
-  window_notify("Facebook", "From: Tom Paker\nOurscheduleiscrazynextafewdaysunfortunately.", NOTIFY_OK, 'a');
+  window_notify("Facebook", "Tom Paker\nOurscheduleiscrazynextafewdaysunfortunately.", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();

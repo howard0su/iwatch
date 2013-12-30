@@ -18,6 +18,7 @@
 #include "avctp.h"
 #include "avrcp.h"
 #include "hfp.h"
+#include "memory.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -32,12 +33,13 @@ static uint8_t state;
 
 #define PROGRESS_Y 80
 
-static char title[32];
-static uint8_t titleLength;
-static char artist[32];
-static uint8_t artistLength;
-static uint16_t length;
-static uint16_t position;
+#define title d.music.title
+
+#define titlebuf d.music.titlebuf
+#define artist d.music.artist
+#define artistbuf d.music.artistbuf
+#define length d.music.length
+#define position d.music.position
 
 static void OnDraw(tContext *pContext)
 {
@@ -46,23 +48,23 @@ static void OnDraw(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  GrContextFontSet(pContext, &g_sFontNova38b);
+  GrContextFontSet(pContext, &g_sFontNova28b);
   // draw length
-  if (position != 0)
+  //if (position != 0)
   {
     uint8_t times[3];
     uint16_t left = position;
-    times[0] = left % 60;
+    times[2] = left % 60;
     left /= 60;
     times[1] = left % 60;
-    times[2] = left / 60;
+    times[0] = left / 60;
 
     //GrContextForegroundSet(pContext, ClrWhite);
     //tRectangle rect = {12, 24, 132, 60};
     //GrRectFillRound(pContext, &rect, 3);
 
     GrContextForegroundSet(pContext, ClrWhite);
-    window_drawtime(pContext, 24, times, 0);
+    window_drawtime(pContext, 44, times, 0);
 #if 0
 
     // draw balls
@@ -87,11 +89,13 @@ static void OnDraw(tContext *pContext)
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrStringDraw(pContext, title, titleLength, 12, 118, 0);
-  GrStringDraw(pContext, artist, artistLength, 12, 135, 0);
+  if (title)
+    GrStringDraw(pContext, title, -1, 12, 108, 0);
+  if (artist)
+    GrStringDraw(pContext, artist, -1, 12, 125, 0);
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);   
 
-#if 0
+#if 1
   switch(state)
   {
   case AVRCP_PLAY_STATUS_ERROR:
@@ -118,98 +122,45 @@ static void OnDraw(tContext *pContext)
 #endif
 }
 
-
-uint8_t initing;
-
-static uint8_t bt_handler(uint8_t ev, uint16_t lparam, void* rparam)
+void handle_av_events(uint16_t lparam, void* rparam)
 {
-  switch(ev)
-  {
-  case AVRCP_EVENT_CONNECTED:
+    switch(lparam)
     {
-      if (initing)
-      {
-        strcpy(title, "Connected");
-        avrcp_get_playstatus();
-      }
+    case EVENT_AV_CONNECTED:
+      title = "Connected";
       break;
-    }
-  case AVRCP_EVENT_DISCONNECTED:
-    break;
-  case AVRCP_EVENT_TRACK_CHANGED:
-    {
-      if (initing)
-      {
-        avrcp_enable_notification(AVRCP_EVENT_PLAYBACK_POS_CHANGED);
-        initing = 0;
-      }
-      position = 0;
-      avrcp_get_attributes(0);
-      break;
-    }
-  case AVRCP_EVENT_ATTRIBUTE:
-    {
-      switch(lparam)
-      {
-      case AVRCP_MEDIA_ATTRIBUTE_TITLE:
-        {
-          EventAttribute *data = (EventAttribute*)rparam;
-          hexdump(data->data, data->len);
-          if (data->len > sizeof(title))
-            data->len = sizeof(title);
-          memcpy(title, data->data, data->len);
-          titleLength = data->len;
+    case EVENT_AV_DISCONNECTED:
           break;
-        }
-      case AVRCP_MEDIA_ATTRIBUTE_DURATION:
-        {
-          break;
-        }
-      case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
-        {
-          EventAttribute *data = (EventAttribute*)rparam;
-          hexdump(data->data, data->len);
-          if (data->len > sizeof(artist))
-            data->len = sizeof(artist);
-          memcpy(artist, data->data, data->len);
-          artistLength = data->len;
-          avrcp_get_playstatus();
-          break;
-        }
-      }
-      break;
+    case EVENT_AV_STATUS:
+        state = (int)rparam;
+        printf("state changed to %d\n", state);
+        if (state == AVRCP_PLAY_STATUS_PLAYING)
+          window_timer(CLOCK_SECOND);
+        else
+          window_timer(0);
+        break;
+    case EVENT_AV_TITLE:
+        strncpy(titlebuf, rparam, sizeof(titlebuf));
+        title = titlebuf;
+        break;
+    case EVENT_AV_ARTIST:
+        strncpy(artistbuf, rparam, sizeof(artistbuf));
+        artist = artistbuf;
+        break;
+    case EVENT_AV_LENGTH:
+        length = (uint16_t)((uint32_t)rparam/1000);
+        printf("length set to %d\n", length);
+        break;
+    case EVENT_AV_POS:
+        position = (uint16_t)((uint32_t)rparam/1000);
+        printf("position set to %d\n", position);
+        break;
+    case EVENT_AV_TRACK:
+        position = 0;
+        avrcp_get_attributes(0);
+        break;
     }
-  case AVRCP_EVENT_STATUS_CHANGED:
-    {
-      if (initing)
-      {
-        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
-      }
-
-      state = lparam;
-      break;
-    }
-  case AVRCP_EVENT_LENGTH:
-    {
-      if (initing)
-      {
-        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
-      }
-      length = (uint16_t)rparam;
-      break;
-    }
-  case AVRCP_EVENT_STATUS:
-    {
-      state = lparam;
-      position = (uint16_t)rparam;
-      break;
-    }
-  }
-
-  printf("state = %d\n", (uint16_t)state);
-  window_invalid(NULL);
-
-  return 1;
+    window_invalid(NULL);
 }
 
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -217,42 +168,46 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev){
   case EVENT_WINDOW_CREATED:
     {
-      avrcp_register_handler(bt_handler);
+      position = 0;
       state = AVRCP_PLAY_STATUS_ERROR;
-      initing = 1;
-      strcpy(title, "Connecting");
-      if (!avctp_connected())
+      artist = "";
+      if (!avrcp_connected())
       {
         if (hfp_connected())
         {
-          avctp_connect(*hfp_remote_addr());
+          avrcp_connect(*hfp_remote_addr());
+          title = "Connecting";
         }
         else
         {
-          window_notify("ERROR", "No Bluetooth Device Paired", NOTIFY_OK, 0);
+          window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
           return 1;
         }
       }
       else
       {
-        //avrcp_get_playstatus();
-        strcpy(title, "Connected");
-        avrcp_get_playstatus();
+        title = "Connected";
       }
-      window_timer(CLOCK_SECOND);
+      window_invalid(NULL);
       break;
     }
   case PROCESS_EVENT_TIMER:
     {
-      tRectangle rect = {12, 24, 144, 88};
-      if (position < length && state == 1)
+      //const tRectangle rect = {12, 24, 144, 88};
+      printf("state == %d, pos:%d len:%d\n", state, position, length);
+      if (position < length && state == AVRCP_PLAY_STATUS_PLAYING)
+      {
         position++;
-
-      window_invalid(&rect);
+        window_timer(CLOCK_SECOND);
+        window_invalid(NULL);
+      }
       break;
     }
   case EVENT_NOTIFY_RESULT:
     window_close();
+    break;
+  case EVENT_AV:
+    handle_av_events(lparam, rparam);
     break;
   case EVENT_WINDOW_PAINT:
     {
@@ -284,8 +239,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_CLOSING:
     {
-      avrcp_register_handler(NULL);
-      avctp_disconnect();
+      avrcp_disconnect();
       window_timer(0);
       break;
     }

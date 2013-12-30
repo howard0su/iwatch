@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static uint8_t data;
+static int8_t data;
 static uint8_t onoff;
 static const uint8_t str[] = {
 	45, 78, 135, 101, 75, 109, 213, 139, 198, 48, 185, 48, 200, 48, 0, 0
@@ -402,7 +402,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 				data++;
 			}
 
-			if (lparam == KEY_DOWN && data > 0)
+			if (lparam == KEY_DOWN && data >= -1)
 			{
 				data--;
 			}
@@ -418,7 +418,14 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 
 				default:
 				memcpy(buf, HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd, sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd));
-				buf[4] = data;
+				if (data == -1)
+				{
+					buf[3] = 0x00; //hoping mode
+				}
+				else
+				{
+					buf[4] = data;
+				}
 				if (onoff != 0x09)
 					buf[6] = onoff - 1;
 				else
@@ -515,12 +522,18 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 			}
 			GrStringDraw(pContext, text, -1, 32, 50, 0);
 
- 		  char buf[32];
-		  sprintf(buf, "Freqency: %dMhz", data < 40 ? 
-		  									2402 + data * 2:
-		  									2403 + (data - 40) * 2);
- 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
-
+ 		  if (data >= 0)
+ 		  {
+	 		  char buf[32];
+			  sprintf(buf, "Freqency: %dMhz", data < 40 ? 
+			  									2402 + data * 2:
+			  									2403 + (data - 40) * 2);
+	 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
+			}
+			else
+			{
+	 		  GrStringDraw(pContext, "Hoping mode", -1, 5, 70, 0);
+			}
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
 	  	window_button(pContext, KEY_ENTER, "Switch");

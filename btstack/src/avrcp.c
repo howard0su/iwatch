@@ -11,6 +11,8 @@
 #include "btstack/sdp_util.h"
 #include "btstack/utils.h"
 
+#include "window.h"
+
 #define htons(x) __swap_bytes(x)
 
 /* Company IDs for vendor dependent commands */
@@ -75,9 +77,6 @@ static const uint8_t   avrcp_service_buffer[87] =
   0x05,0x41,0x56,0x52,0x43,0x50,0x09,0x03,0x11,0x09,0x00,0x01
 };
 
-// callback to UI system
-static windowproc callback_handler;
-
 #pragma pack(1)
 struct avrcp_header {
   uint8_t company_id[3];
@@ -90,6 +89,12 @@ struct avrcp_header {
 #define AVRCP_HEADER_LENGTH 7
 #pragma pack()
 
+static enum
+{
+  INIT,
+  RUNNING,
+}state;
+
 int avrcp_get_attributes(uint32_t id);
 
 static void handle_notification(uint8_t code, struct avrcp_header *pdu )
@@ -97,11 +102,28 @@ static void handle_notification(uint8_t code, struct avrcp_header *pdu )
   switch(code)
   {
   case AVC_CTYPE_INTERIM:
+    {
+      // initialize, register some events
+      if (state == INIT)
+      {
+        if (pdu->params[0] == AVRCP_EVENT_TRACK_CHANGED)
+        {
+          avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+        }
+        else
+        {
+          avrcp_get_playstatus();
+        }
+      }
+    }
     break;
   case AVC_CTYPE_CHANGED:
+    // reneable
+    log_info("reenable event notification\n");
     avrcp_enable_notification(pdu->params[0]);
-    return;
+    break;
   default:
+    log_error("fail to register event: %d\n", pdu->params[0]);
     return;
   }
 
@@ -109,23 +131,18 @@ static void handle_notification(uint8_t code, struct avrcp_header *pdu )
   {
   case AVRCP_EVENT_STATUS_CHANGED:
     log_info("current status is %d\n", pdu->params[1]);
-    if (callback_handler)
-    {
-      callback_handler(AVRCP_EVENT_STATUS_CHANGED, pdu->params[1], NULL);
-    }
+    window_postmessage(EVENT_AV, EVENT_AV_STATUS, (void*)pdu->params[1]);
     break;
   case AVRCP_EVENT_TRACK_CHANGED:
-    if (callback_handler)
     {
-      callback_handler(AVRCP_EVENT_TRACK_CHANGED, 0, NULL);
+      uint32_t id[2];
+      //TODO : read id
+      window_postmessage(EVENT_AV, EVENT_AV_TRACK, (void*)id);
+      break;
     }
-    break;
   case AVRCP_EVENT_PLAYBACK_POS_CHANGED:
     {
-      if (callback_handler)
-      {
-        callback_handler(AVRCP_EVENT_PLAYBACK_POS_CHANGED, 0, (void*)READ_NET_32(pdu->params, 1));
-      }
+      window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)READ_NET_32(pdu->params, 1));
       break;
     }
   }
@@ -146,15 +163,24 @@ static void handle_attributes(struct avrcp_header *pdu)
     if (len > 0)
     {
       pdu->params[offset + len] = 0;
-      printf("attribute %ld charset %d len %d : %s\n", attributeid, charsetid,
+      log_info("attribute %ld charset %d len %d : %s\n", attributeid, charsetid,
              len, &pdu->params[offset]);
-      if (callback_handler)
+      const char* data = (const char*)&pdu->params[offset];
+      switch(attributeid)
       {
-        EventAttribute data;
-        data.charset = charsetid;
-        data.data = &pdu->params[offset];
-        data.len = len;
-        callback_handler(AVRCP_EVENT_ATTRIBUTE, attributeid, &data);
+        case AVRCP_MEDIA_ATTRIBUTE_TITLE:
+        window_postmessage(EVENT_AV, EVENT_AV_TITLE, (void*)data);
+        break;
+        case AVRCP_MEDIA_ATTRIBUTE_ARTIST:
+        window_postmessage(EVENT_AV, EVENT_AV_ARTIST, (void*)data);
+        break;
+        case AVRCP_MEDIA_ATTRIBUTE_DURATION:
+        {
+          uint32_t length;
+          if (sscanf(data, "%ld", &length) == 1)
+            window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
+          break;
+        }
       }
       offset += len;
     }
@@ -169,11 +195,16 @@ static void handle_playstatus(struct avrcp_header* pdu)
   uint8_t status = pdu->params[8];
 
   log_info("play status : %ld of %ld, status: %d\n", pos, length, (uint16_t)status);
-  if (callback_handler)
+  
+  if (state == INIT)
   {
-    callback_handler(AVRCP_EVENT_STATUS, (uint16_t)status, (void*)(pos/1000));
-    callback_handler(AVRCP_EVENT_LENGTH, 0, (void*)(length/1000));
+      state = RUNNING;
   }
+
+  window_postmessage(EVENT_AV, EVENT_AV_STATUS, (void*)status);
+  window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
+  window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)pos);
+
   return;
 }
 
@@ -187,30 +218,30 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
     switch(size)
     {
     case 0:
-      if (callback_handler)
-      {
-        callback_handler(AVRCP_EVENT_DISCONNECTED, 0, NULL);
-      }
       // disconect
+      window_postmessage(EVENT_AV, EVENT_AV_DISCONNECTED, 0);
       break;
     case 1:
-      // connected
-      if (callback_handler)
+      if (state == INIT)
       {
-        callback_handler(AVRCP_EVENT_CONNECTED, 0, NULL);
+        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
+      window_postmessage(EVENT_AV, EVENT_AV_DISCONNECTED, 0);
       break;
     }
+
+    return;
   }
 
   log_info("response pdu code=%d, id=%d\n", code, pdu->pdu_id);
+  //hexdump(pdu->params, __swap_bytes(pdu->params_len));
   switch(pdu->pdu_id)
   {
   case AVRCP_REGISTER_NOTIFICATION:
     handle_notification(code, pdu);
     break;
   case AVRCP_GET_CAPABILITIES:
-
+    //handle_capabilities(code, pdu);
     break;
   case AVRCP_GET_ELEMENT_ATTRIBUTES:
     handle_attributes(pdu);
@@ -222,12 +253,6 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
     log_info("unknow pdu\n");
     break;
   }
-}
-
-int avrcp_register_handler(windowproc proc)
-{
-  callback_handler = proc;
-  return 0;
 }
 
 static void sdp_create_avrcp_service(uint8_t *service, const char *name){
@@ -310,7 +335,6 @@ void avrcp_init()
   //de_dump_data_element(service_record_item->service_record);
 #endif
   sdp_register_service_internal(NULL, &avrcp_service_record);
-
   avctp_register_pid(0x110E, handle_pdu);
 }
 
@@ -348,6 +372,7 @@ int avrcp_enable_notification(uint8_t id)
 
 int avrcp_set_volume(uint8_t volume)
 {
+  log_info("avrcp_set_volume: %d\n", volume);
   uint8_t buf[AVRCP_HEADER_LENGTH + 1];
   struct avrcp_header *pdu = (void *) buf;
 
@@ -363,6 +388,7 @@ int avrcp_set_volume(uint8_t volume)
 
 int avrcp_get_capability()
 {
+  log_info("avrcp_get_capability\n");
   uint8_t buf[AVRCP_HEADER_LENGTH + 1];
   struct avrcp_header *pdu = (void *) buf;
 
@@ -378,6 +404,7 @@ int avrcp_get_capability()
 
 int avrcp_get_playstatus()
 {
+  log_info("avrcp_get_playstatus\n");
   uint8_t buf[AVRCP_HEADER_LENGTH];
   struct avrcp_header *pdu = (void *) buf;
 
@@ -393,6 +420,7 @@ int avrcp_get_playstatus()
 
 int avrcp_get_attributes(uint32_t id)
 {
+  log_info("avrcp_get_attributes\n");
   uint8_t buf[AVRCP_HEADER_LENGTH + 8 + 1 + 4 * 3]; // 3 parameter
   struct avrcp_header *pdu = (void *) buf;
 
@@ -407,4 +435,21 @@ int avrcp_get_attributes(uint32_t id)
   pdu->params_len = htons(21);
 
   return avctp_send_vendordep(AVC_CTYPE_STATUS, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
+}
+
+void avrcp_connect(bd_addr_t remote_addr)
+{
+  state = INIT;
+
+  avctp_connect(remote_addr);
+}
+
+void avrcp_disconnect()
+{
+  avctp_disconnect();
+}
+
+uint8_t avrcp_connected()
+{
+ return avctp_connected(); 
 }

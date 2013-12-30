@@ -2817,48 +2817,53 @@ GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
 
 void GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
 {
-     int start, end, end0, w;
+     int start, laststop, iterator, w, count, lastc;
      unsigned long ulChar, ulSkip;
 
     start = 0;
     for(;;)
     {
-      end = 0;
-      end0 = start;
+      laststop = -1;
+      iterator = start;
+      lastc = count = 0;
       do{
  
             //
             // Get the next character to render.
             //
-            ulChar = GrStringNextCharGet(pContext, pcString + end0, -1, &ulSkip);
-            end0 += ulSkip;
+            ulChar = GrStringNextCharGet(pContext, pcString + iterator, -1, &ulSkip);
+            iterator += ulSkip;
 
+            if (!ulChar)
+                break;
             //
             // If we ran out of characters to render, return immediately.
             //
-            if(!ulChar || ulChar == ' ')
+            if(ulChar == ' ')
             {
-                end = end0;
+                laststop = iterator;
+                lastc = count;
             }
      
-            w = GrStringWidthGet(pContext, pcString + start, end0 - start + 1);
+            w = GrStringWidthGet(pContext, pcString + start, iterator - start);
+
         }while(w < width && ulChar != '\0'&& ulChar != '\n');
  
-        if (end == 0) 
+        if (laststop == -1) 
         {
             // no way to put this string, then we just wrappt it
-            end = end0;
+            laststop = iterator;
         }
         else
         {
-            end0 = end;
+            iterator = laststop;
         }
-
+        //printf("start: %d count:%d\n", start, iterator - start);
     // now we need draw
-    GrStringDraw(pContext, pcString + start, end - start, startx, starty, 0);
+        GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
      if (ulChar == '\0')
        return;
-     start = end + 1;
+         start = laststop;
      starty += margin;
 
      if (starty > pContext->sClipRegion.sYMax)

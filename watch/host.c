@@ -1,6 +1,7 @@
 #include "contiki.h"
 #include "pawnscript/amx.h"
 #include "window.h"
+#include "memory.h"
 
 #include <cfs/cfs.h>
 
@@ -19,9 +20,10 @@
 
 static AMX amx;
 static int idxOnCreate, idxOnPaint, idxOnClose, idxOnClock;
-static uint16_t mem[800];
+static enum {RUNNING, ERROR, DONE};
 
-static enum {RUNNING, ERROR, DONE} state;
+#define state d.host.state
+#define mem d.host.memory
 
 static const char * AMXAPI aux_StrError(int errnum)
 {
@@ -62,9 +64,9 @@ static const char * AMXAPI aux_StrError(int errnum)
 }
 
 
-static int init_engine(void* mem)
+static int init_engine(void* _mem)
 {
-  int error = amx_Init(&amx, mem);
+  int error = amx_Init(&amx, _mem);
   if (error != AMX_ERR_NONE)
   {
     PRINTF("Error Init: %s\n", aux_StrError(error));
