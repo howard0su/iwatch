@@ -122,6 +122,8 @@ static void handle_notification(uint8_t code, struct avrcp_header *pdu )
     log_info("reenable event notification\n");
     avrcp_enable_notification(pdu->params[0]);
     break;
+  case AVC_CTYPE_ACCEPTED:
+    break;
   default:
     log_error("fail to register event: %d\n", pdu->params[0]);
     return;
@@ -226,7 +228,7 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
       {
         avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       }
-      window_postmessage(EVENT_AV, EVENT_AV_DISCONNECTED, 0);
+      window_postmessage(EVENT_AV, EVENT_AV_CONNECTED, 0);
       break;
     }
 

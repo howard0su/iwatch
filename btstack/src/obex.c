@@ -178,18 +178,17 @@ void obex_handle(const struct obex* obex, const uint8_t* packet, uint16_t length
   }
 }
 
-/*text should be in utf-8 format*/
-uint8_t* obex_header_add_text(uint8_t *buf, int code, const char* text)
+/*text should be in utf-16 format*/
+uint8_t* obex_header_add_text(uint8_t *buf, int code, const uint16_t* text, int length)
 {
   // assert code
   assert((code & 0xC0) == 0x00);
   buf[0] = code;
-  int length = strlen(text);
-  net_store_16(buf, 1, length + 4 + 3);
-  memcpy(buf + 3, text, length);
-  memset(buf + 3 + length, 0, 4);
+  net_store_16(buf, 1, length * 2 + 2 + 3);
+  memcpy(buf + 3, text, length * 2);
+  memset(buf + 3 + length * 2, 0, 2);
 
-  return buf + 4 + 3 + length;
+  return buf + 2 + 3 + length * 2;
 }
 
 uint8_t* obex_header_add_bytes(uint8_t *buf, int code, const uint8_t *data, int length)
