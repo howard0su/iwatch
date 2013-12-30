@@ -35,9 +35,9 @@ extern union _data
   struct
   {
     const char *title;
-    char titlebuf[120];
+    char titlebuf[80];
     const char *artist;
-    char artistbuf[120];
+    char artistbuf[80];
     uint16_t length;
     uint16_t position;
   }music;
@@ -45,7 +45,7 @@ extern union _data
   struct
   {
     uint8_t state;
-    uint16_t memory[800];
+    uint16_t memory[10];
   }host;
 
   struct

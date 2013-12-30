@@ -18,6 +18,7 @@
 #include "avctp.h"
 #include "avrcp.h"
 #include "hfp.h"
+#include "memory.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -164,7 +165,6 @@ void handle_av_events(uint16_t lparam, void* rparam)
 
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  printf(".");
   switch(ev){
   case EVENT_WINDOW_CREATED:
     {
@@ -180,13 +180,12 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
         }
         else
         {
-          window_notify("ERROR", "No Bluetooth Device Paired", NOTIFY_OK, 0);
+          window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
           return 1;
         }
       }
       else
       {
-        //avrcp_get_playstatus();
         title = "Connected";
       }
       window_invalid(NULL);
