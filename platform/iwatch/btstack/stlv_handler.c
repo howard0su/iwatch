@@ -350,7 +350,7 @@ void handle_set_watch_config(ui_config* new_config)
 
         //adjust values: big endian to little endian
         uint8_t* p = (uint8_t*)new_config;
-        config->signature     = READ_NET_32(p, 4);
+        config->signature     = READ_NET_32(p, 0);
         config->goal_steps    = READ_NET_16(p, 4);
         config->goal_distance = READ_NET_16(p, 6);
         config->goal_calories = READ_NET_16(p, 8);
