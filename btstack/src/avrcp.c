@@ -175,10 +175,12 @@ static void handle_attributes(struct avrcp_header *pdu)
         window_postmessage(EVENT_AV, EVENT_AV_ARTIST, (void*)data);
         break;
         case AVRCP_MEDIA_ATTRIBUTE_DURATION:
-        uint32_t length;
-        if (sscanf(data, "%ld", &length) == 1)
-          window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
-        break;
+        {
+          uint32_t length;
+          if (sscanf(data, "%ld", &length) == 1)
+            window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
+          break;
+        }
       }
       offset += len;
     }
@@ -196,7 +198,7 @@ static void handle_playstatus(struct avrcp_header* pdu)
   
   if (state == INIT)
   {
-      state = RUN;   
+      state = RUNNING;
   }
 
   window_postmessage(EVENT_AV, EVENT_AV_STATUS, (void*)status);
