@@ -20,7 +20,7 @@ uint8_t hfp_getstatus(uint8_t ind)
 
 uint8_t codec_getvolume()
 {
-	return 12;
+	return 7;
 }
 
 void codec_changevolume(int8_t diff)

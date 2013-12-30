@@ -68,6 +68,23 @@ void window_progress(tContext *pContext, long lY, uint8_t step)
   }
 }
 
+void window_volume(tContext *pContext, long lX, long lY, int total, int current)
+{
+  for (int i = 0; i <= total; i++)
+  {
+    tRectangle rect = {lX + i * 10, lY - 3 - i * 3, lX + 7 + i * 10, lY};
+    if (i <= current)
+    {
+      // solid
+      GrRectFill(pContext, &rect);
+    }
+    else
+    {
+      GrRectDraw(pContext, &rect);
+    }
+  }
+}
+
 static const tRectangle button_rect[] = 
 {
  {11, 145, 68, 161},

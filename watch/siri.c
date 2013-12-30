@@ -17,8 +17,13 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   
   GrContextFontSet(pContext, &g_sFontBaby16);
-  GrStringDrawCentered(pContext, "Voice Commander", -1, 58, 90, 0);
+  GrStringDrawCentered(pContext, "Voice Commander", -1, 72, 90, 0);
   window_button(pContext, KEY_EXIT, "Finish");
+
+  // volume
+  window_button(pContext, KEY_UP, "Vol Up");
+  window_button(pContext, KEY_DOWN, "Vol Down");
+  window_volume(pContext, 30, 125, 8, codec_getvolume());
 }
 
 uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -37,6 +42,22 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       window_close();
     }
+    break;
+  case EVENT_KEY_PRESSED:
+  switch(lparam)
+      {
+      case KEY_UP:
+        {
+          codec_changevolume(+1);
+          break;
+        }
+      case KEY_DOWN:
+        {
+          // decrease voice
+          codec_changevolume(-1);
+          break;
+        }
+      }
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
