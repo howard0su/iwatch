@@ -116,10 +116,6 @@ static void OnDraw(tContext *pContext)
       window_button(pContext, KEY_DOWN, "RESET");
       window_button(pContext, KEY_ENTER, "START");
 
-      // display progress bar
-      if (totaltime != lefttime)
-        OnDrawProgress(pContext);
-
       break;
     }
   case STATE_CONFIG_PAUSE:
