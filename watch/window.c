@@ -302,7 +302,14 @@ void window_invalid(const tRectangle *rect)
   }
   else
   {
-    current_clip = client_clip;
+    if (window_isstatusoff())
+    {
+      current_clip = fullscreen_clip;
+    }
+    else
+    {
+      current_clip = client_clip; 
+    }
   }
 
   ui_window_flag |= WINDOW_FLAGS_REFRESH;
