@@ -416,5 +416,7 @@ tContext* window_context()
  */
 void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
 {
+  PROCESS_CONTEXT_BEGIN(&system_process);
   ui_window(event, lparam, rparam);
+  PROCESS_CONTEXT_END(&system_process);
 }
