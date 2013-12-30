@@ -168,11 +168,11 @@ void handle_stlv_packet(unsigned char* packet)
 
         case ELEMENT_TYPE_WATCHCONFIG:
             {
-                printf("Set Watch UI Config");
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 uint8_t* data = get_element_data_buffer(pack, handle, type_buf, type_len);
-                if (data_len <= (int)sizeof(ui_config))
-                    handle_set_watch_config((ui_config*)data);
+                printf("Set Watch UI Config %d/%d", data_len, (int)sizeof(ui_config));
+                //if (data_len >= (int)sizeof(ui_config))
+                    handle_set_watch_config((ui_config*)(data + 1));
             }
             break;
 

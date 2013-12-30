@@ -18,12 +18,6 @@
 #define GPS_TIMEOUT     30
 
 // The basic data to generate others
-//    SPORTS_TIME = 0,
-//    SPORTS_STEPS,
-//    SPORTS_SPEED,
-//    SPORTS_ALT,
-//    SPORTS_HEARTRATE,
-//    SPORTS_DISTANCE,
 static uint32_t base_data[SPORTS_DATA_MAX] = {0};
 
 // the data for each grid
@@ -40,36 +34,39 @@ static uint32_t workout_time;
 #define FORMAT_SPD  2
 #define FORMAT_DIST 3
 #define FORMAT_CALS 4
+#define FORMAT_ALT  5
+#define FORMAT_PACE 6
 
 struct _datapoints
 {
   const char *name; // use \t to seperate the string
   const char *unit;
+  const char *unit_uk;
   const uint8_t format;
 };
 
 static const struct _datapoints datapoints[] =
 {
-  {"Total Workout Time", NULL,   FORMAT_NONE},
-  {"Speed",              "mph",  FORMAT_SPD},
-  {"Heart Rate",         "bpm",  FORMAT_NONE},
-  {"Burned Calories",    "cal",  FORMAT_CALS},
-  {"Distance",           "mile", FORMAT_DIST},
-  {"Avg Speed",          "mph",  FORMAT_NONE},
-  {"Altitude",           "ft",   FORMAT_NONE},
-  {"Time of the Day",    NULL,   FORMAT_TIME},
-  {"Top Speed",          "mph",  FORMAT_SPD},
-  {"Cadence",            "cpm",  FORMAT_NONE},
-  {"Pace",               NULL,   FORMAT_TIME},
-  {"Avg. Heart Rate",    "bpm",  FORMAT_NONE},
-  {"Top Heart Rate",     "bpm",  FORMAT_NONE},
-  {"Elevation Gain",     "ft",   FORMAT_NONE},
-  {"Current Lap",        NULL,   FORMAT_TIME},
-  {"Best Lap",           NULL,   FORMAT_TIME},
-  {"Floors",             "cpm",  FORMAT_NONE},
-  {"Steps",              NULL,   FORMAT_NONE},
-  {"Avg. Pace",          NULL,   FORMAT_TIME},
-  {"Avg. Lap",           NULL,   FORMAT_TIME},
+  {"Total Workout Time", NULL,  NULL,   FORMAT_NONE},
+  {"Speed",              "mph", "km/h", FORMAT_SPD},
+  {"Heart Rate",         "bpm", "bpm",  FORMAT_NONE},
+  {"Burned Calories",    "cal", "KJ",   FORMAT_CALS},
+  {"Distance",           "mile","km",   FORMAT_DIST},
+  {"Avg Speed",          "mph", "km/p", FORMAT_NONE},
+  {"Altitude",           "ft",  "mt",   FORMAT_ALT},
+  {"Time of the Day",    NULL,  NULL,   FORMAT_TIME},
+  {"Top Speed",          "mph", "km/h", FORMAT_SPD},
+  {"Cadence",            "cpm", "cpm",  FORMAT_NONE},
+  {"Pace",               "min", "min",  FORMAT_PACE},
+  {"Avg. Heart Rate",    "bpm", "bpm",  FORMAT_NONE},
+  {"Top Heart Rate",     "bpm", "bpm",  FORMAT_NONE},
+  {"Elevation Gain",     "ft",  "mt",   FORMAT_ALT},
+  {"Current Lap",        "min", "min",  FORMAT_PACE},
+  {"Best Lap",           "min", "min",  FORMAT_PACE},
+  {"Floors",             NULL,  NULL,   FORMAT_NONE},
+  {"Steps",              NULL,  NULL,   FORMAT_NONE},
+  {"Avg. Pace",          "min", "min",  FORMAT_PACE},
+  {"Avg. Lap",           "min", "min",  FORMAT_PACE},
 };
 
 static const tRectangle region_3grid[] =
@@ -164,8 +161,8 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
   struct _datapoints const *d = &datapoints[grid];
 
   char buf[20];
-  // todo: format the input data
   uint32_t tmp = data;
+  const char* unit = window_readconfig()->is_ukuint ? d->unit_uk : d->unit;
   switch(d->format)
   {
     case FORMAT_TIME:
@@ -182,18 +179,42 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
       if (window_readconfig()->is_ukuint)
         tmp = tmp * 621 / 1000; // to mile
       if (tmp >= 1000)
+      {
         sprintf(buf, "%u.%02u", tmp / 1000, tmp % 1000);
+      }
       else
-        sprintf(buf, "0.%03u",  tmp % 1000);
+      {
+        if (window_readconfig()->is_ukuint)
+        {
+            tmp = data * 82 / 250;
+            unit = "ft";
+        }
+        else
+        {
+            unit = "mt";
+        }
+        sprintf(buf, "%03u",  tmp % 1000);
+      }
 
       break;
     case FORMAT_CALS: //kcal
+      if (!window_readconfig()->is_ukuint)
+        tmp = tmp * 21 / 5; //to KJ
       if (tmp >= 1000)
         sprintf(buf, "%u", tmp / 1000);
       else
         sprintf(buf, "0.%02u", tmp % 1000);
 
-
+      break;
+    case FORMAT_ALT:
+      if (window_readconfig()->is_ukuint)
+          tmp = tmp * 82 / 25;
+      sprintf(buf, "%u.%01u", tmp / 100, tmp % 100);
+      break;
+    case FORMAT_PACE:
+      if (window_readconfig()->is_ukuint)
+          tmp = tmp * 621 / 1000;
+      sprintf(buf, "%u.%01u", tmp / 60, (tmp % 60) * 5 / 3);
       break;
     default:
       sprintf(buf, "%d", data);
@@ -209,10 +230,10 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
     GrStringDraw(pContext, d->name, -1,  region_3grid[index].sXMin + 8, region_3grid[index].sYMin, 0);
     GrContextFontSet(pContext, &g_sFontNova28b);
     GrStringDraw(pContext, buf, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 20, 0);
-    if (d->unit)
+    if (unit)
     {
       GrContextFontSet(pContext, &g_sFontNova13);
-      GrStringDraw(pContext, d->unit, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 50, 0);
+      GrStringDraw(pContext, unit, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 50, 0);
     }
     break;
   case GRID_4:
@@ -224,10 +245,10 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
     width = GrStringWidthGet(pContext, buf, -1);
     GrStringDraw(pContext, buf, -1, (region_4grid[index].sXMax - region_4grid[index].sXMin) * 3 / 4 - width,
       region_4grid[index].sYMin + 10, 0);
-    if (d->unit)
+    if (unit)
     {
       GrContextFontSet(pContext, &g_sFontRed13);
-      GrStringDraw(pContext, d->unit, -1, (region_4grid[index].sXMax - region_4grid[index].sXMin) * 3 / 4  + 8, region_4grid[index].sYMin + 20, 0);
+      GrStringDraw(pContext, unit, -1, (region_4grid[index].sXMax - region_4grid[index].sXMin) * 3 / 4  + 8, region_4grid[index].sYMin + 20, 0);
     }
     break;
   case GRID_5:
@@ -236,10 +257,10 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
     GrContextFontSet(pContext, &g_sFontNova28b);
     width = GrStringWidthGet(pContext, buf, -1);
     GrStringDraw(pContext, buf, -1, region_5grid[index].sXMax - 4 - width, region_5grid[index].sYMin + 15, 0);
-    if (d->unit)
+    if (unit)
     {
       GrContextFontSet(pContext, &g_sFontNova13);
-      GrStringDraw(pContext, d->unit, -1, region_5grid[index].sXMin + 8, region_5grid[index].sYMin + 40, 0);
+      GrStringDraw(pContext, unit, -1, region_5grid[index].sXMin + 8, region_5grid[index].sYMin + 40, 0);
     }
     break;
   }
@@ -415,8 +436,16 @@ static uint32_t updateBaseData(uint8_t datatype, uint32_t value)
           break;
 
       case SPORTS_STEPS:
+          if (base_data[datatype] == 0)
+          {
+              base_data[SPORTS_PED_STEPS_START] = value;
+              base_data[datatype] = 1; //the raw value must be updated at last
+          }
+          else
+          {
+              base_data[datatype] = value - base_data[SPORTS_PED_STEPS_START]; //the raw value must be updated at last
+          }
           grids_mask |= (1 << GRID_STEPS);
-          base_data[datatype] = value; //the raw value must be updated at last
           break;
 
       case SPORTS_PED_SPEED:
@@ -430,11 +459,14 @@ static uint32_t updateBaseData(uint8_t datatype, uint32_t value)
           break;
 
       case SPORTS_PED_CALORIES:
-          if (value > base_data[datatype])
-            base_data[SPORTS_CALS] += (value - base_data[datatype]);
-          else
-            base_data[SPORTS_CALS] += value;
-          base_data[datatype] = value;
+          if (base_data[datatype] != 0)
+          {
+            if (value > base_data[datatype])
+              base_data[SPORTS_CALS] += (value - base_data[datatype]);
+            else
+              base_data[SPORTS_CALS] += value;
+            base_data[datatype] = value;
+          }
           grids_mask |= (1 << GRID_CALS);
           break;
 
@@ -491,12 +523,12 @@ static uint32_t getGridDataItem(uint8_t slot)
 
         case GRID_SPEED_AVG:
             if (workout_time > 0)
-                return base_data[SPORTS_DISTANCE] / workout_time;
+                return base_data[SPORTS_DISTANCE] * 10 / workout_time;
             break;
 
 
         case GRID_PACE:
-            if (base_data[SPORTS_SPEED] > 0)
+            if (base_data[SPORTS_SPEED] * 60 > (1000 * 100 / 60))
                 return 1000 * 100 / base_data[SPORTS_SPEED];
             break;
 
@@ -506,18 +538,26 @@ static uint32_t getGridDataItem(uint8_t slot)
             break;
 
         case GRID_LAPTIME_CUR:
-            if (base_data[SPORTS_SPEED] > 0)
+            if (base_data[SPORTS_SPEED] * 60 > (window_readconfig()->lap_length * 100 / 60))
                 return window_readconfig()->lap_length * 100 / base_data[SPORTS_SPEED];
             break;
 
         case GRID_PACE_AVG:
-            if (base_data[SPORTS_DISTANCE] > 0)
-                return 1000 * 100 * workout_time / base_data[SPORTS_DISTANCE];
+            {
+                if (workout_time == 0) return 0;
+                uint32_t avgSpd = base_data[SPORTS_DISTANCE] * 10 / workout_time;
+                if (avgSpd * 60 > 1000 * 100 / 60)
+                    return 1000 * 100 * avgSpd;
+            }
             break;
 
         case GRID_LAPTIME_AVG:
-            if (base_data[SPORTS_DISTANCE] > 0)
-                return window_readconfig()->lap_length * 100 * workout_time /  base_data[SPORTS_DISTANCE];
+            {
+                if (workout_time == 0) return 0;
+                uint32_t avgSpd = base_data[SPORTS_DISTANCE] * 10 / workout_time;
+                if (avgSpd * 60 > 1000 * 100 / 60)
+                    return window_readconfig()->lap_length * 100 / avgSpd;
+            }
             break;
 
         case GRID_TIME:

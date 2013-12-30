@@ -110,10 +110,15 @@ extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
 #define UI_CONFIG_SIGNATURE 0xABADFACE
 typedef struct {
   uint32_t signature;
+  uint16_t goal_steps;
+  uint16_t goal_distance;
+  uint16_t goal_calories;
+  uint16_t lap_length;
 
   // world clock config
   char worldclock_name[6][10];
   int8_t worldclock_offset[6];
+  // 66 bytes
 
   uint8_t default_clock; // 0 - analog, 1 - digit
   // analog clock config
@@ -121,29 +126,33 @@ typedef struct {
   // digit clock config
   uint8_t digit_clock;   // num : which clock face
 
+  // 69 bytes
+
   // sports watch config
   uint8_t sports_grid;   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
   uint8_t sports_grid_data[5]; // each slot means which grid data to show
-  // default
+  // 75 bytes
+
 
   //goals
-  uint16_t goal_steps;
-  uint16_t goal_distance;
-  uint16_t goal_calories;
+  // 82 bytes
+
+  uint8_t is_ukuint;
+  // 76 bytes
 
   uint8_t weight; // in kg
   uint8_t height; // in cm
+  uint8_t circumference;
+  // 85 bytes
 
   //gesture
   //#define GESTURE_FLAG_ENABLE 0x01
   //#define GESTURE_FLAG_LEFT   0x02
   uint8_t gesture_flag;
   uint8_t gesture_map[4];
-  uint8_t is_ukuint;
+  // 90 bytes
 
-  uint16_t lap_length;
 
-  uint8_t circumference;
 }ui_config;
 
 extern ui_config* window_readconfig();

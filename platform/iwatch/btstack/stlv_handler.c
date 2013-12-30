@@ -336,45 +336,51 @@ void handle_gesture_control(uint8_t flag, uint8_t action_map[])
     }
 }
 
-void handle_set_watch_config(ui_config* config)
+void handle_set_watch_config(ui_config* new_config)
 {
     //TODO: help check this
 
-    //adjust values: big endian to little endian
-    config->goal_steps    = htons(config->goal_steps);
-    config->goal_distance = htons(config->goal_distance);
-    config->goal_calories = htons(config->goal_calories);
-    config->lap_length    = htons(config->lap_length);
-
-    if (config->weight < 20) config->weight = 20;
-    if (config->height < 60) config->height = 60;
-
-    printf("set_watch_config:\n");
-    printf("  signature     = %d\n", config->signature);
-    printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
-    printf("  analog_clock  = %d\n", config->analog_clock);  // num : which lock face
-    printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
-    printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
-    printf("  sports_grids  = %d, %d, %d, %d, %d\n",
-            config->sports_grid_data[0],
-            config->sports_grid_data[1],
-            config->sports_grid_data[2],
-            config->sports_grid_data[3],
-            config->sports_grid_data[4]);
-    printf("  goal_steps    = %d\n", config->goal_steps);
-    printf("  goal_distance = %d\n", config->goal_distance);
-    printf("  goal_calories = %d\n", config->goal_calories);
-    printf("  weight        = %d\n", config->weight); // in kg
-    printf("  height        = %d\n", config->height); // in cm
-    printf("  is_ukuint     = %d\n", config->is_ukuint);
-    printf("  lap_len       = %d\n", config->lap_length);
-    printf("  circumference = %d\n", config->circumference);
 
 
-    ui_config* online_config = window_readconfig();
-    if (online_config != NULL)
+
+    ui_config* config = window_readconfig();
+    if (config != NULL)
     {
-        memcpy(online_config, config, sizeof(ui_config));
+        memcpy(config, new_config, sizeof(ui_config));
+
+        //adjust values: big endian to little endian
+        uint8_t* p = (uint8_t*)new_config;
+        config->signature     = READ_NET_32(p, 4);
+        config->goal_steps    = READ_NET_16(p, 4);
+        config->goal_distance = READ_NET_16(p, 6);
+        config->goal_calories = READ_NET_16(p, 8);
+        config->lap_length    = READ_NET_16(p, 10);
+
+        if (config->weight < 20) config->weight = 20;
+        if (config->height < 60) config->height = 60;
+
+        printf("set_watch_config:\n");
+        printf("  signature     = %x\n", config->signature);
+        printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
+        printf("  analog_clock  = %d\n", config->analog_clock);  // num : which lock face
+        printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
+        printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+        printf("  sports_grids  = %d, %d, %d, %d, %d\n",
+                config->sports_grid_data[0],
+                config->sports_grid_data[1],
+                config->sports_grid_data[2],
+                config->sports_grid_data[3],
+                config->sports_grid_data[4]);
+        printf("  is_ukuint     = %02x\n", config->is_ukuint);
+        printf("  goal_steps    = %d\n", config->goal_steps);
+        printf("  goal_distance = %d\n", config->goal_distance);
+        printf("  goal_calories = %d\n", config->goal_calories);
+        printf("  weight        = %d\n", config->weight); // in kg
+        printf("  height        = %d\n", config->height); // in cm
+        printf("  circumference = %d\n", config->circumference);
+        printf("  lap_len       = %d\n", config->lap_length);
+
+
         window_writeconfig();
         window_loadconfig();
     }

@@ -24,26 +24,43 @@ extern const unsigned char logoPixel[];
 
 union _data d;
 
+//  uint32_t signature;
+//  char worldclock_name[6][10];
+//  int8_t worldclock_offset[6];
+//  uint8_t default_clock; // 0 - analog, 1 - digit
+//  uint8_t analog_clock;  // num : which clock face
+//  uint8_t digit_clock;   // num : which clock face
+//  uint8_t sports_grid;   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+//  uint8_t sports_grid_data[5]; // each slot means which grid data to show
+//  uint8_t is_ukuint;
+//  uint16_t goal_steps;
+//  uint16_t goal_distance;
+//  uint16_t goal_calories;
+//  uint8_t weight; // in kg
+//  uint8_t height; // in cm
+//  uint8_t circumference;
+//  uint8_t gesture_flag;
+//  uint8_t gesture_map[4];
+//  uint16_t lap_length;
 static ui_config ui_config_data =
 {
-  UI_CONFIG_SIGNATURE,
+  UI_CONFIG_SIGNATURE, //signature
+  1000, 2000, 500, //goals
+  400, //lan_length
 
-  {"Shanghai", "London", "New York", "Place A", "Place B", "Place C",},
-  {+16, +8, +3, +1, +2, -5,},
+  {"Shanghai", "London", "New York", "Place A", "Place B", "Place C",}, //worldclock_name
+  {+16, +8, +3, +1, +2, -5,}, //worldclock_offset
 
-  0,
-  4,
-  2,
+  0, //default_clock
+  4, //analog_clock
+  2, //digit_clock
 
-  1,
-  { 0, 1, 2, 3, 4, },
-  1000, 2000, 500,
-  60, 170,
-  0x00, { 0, 1, 2, 3, },
-  0x00,
-  400,
+  1, //sports_grid
+  { 0, 1, 2, 3, 4, }, // sports_grid_data
+  0x00, //is_ukunit
+  60, 170, 82, //profiles
+  0x00, { 0, 1, 2, 3, }, //gesture
 
-  82,
 };
 
 
