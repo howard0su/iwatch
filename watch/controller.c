@@ -95,7 +95,6 @@ static void OnDraw(tContext *pContext)
     GrStringDraw(pContext, artist, -1, 12, 125, 0);
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);   
 
-#if 1
   switch(state)
   {
   case AVRCP_PLAY_STATUS_ERROR:
@@ -103,6 +102,7 @@ static void OnDraw(tContext *pContext)
     window_button(pContext, KEY_DOWN, NULL);
     window_button(pContext, KEY_ENTER, NULL);
     break;
+  case AVRCP_PLAY_STATUS_PAUSED:
   case AVRCP_PLAY_STATUS_STOPPED:
     window_button(pContext, KEY_UP, "PLAY");
     window_button(pContext, KEY_DOWN, "NEXT");
@@ -113,13 +113,7 @@ static void OnDraw(tContext *pContext)
     window_button(pContext, KEY_DOWN, "NEXT");
     window_button(pContext, KEY_ENTER, "PREV");
     break;
-  case AVRCP_PLAY_STATUS_PAUSED:
-    window_button(pContext, KEY_UP, "PLAY");
-    window_button(pContext, KEY_DOWN, "NEXT");
-    window_button(pContext, KEY_ENTER, "PREV");
-    break;
   }
-#endif
 }
 
 void handle_av_events(uint16_t lparam, void* rparam)
@@ -133,11 +127,16 @@ void handle_av_events(uint16_t lparam, void* rparam)
           break;
     case EVENT_AV_STATUS:
         state = (int)rparam;
-        printf("state changed to %d\n", state);
         if (state == AVRCP_PLAY_STATUS_PLAYING)
+        {
+          printf("enable timer\n");
           window_timer(CLOCK_SECOND);
+        }
         else
+        {
+          printf("disable timer :%d\n", state);
           window_timer(0);
+        }
         break;
     case EVENT_AV_TITLE:
         strncpy(titlebuf, rparam, sizeof(titlebuf));
@@ -194,7 +193,6 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
   case PROCESS_EVENT_TIMER:
     {
       //const tRectangle rect = {12, 24, 144, 88};
-      printf("state == %d, pos:%d len:%d\n", state, position, length);
       if (position < length && state == AVRCP_PLAY_STATUS_PLAYING)
       {
         position++;
@@ -216,6 +214,9 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_KEY_PRESSED:
     {
+      if (state == AVRCP_PLAY_STATUS_ERROR)
+        break;
+
       if (lparam == KEY_UP)
       {
         if (state == AVRCP_PLAY_STATUS_PLAYING)
