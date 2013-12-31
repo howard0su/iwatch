@@ -17,7 +17,7 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   
   GrContextFontSet(pContext, &g_sFontBaby16);
-  GrStringDrawCentered(pContext, "Voice Commander", -1, 72, 90, 0);
+  GrStringDrawCentered(pContext, "Voice Commander", -1, 72, 80, 0);
   window_button(pContext, KEY_EXIT, "Finish");
 
   // volume
@@ -36,6 +36,8 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
     
     if (rparam)
       hfp_enable_voicerecog(1);
+
+    codec_setvolume(window_readconfig()->volume_level);
     break;
   case EVENT_BT_BVRA:
     if (lparam == 0)
@@ -58,16 +60,26 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
           break;
         }
       }
+      window_invalid(NULL);
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;
 
   case EVENT_EXIT_PRESSED:
-    hfp_enable_voicerecog(0);
-    window_close();
-    break;
+    {
+      int level = window_readconfig()->volume_level;
+      if (level != codec_getvolume())
+      {
+        window_readconfig()->volume_level = codec_getvolume();
+        window_writeconfig();
+      }
+      
+      hfp_enable_voicerecog(0);
+      window_close();
     
+    break;
+    }
   default:
     return 0;
   }

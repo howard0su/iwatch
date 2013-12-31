@@ -114,6 +114,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
       window_close();
     phonenumber[0] = '\0';
     gesture_init(0);
+    codec_setvolume(window_readconfig()->volume_level);
     break;
   case EVENT_BT_CLIP:
     strcpy(phonenumber, rparam);
@@ -124,12 +125,8 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (lparam & 0x0f == 1)
       {
-        motor_on(210, CLOCK_SECOND/2);
+        motor_on(100, CLOCK_SECOND/2);
       }
-      window_invalid(NULL);
-    }
-    else if ((lparam >> 8) == HFP_CIND_CALLSETUP)
-    {
       window_invalid(NULL);
     }
     else if ((lparam >> 8) == HFP_CIND_CALLSETUP)
@@ -138,10 +135,14 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         window_close();
       }
+      else
+      {
+        window_invalid(NULL);
+      }
     }
     break;
   case EVENT_BT_RING:
-    motor_on(200, CLOCK_SECOND * 2 /3);
+    motor_on(100, CLOCK_SECOND * 2 /3);
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
@@ -152,10 +153,19 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     break;
     
   case EVENT_EXIT_PRESSED:
-    hfp_accept_call(0);
-    gesture_shutdown();
-    break;
-    
+    {
+      int level = window_readconfig()->volume_level;
+      if (level != codec_getvolume())
+      {
+        window_readconfig()->volume_level = codec_getvolume();
+        window_writeconfig();
+      }
+
+      hfp_accept_call(0);
+      gesture_shutdown();
+      window_close();
+      break;
+    }
   default:
     return 0;
   }

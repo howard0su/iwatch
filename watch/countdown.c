@@ -258,7 +258,7 @@ static int process_event(uint8_t ev, uint16_t data)
         if (lefttime == 0)
         {
           // trigger notification
-          motor_on(240, CLOCK_SECOND * 2);
+          motor_on(100, CLOCK_SECOND * 2);
           state = STATE_CONFIG_DONE;
         }
         else

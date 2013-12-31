@@ -61,6 +61,7 @@ static ui_config ui_config_data =
   60, 170, 82, //profiles
   0x00, { 0, 1, 2, 3, }, //gesture
 
+  8, 8 // default level of volume and light
 };
 
 
@@ -134,7 +135,7 @@ static int window_isstatusoff()
   return (statusflag & (1 << stackptr));
 }
 
-void window_handle_event(uint8_t ev, void* data)
+static void window_handle_event(uint8_t ev, void* data)
 {
     if (ev == PROCESS_EVENT_INIT)
     {
@@ -211,7 +212,7 @@ void window_handle_event(uint8_t ev, void* data)
     }
     else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED)
     {
-      backlight_on(255);
+      backlight_on(window_readconfig()->light_level);
       etimer_set(&backlight_timer, CLOCK_SECOND * 3);
 
       if (ev == EVENT_KEY_PRESSED && (uint16_t)data == KEY_EXIT)

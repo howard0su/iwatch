@@ -212,7 +212,7 @@ static int process_key_date(uint8_t key)
   {
   case KEY_UP:
     times[state]++;
-    if ((times[state] >= rtc_getmaxday(2000 + YEAR, MONTH)) || (times[state] >= 12 && state == STATE_CONFIG_HOUR))
+    if ((times[state] >= rtc_getmaxday(2000 + YEAR, MONTH)) || (times[state] >= 12 && state == STATE_CONFIG_MONTH))
     {
       times[state] = 1;
     }
@@ -300,6 +300,114 @@ uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam)
   case EVENT_KEY_PRESSED:
     {
       process_key_time((uint8_t)lparam);
+    }
+  default:
+    return 0;
+  }
+
+  return 1;
+}
+
+
+static void OnDrawLevel(tContext *pContext, int level)
+{
+    // clear the region
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrRectFill(pContext, &client_clip);
+
+  GrContextForegroundSet(pContext, ClrWhite);
+
+  window_volume(pContext, 30, 100, 8, level);
+
+  window_button(pContext, KEY_UP, "+");
+  window_button(pContext, KEY_DOWN, "-");
+  window_button(pContext, KEY_ENTER, "OK");
+}
+
+uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam)
+{
+  switch(event)
+  {
+  case EVENT_WINDOW_CREATED:
+    {
+      state = window_readconfig()->light_level;
+      break;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      OnDrawLevel((tContext*)rparam, window_readconfig()->light_level);
+      break;
+    }
+  case EVENT_KEY_PRESSED:
+    {
+      int level = window_readconfig()->light_level;
+      switch(lparam)
+      {
+        case KEY_UP:
+        if (level < 8)
+          level++;
+        break;
+        case KEY_DOWN:
+        if (level > 0)
+          level--;
+        break;
+        case KEY_ENTER:
+          window_writeconfig();
+          window_close();
+          return 1;
+      }
+      
+      window_readconfig()->light_level = level;
+      window_invalid(NULL);
+      break;
+    }
+    case EVENT_EXIT_PRESSED:
+      //revert back light level
+      window_readconfig()->light_level = state;
+      window_writeconfig();
+      window_close();
+      break;
+  default:
+    return 0;
+  }
+
+  return 1;
+}
+
+uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam)
+{
+  switch(event)
+  {
+  case EVENT_WINDOW_CREATED:
+    {
+      state = window_readconfig()->volume_level;
+      break;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      OnDrawLevel((tContext*)rparam, state);
+      break;
+    }
+  case EVENT_KEY_PRESSED:
+    {
+      switch(lparam)
+      {
+        case KEY_UP:
+        if (state < 8)
+          state++;
+        break;
+        case KEY_DOWN:
+        if (state > 0)
+          state--;
+        break;
+        case KEY_ENTER:
+          window_readconfig()->volume_level = state;
+          window_writeconfig();
+          window_close();
+          return 1;
+      }
+      window_invalid(NULL);
+      break;
     }
   default:
     return 0;
