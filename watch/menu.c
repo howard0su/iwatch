@@ -236,7 +236,7 @@ static void OnDraw(tContext *pContext)
   if (NUM_MENU_A_PAGE < menuLength)
   {
     // draw progress bar
-    #define STEPS 120
+    #define STEPS 128
     int length = NUM_MENU_A_PAGE * STEPS / menuLength;
     int start = currentTop * STEPS / menuLength;
 
