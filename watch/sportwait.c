@@ -5,6 +5,10 @@
 #include "stlv_client.h"
 #include "ble_handler.h"
 
+static uint8_t selection;
+static uint8_t okflags;
+static uint8_t sports_type = 0;
+
 static void onDraw(tContext *pContext)
 {
   int width;
