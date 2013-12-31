@@ -34,10 +34,7 @@ static void onDraw(tContext *pContext)
     // volume
     window_button(pContext, KEY_UP, "Vol Up");
     window_button(pContext, KEY_DOWN, "Vol Down");
-    char buf[32];
-    sprintf(buf, "Volume: %d", codec_getvolume());
-    GrContextFontSet(pContext, &g_sFontBaby16);
-    GrStringDrawCentered(pContext, buf, -1, 72, 120, 0);
+    window_volume(pContext, 30, 125, 8, codec_getvolume());
   }
   else if (hfp_getstatus(HFP_CIND_CALLSETUP) == HFP_CIND_CALLSETUP_INCOMING)
   {

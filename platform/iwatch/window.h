@@ -66,6 +66,7 @@ extern void window_postmessage(uint8_t event, uint16_t lparam, void *rparam);
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
 extern void window_progress(tContext *pContext, long lY, uint8_t step);
 extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected);
+extern void window_volume(tContext *pContext, long lX, long lY, int total, int current);
 
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1

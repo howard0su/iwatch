@@ -243,10 +243,7 @@ void window_handle_event(uint8_t ev, void* data)
       {
         ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
         GrContextForegroundSet(&context, ClrWhite);
-        if (window_isstatusoff())
-          GrContextClipRegionSet(&context, &fullscreen_clip);
-        else
-          GrContextClipRegionSet(&context, &current_clip);
+        GrContextClipRegionSet(&context, &current_clip);
         ui_window(EVENT_WINDOW_PAINT, 0, &context);
         current_clip.sXMin = 255;
         current_clip.sXMax = 0;
@@ -419,5 +416,7 @@ tContext* window_context()
  */
 void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
 {
+  PROCESS_CONTEXT_BEGIN(&system_process);
   ui_window(event, lparam, rparam);
+  PROCESS_CONTEXT_END(&system_process);
 }

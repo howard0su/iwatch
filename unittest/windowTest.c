@@ -143,8 +143,24 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   
+   // date config
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},  
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},   
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+  // timeconfig
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
@@ -448,6 +464,18 @@ void TestWideFont(CuTest* tc)
 }
 
 
+void TestControl(CuTest* tc)
+{
+    GrContextClipRegionSet(&context, &client_clip);
+    GrContextForegroundSet(&context, ClrBlack);
+    GrRectFill(&context, &client_clip);
+
+    GrContextForegroundSet(&context, ClrWhite);
+    window_volume(&context, 20, 100, 8, 4);
+    GrFlush(&context);    
+}
+
+
 void TestWindows(CuTest *tc)
 { 
   //load_script("script1.amx", rom);
@@ -585,6 +613,7 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestAnt);
   SUITE_ADD_TEST(suite, TestPhoneScreen);
   SUITE_ADD_TEST(suite, TestNotification);
+  SUITE_ADD_TEST(suite, TestControl);
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);
