@@ -15,11 +15,9 @@ static void onDraw(tContext *pContext)
 
   // display the text
   GrStringDraw(pContext,"Wait for GPS/ANT", -1, 10, 80, 0);
+  if (sports_type == SPORTS_DATA_FLAG_RUN)
+    window_button(pContext, KEY_ENTER, " IGNORE");
 }
-
-static uint8_t selection;
-static uint8_t okflags;
-static uint8_t sports_type = 0;
 
 uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -28,14 +26,14 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
       selection = (uint8_t)rparam;
       if (selection == 0)
       {
-          //running
-          sports_type = SPORTS_DATA_FLAG_RUN;
+        //running
+        sports_type = SPORTS_DATA_FLAG_RUN;
         ant_init(MODE_HRM);
       }
       else
       {
-          //cycling
-          sports_type = SPORTS_DATA_FLAG_BIKE;
+        //cycling
+        sports_type = SPORTS_DATA_FLAG_BIKE;
         ant_init(MODE_CBSC);
       }
 
@@ -54,8 +52,6 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
     return 0x80;
   case EVENT_SPORT_DATA:
-
-    //TODO: wait for GPS or ANT data based on selection
     window_close(); // close self
     window_open(&sportswatch_process, (void*)selection);
     break;
@@ -74,6 +70,12 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_NOTIFY_RESULT:
     window_close();
     break;
+  case EVENT_KEY_PRESSED:
+    if (lparam == KEY_ENTER)
+    {
+      window_close(); // close self
+      window_open(&sportswatch_process, (void*)selection);
+    }
   default:
     return 0;
   }
