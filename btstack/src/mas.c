@@ -22,6 +22,8 @@ static void mas_callback(int code, uint8_t* lparam, uint16_t rparam);
 static void mas_send(void *data, uint16_t length);
 static uint16_t rfcomm_channel_id;
 static struct obex_state mas_obex_state;
+static uint16_t handler[16];
+static uint8_t handler_size = 0;
 static const struct obex mas_obex = 
 {
   &mas_obex_state, mas_callback, mas_send
@@ -57,8 +59,15 @@ const static char type_notify[] = "x-bt/MAP-NotificationRegistration";
 const static uint8_t appparams_getmessage[] = 
 {
   0x0a, 0x01, 0x00, // Attachment
-  0x14, 0x01, 0x00, //Charset
+  0x14, 0x01, 0x01, //Charset
   0x15, 0x01, 0x00,//FractionRequest
+};
+
+const static uint8_t appparams_getmessage_next[] = 
+{
+  0x0a, 0x01, 0x00, // Attachment
+  0x14, 0x01, 0x01, //Charset
+  0x15, 0x01, 0x01,//FractionRequest
 };
 
 const static char type_getmessage[] = "x-bt/message";
@@ -73,43 +82,117 @@ static void mas_send(void *data, uint16_t length)
   mas_try_respond(rfcomm_channel_id);  
 }
 
-void mas_getmessage(char* id)
+static void mas_getmessage_internal(int first)
 {
-  printf("get message for %s\n", id);
-  uint16_t unicodestr[64];
-  int i;
-  for(i = 0; id[i] != '\0' && i < sizeof(unicodestr) / 2; i++)
-  {
-    unicodestr[i] = __swap_bytes((uint16_t)id[i]);
-  }
-
   uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_GET + OBEX_OP_FINAL, mas_buf);
   
   ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, mas_obex.state->connection);
-  ptr = obex_header_add_text(ptr, OBEX_HEADER_NAME, unicodestr, i);
+  ptr = obex_header_add_text(ptr, OBEX_HEADER_NAME, handler, handler_size);
   ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_getmessage, sizeof(type_getmessage));
-  ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_getmessage, sizeof(appparams_getmessage));
+  if (first)
+    ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_getmessage, sizeof(appparams_getmessage));
+  else
+    ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_getmessage, sizeof(appparams_getmessage_next));
     
-  obex_send(&mas_obex, mas_buf, ptr - mas_buf);  
+  obex_send_request(&mas_obex, mas_buf, ptr - mas_buf);  
 }
 
-static void mas_callback(int code, uint8_t* lparam, uint16_t rparam)
+
+void mas_getmessage(char* id)
 {
-  printf("Callback with code %d\n", code);
-  switch(code)
+  printf("get message for %s\n", id);
+
+  if (handler_size != 0)
   {
-    case OBEX_CB_CONNECT_RESP: // connected
-    {
-      uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_PUT + OBEX_OP_FINAL, mas_buf);
-      uint8_t Fillerbyte = 0x30;
+    // someone already ongoing
+    return;
+  }
+
+  int i;
+  for(i = 0; id[i] != '\0' && i < sizeof(handler) / 2; i++)
+  {
+    handler[i] = __swap_bytes((uint16_t)id[i]);
+  }
+
+  handler_size = i;
+  mas_getmessage_internal(1);
+}
+
+
+static void mas_parse_x_bt_message(char *buf)
+{
+
+}
+
+static void mas_callback(int code, uint8_t* header, uint16_t length)
+{
+  printf("Mas Callback with code %d\n", code);
+ 
+  if (code == OBEX_RESPCODE_CONNECTED)
+  {
+    uint8_t *ptr = obex_create_request(&mas_obex, OBEX_OP_PUT + OBEX_OP_FINAL, mas_buf);
+    uint8_t Fillerbyte = 0x30;
+    
+    ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, mas_obex.state->connection);
+    ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_notify, sizeof(type_notify));
+    ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_notify, sizeof(appparams_notify));
+    ptr = obex_header_add_bytes(ptr, OBEX_HEADER_ENDBODY, &Fillerbyte, 1);
       
-      ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, mas_obex.state->connection);
-      ptr = obex_header_add_bytes(ptr, OBEX_HEADER_TYPE, (uint8_t*)type_notify, sizeof(type_notify));
-      ptr = obex_header_add_bytes(ptr, OBEX_HEADER_APPPARMS, appparams_notify, sizeof(appparams_notify));
-      ptr = obex_header_add_bytes(ptr, OBEX_HEADER_ENDBODY, &Fillerbyte, 1);
-        
-      obex_send(&mas_obex, mas_buf, ptr - mas_buf);
-      break;
+    obex_send_request(&mas_obex, mas_buf, ptr - mas_buf);
+    return;
+  }
+
+  if (handler_size == 0)
+  {
+    // we just set the enable notification
+    // nothing
+
+    return;
+  }
+
+  if ((code & 0x70) == OBEX_RESPCODE_CONTINUE ||
+       (code & 0x70) == OBEX_RESPCODE_OK)
+  {
+      // parse headers
+    while(header != NULL && length > 0)
+    {
+      switch(*header)
+      {
+        case OBEX_HEADER_BODY:
+        case OBEX_HEADER_ENDBODY:
+        {
+          printf("BODY: %s", header + 3);
+          mas_parse_x_bt_message(header + 3);
+          break;
+        }
+
+        case OBEX_HEADER_APPPARMS:
+        case OBEX_HEADER_TYPE:
+        {
+          uint16_t len = READ_NET_16((uint8_t*)header, 1);
+          printf("type %x: ", *header);
+          hexdump((uint8_t*)header, len);
+          break;
+        }
+        case OBEX_HEADER_CONNID:
+        {
+          printf("connid ");
+          hexdump((uint8_t*)header + 1, 4);   
+          break;
+        }
+      }
+      header = obex_header_get_next(header, &length);
+    }
+  
+    if (code == (OBEX_RESPCODE_CONTINUE | OBEX_OP_FINAL))
+    {
+      // send next request
+      mas_getmessage_internal(0);
+    }
+    else if (code == (OBEX_RESPCODE_OK | OBEX_OP_FINAL))
+    {
+      // done with the message
+      handler_size = 0;
     }
   }
 }

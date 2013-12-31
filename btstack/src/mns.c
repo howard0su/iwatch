@@ -139,7 +139,7 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
 
   switch(code)
   {
-    case OBEX_CB_CONNECT:
+    case OBEX_OP_CONNECT:
     // client try to make a connection
     // validate the target
     while(header != NULL && length > 0)
@@ -155,13 +155,13 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
               printf("connection successful\n");
               uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xA0, buf);
               ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, 0x123456);
-              obex_send(&mns_obex, buf, ptr - buf);
+              obex_send_response(&mns_obex, buf, ptr - buf);
           }
           else
           {
               printf("connection failed\n");
-              uint8_t *ptr = obex_create_connect_request(&mns_obex, 404, buf);
-              obex_send(&mns_obex, buf, ptr - buf);
+              uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xC4, buf);
+              obex_send_response(&mns_obex, buf, ptr - buf);
           }
           return;
         }
@@ -170,30 +170,11 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
       header = obex_header_get_next(header, &length);
     }
 
-    ptr = obex_create_connect_request(&mns_obex, 500, buf);
-    obex_send(&mns_obex, buf, ptr - buf);
+    ptr = obex_create_connect_request(&mns_obex, 0xD0, buf);
+    obex_send_response(&mns_obex, buf, ptr - buf);
     break;
-  case OBEX_CB_PUT:
-#if 0
-    while(header != NULL && length > 0)
-    {
-      switch(*header)
-      {
-        case OBEX_HEADER_BODY:
-        {
-          uint16_t length = READ_NET_16((uint8_t*)header, 1);
-          hexdump((uint8_t*)header + 3, length);
-          break;
-        }
-      }
-
-      header = obex_header_get_next(header, &length);
-    }
-    obex_create_request(&mns_obex, 0x20, buf);
-    obex_send(&mns_obex, buf, 0);
-    break;
-#endif
-  case OBEX_CB_PUT | OBEX_CBFLAG_FINAL:
+  case OBEX_OP_PUT:
+  case OBEX_OP_PUT | OBEX_OP_FINAL:
     while(header != NULL && length > 0)
     {
       switch(*header)
@@ -250,15 +231,15 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
     if (handler)
     {
       ptr = obex_create_request(&mns_obex, 0xA0, buf);
-      obex_send(&mns_obex, buf, ptr - buf);
+      obex_send_response(&mns_obex, buf, ptr - buf);
     }
     else
     {
-      if (code & OBEX_CBFLAG_FINAL)
+      if (code & OBEX_OP_FINAL)
         ptr = obex_create_request(&mns_obex, 0xD0, buf);
       else      
         ptr = obex_create_request(&mns_obex, 0x90, buf);
-      obex_send(&mns_obex, buf, ptr - buf);   
+      obex_send_response(&mns_obex, buf, ptr - buf);   
     }
     break;
   }

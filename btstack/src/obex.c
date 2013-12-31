@@ -29,34 +29,36 @@ static void obex_handle_request(const struct obex* obex, operation_obex* data)
   {
       case 0x80:
       // connection request      
-      obex->state_callback(OBEX_CB_CONNECT, conn->data, length - sizeof(connection_obex));
+      obex->state_callback(OBEX_OP_CONNECT, conn->data, length - sizeof(connection_obex));
       break;
       case 0x81:
       // disconnect request
-      obex->state_callback(OBEX_CB_DISCONNECT, conn->data, length - sizeof(connection_obex));
+      obex->state_callback(OBEX_OP_DISCONNECT, conn->data, length - sizeof(connection_obex));
       break;
       case 0x02:
-      obex->state_callback(OBEX_CB_PUT, data->data, length - sizeof(operation_obex));
+      obex->state_callback(OBEX_OP_PUT, data->data, length - sizeof(operation_obex));
       break;
       case 0x82:
       //put
-      obex->state_callback(OBEX_CBFLAG_FINAL | OBEX_CB_PUT, 
+      obex->state_callback(OBEX_OP_FINAL | OBEX_OP_PUT, 
         data->data, length - sizeof(operation_obex));
       break;
       case 0x03:
-      obex->state_callback(OBEX_CB_GET, data->data, length - sizeof(operation_obex));
+      obex->state_callback(OBEX_OP_GET, data->data, length - sizeof(operation_obex));
       break;
       case 0x83:
-      obex->state_callback(OBEX_CBFLAG_FINAL | OBEX_CB_GET, data->data, 
+      obex->state_callback(OBEX_OP_FINAL | OBEX_OP_GET, data->data, 
         length - sizeof(operation_obex));
       //get
       break;
   }
 }
 
-static void obex_handle_response(const struct obex* obex, const operation_obex* data)
+static void obex_handle_response(const struct obex* obex, operation_obex* data)
 {
+  uint16_t length = data->length << 8 | data->length >> 8;
 
+  obex->state_callback(data->opcode, data->data, length - sizeof(connection_obex));
 }
 
 uint8_t *obex_header_get_next(uint8_t *prev, /* in,out*/ uint16_t *length_left)
@@ -97,7 +99,7 @@ static void obex_handle_connected(const struct obex* obex, connection_obex* data
   uint16_t length = data->length << 8 | data->length >> 8;
   length -= sizeof(connection_obex);
 
-  if (data->opcode != 0xA0)
+  if (data->opcode != (OBEX_RESPCODE_OK | OBEX_OP_FINAL))
   {
     printf("Connection error.\n");
     obex->state->state = INIT;
@@ -116,7 +118,7 @@ static void obex_handle_connected(const struct obex* obex, connection_obex* data
   }
 
   obex->state->state = WAIT_REQUEST;
-  obex->state_callback(OBEX_CB_CONNECT_RESP, data->data, sizeof(uint32_t));
+  obex->state_callback(OBEX_RESPCODE_CONNECTED, data->data, sizeof(uint32_t));
 }
 
 // handle the input packet and call event handler
@@ -137,6 +139,7 @@ void obex_handle(const struct obex* obex, const uint8_t* packet, uint16_t length
     else
     {
       // need another packet
+      printf("need more package\n");
       return;
     }
   }
@@ -155,27 +158,32 @@ void obex_handle(const struct obex* obex, const uint8_t* packet, uint16_t length
 
   if (obex->state->state == WAIT_REQUEST || obex->state->state == INIT)
   {
+    printf("handle request\n");
     operation_obex *data = (operation_obex*)packet;
     obex_handle_request(obex, data);
-    obex->state->state = WAIT_REQUEST;
-    return;
   }
-
-  if (obex->state->state == WAIT_RESPONE)
+  else if (obex->state->state == WAIT_RESPONE)
   {
+    printf("handle response\n");
     operation_obex *data = (operation_obex*)packet;
     obex_handle_response(obex, data);
   }
   else if (obex->state->state == WAIT_CONNRESPONE)
   {
+    printf("handle connection rsp\n");
     connection_obex *data = (connection_obex*)packet;    
     obex_handle_connected(obex, data);
   }
-
+  else
+  {
+    printf("unknow state: %d\n", obex->state->state);
+  }
+#if 0
   if (*packet & 0x80)
   {
     obex->state->state = WAIT_REQUEST;
   }
+#endif
 }
 
 /*text should be in utf-16 format*/
@@ -242,12 +250,23 @@ uint8_t* obex_create_connect_request(const struct obex* obex, int opcode, uint8_
   return ptr;
 }
 
-void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length)
+void obex_send_request(const struct obex* obex, uint8_t* buf, uint16_t length)
 {
-  printf("obex_send %d bytes: ", length);
+  printf("obex_send_request %d bytes: ", length);
   net_store_16(buf, 1, length);
   hexdump(buf, length);
   obex->send(buf, length);  
+  obex->state->state = WAIT_RESPONE;
+}
+
+
+void obex_send_response(const struct obex* obex, uint8_t* buf, uint16_t length)
+{
+  printf("obex_send_response %d bytes: ", length);
+  net_store_16(buf, 1, length);
+  hexdump(buf, length);
+  obex->send(buf, length);  
+  obex->state->state = WAIT_REQUEST;
 }
 
 void obex_connect_request(const struct obex* obex, const uint8_t *target, uint8_t target_length)
