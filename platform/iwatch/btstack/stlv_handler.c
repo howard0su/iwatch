@@ -19,7 +19,7 @@ void handle_echo(uint8_t* data, int data_len)
 
 void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
 {
-    rtc_setdate(2000 + year, month, day);
+    rtc_setdate(2000 + year, month + 1, day);
     rtc_settime(hour, minute, second);
 
     //for test
