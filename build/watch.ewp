@@ -2115,12 +2115,6 @@
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.10.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.5.c</name>
-        <excluded>
-          <configuration>Retail</configuration>
-        </excluded>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bt_control_cc256x.c</name>
       </file>
     </group>
@@ -2471,13 +2465,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
-      <excluded>
-        <configuration>Debug</configuration>
-        <configuration>Retail</configuration>
-      </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\protocol.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>
