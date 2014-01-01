@@ -63,6 +63,9 @@ int printf(const char *format, ...)
     long n;
     int len;
 
+    if (!(__get_interrupt_state() & GIE))
+        return 0;
+
     va_list a;
     va_start(a, format);
     while(c = *format++) {
