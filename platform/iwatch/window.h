@@ -170,6 +170,7 @@ extern const char* toEnglish(uint8_t number, char* buffer);
 // lparam defined as below
 enum SPORTS_DATA_TYPE
 {
+    SPORTS_INVALID = -1,
     SPORTS_TIME = 0,
     SPORTS_SPEED_MAX,
     SPORTS_TIME_LAST_GPS,
