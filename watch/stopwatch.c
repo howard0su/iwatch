@@ -36,7 +36,7 @@ static void OnDraw(tContext* pContext)
   GrContextFontSet(pContext, &g_sFontNova28b);
   window_drawtime(pContext, 45, times, 0);
 
-  if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 65))
+  if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 70))
   {
     GrContextFontSet(pContext, &g_sFontNova16b);
     //printf("stop: %d current: %d\n", currentStop, topView);
@@ -92,7 +92,8 @@ static void OnDraw(tContext* pContext)
 static void watch_stop()
 {
   state = STATE_STOP;
-  rtc_enablechange(0);  
+  rtc_enablechange(0); 
+  window_invalid(NULL);
 }
 
 uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
@@ -110,7 +111,7 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
     case EVENT_TIME_CHANGED:
     {
       // 32Hz interrupt
-      tRectangle rect = {0, 30, LCD_Y_SIZE, 70};
+      tRectangle rect = {0, 45, LCD_Y_SIZE, 70};
       counter+=2;
       if (counter >= 32)
       {
@@ -136,7 +137,7 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       if (lparam == KEY_DOWN)
       {
-        if (topView < currentStop + 3)
+        if (topView < currentStop - 3)
           topView++;
         window_invalid(NULL);
       }
@@ -167,12 +168,29 @@ uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam)
 
             if (currentStop > 0)
             {
+#if 0
               int delta = (saved_times[currentStop][0] * 3600 + saved_times[currentStop][1] * 60 + saved_times[currentStop][2]) -
               (saved_times[currentStop - 1][0] * 3600 + saved_times[currentStop - 1][1] * 60 + saved_times[currentStop - 1][2]);
               delta_times[currentStop - 1][2] = delta % 60;
               delta = delta / 60;
               delta_times[currentStop - 1][1] = delta % 60;
               delta_times[currentStop - 1][0] = delta / 60;
+#endif
+              delta_times[currentStop - 1][2] = saved_times[currentStop][2] - saved_times[currentStop - 1][2];
+              delta_times[currentStop - 1][1] = saved_times[currentStop][1] - saved_times[currentStop - 1][1];
+              delta_times[currentStop - 1][0] = saved_times[currentStop][0] - saved_times[currentStop - 1][0];
+
+              if (delta_times[currentStop - 1][2] < 0)
+              {
+                delta_times[currentStop - 1][1]--;
+                delta_times[currentStop - 1][2]+=100;
+              }
+
+              if (delta_times[currentStop - 1][1] < 0)
+              {
+                delta_times[currentStop - 1][0]--;
+                delta_times[currentStop - 1][1]+=60;
+              }
             }
 
             currentStop++;

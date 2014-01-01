@@ -45,7 +45,7 @@ union _data d;
 static ui_config ui_config_data =
 {
   UI_CONFIG_SIGNATURE, //signature
-  1000, 2000, 500, //goals
+  10000, 2000, 500, //goals
   400, //lan_length
 
   {"Shanghai", "London", "New York", "Place A", "Place B", "Place C",}, //worldclock_name

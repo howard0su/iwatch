@@ -61,7 +61,7 @@ extern union _data
     uint8_t currentStop;
     uint8_t topView;
     uint8_t saved_times[15][3]; // saved time
-    uint8_t delta_times[15][3]; // delta
+    int8_t delta_times[15][3]; // delta
   }stop;
 }d;
 

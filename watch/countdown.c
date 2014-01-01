@@ -204,6 +204,21 @@ static int process_event(uint8_t ev, uint16_t data)
 
       return 1;
     }
+    case STATE_CONFIG_DONE:
+    {
+
+      if (ev != EVENT_KEY_PRESSED)
+        return 0;
+
+      if ((uint8_t)data == KEY_DOWN)
+      {
+        state = STATE_CONFIG_SECOND;
+        times[0] = times[1] = times[2] = 0;
+      }
+      window_invalid(NULL);
+
+      return 1;
+    }
   case STATE_CONFIG_PAUSE:
   case STATE_CONFIG_READY:
     {
