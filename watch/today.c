@@ -46,13 +46,13 @@ static void onDraw(tContext *pContext)
     sprintf(buf, "%d", ped_get_steps());
     drawItem(pContext, 0, 'y', "Steps Taken", buf);
 
-    sprintf(buf, "%d", ped_get_time());
+    sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
     drawItem(pContext, 1, 'z', "Walk Time", buf);
 
-    sprintf(buf, "%d", ped_get_calorie());
+    sprintf(buf, "%dkcal", ped_get_calorie());
     drawItem(pContext, 2, 'z'+1, "Calorie", buf);
 
-    sprintf(buf, "%d m", ped_get_distance());
+    sprintf(buf, "%dm", ped_get_distance());
     drawItem(pContext, 3, 'z'+2, "Distance", buf);
 
     // draw progress
