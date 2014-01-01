@@ -45,7 +45,7 @@ uart_init(char rate)
   UARTDIR &= ~UARTRXBIT;
 
   TA0CCTL0 = OUT;                                              // Set TXD Idle as Mark = '1'
-  TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
+//  TA0CCTL1 = SCS + OUTMOD0 + CM1 + CAP + CCIE;                           // Sync, Neg Edge, Capture, Int
   TA0CTL = TASSEL_2 + MC_2 + TACLR;                            // SMCLK, start in continuous mode
 
   BitTime = BitTime_57600;
@@ -91,6 +91,7 @@ void uart_sendByte(uint8_t byte)
   uartTxDaTA0 <<= 1;                                          // Add space start bit
 }
 
+#if 0
 extern int protocol_recv(unsigned char dataByte);
 /**
 * ISR for TXD and RXD
@@ -140,7 +141,7 @@ ISR(TIMER0_A1, timer0_a1_interrupt)
   }
   //ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
-
+#endif
 
 //------------------------------------------------------------------------------
 // Timer_A UART - Transmit Interrupt Handler
@@ -172,4 +173,11 @@ ISR(TIMER0_A0, Timer0_A0_ISR)
         txBitCnt--;
     }
     //ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+
+int putchar(int data)
+{
+    uart_sendByte(data);
+    
+    return data;
 }
