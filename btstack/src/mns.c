@@ -118,7 +118,7 @@ static void mns_try_respond(uint16_t rfcomm_channel_id){
     }
     else
     {
-      printf("MNS Sent %d byte: ", size);
+      log_info("MNS Sent %d byte: ", size);
       hexdump(mns_response_buffer, size);
     }
 }
@@ -134,7 +134,7 @@ static void mns_send(void *data, uint16_t length)
 static uint8_t buf[20];
 static void mns_callback(int code, uint8_t* header, uint16_t length)
 {
-  printf("MNS Callback with code %d\n", code);
+  log_info("MNS Callback with code %d\n", code);
   uint8_t *ptr, *handler = NULL;
 
   switch(code)
@@ -152,14 +152,14 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
             memcmp((uint8_t*)header + 3, MNS_TARGET, 16) == 0)
           {
             // send response
-              printf("connection successful\n");
+              log_info("connection successful\n");
               uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xA0, buf);
               ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, 0x123456);
               obex_send_response(&mns_obex, buf, ptr - buf);
           }
           else
           {
-              printf("connection failed\n");
+              log_info("connection failed\n");
               uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xC4, buf);
               obex_send_response(&mns_obex, buf, ptr - buf);
           }
@@ -187,13 +187,13 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
           // mark the end
           //hexdump(header, len);
           header[len+1] = '\0';
-          printf("BODY %s: ", header + 3);
+          log_info("BODY %s: ", header + 3);
           char *start;
           if (!((start = strstr(header + 3, "handle"))
             && (start = strchr(start, '='))
             && (start = strchr(start, '"'))))
           {
-            printf("fail to find start\n");
+            log_info("fail to find start\n");
             break;
           }
           start++;
@@ -206,7 +206,7 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
             mas_getmessage(handler);
           }
           else
-            printf("fail to find end\n");
+            log_info("fail to find end\n");
           break;
         }
 
@@ -214,13 +214,13 @@ static void mns_callback(int code, uint8_t* header, uint16_t length)
         case OBEX_HEADER_TYPE:
         {
           uint16_t len = READ_NET_16((uint8_t*)header, 1);
-          printf("type %x: ", *header);
+          log_info("type %x: ", *header);
           hexdump((uint8_t*)header, len);
           break;
         }
         case OBEX_HEADER_CONNID:
         {
-          printf("connid ");
+          log_info("connid ");
           hexdump((uint8_t*)header + 1, 4);   
           break;
         }
@@ -250,7 +250,7 @@ static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
   switch(packet_type)
   {
   case RFCOMM_DATA_PACKET:
-    printf("MNS received %d bytes: ", size);
+    log_info("MNS received %d bytes: ", size);
     hexdump(packet, size);
     obex_handle(&mns_obex, packet, size);
     rfcomm_grant_credits(rfcomm_channel_id, 1); // get the next packet

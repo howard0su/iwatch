@@ -41,6 +41,7 @@
  */
 
 #include "config.h"
+#define ENABLE_LOG_INFO
 
 #include <stdio.h>
 #include <string.h>
@@ -220,7 +221,6 @@ static void h4_block_received(void){
                     bytes_to_read = HCI_EVENT_HEADER_SIZE;
                     break;
                 case EHCILL_GO_TO_SLEEP_IND:
-                case EHCILL_GO_TO_SLEEP_ACK:
                 case EHCILL_WAKE_UP_IND:
                 case EHCILL_WAKE_UP_ACK:
                     ehcill_handle(hci_packet[0]);
@@ -413,7 +413,7 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_WAKE_UP_IND:
 
                     ehcill_state = EHCILL_STATE_AWAKE;
-                    //log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
+                    log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
                     ehcill_schedule_ecill_command(EHCILL_WAKE_UP_ACK);
                     break;
 
@@ -480,6 +480,7 @@ static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
 
     if (!ehcill_defer_rx_size){
         log_error("ERROR: NO RX REQUEST PENDING\n");
+        hal_uart_dma_receive_block(ehcill_defer_rx_buffer, 1);
         return 0;
     }
 

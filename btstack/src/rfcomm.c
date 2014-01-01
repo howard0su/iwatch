@@ -225,7 +225,7 @@ static uint16_t rfcomm_max_frame_size_for_l2cap_mtu(uint16_t l2cap_mtu){
 
   // single byte can denote len up to 127
   if (max_frame_size > 127) {
-    max_frame_size--;
+    max_frame_size = 127;
   }
 
   log_info("rfcomm_max_frame_size_for_l2cap_mtu:  %u -> %u\n", l2cap_mtu, max_frame_size);
@@ -816,7 +816,10 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
     multiplexer = rfcomm_multiplexer_for_l2cap_cid(l2cap_cid);
     if (!multiplexer) break;
     switch (multiplexer->state) {
+    case RFCOMM_MULTIPLEXER_W4_CONNECT:
+    case RFCOMM_MULTIPLEXER_SEND_SABM_0:
     case RFCOMM_MULTIPLEXER_W4_SABM_0:
+    case RFCOMM_MULTIPLEXER_SEND_UA_0:
     case RFCOMM_MULTIPLEXER_W4_UA_0:
     case RFCOMM_MULTIPLEXER_OPEN:
       rfcomm_multiplexer_finalize(multiplexer);

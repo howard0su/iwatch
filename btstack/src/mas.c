@@ -48,8 +48,8 @@ static void mas_try_respond(uint16_t rfcomm_channel_id){
     }
     else
     {
-      printf("MAS Sent %d byte: ", size);
-      hexdump(mas_response_buffer, size);
+      //printf("MAS Sent %d byte: ", size);
+      //hexdump(mas_response_buffer, size);
     }
 }
 
@@ -127,7 +127,7 @@ static void mas_getmessage_internal(int first)
 
 void mas_getmessage(char* id)
 {
-  printf("get message for %s\n", id);
+  //printf("get message for %s\n", id);
 
   if (handler_size != 0)
   {
@@ -249,13 +249,13 @@ static void msg_getcontent(char *buf, int len)
     state = STATE_GETCONTENTEND;
   }
 
-  printf("%d %s\n", content_type, title);
+  //printf("%d %s\n", content_type, title);
 }
 
 
 static void mas_callback(int code, uint8_t* header, uint16_t length)
 {
-  printf("Mas Callback with code %d\n", code);
+  //printf("Mas Callback with code %d\n", code);
  
   if (code == OBEX_RESPCODE_CONNECTED)
   {
