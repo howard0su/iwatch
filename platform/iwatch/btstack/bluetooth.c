@@ -405,7 +405,7 @@ static void btstack_setup(){
   bt_control_cc256x_enable_ehcill(1);
 
   // lower the init power
-  bt_control_cc256x_set_power(-40);
+  // bt_control_cc256x_set_power(-40);
 
   // init L2CAP
   l2cap_init();

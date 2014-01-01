@@ -277,7 +277,7 @@ void obex_connect_request(const struct obex* obex, const uint8_t *target, uint8_
   if (obex->state->state != INIT)
     return;
 
-  ptr = obex_create_connect_request(obex, 0x80, buf);
+  ptr = obex_create_connect_request(obex, OBEX_OP_CONNECT, buf);
 
   if (target != NULL)
   {

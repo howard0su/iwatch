@@ -7,7 +7,10 @@
 #include "sdp.h"
 #include "obex.h"
 #include <btstack/sdp_util.h>
+#include <btstack/utils.h>
+#include <string.h>
 
+#include "window.h"
 /*
  * MAS implementation
  * Connect, EnableNotification
@@ -59,20 +62,45 @@ const static char type_notify[] = "x-bt/MAP-NotificationRegistration";
 const static uint8_t appparams_getmessage[] = 
 {
   0x0a, 0x01, 0x00, // Attachment
-  0x14, 0x01, 0x01, //Charset
+  0x14, 0x01, 0x00, //Charset
   0x15, 0x01, 0x00,//FractionRequest
 };
 
 const static uint8_t appparams_getmessage_next[] = 
 {
   0x0a, 0x01, 0x00, // Attachment
-  0x14, 0x01, 0x01, //Charset
+  0x14, 0x01, 0x00, //Charset
   0x15, 0x01, 0x01,//FractionRequest
 };
 
 const static char type_getmessage[] = "x-bt/message";
 
 static uint8_t mas_buf[100];
+
+/*
+ * Parse content-type = x-bt/message
+ */
+static const char BEGINMSG[] = "BEGIN:MSG\r\n";
+static const char BEGINTYPE[] = "TYPE:";
+static const char BEGINFN[] = "FN;CHARSET=UTF-8:";
+static const char END[] = "\r\n";
+static char content[220];
+static char title[20];
+static uint8_t content_type, content_size;
+
+#define ICON_FACEBOOK 's'
+#define ICON_TWITTER  't'
+#define ICON_MSG      'u'
+
+static enum {
+  STATE_INIT,
+//  STATE_GETTYPE,
+  STATE_GETFROM,
+  STATE_GETCONTENTSTART,
+  STATE_GETCONTENTEND,
+
+  STATE_ERROR
+}state;
 
 static void mas_send(void *data, uint16_t length)
 {
@@ -97,7 +125,6 @@ static void mas_getmessage_internal(int first)
   obex_send_request(&mas_obex, mas_buf, ptr - mas_buf);  
 }
 
-
 void mas_getmessage(char* id)
 {
   printf("get message for %s\n", id);
@@ -115,14 +142,116 @@ void mas_getmessage(char* id)
   }
 
   handler_size = i;
+  state = STATE_INIT;
   mas_getmessage_internal(1);
 }
 
 
-static void mas_parse_x_bt_message(char *buf)
-{
 
+
+static void msg_gettype(char* buf)
+{
+  content[0] = 0;
+  content_size = sizeof(content) - 1;
+
+  // identify the type
+  char* start = strstr(buf, BEGINTYPE);
+  char* end = strstr(start, END);
+
+  if (start == NULL || end == NULL)
+  {
+    state = STATE_ERROR;
+    printf("didn't find end of type\n");
+    return;
+  }
+
+  if (strncmp(start + sizeof(BEGINTYPE) - 1, "SMS", 3) == 0)
+  {
+    content_type = ICON_MSG;
+  }
+  else
+    content_type = 0;
+
+//  state = STATE_GETTYPE;
+
+// assume this must be in same package
+  start = strstr(end, BEGINFN);
+  end = strstr(start, END);
+
+  if (start == NULL || end == NULL)
+  {
+    state = STATE_ERROR;
+    printf("didn't find end of FN\n");
+    return;
+  }
+
+  start += sizeof(BEGINFN) - 1;
+
+  size_t size;
+  if (end - start < sizeof(title) - 1)
+    size = end - start;
+  else
+    size = sizeof(title) - 1;
+
+
+  memcpy(title, start, size);
+  title[size] = 0;
+
+  state = STATE_GETFROM;
 }
+
+static void msg_getcontent(char *buf, int len)
+{
+  char* start;
+  char* stop;
+  if (state == STATE_GETCONTENTSTART)
+  {
+    start = buf;
+    stop = strstr(start, "END:MSG");
+    if (stop != NULL)
+    {
+      state = STATE_GETCONTENTEND;
+      *stop = '\0';
+    }
+  }
+  else
+  {
+    start = strstr(buf, BEGINMSG);
+    int length;
+    if (start == NULL)
+      return;
+    state = STATE_GETCONTENTSTART;
+
+    stop = strstr(start, "END:MSG");
+    if (stop != NULL)
+    {
+      state = STATE_GETCONTENTEND;
+      *stop = '\0';
+    }
+    else
+    {
+      stop = buf + len;
+    }
+    start += sizeof(BEGINMSG) - 1;
+  }
+
+  size_t size;
+  if (stop - start < content_size)
+    size = stop - start;
+  else
+    size = content_size;
+
+  strncat(content, start, size);
+  content_size -= size;
+
+  if (content_size < 0)
+  {
+    state = STATE_GETCONTENTEND;
+  }
+
+  printf("%d %s\n", content_type, title);
+}
+
 
 static void mas_callback(int code, uint8_t* header, uint16_t length)
 {
@@ -161,8 +290,24 @@ static void mas_callback(int code, uint8_t* header, uint16_t length)
         case OBEX_HEADER_BODY:
         case OBEX_HEADER_ENDBODY:
         {
-          printf("BODY: %s", header + 3);
-          mas_parse_x_bt_message(header + 3);
+          uint16_t len = READ_NET_16(header, 1);
+          //printf("====>%s", header + 3);
+          header[len] = '\0';
+          switch (state)
+          {
+            case STATE_INIT:
+              msg_gettype(header + 3);
+              if (state != STATE_GETFROM)
+                break;
+              // fallthrough
+            case STATE_GETFROM:
+            case STATE_GETCONTENTSTART:
+              msg_getcontent(header+3, len - 3);
+              break;
+
+            default:
+              break;
+          }
           break;
         }
 
@@ -170,29 +315,34 @@ static void mas_callback(int code, uint8_t* header, uint16_t length)
         case OBEX_HEADER_TYPE:
         {
           uint16_t len = READ_NET_16((uint8_t*)header, 1);
-          printf("type %x: ", *header);
-          hexdump((uint8_t*)header, len);
+          //printf("type %x: ", *header);
+          //hexdump((uint8_t*)header, len);
           break;
         }
         case OBEX_HEADER_CONNID:
         {
-          printf("connid ");
-          hexdump((uint8_t*)header + 1, 4);   
+          //printf("connid ");
+          //hexdump((uint8_t*)header + 1, 4);   
           break;
         }
       }
       header = obex_header_get_next(header, &length);
     }
   
-    if (code == (OBEX_RESPCODE_CONTINUE | OBEX_OP_FINAL))
-    {
-      // send next request
-      mas_getmessage_internal(0);
-    }
-    else if (code == (OBEX_RESPCODE_OK | OBEX_OP_FINAL))
+   if ((code == (OBEX_RESPCODE_OK | OBEX_OP_FINAL)) || (state == STATE_GETCONTENTEND))
     {
       // done with the message
       handler_size = 0;
+
+      if (state == STATE_GETCONTENTEND)
+      {
+        window_notify(title, content, 0, content_type);
+      }
+    }
+    else if (code == (OBEX_RESPCODE_CONTINUE | OBEX_OP_FINAL))
+    {
+      // send next request
+      mas_getmessage_internal(0);
     }
   }
 }
@@ -202,8 +352,8 @@ static void mas_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
   switch(packet_type)
   {
   case RFCOMM_DATA_PACKET:
-    printf("MAS received: ");
-    hexdump(packet, size);
+//    printf("MAS received: ");
+//    hexdump(packet, size);
     obex_handle(&mas_obex, packet, size);
     rfcomm_grant_credits(rfcomm_channel_id, 1); // get the next packet
     break;

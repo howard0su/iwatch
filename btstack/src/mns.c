@@ -36,7 +36,7 @@ static const struct obex mns_obex =
 static uint16_t mns_response_size;
 static void*    mns_response_buffer;
 
-enum {STATE_0} state;
+static enum {STATE_0} state;
 
 static const uint8_t MNS_TARGET[16] =
 {
@@ -340,6 +340,3 @@ int mns_init()
   rfcomm_register_service_internal(NULL, mns_packet_handler, MNS_CHANNEL, 0xffff);
   return 0;
 }
-
-
-
