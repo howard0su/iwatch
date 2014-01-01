@@ -79,7 +79,7 @@ static const uint16_t config[] =
 //17
   0xFFFF, // skip 1
 //18    19
-  0x32, 0x00, // DAC Limiter
+  0x32, 0x08, // DAC Limiter
 //1a
   0xFFFF, // skip 1
 //1b   1c   1d   1e
@@ -134,7 +134,6 @@ void codec_suspend()
   NSPKEN[6]
   PSPKEN[5]
   */
-  printf("codec_shutdown\n");
   SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
   power_unpin(MODULE_CODEC);
 
@@ -150,8 +149,9 @@ void codec_suspend()
 uint8_t codec_changevolume(int8_t diff)
 {
   uint8_t current;
-  current = codec_getvolume();
-  current += diff;
+  current = codec_getvolume();  
+  if (!(current == 0 && diff < 0))
+    current += diff;
   codec_setvolume(current);
 
   return current;
@@ -161,10 +161,10 @@ uint8_t codec_changevolume(int8_t diff)
 void codec_setvolume(uint8_t level)
 {
   if (level > 8) level = 8;
-
+  if (level == 0) level = 1;
   uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
   value &= ~0x3F;
-  value |= (53 + level) & 0x3F;
+  value |= ((level * 8 - 1) & 0x3F);
 
   I2C_addr(CODEC_ADDRESS);
   codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
@@ -178,15 +178,11 @@ uint8_t codec_getvolume()
   I2C_addr(CODEC_ADDRESS);
   value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
   I2C_done();
-  if ((value & 0x3F) < 53)
-    return 0;
-  else
-    return ((value & 0x3F) - 53);
+  return ((value & 0x3F) + 1) / 8;
 }
 
 void codec_wakeup()
 {
-  printf("codec_wakeup\n");
   SMCLKSEL |= SMCLKBIT;     // output SMCLK
   power_pin(MODULE_CODEC);
 
@@ -197,7 +193,6 @@ void codec_wakeup()
 
   codec_write(REG_CLK_GEN_CTRL, config[REG_CLK_GEN_CTRL]);
   I2C_done();
-  printf("code_wakeup done\n");
 }
 
 void codec_init()

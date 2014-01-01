@@ -109,7 +109,7 @@ void window_notify(const char* title, const char* msg, uint8_t buttons, char ico
   message = msg;
   message_buttons = buttons;
   message_icon = icon;
-  motor_on(200, CLOCK_SECOND);
+  motor_on(50, CLOCK_SECOND);
 
   if (window_current() == notify_process)
     window_invalid(NULL);

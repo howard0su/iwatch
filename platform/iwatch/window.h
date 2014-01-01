@@ -107,8 +107,10 @@ extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam);
 
-#define UI_CONFIG_SIGNATURE 0xAAADFACE
+#define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {
   uint32_t signature;
   uint16_t goal_steps;
@@ -153,6 +155,8 @@ typedef struct {
   uint8_t gesture_map[4];
   // 90 bytes
 
+  uint8_t volume_level;
+  uint8_t light_level;
 
 }ui_config;
 

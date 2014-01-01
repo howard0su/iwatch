@@ -25,6 +25,13 @@
 
 static uint8_t state;
 
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #define STATE_X 10
 #define STATE_Y 38
 
@@ -129,12 +136,12 @@ void handle_av_events(uint16_t lparam, void* rparam)
         state = (int)rparam;
         if (state == AVRCP_PLAY_STATUS_PLAYING)
         {
-          printf("enable timer\n");
+          PRINTF("enable timer\n");
           window_timer(CLOCK_SECOND);
         }
         else
         {
-          printf("disable timer :%d\n", state);
+          PRINTF("disable timer :%d\n", state);
           window_timer(0);
         }
         break;
@@ -148,11 +155,11 @@ void handle_av_events(uint16_t lparam, void* rparam)
         break;
     case EVENT_AV_LENGTH:
         length = (uint16_t)((uint32_t)rparam/1000);
-        printf("length set to %d\n", length);
+        PRINTF("length set to %d\n", length);
         break;
     case EVENT_AV_POS:
         position = (uint16_t)((uint32_t)rparam/1000);
-        printf("position set to %d\n", position);
+        PRINTF("position set to %d\n", position);
         break;
     case EVENT_AV_TRACK:
         position = 0;

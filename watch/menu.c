@@ -34,6 +34,8 @@
 #define DATA_VERSION 0xF5
 #define DATA_BTADDR 0xF6
 #define DATA_LEGAL 0xF7
+#define DATA_LIGHT 0xF8
+#define DATA_VOL  0xF9
 #define NO_DATA   0xFF
 
 struct MenuItem
@@ -47,9 +49,11 @@ static const struct MenuItem SetupMenu[] =
 {
   {DATA_DATE, "Date", &configdate_process},
   {DATA_TIME, "Time", &configtime_process},
+  {DATA_LIGHT, "Back Light", &configlight_process},
+  {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
   {NO_DATA, "Upgrade Firmware", &upgrade_process},
-  {NO_DATA, "Shutdown", &shutdown_process},
+//  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
 
@@ -178,11 +182,15 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       case DATA_VERSION:
       strcpy(buf, "1.0.0.1");
       break;
+      case DATA_LIGHT:
+      sprintf(buf, "%d", window_readconfig()->light_level);
+      break;
+      case DATA_VOL:
+      sprintf(buf, "%d", window_readconfig()->volume_level);
+      break;
       case DATA_BTADDR:
       {
-      uint8_t serial[6];
-      system_getserial(serial);
-      sprintf(buf, "%02X%02X%02X%02X%02X%02X", serial[0], serial[1],serial[2],serial[3],serial[4],serial[5]);
+      sprintf(buf, "%s", bluetooth_address());
       break;
       }
       default:

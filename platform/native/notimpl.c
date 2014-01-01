@@ -219,3 +219,5 @@ uint16_t __swap_bytes(uint16_t d)
 
   return d;
 }
+
+void codec_setvolume(int a) {}
