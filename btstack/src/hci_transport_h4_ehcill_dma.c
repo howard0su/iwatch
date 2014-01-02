@@ -41,7 +41,6 @@
  */
 
 #include "config.h"
-#define ENABLE_LOG_INFO
 
 #include <stdio.h>
 #include <string.h>
@@ -175,7 +174,6 @@ static int h4_open(void *transport_config){
 	hal_uart_dma_init();
     hal_uart_dma_set_block_received(h4_block_received);
     hal_uart_dma_set_block_sent(h4_block_sent);
-    hal_uart_dma_set_csr_irq_handler(ehcill_cts_irq_handler);
 
 	// set up data_source
     run_loop_add_data_source(&hci_transport_h4_dma_ds);
@@ -382,7 +380,8 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_GO_TO_SLEEP_IND:
 
                     // 1. set RTS high - already done by BT RX ISR
-                    // 2. enable CTS   - CTS always enabled
+                    // 2. enable CTS
+					hal_uart_dma_set_csr_irq_handler(ehcill_cts_irq_handler);
 
                     ehcill_state = EHCILL_STATE_SLEEP;
                     //log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
@@ -399,10 +398,12 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_CTS_SIGNAL:
 
                     // re-activate rx (also clears RTS)
-                    if (!ehcill_defer_rx_size) break;
+					hal_uart_dma_set_csr_irq_handler(NULL);
+
+					if (!ehcill_defer_rx_size) break;
 
                     // UART needed again
-                    hal_uart_dma_set_sleep(0);
+					hal_uart_dma_set_sleep(0);
 
                     //log_info ("Re-activate rx\n");
                     size = ehcill_defer_rx_size;
@@ -474,6 +475,8 @@ static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
 
     // wake up
     log_info("RX: SLEEP\n");
+	hal_uart_dma_set_csr_irq_handler(NULL);
+
     log_info("TX: EHCILL_WAKE_UP_IND\n");
     ehcill_command_to_send = EHCILL_WAKE_UP_IND;
     hal_uart_dma_send_block(&ehcill_command_to_send, 1);

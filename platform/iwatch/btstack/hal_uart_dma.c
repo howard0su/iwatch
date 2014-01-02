@@ -61,6 +61,7 @@ void hal_uart_dma_init(void)
   // set BT CTS
   BT_CTS_SEL &= ~BT_CTS_BIT;  // = 0 - I/O
   BT_CTS_DIR &= ~BT_CTS_BIT;  // = 0 - Input
+  BT_CTS_IES &= ~BT_CTS_BIT;  // IRQ on 0->1 transition
 
   UCA0CTL1 |= UCSWRST;              //Reset State
 
@@ -135,14 +136,14 @@ void hal_uart_dma_set_block_sent( void (*the_block_handler)(void)){
 void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
   if (the_irq_handler){
     BT_CTS_IFG  &=  ~BT_CTS_BIT;     // no IRQ pending
-    BT_CTS_IES &= ~BT_CTS_BIT;  // IRQ on 0->1 transition
     BT_CTS_IE  |=  BT_CTS_BIT;  // enable IRQ for P1.3
-    cts_irq_handler = the_irq_handler;
-    return;
+  }
+  else
+  {
+    BT_CTS_IE &= ~BT_CTS_BIT;
   }
 
-  BT_CTS_IE &= ~BT_CTS_BIT;
-  cts_irq_handler = NULL;
+  cts_irq_handler = the_irq_handler;
 }
 
 /**********************************************************************/
