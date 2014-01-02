@@ -67,7 +67,7 @@ BATTERY_STATE battery_state(void)
 // map battery level to 0-15 scale
 const uint8_t curve[] = 
 {
-  189, 196, 199, 201, 203, 205, 206, 207, 209, 210, 211, 212, 213, 213, 214, 214
+  183, 185, 187, 189, 190, 191, 192, 193, 194, 195, 198, 200, 204, 207, 209, 212
 };
 
 /* return battery level from 0 - 15 */
