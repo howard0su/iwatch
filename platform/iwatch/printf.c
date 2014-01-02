@@ -88,9 +88,12 @@ int printf(const char *format, ...)
                     break;
                 case 'd':
                 case 'i':                       // 16 bit Integer
-                case 'u':                       // 16 bit Unsigned
                     i = va_arg(a, int);
-                    if(c == 'i' && i < 0) i = -i, putchar('-');
+                    if(i < 0) i = -i, putchar('-');
+                    xtoa((unsigned)i, dv + 5);
+                    break;
+                case 'u':                       // 16 bit Unsigned
+                    i = va_arg(a, unsigned int);
                     xtoa((unsigned)i, dv + 5);
                     break;
                 case 'l':                       // 32 bit Long
@@ -115,8 +118,15 @@ int printf(const char *format, ...)
                     puth(i >> 4, *format);
                     puth(i, *format);
                     break;
-                case 0: return 0;
-                default: goto bad_fmt;
+                case 0: 
+                    return 0;
+                default: 
+                    if (c > '0' && c <= '9')
+                    {
+                        len = c - '0';
+                        goto retry;
+                    }
+                goto bad_fmt;
             }
         } else
 bad_fmt:    putchar(c);
