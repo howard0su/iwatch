@@ -264,12 +264,12 @@ static uint16_t handle_exchange_mtu_request(att_connection_t * att_connection, u
 //
 static uint16_t handle_find_information_request2(uint8_t * response_buffer, uint16_t response_buffer_size,
                                            uint16_t start_handle, uint16_t end_handle){
-    
+   
     printf("ATT_FIND_INFORMATION_REQUEST: from %04X to %04X\n", start_handle, end_handle);
-    
+   
     uint16_t offset   = 1;
-    uint16_t pair_len = 0;
-    
+    uint16_t uuid_len = 0;
+   
     att_iterator_t it;
     att_iterator_init(&it);
     while (att_iterator_has_next(&it)){
@@ -277,50 +277,45 @@ static uint16_t handle_find_information_request2(uint8_t * response_buffer, uint
         if (!it.handle) break;
         if (it.handle > end_handle) break;
         if (it.handle < start_handle) continue;
-        
-        att_update_value_len(&it);
-        
+               
         // printf("Handle 0x%04x\n", it.handle);
-        
-        // check if value has same len as last one
-        uint16_t this_pair_len = 2 + it.value_len;
+       
+        uint16_t this_uuid_len = (it.flags & ATT_PROPERTY_UUID128) ? 16 : 2;
+
+        // check if value has same len as last one if not first result
         if (offset > 1){
-            if (pair_len != this_pair_len) {
+            if (this_uuid_len != uuid_len) {
                 break;
             }
         }
-        
+
         // first
         if (offset == 1) {
-            pair_len = this_pair_len;
-            if (it.value_len == 2) {
-                response_buffer[offset] = 0x01; // format
-            } else {
-                response_buffer[offset] = 0x02;
-            }
+            uuid_len = this_uuid_len;
+            // set format field
+            response_buffer[offset] = (it.flags & ATT_PROPERTY_UUID128) ? 0x02 : 0x01;
             offset++;
         }
-        
+       
         // space?
-        if (offset + pair_len > response_buffer_size) {
-            if (offset > 2) break;
-            it.value_len = response_buffer_size - 4;
-        }
-        
+        if (offset + 2 + uuid_len > response_buffer_size) break;
+       
         // store
         bt_store_16(response_buffer, offset, it.handle);
         offset += 2;
-        uint16_t bytes_copied = att_copy_value(&it, 0, response_buffer + offset, it.value_len);
-        offset += bytes_copied;
+
+        memcpy(response_buffer + offset, it.uuid, uuid_len);
+        offset += uuid_len;
     }
-    
+   
     if (offset == 1){
         return setup_error_atribute_not_found(response_buffer, ATT_FIND_INFORMATION_REQUEST, start_handle);
     }
-    
+   
     response_buffer[0] = ATT_FIND_INFORMATION_REPLY;
     return offset;
 }
+
 
 static uint16_t handle_find_information_request(uint8_t * request_buffer,  uint16_t request_len,
                                          uint8_t * response_buffer, uint16_t response_buffer_size){
