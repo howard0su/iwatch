@@ -110,6 +110,7 @@ uint16_t calc_step_len(uint16_t interval, uint8_t height)
       dist = height * 6 / 5;
     }
 
+    printf("speed= %d\n", dist * SAMPLE_HZ / interval);
     sendinformation(dist * SAMPLE_HZ / interval);
     return dist;
 }
@@ -118,7 +119,7 @@ static void increasestep(uint16_t interval)
 {
   step_cnt++;
 
-//uint32_tuint32_t  if (interval < SAMPLE_HZ * 2)
+  if (interval < SAMPLE_HZ * 2)
   {
     ui_config* config = window_readconfig();
     step_time += interval;
@@ -131,6 +132,7 @@ static void increasestep(uint16_t interval)
 
 char ped_update_sample(int16_t *data)
 {
+#if 0
   static int16_t window[4][3];
   static uint8_t lastptr;
 
@@ -144,7 +146,7 @@ char ped_update_sample(int16_t *data)
   data[0] = window[0][0] + window[1][1] + window[2][0] + window[3][0];
   data[1] = window[0][1] + window[1][1] + window[2][1] + window[3][1];
   data[2] = window[0][2] + window[1][2] + window[2][2] + window[3][2];
-
+#endif
   uint32_t total = totalaccel(data);
   uint16_t threshold = filter2(total);
   
@@ -154,7 +156,7 @@ char ped_update_sample(int16_t *data)
 
   interval++;
   
-  if (threshold < 20)
+  if (threshold < 100)
   {
     return 1;
   } 

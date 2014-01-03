@@ -83,7 +83,7 @@ void mpu6050_init()
   if (mpu_set_sensors(INV_XYZ_ACCEL))
     goto error;
   
-  if (mpu_set_accel_fsr(16))
+  if (mpu_set_accel_fsr(4))
     goto error;
   
 //  if (mpu_lp_accel_mode(40))
