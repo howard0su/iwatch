@@ -190,11 +190,7 @@ void l2cap_hand_out_credits(void){
     linked_item_t *it;
     for (it = (linked_item_t *) l2cap_channels; it ; it = it->next){
         l2cap_channel_t * channel = (l2cap_channel_t *) it;
-        hci_connection_t * conn = connection_for_handle( channel->handle );
-        if (conn == NULL)
-            continue;
-
-        if (!hci_number_free_acl_slots(conn->type)) return;
+        if (!hci_number_free_acl_slots(ISBLEHANDLE(channel->handle))) return;
 
         if (channel->state != L2CAP_STATE_OPEN) continue;
         if (hci_number_outgoing_packets(channel->handle) < NR_BUFFERED_ACL_PACKETS && channel->packets_granted == 0) {

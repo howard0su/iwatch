@@ -232,21 +232,23 @@ uint8_t hci_number_free_acl_slots(int type ){
     uint8_t free_slots;
     linked_item_t *it;
 
-    if (type == 1)
+    if (!type)
         free_slots = hci_stack.total_num_acl_packets;
-    else if (type == 3)
-    {
-        free_slots = hci_stack.total_num_le_packets;
-    }
     else
-    {
-        log_error("undefined connection type: %d\n", type);
-    }
+        free_slots = hci_stack.total_num_le_packets;
 
     for (it = (linked_item_t *) hci_stack.connections; it ; it = it->next){
         hci_connection_t * connection = (hci_connection_t *) it;
-        if (connection->type != type)
-            continue;
+        if (!type)
+        {
+            if (connection->con_handle > 1024) // if (rquest ble && it is ble)
+                continue;
+        }
+        else
+        {
+            if (connection->con_handle <= 1024)
+                continue;
+        }
 
         if (free_slots < connection->num_acl_packets_sent) {
             log_error("hci_number_free_acl_slots: sum of outgoing packets > total acl packets!\n");
@@ -269,7 +271,7 @@ int hci_can_send_packet_now(uint8_t packet_type){
     // check regular Bluetooth flow control
     switch (packet_type) {
         case HCI_ACL_DATA_PACKET:
-            return hci_number_free_acl_slots(1) || hci_number_free_acl_slots(3);
+            return ((hci_number_free_acl_slots(0) > 0) || (hci_number_free_acl_slots(1) > 0));
         case HCI_COMMAND_DATA_PACKET:
             return hci_stack.num_cmd_packets;
         default:
@@ -279,6 +281,12 @@ int hci_can_send_packet_now(uint8_t packet_type){
 
 int hci_send_acl_packet(uint8_t *packet, int size){
     hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
+    if (!hci_number_free_acl_slots(con_handle > 1024)) 
+    {
+        log_info("hci_send_acl_packet - BTSTACK_ACL_BUFFERS_FULL\n");
+        return BTSTACK_ACL_BUFFERS_FULL;
+    }
+
     hci_connection_t *connection = connection_for_handle( con_handle);
     // check for free places on BT module
     if (!connection) 
@@ -286,13 +294,6 @@ int hci_send_acl_packet(uint8_t *packet, int size){
         log_info("hci_send_acl_packet - connection not found\n");
         return 0;
     }
-
-    if (!hci_number_free_acl_slots(connection->type)) 
-    {
-        log_info("hci_send_acl_packet - BTSTACK_ACL_BUFFERS_FULL\n");
-        return BTSTACK_ACL_BUFFERS_FULL;
-    }
-
     hci_connection_timestamp(connection);
 
     // count packet
@@ -322,6 +323,10 @@ static void acl_handler(uint8_t *packet, int size){
         return;
     }
 
+    if (acl_length + 4 != size){
+         log_error("hci.c: acl_handler called with ACL packet of wrong size %u, expected %u => dropping packet\n", size, acl_length + 4);
+         return;
+    }
     // update idle timestamp
     hci_connection_timestamp(conn);
 
@@ -776,7 +781,7 @@ static void event_handler(uint8_t *packet, int size){
                     log_info("LE Connection_complete (status=%u) %s\n", packet[3], bd_addr_to_str(addr));
                     // LE connections are auto-accepted, so just create a connection if there isn't one already
                     // TODO: if BLE only support ACL? Need confirm
-                    conn = connection_for_address(addr, 3);
+                    conn = connection_for_address(addr, 1);
                     if (packet[3]){
                         if (conn){
                             // outgoing connection failed, remove entry
@@ -791,7 +796,7 @@ static void event_handler(uint8_t *packet, int size){
                         break;
                     }
                     if (!conn){
-                        conn = create_connection_for_addr(addr, 3);
+                        conn = create_connection_for_addr(addr, 1);
                     }
                     if (!conn){
                         // no memory

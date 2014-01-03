@@ -370,10 +370,12 @@ int hci_send_acl_packet(uint8_t *packet, int size);
 
 // non-blocking UART driver needs
 int hci_can_send_packet_now(uint8_t packet_type);
-    
+
+#define ISBLEHANDLE(handle) (handle > 1024)
+
 hci_connection_t * connection_for_handle(hci_con_handle_t con_handle);
 uint8_t  hci_number_outgoing_packets(hci_con_handle_t handle);
-uint8_t  hci_number_free_acl_slots(int connectiontype); // 1-> acl, 3 -> le
+uint8_t  hci_number_free_acl_slots(int isble); // 0-> BR, 1 -> ble
 int      hci_authentication_active_for_handle(hci_con_handle_t handle);
 void     hci_drop_link_key_for_bd_addr(bd_addr_t *addr);
 uint16_t hci_max_acl_data_packet_length(void);
