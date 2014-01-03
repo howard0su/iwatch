@@ -94,7 +94,7 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
 static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
 
     printf("ATT Read Handle: 0x%4x, size:%d\n", handle, buffer_size);
-    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
+    return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
 }
 
 
