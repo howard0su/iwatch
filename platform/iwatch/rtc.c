@@ -3,6 +3,7 @@
 #include "isr_compat.h"
 #include "rtc.h"
 #include "window.h"
+#include "btstack/include/btstack/utils.h"
 
 PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
@@ -213,6 +214,95 @@ void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday
   if (month) *month = RTCMON;
   if (day) *day = RTCDAY;
   if (weekday) *weekday = RTCDOW;
+}
+
+static const uint8_t month_day_map[] = {
+    31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+};
+uint32_t calc_timestamp(uint8_t year, uint8_t month, uint8_t day, uint8_t hh, uint8_t mm, uint8_t ss)
+{
+    uint8_t leap_years = year / 4 + 1;
+    if (year % 4 == 0 && month < 2)
+        leap_years -= 1;
+
+    uint32_t days = year * 365 + leap_years;
+    for (uint8_t i = 0; i < month - 1; ++i)
+        days += month_day_map[i];
+    days += day;
+    return ((days * 24 + hh) * 60 + mm) * 60 + ss;
+
+}
+
+void parse_timestamp(uint32_t time, uint8_t* year, uint8_t* month, uint8_t* day, uint8_t* hh, uint8_t* mm, uint8_t* ss)
+{
+    uint32_t temp = 0;
+
+    *ss = time % 60;
+    temp = time / 60;
+
+    *mm = temp % 60;
+    temp = temp / 60;
+
+    *hh = temp % 24;
+    temp = temp / 24;
+
+    uint16_t total_day = temp;
+    uint8_t tyear = 0;
+    while(1)
+    {
+        if (tyear % 4 == 0)
+        {
+            if (total_day >= 366)
+                total_day -= 366;
+            else
+                break;
+        }
+        else
+        {
+            if (total_day >= 365)
+                total_day -= 365;
+            else
+                break;
+        }
+        tyear++;
+    }
+
+    uint8_t i = 0;
+    for (; i < count_elem(month_day_map); ++i)
+    {
+        if (tyear % 4 == 0 && i == 1)
+        {
+            if (total_day < month_day_map[i] + 1)
+                break;
+            total_day -= month_day_map[i] + 1;
+        }
+        else
+        {
+            if (total_day < month_day_map[i])
+                break;
+            total_day -= month_day_map[i];
+        }
+    }
+
+    *year  = tyear;
+    *month = i + 1;
+    *day   = total_day;
+
+}
+
+uint32_t rtc_readtime32()
+{
+    uint16_t year  = 0;
+    uint8_t  month = 0;
+    uint8_t  day   = 0;
+    uint8_t  wday  = 0;
+    rtc_readdate(&year, &month, &day, &wday);
+
+    uint8_t  hour  = 0;
+    uint8_t  min   = 0;
+    uint8_t  sec   = 0;
+    rtc_readtime(&hour, &min, &sec);
+    return calc_timestamp(year - 2000, month, day, hour, min, sec);
 }
 
 void rtc_enablechange(uint8_t changes)
