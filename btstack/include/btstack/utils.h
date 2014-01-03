@@ -122,6 +122,7 @@ uint8_t crc8_calc(uint8_t *data, uint16_t len);
 #define BD_ADDR_COPY(dest,src) memcpy(dest,src,BD_ADDR_LEN)
 
 #define htons(x) __swap_bytes(x)
+#define count_elem(arr) (sizeof(arr)/sizeof(arr[0]))
 
 #if defined __cplusplus
 }

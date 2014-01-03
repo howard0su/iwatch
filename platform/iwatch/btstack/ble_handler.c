@@ -20,8 +20,8 @@ static const ble_handle_t s_ble_handle_table[] = {
     DEF_BLE_HANDLE("fff8", BLE_HANDLE_SPORTS_DATA,       BLE_HANDLE_TYPE_INT32_ARR, 5),
     DEF_BLE_HANDLE("fff9", BLE_HANDLE_SPORTS_DESC,       BLE_HANDLE_TYPE_INT32_ARR, 2),
     DEF_BLE_HANDLE("ff10", BLE_HANDLE_DEVICE_ID,         BLE_HANDLE_TYPE_INT32_ARR, 1),
-    DEF_BLE_HANDLE("ff11", BLE_HANDLE_FILE_DESC,         BLE_HANDLE_TYPE_STRING,    32),
-    DEF_BLE_HANDLE("ff12", BLE_HANDLE_FILE_DATA,         BLE_HANDLE_TYPE_INT8_ARR,  80),
+    DEF_BLE_HANDLE("ff11", BLE_HANDLE_FILE_DESC,         BLE_HANDLE_TYPE_STRING,    20),
+    DEF_BLE_HANDLE("ff12", BLE_HANDLE_FILE_DATA,         BLE_HANDLE_TYPE_INT8_ARR,  20),
     DEF_BLE_HANDLE("ff13", BLE_HANDLE_GPS_INFO,          BLE_HANDLE_TYPE_INT16_ARR, 4),
     DEF_BLE_HANDLE("ff14", BLE_HANDLE_CONF_GESTURE,      BLE_HANDLE_TYPE_INT8_ARR,  5),
     DEF_BLE_HANDLE("ff15", BLE_HANDLE_CONF_WORLDCLOCK_0, BLE_HANDLE_TYPE_STRING,    10 + 4),
@@ -108,6 +108,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
     {
         case BLE_HANDLE_TEST_READ:
         case BLE_HANDLE_TEST_WRITE:
+            printf("BLE Test Characteristic\n");
             if (mode == ATT_HANDLE_MODE_READ)
                 buffer[0] = s_test;
             else
@@ -193,9 +194,10 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         case BLE_HANDLE_ALARM_0:
         case BLE_HANDLE_ALARM_1:
         case BLE_HANDLE_ALARM_2:
+            printf("Set Alarm()\n");
             if (mode == ATT_HANDLE_MODE_READ)
             {
-                memset(buffer, 0, buffer_size);
+                memset(buffer, 0, buffer_size); //no way read them back so far
             }
             else
             {
@@ -366,11 +368,17 @@ uint8_t get_type_unit_size(uint8_t type)
 
 const ble_handle_t* get_ble_handle(uint16_t handle)
 {
-    uint16_t offset = (handle - s_ble_handle_table[0].handle) / 2;
-    if (offset < sizeof(s_ble_handle_table) / sizeof(s_ble_handle_table[0]))
-        return &s_ble_handle_table[offset];
-    else
-        return NULL;
+    for (uint8_t i = 0; i < sizeof(s_ble_handle_table)/sizeof(s_ble_handle_table[0]); ++i)
+    {
+        if (s_ble_handle_table[i].handle == handle)
+            return &s_ble_handle_table[i];
+    }
+    return NULL;
+    //uint16_t offset = (handle - s_ble_handle_table[0].handle) / 2;
+    //if (offset < sizeof(s_ble_handle_table) / sizeof(s_ble_handle_table[0]))
+    //    return &s_ble_handle_table[offset];
+    //else
+    //    return NULL;
 }
 
 void ble_start_sync(uint8_t mode)

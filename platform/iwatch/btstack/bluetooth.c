@@ -48,8 +48,7 @@ extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
-#define DEFAULT_MTU 27
-#define RESET_MTU   23
+#define DEFAULT_MTU 23
 
 static att_connection_t att_connection;
 static uint16_t         att_response_handle = 0;
@@ -118,7 +117,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     switch (packet[2]) {
     case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
       // reset connection MTU
-      att_connection.mtu = RESET_MTU;
+      att_connection.mtu = DEFAULT_MTU;
       break;
     default:
       break;

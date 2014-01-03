@@ -78,6 +78,7 @@ static const struct MenuItem MainMenu[] =
   {'g', "Countdown Timer", &countdown_process},
   {'k', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
+  {'a', "History", &menu_process},
   {'l', "Setup", &menu_process},
   {0,   "About", &menu_process},
   {0, NULL, NULL}
@@ -364,13 +365,13 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           if (Items[current].handler == &menu_process)
           {
-            if (current == 9)
+            if (current == 10)
             {
               Items = SetupMenu;
             }
-            else if (current == 10)
+            else if (current == 11)
             {
-              Items = AboutMenu;              
+              Items = AboutMenu;
             }
             getMenuLength();
             current = currentTop = 0;
@@ -390,7 +391,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = MainMenu;
         currentTop = 5;
-        current = 9;
+        current = 10;
         getMenuLength();
         window_invalid(NULL);
       }
@@ -398,7 +399,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = MainMenu;
         currentTop = 6;
-        current = 10;
+        current = 11;
         getMenuLength();
         window_invalid(NULL);        
       }
