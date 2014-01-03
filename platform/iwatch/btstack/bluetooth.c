@@ -48,12 +48,12 @@ extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
-#define DEFAULT_MTU 23
+#define BLE_MTU 23
 
 static att_connection_t att_connection;
 static uint16_t         att_response_handle = 0;
 static uint16_t         att_response_size   = 0;
-static uint8_t          att_response_buffer[DEFAULT_MTU + 1];
+static uint8_t          att_response_buffer[BLE_MTU + 1];
 
 static bd_addr_t currentbd;
 
@@ -117,7 +117,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     switch (packet[2]) {
     case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
       // reset connection MTU
-      att_connection.mtu = DEFAULT_MTU;
+      att_connection.mtu = BLE_MTU;
       break;
     default:
       break;
@@ -232,7 +232,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     // bt stack activated, get started - set local name
     if (packet[2] == HCI_STATE_WORKING) {
       log_info("Start initialize bluetooth chip!\n");
-      hci_send_cmd(&hci_read_local_supported_features);
+      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
     }
     break;
 
@@ -241,6 +241,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break; 
   case HCI_EVENT_COMMAND_COMPLETE:
     {
+#if 0
       if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
         bt_flip_addr(host_addr, &packet[6]);
         printf("BD ADDR: %s\n", bd_addr_to_str(host_addr));
@@ -248,7 +249,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
         printf("Local supported features: %04lX%04lX\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
-#if 0
+
         uint8_t addr[6];
         system_getserial(addr);
         hci_send_cmd(&hci_vs_write_bd_addr, addr);
@@ -256,7 +257,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_bd_addr)){
         printf("Changed BD Address\n");
-#endif
+
         hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
         break;
       }
@@ -290,10 +291,14 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+
         hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
         break;
       }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
+      else 
+#endif
+
+      if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
         hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, (uint32_t)8000, 0, 1, 0, 0,
                        16, 1, 0, 16, 1, 1, 0,
                        16, 40, 0, 16, 40, 1, 0
@@ -307,10 +312,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
-        hci_send_cmd(&hci_write_class_of_device, 0x7C0704);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_class_of_device)) {
         hci_send_cmd(&hci_write_default_link_policy_settings, 0x000F);
         break;
       }
@@ -375,7 +376,7 @@ static void btstack_setup(){
   att_set_write_callback(att_write_callback);
   att_set_read_callback(att_read_callback);
   //att_dump_attributes();
-  att_connection.mtu = DEFAULT_MTU;
+  att_connection.mtu = BLE_MTU;
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();

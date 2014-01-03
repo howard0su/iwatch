@@ -231,7 +231,7 @@ typedef struct {
     // remote side
     bd_addr_t address;
 
-	// connection type: 0-sco, 1->acl
+	// connection type: 0-sco, 1->acl, 3->le
 	uint8_t type;
 	
     // module handle
@@ -277,7 +277,16 @@ typedef struct {
     // transport component with configuration
     hci_transport_t  * hci_transport;
     void             * config;
-    
+
+    // bsic configuration
+    const char             * local_name;
+    uint32_t           class_of_device;
+    bd_addr_t          local_bd_addr;
+    uint8_t            ssp_enable;
+    uint8_t            ssp_io_capability;
+    uint8_t            ssp_authentication_requirement;
+    uint8_t            ssp_auto_accept;
+
     // hardware power controller
     bt_control_t     * control;
     
@@ -292,6 +301,11 @@ typedef struct {
     // uint8_t  total_num_cmd_packets;
     uint8_t  total_num_acl_packets;
     uint16_t acl_data_packet_length;
+    uint8_t  total_num_le_packets;
+    uint16_t le_data_packet_length;
+
+    /* local supported features */
+    uint8_t local_supported_features[8];
 
     // usable packet types given acl_data_packet_length and HCI_ACL_BUFFER_SIZE
     uint16_t packet_types;
@@ -352,7 +366,7 @@ int hci_can_send_packet_now(uint8_t packet_type);
     
 hci_connection_t * connection_for_handle(hci_con_handle_t con_handle);
 uint8_t  hci_number_outgoing_packets(hci_con_handle_t handle);
-uint8_t  hci_number_free_acl_slots(void);
+uint8_t  hci_number_free_acl_slots(int connectiontype); // 1-> acl, 3 -> le
 int      hci_authentication_active_for_handle(hci_con_handle_t handle);
 void     hci_drop_link_key_for_bd_addr(bd_addr_t *addr);
 uint16_t hci_max_acl_data_packet_length(void);
@@ -372,6 +386,19 @@ void hci_emit_btstack_version(void);
 void hci_emit_system_bluetooth_enabled(uint8_t enabled);
 void hci_emit_remote_name_cached(bd_addr_t *addr, device_name_t *name);
 void hci_emit_discoverable_enabled(uint8_t enabled);
+
+
+// enable will enable SSP during init
+void hci_ssp_set_enable(int enable);
+
+// if set, BTstack will respond to io capability request using authentication requirement
+void hci_ssp_set_io_capability(int ssp_io_capability);
+void hci_ssp_set_authentication_requirement(int authentication_requirement);
+
+// if set, BTstack will confirm a numberic comparion and enter '000000' if requested
+void hci_ssp_set_auto_accept(int auto_accept);
+
+void hci_set_local_name(const char* name);
 
 #if defined __cplusplus
 }
