@@ -51,7 +51,7 @@ uint8_t get_type_unit_size(uint8_t type);
 
 #define ATT_HANDLE_MODE_READ  0x00
 #define ATT_HANDLE_MODE_WRITE 0x01
-uint16_t gatt_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode);
+uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode);
 
 #define SPORTS_SYNC_MODE_IDEL   0x00
 #define SPORTS_SYNC_MODE_SPORTS 0x01
