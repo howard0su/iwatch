@@ -79,7 +79,7 @@ static const uint16_t config[] =
 //17
   0xFFFF, // skip 1
 //18    19
-  0x32, 0x08, // DAC Limiter
+  0x32, 0x0C, // DAC Limiter
 //1a
   0xFFFF, // skip 1
 //1b   1c   1d   1e
