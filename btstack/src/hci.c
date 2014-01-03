@@ -281,17 +281,18 @@ int hci_send_acl_packet(uint8_t *packet, int size){
     hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
     hci_connection_t *connection = connection_for_handle( con_handle);
     // check for free places on BT module
+    if (!connection) 
+    {
+        log_info("hci_send_acl_packet - connection not found\n");
+        return 0;
+    }
+
     if (!hci_number_free_acl_slots(connection->type)) 
     {
         log_info("hci_send_acl_packet - BTSTACK_ACL_BUFFERS_FULL\n");
         return BTSTACK_ACL_BUFFERS_FULL;
     }
 
-    if (!connection) 
-    {
-        log_info("hci_send_acl_packet - connection not found\n");
-        return 0;
-    }
     hci_connection_timestamp(connection);
 
     // count packet
