@@ -99,7 +99,6 @@ static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * bu
 
 
 static uint16_t handle_audio = 0;
-static bd_addr_t host_addr;
 
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -232,7 +231,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     // bt stack activated, get started - set local name
     if (packet[2] == HCI_STATE_WORKING) {
       log_info("Start initialize bluetooth chip!\n");
-      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
+      hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
     }
     break;
 
@@ -290,15 +289,14 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
         break;
       }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+      else 
+      #endif
+      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
 
         hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
         break;
       }
-      else 
-#endif
-
-      if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
         hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, (uint32_t)8000, 0, 1, 0, 0,
                        16, 1, 0, 16, 1, 1, 0,
                        16, 40, 0, 16, 40, 1, 0
@@ -307,7 +305,11 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
         char buf[20];
-        sprintf(buf, DEVICENAME, host_addr[4], host_addr[5]);
+        uint8_t a, b;
+        bd_addr_t* addr = hci_local_bd_addr();
+        a = (*addr)[4];
+        b = (*addr)[5];
+        sprintf(buf, DEVICENAME, a, b);
         hci_send_cmd(&hci_write_local_name, buf);
         break;
       }
@@ -358,6 +360,13 @@ static void btstack_setup(){
 
   // use eHCILL
   bt_control_cc256x_enable_ehcill(1);
+
+  // Secure Simple Pairing configuration -> just works
+  hci_ssp_set_enable(1);
+  hci_ssp_set_io_capability(SSP_IO_CAPABILITY_NO_INPUT_NO_OUTPUT);
+  hci_ssp_set_auto_accept(1);
+
+  hci_set_class_of_device(0x7C0704);
 
   // lower the init power
   // bt_control_cc256x_set_power(-40);
@@ -454,7 +463,7 @@ bd_addr_t* bluetooth_paired_addr()
 
 const char* bluetooth_address()
 {
-  return bd_addr_to_str(host_addr);
+  return bd_addr_to_str((const char*)hci_local_bd_addr());
 }
 
 static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)

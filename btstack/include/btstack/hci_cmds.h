@@ -111,6 +111,9 @@ extern "C" {
 #define HCI_EVENT_IO_CAPABILITY_REQUEST                    0x31
 #define HCI_EVENT_IO_CAPABILITY_RESPONSE                   0x32
 #define HCI_EVENT_USER_CONFIRMATION_REQUEST                0x33
+#define HCI_EVENT_USER_PASSKEY_REQUEST                     0x34
+#define HCI_EVENT_REMOTE_OOB_DATA_REQUEST                  0x35
+#define HCI_EVENT_SIMPLE_PAIRING_COMPLETE                  0x36
 #define HCI_EVENT_LE_META                                  0x3E
 #define HCI_EVENT_VENDOR_SPECIFIC				           0xFF
 
@@ -234,6 +237,16 @@ extern "C" {
  * Default INQ Mode
  */
 #define HCI_INQUIRY_LAP 0x9E8B33L  // 0x9E8B33: General/Unlimited Inquiry Access Code (GIAC)
+
+/**
+ * SSP IO Capabilities - if capability is set, BTstack answers IO Capability Requests
+ */
+#define SSP_IO_CAPABILITY_DISPLAY_ONLY   0
+#define SSP_IO_CAPABILITY_DISPLAY_YES_NO 1
+#define SSP_IO_CAPABILITY_KEYBOARD_ONLY  2
+#define SSP_IO_CAPABILITY_NO_INPUT_NO_OUTPUT 3
+#define SSP_IO_CAPABILITY_UNKNOWN 0xff
+
 /**
  *  Hardware state of Bluetooth controller
  */
@@ -283,6 +296,8 @@ extern const hci_cmd_t hci_delete_stored_link_key;
 extern const hci_cmd_t hci_disconnect;
 extern const hci_cmd_t hci_host_buffer_size;
 extern const hci_cmd_t hci_inquiry;
+extern const hci_cmd_t hci_io_capability_request_reply;
+extern const hci_cmd_t hci_io_capability_request_negative_reply;
 extern const hci_cmd_t hci_inquiry_cancel;
 extern const hci_cmd_t hci_link_key_request_negative_reply;
 extern const hci_cmd_t hci_link_key_request_reply;
@@ -311,23 +326,23 @@ extern const hci_cmd_t hci_set_connection_encryption;
 extern const hci_cmd_t hci_sniff_mode;
 extern const hci_cmd_t hci_exit_sniff_mode;
 extern const hci_cmd_t hci_switch_role_command;
+extern const hci_cmd_t hci_switch_role_command;
+extern const hci_cmd_t hci_user_confirmation_request_negative_reply;
+extern const hci_cmd_t hci_user_confirmation_request_reply;
+extern const hci_cmd_t hci_user_passkey_request_negative_reply;
+extern const hci_cmd_t hci_user_passkey_request_reply;
 extern const hci_cmd_t hci_write_authentication_enable;
 extern const hci_cmd_t hci_write_class_of_device;
-extern const hci_cmd_t hci_write_voice_setting;
 extern const hci_cmd_t hci_write_extended_inquiry_response;
 extern const hci_cmd_t hci_write_inquiry_mode;
 extern const hci_cmd_t hci_write_le_host_supported;
 extern const hci_cmd_t hci_write_link_policy_settings;
-extern const hci_cmd_t hci_sniff_subrating;
 extern const hci_cmd_t hci_write_link_supervision_timeout;
 extern const hci_cmd_t hci_write_local_name;
 extern const hci_cmd_t hci_write_num_broadcast_retransmissions;
 extern const hci_cmd_t hci_write_page_timeout;
 extern const hci_cmd_t hci_write_scan_enable;
 extern const hci_cmd_t hci_write_simple_pairing_mode;
-extern const hci_cmd_t hci_io_capability_request_reply;
-extern const hci_cmd_t hci_user_confirmation_request_reply;
-extern const hci_cmd_t hci_user_confirmation_request_negative_reply;
 
 
 extern const hci_cmd_t hci_le_add_device_to_whitelist;

@@ -485,6 +485,15 @@ int hci_le_supported(void){
 #endif    
 }
 
+void hci_set_class_of_device(uint32_t value)
+{
+    hci_stack.class_of_device = value;
+}
+
+bd_addr_t * hci_local_bd_addr(void){
+    return &hci_stack.local_bd_addr;
+}
+
 // avoid huge local variables
 #ifndef EMBEDDED
 static device_name_t device_name;
@@ -525,18 +534,12 @@ static void event_handler(uint8_t *packet, int size){
                              hci_stack.acl_data_packet_length, hci_stack.total_num_acl_packets);
                 }
             }
-            // Dump local address
-            if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)) {
-                bd_addr_t addr;
-                bt_flip_addr(addr, &packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE + 1]);
-                log_info("Local Address, Status: 0x%02x: Addr: %s\n",
-                    packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE], bd_addr_to_str(addr));
-            }
-            if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
+           
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
                 hci_emit_discoverable_enabled(hci_stack.discoverable);
             }
             // Note: HCI init checks
-            if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
                 memcpy(hci_stack.local_supported_features, &packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE+1], 8);
                 log_info("Local Supported Features: 0x%02x%02x%02x%02x%02x%02x%02x%02x",
                     hci_stack.local_supported_features[0], hci_stack.local_supported_features[1],
@@ -552,12 +555,19 @@ static void event_handler(uint8_t *packet, int size){
                 log_info("BR/EDR support %u, LE support %u", hci_classic_supported(), hci_le_supported());
             }
 #ifdef HAVE_BLE
-            if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
                 hci_stack.le_data_packet_length = READ_BT_16(packet, 6);
                 hci_stack.total_num_le_packets = packet[8];
                 log_info("hci_le_read_buffer_size: size %u, count %u\n", hci_stack.le_data_packet_length, hci_stack.total_num_le_packets);
             }
 #endif
+                        // Dump local address
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)) {
+                bt_flip_addr(hci_stack.local_bd_addr, &packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE + 1]);
+                log_info("Local Address, Status: 0x%02x: Addr: %s\n",
+                    packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE], bd_addr_to_str(hci_stack.local_bd_addr));
+            }
+
             break;
 
         case HCI_EVENT_COMMAND_STATUS:
@@ -662,6 +672,24 @@ static void event_handler(uint8_t *packet, int size){
             if (!hci_stack.remote_device_db) break;
             bt_flip_addr(addr, &packet[2]);
             hci_stack.remote_device_db->delete_link_key(&addr);
+            break;
+
+        case HCI_EVENT_IO_CAPABILITY_REQUEST:
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], RECV_IO_CAPABILITIES_REQUEST);
+            if (hci_stack.ssp_io_capability == SSP_IO_CAPABILITY_UNKNOWN) break;
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], SEND_IO_CAPABILITIES_REPLY);
+            break;
+       
+        case HCI_EVENT_USER_CONFIRMATION_REQUEST:
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], RECV_USER_CONFIRM_REQUEST);
+            if (!hci_stack.ssp_auto_accept) break;
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], SEND_USER_CONFIRM_REPLY);
+            break;
+
+        case HCI_EVENT_USER_PASSKEY_REQUEST:
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], RECV_USER_PASSKEY_REQUEST);
+            if (!hci_stack.ssp_auto_accept) break;
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], SEND_USER_PASSKEY_REPLY);
             break;
 
 #ifndef EMBEDDED
@@ -885,6 +913,14 @@ void hci_init(hci_transport_t *transport, void *config, bt_control_t *control, r
     transport->register_packet_handler(&packet_handler);
 
     hci_stack.state = HCI_STATE_OFF;
+
+    // class of device
+    hci_stack.class_of_device = 0x007a020c; // Smartphone
+
+    // Secure Simple Pairing
+    hci_stack.ssp_enable = 0;
+    hci_stack.ssp_io_capability = SSP_IO_CAPABILITY_UNKNOWN;
+    hci_stack.ssp_authentication_requirement = 0;
 }
 
 void hci_close(){
@@ -1207,6 +1243,7 @@ void hci_run(){
             {
                 log_debug("sending hci_exit_sniff_mode\n");
                 hci_send_cmd(&hci_exit_sniff_mode,connection->con_handle);
+                return;
             }
         }
         else if (connection->mode & ENTER_SNIFF)
@@ -1214,8 +1251,9 @@ void hci_run(){
             connection->mode &= ~ENTER_SNIFF;
             if ((connection->mode & MODE_VALUES) == ACTIVE)
             {
-            log_debug("sending hci_sniff_mode\n");
-            hci_send_cmd(&hci_sniff_mode,connection->con_handle,sniff_max_interval,sniff_min_interval,sniff_attempt,sniff_timeout);
+                log_debug("sending hci_sniff_mode\n");
+                hci_send_cmd(&hci_sniff_mode,connection->con_handle,sniff_max_interval,sniff_min_interval,sniff_attempt,sniff_timeout);
+                return;
             }
         }
 
@@ -1232,9 +1270,8 @@ void hci_run(){
                          0x20, 0x01, 0x003F);
           }
           connection->state = ACCEPTED_CONNECTION_REQUEST;
+          return;
         }
-
-        if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
 
         if (connection->authentication_flags & HANDLE_LINK_KEY_REQUEST){
             link_key_t link_key;
@@ -1245,7 +1282,27 @@ void hci_run(){
                hci_send_cmd(&hci_link_key_request_negative_reply, connection->address);
             }
             connectionClearAuthenticationFlags(connection, HANDLE_LINK_KEY_REQUEST);
+            return;
         }
+
+        if (connection->authentication_flags & SEND_IO_CAPABILITIES_REPLY){
+            hci_send_cmd(&hci_io_capability_request_reply, &connection->address, hci_stack.ssp_io_capability, NULL, hci_stack.ssp_authentication_requirement);
+            connectionClearAuthenticationFlags(connection, SEND_IO_CAPABILITIES_REPLY);
+            return;
+        }
+       
+        if (connection->authentication_flags & SEND_USER_CONFIRM_REPLY){
+            hci_send_cmd(&hci_user_confirmation_request_reply, &connection->address);
+            connectionClearAuthenticationFlags(connection, SEND_USER_CONFIRM_REPLY);
+            return;
+        }
+
+        if (connection->authentication_flags & SEND_USER_PASSKEY_REPLY){
+            hci_send_cmd(&hci_user_passkey_request_reply, &connection->address, 000000);
+            connectionClearAuthenticationFlags(connection, SEND_USER_PASSKEY_REPLY);
+            return;
+        }
+
     }
 
     if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
@@ -1340,7 +1397,7 @@ void hci_run(){
                         // SKIP LE init for Classic only configuration
                         hci_stack.substate = 13 << 1;
                     }
-                                        break;
+                    break;
                    
 #ifdef HAVE_BLE
                 // LE INIT
