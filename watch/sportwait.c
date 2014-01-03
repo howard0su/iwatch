@@ -50,9 +50,7 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_PRE, stlv_data, 5);
 
         //BLE
-        uint32_t ble_desc_buf[2] = {1, 0};
-        write_uint32_array(BLE_HANDLE_SPORTS_DESC, ble_desc_buf, 2);
-        write_uint32_array(BLE_HANDLE_SPORTS_DATA, ble_data_buf, 5);
+        ble_start_sync(1);
       }
     return 0x80;
   case EVENT_SPORT_DATA:
@@ -64,8 +62,7 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
       uint16_t dummy_stlv_data[4] = {0};
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, 4);
 
-      uint32_t dummy_ble_buf[5] = {0};
-      write_uint32_array(BLE_HANDLE_SPORTS_DATA, dummy_ble_buf, 5);
+      ble_stop_sync();
     }
     break;
   case EVENT_WINDOW_PAINT:

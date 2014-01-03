@@ -2,6 +2,7 @@
 #include "ble_handler.h"
 
 #include <stdio.h>
+#include "contiki.h"
 #include "window.h"
 #include "btstack/include/btstack/utils.h"
 #include "rtc.h"
@@ -23,19 +24,20 @@ static const ble_handle_t s_ble_handle_table[] = {
     DEF_BLE_HANDLE("ff12", BLE_HANDLE_FILE_DATA,         BLE_HANDLE_TYPE_INT8_ARR,  80),
     DEF_BLE_HANDLE("ff13", BLE_HANDLE_GPS_INFO,          BLE_HANDLE_TYPE_INT16_ARR, 4),
     DEF_BLE_HANDLE("ff14", BLE_HANDLE_CONF_GESTURE,      BLE_HANDLE_TYPE_INT8_ARR,  5),
-    DEF_BLE_HANDLE("ff15", BLE_HANDLE_CONF_WORLDCLOCK_0, BLE_HANDLE_TYPE_STRING,    10),
-    DEF_BLE_HANDLE("ff16", BLE_HANDLE_CONF_WORLDCLOCK_1, BLE_HANDLE_TYPE_STRING,    10),
-    DEF_BLE_HANDLE("ff17", BLE_HANDLE_CONF_WORLDCLOCK_2, BLE_HANDLE_TYPE_STRING,    10),
-    DEF_BLE_HANDLE("ff18", BLE_HANDLE_CONF_WORLDCLOCK_3, BLE_HANDLE_TYPE_STRING,    10),
-    DEF_BLE_HANDLE("ff19", BLE_HANDLE_CONF_WORLDCLOCK_4, BLE_HANDLE_TYPE_STRING,    10),
-    DEF_BLE_HANDLE("ff20", BLE_HANDLE_CONF_WORLDCLOCK_5, BLE_HANDLE_TYPE_STRING,    10),
+    DEF_BLE_HANDLE("ff15", BLE_HANDLE_CONF_WORLDCLOCK_0, BLE_HANDLE_TYPE_STRING,    10 + 4),
+    DEF_BLE_HANDLE("ff16", BLE_HANDLE_CONF_WORLDCLOCK_1, BLE_HANDLE_TYPE_STRING,    10 + 4),
+    DEF_BLE_HANDLE("ff17", BLE_HANDLE_CONF_WORLDCLOCK_2, BLE_HANDLE_TYPE_STRING,    10 + 4),
+    DEF_BLE_HANDLE("ff18", BLE_HANDLE_CONF_WORLDCLOCK_3, BLE_HANDLE_TYPE_STRING,    10 + 4),
+    DEF_BLE_HANDLE("ff19", BLE_HANDLE_CONF_WORLDCLOCK_4, BLE_HANDLE_TYPE_STRING,    10 + 4),
+    DEF_BLE_HANDLE("ff20", BLE_HANDLE_CONF_WORLDCLOCK_5, BLE_HANDLE_TYPE_STRING,    10 + 4),
     DEF_BLE_HANDLE("ff21", BLE_HANDLE_CONF_WATCHFACE,    BLE_HANDLE_TYPE_INT8_ARR,  1),
     DEF_BLE_HANDLE("ff22", BLE_HANDLE_CONF_GOALS,        BLE_HANDLE_TYPE_INT16_ARR, 3),
     DEF_BLE_HANDLE("ff23", BLE_HANDLE_CONF_USER_PROFILE, BLE_HANDLE_TYPE_INT8_ARR,  3),
 };
 
-static uint8_t s_flag = 0;
 static uint8_t s_test = 0;
+
+static uint8_t s_flag = 0;
 static uint32_t s_sports_data_buffer[5] = {0};
 static uint32_t s_sports_desc_buffer[2] = {0};
 
@@ -369,5 +371,31 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
         return &s_ble_handle_table[offset];
     else
         return NULL;
+}
+
+void ble_start_sync(uint8_t mode)
+{
+    s_flag = mode;
+}
+
+void ble_send_running_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist, uint32_t heart)
+{
+}
+
+void ble_send_biking_data(uint32_t time, uint32_t cads, uint32_t cals, uint32_t dist, uint32_t heart)
+{
+}
+
+void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist)
+{
+    s_sports_data_buffer[0] = time;
+    s_sports_data_buffer[1] = steps;
+    s_sports_data_buffer[2] = cals;
+    s_sports_data_buffer[3] = dist;
+}
+
+void ble_stop_sync()
+{
+    s_flag = 0;
 }
 

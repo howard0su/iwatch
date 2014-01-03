@@ -52,5 +52,14 @@ uint8_t get_type_unit_size(uint8_t type);
 #define ATT_HANDLE_MODE_READ  0x00
 #define ATT_HANDLE_MODE_WRITE 0x01
 uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode);
+
+#define SPORTS_SYNC_MODE_IDEL   0x00
+#define SPORTS_SYNC_MODE_SPORTS 0x01
+#define SPORTS_SYNC_MODE_SYNC   0x02
+void ble_start_sync(uint8_t mode);
+void ble_send_running_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist, uint32_t heart);
+void ble_send_biking_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist, uint32_t heart);
+void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist);
+void ble_stop_sync();
 #endif
 
