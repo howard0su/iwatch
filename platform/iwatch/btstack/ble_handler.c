@@ -2,6 +2,8 @@
 #include "ble_handler.h"
 
 #include <stdio.h>
+#include <string.h>
+
 #include "contiki.h"
 #include "window.h"
 #include "btstack/include/btstack/utils.h"
@@ -37,7 +39,6 @@ static const ble_handle_t s_ble_handle_table[] = {
 
 static uint8_t s_test = 0;
 
-static uint8_t s_flag = 0;
 static uint32_t s_sports_data_buffer[5] = {0};
 static uint32_t s_sports_desc_buffer[2] = {0};
 
@@ -50,7 +51,10 @@ static void att_read_world_clock(uint8_t id, char* buf, uint8_t buf_size)
     if (buf_size <= sizeof(conf->worldclock_name[0]) + 3)
         return;
 
-    sprintf("%s[%d]", conf->worldclock_name[id], conf->worldclock_offset[id]);
+    sprintf(buf, "%s[%d]", conf->worldclock_name[id], conf->worldclock_offset[id]);
+    printf("Read World clock:\n");
+    printf(buf);
+    printf("\n");
 }
 
 static void att_write_world_clock(uint8_t id, char* buf)
@@ -65,7 +69,7 @@ static void att_write_world_clock(uint8_t id, char* buf)
 
     uint8_t offset = 0;
     uint8_t shift  = 0;
-    for (; i >= 0; --i)
+    for (; i > 0; --i)
     {
         if (buf[i] == ']')
             continue;
@@ -89,7 +93,7 @@ static void att_write_world_clock(uint8_t id, char* buf)
 
 uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
 {
-    printf("att_handler(handle=%x, buf=%x(%d))\n", handle, buffer, buffer_size);
+    printf("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
     const ble_handle_t* hble = get_ble_handle(handle);
     if (hble == NULL)
     {
@@ -100,7 +104,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
     uint16_t actual_size = hble->size * get_type_unit_size(hble->type);
     if (buffer == 0 || buffer_size < actual_size)
     {
-        printf("Invalid Buffer(addr=%x, size=%d/%d)\n", buffer, buffer_size, actual_size);
+        printf("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
         return actual_size;
     }
 
@@ -383,7 +387,7 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
 
 void ble_start_sync(uint8_t mode)
 {
-    s_flag = mode;
+    
 }
 
 void ble_send_running_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist, uint32_t heart)
@@ -404,6 +408,5 @@ void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t
 
 void ble_stop_sync()
 {
-    s_flag = 0;
 }
 
