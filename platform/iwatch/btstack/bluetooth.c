@@ -87,29 +87,7 @@ static uint8_t test_value = 0;
 static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
 
     printf("ATT Write Handle: 0x%4x, size:%d\n", handle, buffer_size);
-
-    ble_handle_t* ble_handle = get_ble_handle(handle);
-    if (ble_handle == NULL)
-    {
-        printf("No correspondent handle\n");
-        return;
-    }
-
-    if (buffer == NULL)
-    {
-        printf("Null Buffer\n");
-        return;
-    }
-
-    uint8_t local_buf_size = ble_handle->size * get_type_unit_size(ble_handle->type);
-    if (buffer_size > local_buf_size)
-    {
-        printf("Incoming buffer out of bound : %d/%d\n", buffer_size, local_buf_size);
-        return;
-    }
-
-    uint8_t* pbuf = get_handle_buf(handle);
-    memcmp(pbuf, buffer, buffer_size);
+    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_WRITE);
 
 }
 
@@ -117,30 +95,7 @@ static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint1
 static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
 
     printf("ATT Read Handle: 0x%4x, size:%d\n", handle, buffer_size);
-
-    ble_handle_t* ble_handle = get_ble_handle(handle);
-    if (ble_handle == NULL)
-    {
-        printf("No correspondent handle\n");
-        return 0;
-    }
-
-    uint8_t local_buf_size = ble_handle->size * get_type_unit_size(ble_handle->type);
-    if (buffer == NULL)
-    {
-        printf("Null Buffer\n");
-        return local_buf_size;
-    }
-
-    if (buffer_size < local_buf_size)
-    {
-        printf("Not enough target buffer: %d/%d\n", buffer_size, local_buf_size);
-        return 0;
-    }
-
-    uint8_t* pbuf = get_handle_buf(handle);
-    memcmp(buffer, pbuf, local_buf_size);
-    return local_buf_size;
+    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
 }
 
 

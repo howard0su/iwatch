@@ -35,38 +35,22 @@
 #define BLE_HANDLE_TYPE_INT32_ARR  2
 #define BLE_HANDLE_TYPE_STRING     3
 
-#define DEF_BLE_HANDLE(uuid, name, type, size) {name, type, size, 0}
+#define DEF_BLE_HANDLE(uuid, name, type, size) {uuid, #name, name, type, size}
 
 typedef struct _ble_handle_t
 {
-//    const char* characteristic;
-//    const char* name;
-    uint8_t handle;
-    uint8_t type;
-    uint8_t size;
-    uint8_t offset;
+    const char* characteristic;
+    const char* name;
+    const uint8_t handle;
+    const uint8_t type;
+    const uint8_t size;
 }ble_handle_t;
 
-ble_handle_t* get_ble_handle(uint16_t handle);
+const ble_handle_t* get_ble_handle(uint16_t handle);
 uint8_t get_type_unit_size(uint8_t type);
-void create_ble_handle_db();
-uint8_t* get_handle_buf(uint16_t handle);
 
-char*     read_string(uint16_t handle);
-uint8_t   read_uint8(uint16_t handle, uint8_t default_value);
-uint8_t*  read_uint8_array(uint16_t handle);
-uint16_t  read_uint16(uint16_t handle, uint16_t default_value);
-uint16_t* read_uint16_array(uint16_t handle);
-uint32_t  read_uint32(uint16_t handle, uint32_t default_value);
-uint32_t* read_uint32_array(uint16_t handle);
-
-int write_string(uint16_t handle, char* str);
-int write_uint8(uint16_t handle, uint8_t value);
-int write_uint8_array(uint16_t handle, uint8_t* array, uint8_t size);
-int write_uint16(uint16_t handle, uint16_t value);
-int write_uint16_array(uint16_t handle, uint16_t* array, uint8_t szie);
-int write_uint32(uint16_t handle, uint32_t value);
-int write_uint32_array(uint16_t handle, uint32_t* array, uint8_t size);
-
+#define ATT_HANDLE_MODE_READ  0x00
+#define ATT_HANDLE_MODE_WRITE 0x01
+uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode);
 #endif
 
