@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "sportsdata.h"
 #include "test.h"
 
 /*
@@ -67,6 +68,14 @@ static const struct MenuItem AboutMenu[] =
   {-1, NULL, NULL}
 };
 
+#define MAX_HISTORY_ENTRY    7 + 1
+#define MAX_HISTORY_NAME_LEN 20
+static char history_names[MAX_HISTORY_ENTRY][MAX_HISTORY_NAME_LEN] = {"", };
+static struct MenuItem HistoryActivity[MAX_HISTORY_ENTRY] = 
+{
+    {-1, NULL, NULL},
+};
+
 static const struct MenuItem MainMenu[] =
 {
   {'a', "Today's Activity", &today_process},
@@ -102,6 +111,30 @@ static const struct MenuItem TestMenu[] =
 
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
+
+#define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
+
+static struct MenuItem* loadHistoryRecords()
+{
+    uint8_t pos = 0;
+    char* record_name = get_first_record(DATA_MODE_NORMAL);
+    while (record_name != NULL && pos < MAX_HISTORY_ENTRY)
+    {
+        record_desc_t record;
+        if(get_record_desc(record_name, &record) != 0)
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d",
+                    record.month, record.day, record.year);
+            HistoryActivity[pos].handler = &menu_process;
+            HistoryActivity[pos].icon    = 0;
+            HistoryActivity[pos].name    = history_names[pos];
+        }
+        record_name = get_next_record();
+    }
+
+    SET_MENU_END(pos, HistoryActivity);
+    return HistoryActivity;
+}
 
 static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
@@ -286,6 +319,10 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = TestMenu;
       }
+      else if (strcmp(rparam, "History") == 0)
+      {
+        Items = loadHistoryRecords();
+      }
 
       getMenuLength();
 
@@ -365,7 +402,11 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           if (Items[current].handler == &menu_process)
           {
-            if (current == 10)
+            if (current == 9)  
+            {
+              Items = loadHistoryRecords();
+            }
+            else if (current == 10)
             {
               Items = SetupMenu;
             }
@@ -400,6 +441,14 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         Items = MainMenu;
         currentTop = 6;
         current = 11;
+        getMenuLength();
+        window_invalid(NULL);        
+      }
+      else if (Items == HistoryActivity)
+      {
+        Items = MainMenu;
+        currentTop = 4;
+        current = 9;
         getMenuLength();
         window_invalid(NULL);        
       }

@@ -19,7 +19,7 @@ typedef struct _data_desc_t
 
 typedef struct _data_file_t
 {
-    char          file_id;
+    int           file_id;
     uint16_t      row_cursor;
 }data_file_t;
 
@@ -65,6 +65,7 @@ static const data_desc_t s_data_desc[] = {
 };
 
 static data_file_t s_file_map[count_elem(s_data_desc)];
+static uint8_t s_file_map_status = 0;
 
 static void init_file_map()
 {
@@ -87,19 +88,33 @@ static void write_file_head(const data_desc_t* desc, data_file_t* f)
         cfs_write(f->file_id, &desc->col_desc[i],  sizeof(desc->col_desc[i]));
 }
 
-static int create_data_file(const data_desc_t* desc, data_file_t* file, uint32_t timestamp, uint8_t iscontinue)
+static int create_data_file(uint8_t mode, const data_desc_t* desc, data_file_t* file, uint32_t timestamp, uint8_t iscontinue)
 {
-    char filename[32] = "";
+
     uint8_t year, month, day, hour, min, sec;
     parse_timestamp(timestamp, &year, &month, &day, &hour, &min, &sec);
-    sprintf(filename, "/%s/%02d%02d%02d%02d%02d%02d%01d",
-            desc->file_prefix,
-            year, month, day, hour, min, sec,
-            iscontinue);
+
+    char filename[32] = "";
+    if (desc->file_prefix== DATA_MODE_NORMAL)
+    {
+        sprintf(filename, "/%s/%02d%02d%02d000000%01d",
+                desc->file_prefix,
+                year, month, day,
+                iscontinue);
+    }
+    else
+    {
+        sprintf(filename, "/%s/%02d%02d%02d%02d%02d%02d%01d",
+                desc->file_prefix,
+                year, month, day, hour, min, sec,
+                iscontinue);
+    }
+
+    printf("create_data_file(%s)\n", filename);
 
     cfs_remove(filename);
 
-    char fd = cfs_open(filename,  CFS_WRITE | CFS_APPEND);
+    int fd = cfs_open(filename,  CFS_WRITE | CFS_APPEND);
     if (fd == -1)
     {
         printf("Error to open a new file to write\n");
@@ -125,7 +140,11 @@ void save_data_start(uint8_t mode, uint32_t timestamp)
 
     if (file->file_id != -1)
     {
-        if (create_data_file(desc, file, timestamp, 0 /* continue */) == -1)
+        cfs_close(file->file_id);
+        file->file_id    = -1;
+        file->row_cursor = 0;
+
+        if (create_data_file(mode, desc, file, timestamp, 0 /* continue */) == -1)
             return;
     }
 }
@@ -158,14 +177,25 @@ void save_data(uint8_t mode, uint32_t timestamp, uint32_t data[], uint8_t size)
         return;
     }
 
+    if (s_file_map_status == 0)
+    {
+        init_file_map();
+        s_file_map_status = 1;
+    }
+
+    printf("save_data(fd=%d, row=%d)\n", file->file_id, file->row_cursor);
     if (file->file_id == -1 || file->row_cursor >= MAX_ROW_COUNT)
     {
-        if (create_data_file(desc, file, timestamp, 1 /* continue */) == -1)
+        if (create_data_file(mode, desc, file, timestamp, 1 /* continue */) == -1)
+        {
+            printf("create data file failed\n");
             return;
+        }
     }
 
     cfs_write(file->file_id, &timestamp, sizeof(timestamp));
     cfs_write(file->file_id, data, size * sizeof(data[0]));
+    file->row_cursor++;
 }
 
 
@@ -175,6 +205,7 @@ static uint8_t s_sports_dir_flag = 0;
 static struct cfs_dirent dirent;
 char* get_first_record(uint8_t mode)
 {
+    printf("get_history\n");
     const data_desc_t* desc = get_data_desc_by_mode(mode);
     if (desc == NULL)
     {
@@ -188,7 +219,7 @@ char* get_first_record(uint8_t mode)
     }
 
     char dir_name[32] = "";
-    sprintf(dir_name, "/%s", desc->file_prefix);
+    sprintf(dir_name, "");
     int ret = cfs_opendir(&s_sports_dir, dir_name);
     if (ret == -1)
     {
@@ -206,6 +237,7 @@ char* get_first_record(uint8_t mode)
         return NULL;
     }
 
+    printf("get_history return %s\n", dirent.name);
     return dirent.name;
 }
 
