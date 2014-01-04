@@ -1,0 +1,171 @@
+#include "contiki.h"
+#include "button.h"
+#include "window.h"
+#include "system.h"
+#include "sys/clock.h"
+#include "sys/etimer.h"
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) PRINTF(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+PROCESS(button_process, "Button Driver");
+
+clock_time_t downtime[4];
+struct etimer button_timer;
+
+static inline uint8_t getmask(int i)
+{
+  if (i == 3)
+    return 1 << 6;
+  else
+    return 1 << i;
+}
+
+void button_init()
+{
+  int i;
+  process_start(&button_process, NULL);
+
+  etimer_stop(&button_timer);
+  for(i = 0; i < 4; i++)
+  {
+    uint8_t bitmask;
+
+    bitmask = getmask(i);
+    // INPUT
+    P2DIR &= ~(bitmask);
+    P2SEL &= ~(bitmask);
+
+    // ENABLE INT
+    P2IES |= bitmask;
+
+    // pullup in dev board
+    P2REN |= bitmask;
+    P2OUT |= bitmask;
+    P2IFG &= ~(bitmask);
+
+    downtime[i] = 0;
+
+    P2IE |= bitmask;
+  }
+}
+
+PROCESS_THREAD(button_process, ev, data)
+{
+  PROCESS_BEGIN();
+  while(1)
+  {
+    PROCESS_WAIT_EVENT();
+    if (ev == PROCESS_EVENT_POLL)
+    {
+      for(int i = 0; i < 4; i++)
+      {
+        uint8_t mask = getmask(i);
+
+        if ((P2IE & mask) == 0)
+        {
+          // need handle this button
+          if ((P2IN & mask) == 0)
+          {
+            // key is down
+            process_post(ui_process, EVENT_KEY_DOWN, (void*)i);
+            P2IES &= ~mask;
+            downtime[i] = clock_time();
+            if (etimer_expired(&button_timer))
+            {
+              // first button
+              etimer_set(&button_timer, CLOCK_SECOND/2);
+            }
+          }
+          else
+          {
+            process_post(ui_process, EVENT_KEY_UP, (void*)i);
+            P2IES |= ~mask;
+            if (downtime[i] > 0 && downtime[i] < clock_time() - CLOCK_SECOND)
+              process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
+            else
+              process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+            downtime[i] = 0;
+          }
+
+          P2IE |= mask;
+        }
+      }
+
+    }
+    else if (ev == PROCESS_EVENT_TIMER)
+    {
+      uint8_t reboot = 0;
+      uint8_t downbutton = 0;
+      uint8_t needquick = 0;
+      for(int i = 0; i < 4; i++)
+      {
+        PRINTF("button %d downtime: %ld\n", i, downtime[i]);
+        if (downtime[i] > 0)
+        {
+          downbutton++;
+          if (downtime[i] < clock_time() - CLOCK_SECOND * 6)
+            reboot++;
+
+          if (downtime[i] < clock_time() - CLOCK_SECOND)
+          {
+            // check if we need fire another event
+            process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+            needquick++;
+          }
+        }
+      }
+
+      PRINTF("%d buttons down, now=%ld\n", downbutton, clock_time());
+
+      if (reboot == 4)
+        system_reset();
+
+      if (downbutton)
+      {
+        if (needquick)
+          etimer_set(&button_timer, CLOCK_SECOND/4);
+        else
+          etimer_set(&button_timer, CLOCK_SECOND/2);
+      }
+      else
+      {
+          etimer_stop(&button_timer);
+      }
+
+    }
+  }
+  PROCESS_END();
+}
+
+static inline int port2_button(int i)
+{
+  P2IE &= ~(getmask(i));
+  process_poll(&button_process);
+  return 1;
+}
+
+int port2_pin0()
+{
+  return port2_button(0);
+}
+
+int port2_pin1()
+{
+  return port2_button(1);
+}
+
+int port2_pin2()
+{
+  return port2_button(2);
+}
+
+int port2_pin6()
+{
+  return port2_button(3);
+}
