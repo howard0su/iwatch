@@ -15,7 +15,8 @@
 
 PROCESS(button_process, "Button Driver");
 
-clock_time_t downtime[4];
+unsigned long downtime[4];
+unsigned long eventtime[4];
 struct etimer button_timer;
 
 static inline uint8_t getmask(int i)
@@ -69,13 +70,20 @@ PROCESS_THREAD(button_process, ev, data)
 
         if ((P2IE & mask) == 0)
         {
+          // check if P2IES & P2IN is in sync
+          if ((P2IES & mask) ==
+              (P2IN & mask))
+          {
+            P2IES |= (P2IN & mask);
+            P2IE |= mask;
+          }
+
           // need handle this button
           if ((P2IN & mask) == 0)
           {
             // key is down
-            process_post(ui_process, EVENT_KEY_DOWN, (void*)i);
-            P2IES &= ~mask;
-            downtime[i] = clock_time();
+            //process_post(ui_process, EVENT_KEY_DOWN, (void*)i);
+            downtime[i] = eventtime[i]; 
             if (etimer_expired(&button_timer))
             {
               // first button
@@ -84,15 +92,18 @@ PROCESS_THREAD(button_process, ev, data)
           }
           else
           {
-            process_post(ui_process, EVENT_KEY_UP, (void*)i);
-            P2IES |= ~mask;
-            if (downtime[i] > 0 && downtime[i] < clock_time() - CLOCK_SECOND)
-              process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
-            else
-              process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+            //process_post(ui_process, EVENT_KEY_UP, (void*)i);
+            if (downtime[i] > 0)
+            {
+              if (eventtime[i] - downtime[i] > RTIMER_SECOND)
+                process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
+              else
+                process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+            }
             downtime[i] = 0;
           }
 
+          P2IES ^= mask;
           P2IE |= mask;
         }
       }
@@ -109,10 +120,10 @@ PROCESS_THREAD(button_process, ev, data)
         if (downtime[i] > 0)
         {
           downbutton++;
-          if (downtime[i] < clock_time() - CLOCK_SECOND * 6)
+          if (downtime[i] < RTIMER_NOW() - RTIMER_SECOND * 3)
             reboot++;
 
-          if (downtime[i] < clock_time() - CLOCK_SECOND)
+          if (downtime[i] < RTIMER_NOW() - RTIMER_SECOND)
           {
             // check if we need fire another event
             process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
@@ -146,6 +157,7 @@ PROCESS_THREAD(button_process, ev, data)
 static inline int port2_button(int i)
 {
   P2IE &= ~(getmask(i));
+  eventtime[i] = RTIMER_NOW();
   process_poll(&button_process);
   return 1;
 }
