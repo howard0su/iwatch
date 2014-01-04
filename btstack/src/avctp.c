@@ -118,7 +118,7 @@ void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t code, uint8_t *pac
   current_pid = __swap_bytes(pid);
 }
 
-uint8_t avctp_connected()
+int avctp_connected()
 {
   return (l2cap_cid != 0);
 }
@@ -135,7 +135,6 @@ void avctp_disconnect()
 static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   static uint16_t pid;
-
   switch (packet_type) {
   case L2CAP_DATA_PACKET:
     {

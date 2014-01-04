@@ -89,34 +89,14 @@ struct avrcp_header {
 #define AVRCP_HEADER_LENGTH 7
 #pragma pack()
 
-static enum
-{
-  INIT,
-  RUNNING,
-}state;
-
-int avrcp_get_attributes(uint32_t id);
+static int init_state;
 
 static void handle_notification(uint8_t code, struct avrcp_header *pdu )
 {
   switch(code)
   {
   case AVC_CTYPE_INTERIM:
-    {
-      // initialize, register some events
-      if (state == INIT)
-      {
-        if (pdu->params[0] == AVRCP_EVENT_TRACK_CHANGED)
-        {
-          avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
-        }
-        else
-        {
-          avrcp_get_playstatus();
-        }
-      }
-    }
-    break;
+    return;
   case AVC_CTYPE_CHANGED:
     // reneable
     log_info("reenable event notification\n");
@@ -134,6 +114,7 @@ static void handle_notification(uint8_t code, struct avrcp_header *pdu )
   case AVRCP_EVENT_STATUS_CHANGED:
     log_info("current status is %d\n", pdu->params[1]);
     window_postmessage(EVENT_AV, EVENT_AV_STATUS, (void*)pdu->params[1]);
+    avrcp_get_playstatus();
     break;
   case AVRCP_EVENT_TRACK_CHANGED:
     {
@@ -147,6 +128,20 @@ static void handle_notification(uint8_t code, struct avrcp_header *pdu )
       window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)READ_NET_32(pdu->params, 1));
       break;
     }
+  case AVRCP_EVENT_TRACK_REACHED_END:
+  case AVRCP_EVENT_TRACK_REACHED_START:
+    log_info("AVRCP_EVENT_TRACK_REACHED_START/END\n");
+    window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)0);
+    break;
+  case AVRCP_EVENT_NOW_PLAYING_CONTENT_CHANGED:
+    log_info("AVRCP_EVENT_NOW_PLAYING_CONTENT_CHANGED\n");  
+    break;
+  case AVRCP_EVENT_ADDRESSED_PLAYER_CHANGED:
+    log_info("AVRCP_EVENT_ADDRESSED_PLAYER_CHANGED\n");  
+    break;
+  case AVRCP_EVENT_AVAILABLE_PLAYERS_CHANGED:
+    log_info("AVRCP_EVENT_AVAILABLE_PLAYERS_CHANGED\n");  
+    break;
   }
 }
 
@@ -198,14 +193,11 @@ static void handle_playstatus(struct avrcp_header* pdu)
 
   log_info("play status : %ld of %ld, status: %d\n", pos, length, (uint16_t)status);
   
-  if (state == INIT)
-  {
-      state = RUNNING;
-  }
-
   window_postmessage(EVENT_AV, EVENT_AV_STATUS, (void*)status);
-  window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
-  window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)pos);
+  if (length != -1)
+    window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
+  if (pos != -1)
+    window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)pos);
 
   return;
 }
@@ -222,20 +214,48 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
     case 0:
       // disconect
       window_postmessage(EVENT_AV, EVENT_AV_DISCONNECTED, 0);
-      break;
+      return;
     case 1:
-      if (state == INIT)
-      {
-        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
-      }
+      init_state = 1;
       window_postmessage(EVENT_AV, EVENT_AV_CONNECTED, 0);
       break;
     }
+  }
 
-    return;
+  if (init_state)
+  {
+    switch(init_state++)
+    {
+      case 1:
+        avrcp_enable_notification(AVRCP_EVENT_AVAILABLE_PLAYERS_CHANGED);
+        return; // first case, we don't have valid pdu to handle
+      case 2:
+        avrcp_enable_notification(AVRCP_EVENT_ADDRESSED_PLAYER_CHANGED);
+        break;
+      case 3:
+        uint16_t playerid = READ_NET_16(pdu->params, 1);
+        avrcp_set_player(playerid);
+        break;
+      case 4:
+        avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
+      break;
+      case 5:
+        avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
+      break;
+      case 6:
+        avrcp_get_playstatus();
+        break;
+      case 7:
+        avrcp_get_attributes(0);
+      default:
+        init_state = 0;
+        break;
+    }
   }
 
   log_info("response pdu code=%d, id=%d\n", code, pdu->pdu_id);
+  if (code == AVC_CTYPE_REJECTED || code == AVC_CTYPE_NOT_IMPLEMENTED )
+    return;
   //hexdump(pdu->params, __swap_bytes(pdu->params_len));
   switch(pdu->pdu_id)
   {
@@ -417,7 +437,6 @@ int avrcp_get_playstatus()
   pdu->params_len = 0;
 
   return avctp_send_vendordep(AVC_CTYPE_STATUS, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
-
 }
 
 int avrcp_get_attributes(uint32_t id)
@@ -439,11 +458,33 @@ int avrcp_get_attributes(uint32_t id)
   return avctp_send_vendordep(AVC_CTYPE_STATUS, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
 }
 
+int avrcp_set_player(uint16_t playerid)
+{
+  log_info("avrcp_set_player %d\n", playerid);
+  uint8_t buf[AVRCP_HEADER_LENGTH + 2]; // 3 parameter
+  struct avrcp_header *pdu = (void *) buf;
+
+  memset(buf, 0, sizeof(buf));
+  set_company_id(pdu->company_id, IEEEID_BTSIG);
+
+  pdu->pdu_id = AVRCP_SET_PLAYER_VALUE;
+  net_store_16(pdu->params, 0, playerid);
+  pdu->params_len = htons(2);
+
+  return avctp_send_vendordep(AVC_CTYPE_CONTROL, AVC_SUBUNIT_PANEL, buf, sizeof(buf));
+}
+
+
 void avrcp_connect(bd_addr_t remote_addr)
 {
-  state = INIT;
-
-  avctp_connect(remote_addr);
+  if (!avctp_connected())
+  {
+    avctp_connect(remote_addr);
+  }
+  else
+  {
+    avrcp_get_playstatus();
+  }
 }
 
 void avrcp_disconnect()
