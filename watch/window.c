@@ -184,8 +184,8 @@ static void window_handle_event(uint8_t ev, void* data)
     {
       uint16_t d = (uint16_t)data;
       if (window_current() != &phone_process &&
-        ((d >> 8) == 0x02 || (d >> 8) == 0x03)
-        && d != 0x0300)
+          window_current() != &siri_process &&
+          (d == 0x0302 || d==0x0301 || d == 0x0303))
       {
         window_open(&phone_process, NULL);
       }
