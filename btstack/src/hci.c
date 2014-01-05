@@ -35,7 +35,7 @@
  *  Created by Matthias Ringwald on 4/29/09.
  *
  */
-#define ENABLE_LOG_INFO
+//#define ENABLE_LOG_INFO
 #include "config.h"
 
 #include "hci.h"
@@ -1414,10 +1414,13 @@ void hci_run(){
                     // LE Supported Host = 1, Simultaneous Host = 0
                     hci_send_cmd(&hci_write_le_host_supported, 1, 0);
                     break;
+                case 14:
+                    hci_send_cmd(&hci_le_set_advertising_parameters,  0x2000, 0x4000, 0, 0, 0, &hci_stack.local_bd_addr, 0x07, 0);
+                    break;
 #endif
 
                 // DONE
-                case 14:
+                case 15:
                     // done.
                     hci_stack.state = HCI_STATE_WORKING;
                     hci_emit_state();

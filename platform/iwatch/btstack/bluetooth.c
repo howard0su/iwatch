@@ -211,10 +211,10 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   }
 }
 
+const static uint8_t adv_data[] = { 02, 01, 05, 03, 02, 0xf0, 0xff, 0x06, 0x08, 'K', 'y', 'r', 'o', 's' }; 
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
-  uint8_t adv_data[] = { 02, 01, 05, 03, 02, 0xf0, 0xff }; 
   //const uint8_t adv_data[] = { 
   //       0x02,  0x01, 0x09,
   //       16+1, 0x06, 0x54, 0xf1, 0xad, 0xde, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0xf1, 0xad, 0xde
@@ -231,7 +231,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     // bt stack activated, get started - set local name
     if (packet[2] == HCI_STATE_WORKING) {
       log_info("Start initialize bluetooth chip!\n");
-      hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
+      hci_send_cmd(&hci_le_set_advertising_data, 3, adv_data); // only adv small data to save battery
     }
     break;
 
@@ -285,13 +285,13 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
         break;
       }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
+      else 
+      #endif
+      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
         hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
         break;
       }
-      else 
-      #endif
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
+      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
 
         hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
         break;
