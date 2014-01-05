@@ -455,7 +455,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       if (Items == SetupMenu)
       {
         Items = MainMenu;
-        currentTop = 5;
+        currentTop = 6;
         current = 10;
         getMenuLength();
         window_invalid(NULL);
@@ -463,7 +463,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       else if (Items == AboutMenu)
       {
         Items = MainMenu;
-        currentTop = 6;
+        currentTop = 7;
         current = 11;
         getMenuLength();
         window_invalid(NULL);        
@@ -471,7 +471,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       else if (Items == HistoryActivity)
       {
         Items = MainMenu;
-        currentTop = 4;
+        currentTop = 5;
         current = 9;
         getMenuLength();
         window_invalid(NULL);        

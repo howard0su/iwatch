@@ -90,18 +90,24 @@ struct avrcp_header {
 #pragma pack()
 
 static int init_state;
+static uint8_t events_flag;
 
 static void handle_notification(uint8_t code, struct avrcp_header *pdu )
 {
   switch(code)
   {
   case AVC_CTYPE_INTERIM:
-    return;
+    if (!(events_flag & (1 << pdu->params[0])))
+    {
+      return;
+    }
+    break;
   case AVC_CTYPE_CHANGED:
     // reneable
     log_info("reenable event notification\n");
     avrcp_enable_notification(pdu->params[0]);
-    break;
+    events_flag |= 1 << (pdu->params[0]);
+    return;
   case AVC_CTYPE_ACCEPTED:
     break;
   default:
@@ -120,7 +126,8 @@ static void handle_notification(uint8_t code, struct avrcp_header *pdu )
     {
       uint32_t id[2];
       //TODO : read id
-      window_postmessage(EVENT_AV, EVENT_AV_TRACK, (void*)id);
+      // window_postmessage(EVENT_AV, EVENT_AV_TRACK, (void*)id);
+      avrcp_get_attributes(0);
       break;
     }
   case AVRCP_EVENT_PLAYBACK_POS_CHANGED:
@@ -196,7 +203,7 @@ static void handle_playstatus(struct avrcp_header* pdu)
   window_postmessage(EVENT_AV, EVENT_AV_STATUS, (void*)status);
   if (length != -1)
     window_postmessage(EVENT_AV, EVENT_AV_LENGTH, (void*)length);
-  if (pos != -1)
+  if (pos != -1 && status == AVRCP_PLAY_STATUS_PLAYING)
     window_postmessage(EVENT_AV, EVENT_AV_POS, (void*)pos);
 
   return;
@@ -217,6 +224,7 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
       return;
     case 1:
       init_state = 1;
+      events_flag = 0;
       window_postmessage(EVENT_AV, EVENT_AV_CONNECTED, 0);
       break;
     }
@@ -243,9 +251,12 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
         avrcp_enable_notification(AVRCP_EVENT_STATUS_CHANGED);
       break;
       case 6:
-        avrcp_get_playstatus();
+        avrcp_enable_notification(AVRCP_EVENT_NOW_PLAYING_CONTENT_CHANGED);
         break;
       case 7:
+        avrcp_get_playstatus();
+        break;
+      case 8:
         avrcp_get_attributes(0);
       default:
         init_state = 0;

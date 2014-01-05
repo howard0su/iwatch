@@ -94,7 +94,7 @@ int printf(const char *format, ...)
                     xtoa((unsigned)i, dv + 5);
                     break;
                 case 'l':                       // 32 bit Long
-                    if (*format == 'u')
+                    if (*format == 'u' || *format == 'd')
                     {
                       format++;
                       // fallthrough

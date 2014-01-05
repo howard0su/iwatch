@@ -128,13 +128,18 @@ void handle_av_events(uint16_t lparam, void* rparam)
     switch(lparam)
     {
     case EVENT_AV_CONNECTED:
-      title = "Connected";
+      window_invalid(NULL);
       break;
     case EVENT_AV_DISCONNECTED:
        break;
     case EVENT_AV_STATUS:
         if (state != (int)rparam)
         {
+          if (state == AVRCP_PLAY_STATUS_ERROR)
+          {
+            avrcp_get_attributes(0);
+          }
+
           state = (int)rparam;
           if (state == AVRCP_PLAY_STATUS_PLAYING)
           {
@@ -146,6 +151,7 @@ void handle_av_events(uint16_t lparam, void* rparam)
             PRINTF("disable timer :%d\n", state);
             window_timer(0);
           }
+          window_invalid(NULL);
         }
         break;
     case EVENT_AV_TITLE:
@@ -155,6 +161,7 @@ void handle_av_events(uint16_t lparam, void* rparam)
     case EVENT_AV_ARTIST:
         strncpy(artistbuf, rparam, sizeof(artistbuf));
         artist = artistbuf;
+        window_invalid(NULL);
         break;
     case EVENT_AV_LENGTH:
         length = (uint16_t)((uint32_t)rparam/1000);
@@ -163,13 +170,13 @@ void handle_av_events(uint16_t lparam, void* rparam)
     case EVENT_AV_POS:
         position = (uint16_t)((uint32_t)rparam/1000);
         PRINTF("position set to %d\n", position);
+        window_invalid(NULL);
         break;
     case EVENT_AV_TRACK:
         position = 0;
         avrcp_get_attributes(0);
         break;
     }
-    window_invalid(NULL);
 }
 
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -195,12 +202,12 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case PROCESS_EVENT_TIMER:
     {
-      //const tRectangle rect = {12, 24, 144, 88};
+      const tRectangle rect = {12, 24, 144, 88};
       if (position < length && state == AVRCP_PLAY_STATUS_PLAYING)
       {
         position++;
         window_timer(CLOCK_SECOND);
-        window_invalid(NULL);
+        window_invalid(&rect);
       }
       break;
     }
