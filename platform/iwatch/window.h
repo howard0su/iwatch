@@ -48,6 +48,7 @@ PROCESS_NAME(system_process);
 #define EVENT_WINDOW_PAINT            0xa5 // no parameter
 #define EVENT_NOTIFICATION_DONE       0xa6
 #define EVENT_NOTIFY_RESULT           0xa7 // the notification result
+#define EVENT_FILESYS_EVENT           0xa8 // event to handle file sys works
 
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
