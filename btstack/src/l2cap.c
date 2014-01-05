@@ -69,7 +69,7 @@ static int signaling_responses_pending;
 
 static linked_list_t l2cap_channels = NULL;
 static linked_list_t l2cap_services = NULL;
-static void (*packet_handler) (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) = null_packet_handler;
+typedef void (*event_handler) (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
 static int new_credits_blocked = 0;
 
 static btstack_packet_handler_t attribute_protocol_packet_handler = NULL;
@@ -83,6 +83,7 @@ static void l2cap_emit_channel_closed(l2cap_channel_t *channel);
 static void l2cap_emit_connection_request(l2cap_channel_t *channel);
 static int l2cap_channel_ready_for_open(l2cap_channel_t *channel);
 
+static event_handler packet_handlers[4]; // assume 4 is enough
 
 void l2cap_init(){
     new_credits_blocked = 0;
@@ -90,9 +91,11 @@ void l2cap_init(){
 
     l2cap_channels = NULL;
     l2cap_services = NULL;
-
-    packet_handler = null_packet_handler;
-
+    for(int i = 0 ; i < 4; i++)
+    {
+        packet_handlers[i] = NULL;
+        return;
+    }
     //
     // register callback with HCI
     //
@@ -102,10 +105,18 @@ void l2cap_init(){
 
 
 /** Register L2CAP packet handlers */
-static void null_packet_handler(void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
-}
 void l2cap_register_packet_handler(void (*handler)(void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)){
-    packet_handler = handler;
+    for(int i = 0 ; i < 4; i++)
+    {
+        if (packet_handlers[i])
+        {
+            packet_handlers[i] = handler;
+            return;
+        }
+    }
+
+    log_error("not enough event handler list");
+    return;
 }
 
 //  notify client/protocol handler
@@ -113,8 +124,22 @@ void l2cap_dispatch(l2cap_channel_t *channel, uint8_t type, uint8_t * data, uint
     if (channel->packet_handler) {
         (* (channel->packet_handler))(type, channel->local_cid, data, size);
     } else {
-        (*packet_handler)(channel->connection, type, channel->local_cid, data, size);
+        for(int i = 0 ; i < 4; i++)
+        {
+            event_handler packet_handler = packet_handlers[i];
+            if (packet_handler)
+                (*packet_handler)(channel->connection, type, channel->local_cid, data, size);
+        }
     }
+}
+
+void l2cap_dispatch_event(uint8_t type, uint8_t * data, uint16_t size){
+    for(int i = 0 ; i < 4; i++)
+    {
+        event_handler packet_handler = packet_handlers[i];
+        if (packet_handler)
+            (*packet_handler)(NULL, type, 0, data, size);
+    }    
 }
 
 void l2cap_emit_channel_opened(l2cap_channel_t *channel, uint8_t status) {
@@ -162,7 +187,7 @@ static void l2cap_emit_service_registered(void *connection, uint8_t status, uint
     event[2] = status;
     bt_store_16(event, 3, psm);
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
-    (*packet_handler)(connection, HCI_EVENT_PACKET, 0, event, sizeof(event));
+    l2cap_dispatch_event(HCI_EVENT_PACKET, event, sizeof(event));
 }
 
 void l2cap_emit_credits(l2cap_channel_t *channel, uint8_t credits) {
@@ -663,8 +688,9 @@ void l2cap_event_handler( uint8_t *packet, uint16_t size ){
             break;
     }
 
+    
     // pass on
-    (*packet_handler)(NULL, HCI_EVENT_PACKET, 0, packet, size);
+    l2cap_dispatch_event(HCI_EVENT_PACKET, packet, size);
 }
 
 static void l2cap_handle_disconnect_request(l2cap_channel_t *channel, uint16_t identifier){
