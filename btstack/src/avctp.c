@@ -152,7 +152,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       {
         // start package
         struct avctp_header_start *avctph2 = (struct avctp_header_start*)packet;
-        printf("pid=%x package#=%d\n", avctph2->pid, avctph2->num_package);
+        log_info("pid=%x package#=%d\n", avctph2->pid, avctph2->num_package);
         avch = (struct avc_header*)(avctph2 + 1);
         resp_size = size - sizeof(struct avctp_header_start) - sizeof(struct avc_header);
         memcpy(avctp_resp_buf, (void*)(avch+1), resp_size);
