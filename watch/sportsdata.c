@@ -259,7 +259,7 @@ char* get_next_record()
 
 uint8_t get_record_desc(char* filename, record_desc_t* record)
 {
-    uint8_t flag = 0; 
+    uint8_t flag = 0;
     for (uint8_t i = 0; filename[i] != '\0'; ++i)
     {
         if (filename[i] == '/')
@@ -315,7 +315,7 @@ uint8_t get_record_desc(char* filename, record_desc_t* record)
         {
             return 0;
         }
-        
+
         ++flag;
     }
     return 1;

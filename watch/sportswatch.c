@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <cfs/cfs.h>
 #include "btstack/include/btstack/utils.h"
+#include "pedometer/pedometer.h"
 
 #define GRID_3 			0
 #define GRID_4 			1
@@ -668,56 +669,12 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, stlv_data, sportnum);
 
         //BLE
-        //ble_start_sync(1);
+        ble_start_sync(1);
+        uint32_t timestamp = rtc_readtime32();
         //if (sports_type == SPORTS_DATA_FLAG_RUN)
-        //    ble_send_running_data();
-        //else
-        //    ble_send_normal_data();
+        ble_send_sports_data(timestamp, &ble_data_buf[1], sportnum);
 
       }
-#if 0
-      // push the data into CFS
-      if (fileid == -1)
-      {
-        // open the file
-        char filename[32];
-        sprintf(filename, "/sports/%03d.bin", fileidx++);
-        cfs_remove(filename);
-        fileid = cfs_open(filename, CFS_WRITE | CFS_APPEND);
-
-        if (fileid == -1)
-        {
-          printf("Error to open a new file to write\n");
-          break;
-        }
-
-        entrycount = 0;
-
-        // append header
-        uint16_t signature = 0x1517;
-        ui_config* config = window_readconfig();
-        cfs_write(fileid, &signature, sizeof(signature));
-        cfs_write(fileid, &config->sports_grid, sizeof(config->sports_grid));
-        sportnum = config->sports_grid + 3;
-        cfs_write(fileid, config->sports_grid_data, sportnum * sizeof(config->sports_grid_data[0]));
-      }
-
-      // write the file
-      if (fileid != -1)
-      {
-        cfs_write(fileid, &workout_time, sizeof(workout_time));
-        cfs_write(fileid, data, sportnum * sizeof(data[0]));
-        entrycount++;
-
-        // if enough size, let's trucate current file and restart
-        if (entrycount > 1800) // 6 * 2 = 12 bytes per entry. 30mins
-        {
-          cfs_close(fileid);
-          fileid = -1;
-        }
-
-      }
-#endif
 
       break;
     }

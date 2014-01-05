@@ -387,26 +387,26 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
 
 void ble_start_sync(uint8_t mode)
 {
-    
+    s_sports_desc_buffer[0] = mode;
 }
 
-void ble_send_running_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist, uint32_t heart)
+void ble_send_sports_data(uint32_t time, uint32_t data[], uint8_t size)
 {
-}
-
-void ble_send_biking_data(uint32_t time, uint32_t cads, uint32_t cals, uint32_t dist, uint32_t heart)
-{
+    s_sports_data_buffer[0] = time;
+    for (uint8_t i = 1; i < size && i < count_elem(s_sports_data_buffer); ++i)
+        s_sports_data_buffer[i] = data[i];
 }
 
 void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist)
 {
     s_sports_data_buffer[0] = time;
     s_sports_data_buffer[1] = steps;
-    s_sports_data_buffer[2] = cals;
-    s_sports_data_buffer[3] = dist;
+    s_sports_data_buffer[2] = steps;
+    s_sports_data_buffer[3] = steps;
 }
 
 void ble_stop_sync()
 {
+    s_sports_desc_buffer[0] = 0;
 }
 
