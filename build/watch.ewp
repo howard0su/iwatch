@@ -2037,6 +2037,9 @@
       <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\filesys_proc.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\gesture.c</name>
     </file>
     <file>
@@ -2053,6 +2056,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\phone.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\recordoperation.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
@@ -2450,9 +2456,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\contiki-exp5438-main.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\filesys_proc.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\flash.c</name>

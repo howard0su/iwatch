@@ -218,9 +218,7 @@ char* get_first_record(uint8_t mode)
         cfs_closedir(&s_sports_dir);
     }
 
-    char dir_name[32] = "";
-    sprintf(dir_name, "");
-    int ret = cfs_opendir(&s_sports_dir, dir_name);
+    int ret = cfs_opendir(&s_sports_dir, "");
     if (ret == -1)
     {
         printf("cfs_opendir() failed: %d\n", ret);
@@ -306,6 +304,8 @@ uint8_t get_record_desc(char* filename, record_desc_t* record)
 
                 case 13: record->sec = filename[i] - '0'; break;
                 case 14: record->sec = record->sec * 10 + filename[i] - '0'; break;
+
+                case 15: record->is_continue = filename[i] - '0'; break;
                 default:
                     return 0;
                     break;

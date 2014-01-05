@@ -1,6 +1,7 @@
 #ifndef _MEMORY_H
 #define _MEMORY_H
 #include  <stdint.h>
+#include "window.h"
 
 extern union _data
 {
@@ -63,6 +64,13 @@ extern union _data
     uint8_t saved_times[15][3]; // saved time
     int8_t delta_times[15][3]; // delta
   }stop;
+
+  struct
+  {
+      char filenames[8][32];
+      char displaynames[8][10];
+      struct MenuItem HistoryActivity[8];
+  }menu;
 }d;
 
 #endif
