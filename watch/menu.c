@@ -71,7 +71,7 @@ static const struct MenuItem AboutMenu[] =
 #define MAX_HISTORY_ENTRY    7 + 1
 #define MAX_HISTORY_NAME_LEN 20
 static char history_names[MAX_HISTORY_ENTRY][MAX_HISTORY_NAME_LEN] = {"", };
-static struct MenuItem HistoryActivity[MAX_HISTORY_ENTRY] = 
+static struct MenuItem HistoryActivity[MAX_HISTORY_ENTRY] =
 {
     {-1, NULL, NULL},
 };
@@ -114,28 +114,52 @@ static const struct MenuItem TestMenu[] =
 
 #define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
 
+static uint8_t s_record_pos = 0;
+static uint8_t loadHistoryRecord(char* record_name, uint8_t pos)
+{
+    record_desc_t record;
+    if(get_record_desc(record_name, &record) != 0)
+    {
+        printf("load %s\n", record_name);
+        sprintf(history_names[pos], "%02d/%02d/%02d",
+                record.month, record.day, record.year);
+        HistoryActivity[pos].handler = &menu_process;
+        HistoryActivity[pos].icon    = 0;
+        HistoryActivity[pos].name    = history_names[pos];
+        return pos + 1;
+    }
+    return pos;
+}
+
 static struct MenuItem* loadHistoryRecords()
 {
-    uint8_t pos = 0;
+    s_record_pos = 0;
     char* record_name = get_first_record(DATA_MODE_NORMAL);
-    while (record_name != NULL && pos < MAX_HISTORY_ENTRY)
+    if (record_name != NULL && s_record_pos < MAX_HISTORY_ENTRY)
     {
-        record_desc_t record;
-        if(get_record_desc(record_name, &record) != 0)
-        {
-            sprintf(history_names[pos], "%02d/%02d/%02d",
-                    record.month, record.day, record.year);
-            HistoryActivity[pos].handler = &menu_process;
-            HistoryActivity[pos].icon    = 0;
-            HistoryActivity[pos].name    = history_names[pos];
-        }
-        record_name = get_next_record();
+        s_record_pos = loadHistoryRecord(record_name, s_record_pos);
+        process_post(ui_process, EVENT_FILESYS_EVENT, NULL);
     }
-
-    SET_MENU_END(pos, HistoryActivity);
+    else
+    {
+        SET_MENU_END(s_record_pos, HistoryActivity);
+    }
     return HistoryActivity;
 }
 
+static void loadHistoryRecordsProc()
+{
+    char* record_name = get_next_record();
+    if (record_name != NULL && s_record_pos < MAX_HISTORY_ENTRY)
+    {
+        s_record_pos = loadHistoryRecord(record_name, s_record_pos);
+        process_post(ui_process, EVENT_FILESYS_EVENT, NULL);
+    }
+    else
+    {
+        SET_MENU_END(s_record_pos, HistoryActivity);
+    }
+}
 static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
@@ -463,6 +487,12 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       break;
     }
+
+    case EVENT_FILESYS_EVENT:
+      printf("received file sys mest\n");
+      loadHistoryRecordsProc();
+      break;
+
     default:
       return 0;
   }
