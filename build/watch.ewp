@@ -2443,7 +2443,7 @@
       <name>$PROJ_DIR$\..\platform\iwatch\board.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\button-sensor.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\button.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\clock.c</name>

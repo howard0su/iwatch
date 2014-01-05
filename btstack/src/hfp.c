@@ -21,6 +21,7 @@ static enum
   WAIT_CIND,
   WAIT_CMEROK,
   WAIT_CMGSOK,
+  WAIT_XAPL,
   WAIT_OK,
   IDLE,
   WAIT_RESP,
@@ -159,7 +160,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
   state = INITIALIZING;
 }
 
-#define AT_BRSF  "\r\nAT+BRSF=24\r\n"
+#define AT_BRSF  "\r\nAT+BRSF=124\r\n"
 #define AT_CIND0 "\r\nAT+CIND=?\r\n"
 #define AT_CIND  "\r\nAT+CIND?\r\n"
 #define AT_CMER  "\r\nAT+CMER=3,0,0,1\r\n"
@@ -171,6 +172,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define AT_CHUP  "\r\nAT+CHUP\r\n"
 #define AT_ATA   "\r\nATA\r\n"
 #define AT_CMGS  "\r\nAT+CMGS=?\r\n"
+#define AT_XAPL  "\r\nAT+XAPL=8086-1234-0001,10\r\n"
 
 #define R_NONE 0
 #define R_OK   0
@@ -181,6 +183,8 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define R_CLIP 5
 #define R_BTRH 6
 #define R_BVRA 7
+#define R_VGS 8
+#define R_XAPL 9
 #define R_UNKNOWN 0xFE
 #define R_ERROR 0xFF
 #define R_CONTINUE 0xFC
@@ -225,6 +229,14 @@ static char* parse_return(char* result, int* code)
   else if (strncmp(result, "+BVRA", 5) == 0)
   {
     *code = R_BVRA;
+  }
+  else if (strncmp(result, "+VGS", 4) == 0)
+  {
+    *code = R_VGS;
+  }
+  else if (strncmp(result, "+XAPL", 5) == 0)
+  {
+    *code = R_XAPL;
   }
   else if (strncmp(result, "OK", 2) == 0)
   {
@@ -549,23 +561,21 @@ static void hfp_state_handler(int code, char* buf)
   }
   else if (state == WAIT_CMEROK && code == R_OK)
   {
-#if 0
-    hfp_response_buffer = AT_CMGS;
-    hfp_response_size = sizeof(AT_CMGS);
-    state = WAIT_CMGSOK;
+    hfp_response_buffer = AT_XAPL;
+    hfp_response_size = sizeof(AT_XAPL);
+    state = WAIT_XAPL;
     hfp_try_respond(rfcomm_channel_id);
   }
-  else if (state == WAIT_CMGSOK)
+  else if (state == WAIT_XAPL)
   {
-    if (code == R_OK)
+    if (code == R_XAPL)
     {
-      printf("Support SMS\n");
+      printf("Apple Phone\n");
     }
     else
     {
-      printf("Not support SMS\n");
+      printf("Unknown Phone\n");
     }
-#endif
     hfp_response_buffer = AT_CLIP;
     hfp_response_size = sizeof(AT_CLIP);
     state = WAIT_OK;
@@ -587,6 +597,10 @@ static void hfp_state_handler(int code, char* buf)
   else if (code == R_BVRA)
   {
     handle_BVRA(buf);
+  }
+  else if (code == R_VGS)
+  {
+
   }
   else if (code == R_OK || code == R_ERROR)
   {

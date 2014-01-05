@@ -100,6 +100,8 @@ static const uint16_t config[] =
   0x3, 0x10, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40 + 63, 0x0, //Input Output Mixer
 };
 
+static uint8_t last_vol = 7;
+
 static int codec_write(uint8_t reg, uint16_t data)
 {
   return I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
@@ -162,6 +164,9 @@ void codec_setvolume(uint8_t level)
 {
   if (level > 8) level = 8;
   if (level == 0) level = 1;
+
+  last_vol = level;
+
   uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
   value &= ~0x3F;
   value |= ((level * 8 - 1) & 0x3F);
@@ -192,6 +197,13 @@ void codec_wakeup()
   codec_write(REG_POWER_MANAGEMENT3, config[REG_POWER_MANAGEMENT3]);
 
   codec_write(REG_CLK_GEN_CTRL, config[REG_CLK_GEN_CTRL]);
+
+  uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
+  value &= ~0x3F;
+  value |= ((last_vol * 8 - 1) & 0x3F);
+
+  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
+
   I2C_done();
 }
 

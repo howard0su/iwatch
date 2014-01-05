@@ -21,6 +21,7 @@ static void onDraw(tContext *pContext)
   window_button(pContext, KEY_EXIT, "Finish");
 
   // volume
+  window_button(pContext, KEY_ENTER, "Again");
   window_button(pContext, KEY_UP, "Vol Up");
   window_button(pContext, KEY_DOWN, "Vol Down");
   window_volume(pContext, 30, 125, 8, codec_getvolume());
@@ -57,6 +58,11 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           // decrease voice
           codec_changevolume(-1);
+          break;
+        }
+        case KEY_ENTER:
+        {
+          hfp_enable_voicerecog(1);
           break;
         }
       }

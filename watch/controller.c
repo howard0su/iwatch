@@ -131,18 +131,21 @@ void handle_av_events(uint16_t lparam, void* rparam)
       title = "Connected";
       break;
     case EVENT_AV_DISCONNECTED:
-          break;
+       break;
     case EVENT_AV_STATUS:
-        state = (int)rparam;
-        if (state == AVRCP_PLAY_STATUS_PLAYING)
+        if (state != (int)rparam)
         {
-          PRINTF("enable timer\n");
-          window_timer(CLOCK_SECOND);
-        }
-        else
-        {
-          PRINTF("disable timer :%d\n", state);
-          window_timer(0);
+          state = (int)rparam;
+          if (state == AVRCP_PLAY_STATUS_PLAYING)
+          {
+            PRINTF("enable timer\n");
+            window_timer(CLOCK_SECOND);
+          }
+          else
+          {
+            PRINTF("disable timer :%d\n", state);
+            window_timer(0);
+          }
         }
         break;
     case EVENT_AV_TITLE:
@@ -177,22 +180,15 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       position = 0;
       state = AVRCP_PLAY_STATUS_ERROR;
       artist = "";
-      if (!avrcp_connected())
+      if (hfp_connected())
       {
-        if (hfp_connected())
-        {
-          avrcp_connect(*hfp_remote_addr());
-          title = "Connecting";
-        }
-        else
-        {
-          window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
-          return 1;
-        }
+        avrcp_connect(*hfp_remote_addr());
+        title = "Connecting";
       }
       else
       {
-        title = "Connected";
+        window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
+        return 1;
       }
       window_invalid(NULL);
       break;
@@ -247,7 +243,6 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_CLOSING:
     {
-      avrcp_disconnect();
       window_timer(0);
       break;
     }
