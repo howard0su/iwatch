@@ -2452,6 +2452,9 @@
       <name>$PROJ_DIR$\..\platform\iwatch\contiki-exp5438-main.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\filesys_proc.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\platform\iwatch\flash.c</name>
     </file>
     <file>

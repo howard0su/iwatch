@@ -99,6 +99,8 @@ typedef unsigned char process_num_events_t;
 #define PROCESS_EVENT_EXITED          0x87
 #define PROCESS_EVENT_TIMER           0x88
 #define PROCESS_EVENT_COM             0x89
+#define PROCESS_EVENT_READ_DIR        0x8a
+#define PROCESS_EVENT_READ_DIR_PROC   0x8b
 
 #define PROCESS_EVENT_MAX             0x9f
 

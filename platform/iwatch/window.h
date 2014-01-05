@@ -237,4 +237,11 @@ enum SPORTS_GRID
     GRID_MAX,
 };
 
+struct MenuItem
+{
+  unsigned char icon;
+  const char *name;
+  windowproc handler;
+};
+
 #endif
