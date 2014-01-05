@@ -319,6 +319,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_default_link_policy_settings)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
+        l2cap_unregister_packet_handler(init_packet_handler);
         l2cap_register_packet_handler(packet_handler);
         printf("\n$$OK BLUETOOTH\n");
 
