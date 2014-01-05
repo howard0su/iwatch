@@ -1096,7 +1096,7 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>3000</state>
+          <state>2500</state>
         </option>
         <option>
           <name>GHeapSize2</name>
@@ -2109,7 +2109,19 @@
     <group>
       <name>ble</name>
       <file>
-        <name>$PROJ_DIR$\..\btstack\ble\att.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\ad_parser.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\ble_client.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\ble_sm.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\central_device_db_memory.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\rijndael.c</name>
       </file>
     </group>
     <group>

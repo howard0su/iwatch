@@ -98,6 +98,7 @@
 // MARK: GATT UUIDs
 #define GATT_PRIMARY_SERVICE_UUID      0x2800
 #define GATT_SECONDARY_SERVICE_UUID    0x2801
+#define GATT_INCLUDE_SERVICE_UUID      0x2802
 #define GATT_CHARACTERISTICS_UUID      0x2803
 
 #define GAP_SERVICE_UUID          0x1800
@@ -107,7 +108,7 @@
 #define ATT_TRANSACTION_MODE_ACTIVE    0x1
 #define ATT_TRANSACTION_MODE_EXECUTE   0x2
 #define ATT_TRANSACTION_MODE_CANCEL    0x3
-
+ 
 typedef struct att_connection {
     uint16_t mtu;
 } att_connection_t;

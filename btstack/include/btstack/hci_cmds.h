@@ -198,6 +198,22 @@ extern "C" {
 // data: event(8), len(8), status(8), service_record_handle(32)
 #define SDP_SERVICE_REGISTERED                             0x90
 
+// data: event(8), gatt subevent(8), address_type(8), address(6x8), rssi(8), len(8), data(len*8)
+#define GATT_ADVERTISEMENT                                 0xA0
+
+#define GATT_CONNECTION_COMPLETE                           0xA1
+#define GATT_SERVICE_QUERY_RESULT                          0xA2
+#define GATT_SERVICE_QUERY_COMPLETE                        0xA3
+#define GATT_CHARACTERISTIC_QUERY_RESULT                   0xA4
+#define GATT_CHARACTERISTIC_QUERY_COMPLETE                 0xA5
+
+// data: event(8), address_type(8), address (48), [number(32)]
+#define SM_JUST_WORKS_REQUEST                              0xb0
+#define SM_JUST_WORKS_CANCEL                               0xb1 
+#define SM_PASSKEY_DISPLAY_NUMBER                          0xb2
+#define SM_PASSKEY_DISPLAY_CANCEL                          0xb3
+#define SM_PASSKEY_INPUT_NUMBER                            0xb4
+#define SM_PASSKEY_INPUT_CANCEL                            0xb5
 
 // last error code in 4.0 is 0x3F - we start with 0x50 for BTstack errors
 

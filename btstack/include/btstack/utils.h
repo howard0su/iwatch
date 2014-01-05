@@ -69,6 +69,10 @@ typedef uint8_t link_key_t[LINK_KEY_LEN];
 #define DEVICE_NAME_LEN 32
 typedef uint8_t device_name_t[DEVICE_NAME_LEN+1];
 
+/**
+ * @brief 128 bit key used with AES128 in Security Manager
+ */
+typedef uint8_t sm_key_t[16];
 
 // helper for BT little endian format
 #define READ_BT_16( buffer, pos) ( ((uint16_t) buffer[pos]) | (((uint16_t)buffer[pos+1]) << 8))
