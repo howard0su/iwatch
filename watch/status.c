@@ -200,13 +200,12 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       uint8_t hour, minute, second;
       rtc_readtime(&hour, &minute, &second);
       uint32_t timestamp = rtc_readtime32();
-      printf("status:timer trigger:%02d:%02d:%02d\n", hour, minute, second);
       if (hour == 0 && minute == 0 && second <= 19)
       {
         ped_reset();
         save_data_start(DATA_MODE_NORMAL, timestamp);
       }
-      //if (/*minute % 5 == 0 &&*/ second <= 10)
+      if (minute % 5 == 0 && second <= 10)
       {
         printf("status:save data\n", hour, minute, second);
         uint32_t data[3] = {0};
