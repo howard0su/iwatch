@@ -94,7 +94,6 @@ void l2cap_init(){
     for(int i = 0 ; i < 4; i++)
     {
         packet_handlers[i] = NULL;
-        return;
     }
     //
     // register callback with HCI
@@ -108,7 +107,7 @@ void l2cap_init(){
 void l2cap_register_packet_handler(void (*handler)(void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)){
     for(int i = 0 ; i < 4; i++)
     {
-        if (packet_handlers[i])
+        if (packet_handlers[i] == NULL)
         {
             packet_handlers[i] = handler;
             return;
@@ -116,6 +115,21 @@ void l2cap_register_packet_handler(void (*handler)(void * connection, uint8_t pa
     }
 
     log_error("not enough event handler list");
+    return;
+}
+
+/** Register L2CAP packet handlers */
+void l2cap_unregister_packet_handler(void (*handler)(void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)){
+    for(int i = 0 ; i < 4; i++)
+    {
+        if (packet_handlers[i] == handler) 
+        {
+            packet_handlers[i] = NULL;
+            return;
+        }
+    }
+
+    log_error("didn't find handler");
     return;
 }
 
@@ -128,17 +142,21 @@ void l2cap_dispatch(l2cap_channel_t *channel, uint8_t type, uint8_t * data, uint
         {
             event_handler packet_handler = packet_handlers[i];
             if (packet_handler)
+            {
                 (*packet_handler)(channel->connection, type, channel->local_cid, data, size);
+            }
         }
     }
 }
 
-void l2cap_dispatch_event(uint8_t type, uint8_t * data, uint16_t size){
+void l2cap_dispatch_event(void *connection, uint8_t type, uint8_t * data, uint16_t size){
     for(int i = 0 ; i < 4; i++)
     {
         event_handler packet_handler = packet_handlers[i];
         if (packet_handler)
-            (*packet_handler)(NULL, type, 0, data, size);
+        {
+            (*packet_handler)(connection, type, 0, data, size);
+        }
     }    
 }
 
@@ -187,7 +205,7 @@ static void l2cap_emit_service_registered(void *connection, uint8_t status, uint
     event[2] = status;
     bt_store_16(event, 3, psm);
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
-    l2cap_dispatch_event(HCI_EVENT_PACKET, event, sizeof(event));
+    l2cap_dispatch_event(connection, HCI_EVENT_PACKET, event, sizeof(event));
 }
 
 void l2cap_emit_credits(l2cap_channel_t *channel, uint8_t credits) {
@@ -690,7 +708,7 @@ void l2cap_event_handler( uint8_t *packet, uint16_t size ){
 
     
     // pass on
-    l2cap_dispatch_event(HCI_EVENT_PACKET, packet, size);
+    l2cap_dispatch_event(NULL, HCI_EVENT_PACKET, packet, size);
 }
 
 static void l2cap_handle_disconnect_request(l2cap_channel_t *channel, uint16_t identifier){
