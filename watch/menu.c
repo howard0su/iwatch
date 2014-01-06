@@ -102,27 +102,42 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define HistoryActivity d.menu.HistoryActivity
 #define history_names   d.menu.displaynames
 #define file_names      d.menu.filenames
+
 #define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
 
 static uint8_t s_record_pos = 0;
-static void loadHistoryRecord(char* filename)
+static uint8_t loadHistoryRecord(char* filename)
 {
     uint8_t pos = s_record_pos;
+    if (pos >= count_elem(HistoryActivity) - 1)
+    {
+        printf("max history entris reach:%d\n", count_elem(HistoryActivity) - 1);
+        return 0;
+    }
+
     record_desc_t record;
-    if(get_record_desc(filename, &record) != 0 && !record.is_continue && pos < count_elem(HistoryActivity))
+    if(get_record_desc(filename, &record) != 0 && !record.is_continue)
     {
         printf("load %s\n", filename);
         strcpy(file_names[pos], filename);
-        sprintf(history_names[pos], "%02d/%02d/%02d",
-                record.month, record.day, record.year);
+        if (record.mode != DATA_MODE_NORMAL || record.sec != 0)
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d %02d:%02d",
+                    record.month, record.day, record.year, record.hour, record.min);
+        }
+        else
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d",
+                    record.month, record.day, record.year);
+        }
         HistoryActivity[pos].handler = &menu_process;
         HistoryActivity[pos].icon    = record.mode == DATA_MODE_RUNNING ? 'h' : 'a';
         HistoryActivity[pos].name    = history_names[pos];
 
-        window_invalid(NULL);
         s_record_pos++;
         SET_MENU_END(s_record_pos, HistoryActivity);
     }
+    return 1;
 }
 
 #define NUM_MENU_A_PAGE 5
@@ -400,8 +415,9 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
           {
             if (current == 9)
             {
-              Items = HistoryActivity;
               s_record_pos = 0;
+              SET_MENU_END(0, HistoryActivity);
+              Items = HistoryActivity;
               process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
             }
             else if (current == 10)
@@ -464,7 +480,12 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 
     case EVENT_FILESYS_LIST_FILE:
       if ((int)rparam != 0 && (int)rparam != -1)
+      {
         loadHistoryRecord((char*)rparam);
+        process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
+      }
+      else
+        window_invalid(NULL);
       break;
 
     default:

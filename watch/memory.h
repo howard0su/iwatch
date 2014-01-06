@@ -68,9 +68,18 @@ extern union _data
   struct
   {
       char filenames[8][32];
-      char displaynames[8][10];
+      char displaynames[8][20];
       struct MenuItem HistoryActivity[8];
   }menu;
+
+  struct
+  {
+      uint8_t filebuf[200];
+      char* record_name;
+      int   fd_read;
+      int   fd_send;
+  }recordoperation;
+
 }d;
 
 #endif
