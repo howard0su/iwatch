@@ -20,8 +20,9 @@
 #include "btstack/bluetooth.h"
 #include <stdio.h>
 #include <string.h>
-
+#include "memory.h"
 #include "sportsdata.h"
+
 #include "test.h"
 
 /*
@@ -38,13 +39,6 @@
 #define DATA_LIGHT 0xF8
 #define DATA_VOL  0xF9
 #define NO_DATA   0xFF
-
-struct MenuItem
-{
-  unsigned char icon;
-  const char *name;
-  windowproc handler;
-};
 
 static const struct MenuItem SetupMenu[] =
 {
@@ -68,13 +62,6 @@ static const struct MenuItem AboutMenu[] =
   {-1, NULL, NULL}
 };
 
-#define MAX_HISTORY_ENTRY    7 + 1
-#define MAX_HISTORY_NAME_LEN 20
-static char history_names[MAX_HISTORY_ENTRY][MAX_HISTORY_NAME_LEN] = {"", };
-static struct MenuItem HistoryActivity[MAX_HISTORY_ENTRY] =
-{
-    {-1, NULL, NULL},
-};
 
 static const struct MenuItem MainMenu[] =
 {
@@ -109,57 +96,53 @@ static const struct MenuItem TestMenu[] =
   {0, NULL, NULL}
 };
 
-#define NUM_MENU_A_PAGE 5
-#define MENU_SPACE 30
+extern struct process filesys_process;
+extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam);
+
+#define HistoryActivity d.menu.HistoryActivity
+#define history_names   d.menu.displaynames
+#define file_names      d.menu.filenames
 
 #define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
 
 static uint8_t s_record_pos = 0;
-static uint8_t loadHistoryRecord(char* record_name, uint8_t pos)
+static uint8_t loadHistoryRecord(char* filename)
 {
+    uint8_t pos = s_record_pos;
+    if (pos >= count_elem(HistoryActivity) - 1)
+    {
+        printf("max history entris reach:%d\n", count_elem(HistoryActivity) - 1);
+        return 0;
+    }
+
     record_desc_t record;
-    if(get_record_desc(record_name, &record) != 0)
+    if(get_record_desc(filename, &record) != 0 && !record.is_continue)
     {
-        printf("load %s\n", record_name);
-        sprintf(history_names[pos], "%02d/%02d/%02d",
-                record.month, record.day, record.year);
+        printf("load %s\n", filename);
+        strcpy(file_names[pos], filename);
+        if (record.mode != DATA_MODE_NORMAL || record.sec != 0)
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d %02d:%02d",
+                    record.month, record.day, record.year, record.hour, record.min);
+        }
+        else
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d",
+                    record.month, record.day, record.year);
+        }
         HistoryActivity[pos].handler = &menu_process;
-        HistoryActivity[pos].icon    = 0;
+        HistoryActivity[pos].icon    = record.mode == DATA_MODE_RUNNING ? 'h' : 'a';
         HistoryActivity[pos].name    = history_names[pos];
-        return pos + 1;
-    }
-    return pos;
-}
 
-static struct MenuItem* loadHistoryRecords()
-{
-    s_record_pos = 0;
-    char* record_name = get_first_record(DATA_MODE_NORMAL);
-    if (record_name != NULL && s_record_pos < MAX_HISTORY_ENTRY)
-    {
-        s_record_pos = loadHistoryRecord(record_name, s_record_pos);
-        process_post(ui_process, EVENT_FILESYS_EVENT, NULL);
-    }
-    else
-    {
+        s_record_pos++;
         SET_MENU_END(s_record_pos, HistoryActivity);
     }
-    return HistoryActivity;
+    return 1;
 }
 
-static void loadHistoryRecordsProc()
-{
-    char* record_name = get_next_record();
-    if (record_name != NULL && s_record_pos < MAX_HISTORY_ENTRY)
-    {
-        s_record_pos = loadHistoryRecord(record_name, s_record_pos);
-        process_post(ui_process, EVENT_FILESYS_EVENT, NULL);
-    }
-    else
-    {
-        SET_MENU_END(s_record_pos, HistoryActivity);
-    }
-}
+#define NUM_MENU_A_PAGE 5
+#define MENU_SPACE 30
+
 static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
@@ -345,7 +328,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else if (strcmp(rparam, "History") == 0)
       {
-        Items = loadHistoryRecords();
+        Items = HistoryActivity;
       }
 
       getMenuLength();
@@ -422,13 +405,20 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else if (lparam == KEY_ENTER)
       {
-        if (Items[current].handler)
+        if (Items == HistoryActivity)
+        {
+            window_open(&recordoperation_process, file_names[current]);
+        }
+        else if (Items[current].handler)
         {
           if (Items[current].handler == &menu_process)
           {
-            if (current == 9)  
+            if (current == 9)
             {
-              Items = loadHistoryRecords();
+              s_record_pos = 0;
+              SET_MENU_END(0, HistoryActivity);
+              Items = HistoryActivity;
+              process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
             }
             else if (current == 10)
             {
@@ -466,7 +456,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         currentTop = 7;
         current = 11;
         getMenuLength();
-        window_invalid(NULL);        
+        window_invalid(NULL);
       }
       else if (Items == HistoryActivity)
       {
@@ -474,7 +464,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         currentTop = 5;
         current = 9;
         getMenuLength();
-        window_invalid(NULL);        
+        window_invalid(NULL);
       }
       else
       {
@@ -488,9 +478,14 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       break;
     }
 
-    case EVENT_FILESYS_EVENT:
-      printf("received file sys mest\n");
-      loadHistoryRecordsProc();
+    case EVENT_FILESYS_LIST_FILE:
+      if ((int)rparam != 0 && (int)rparam != -1)
+      {
+        loadHistoryRecord((char*)rparam);
+        process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
+      }
+      else
+        window_invalid(NULL);
       break;
 
     default:

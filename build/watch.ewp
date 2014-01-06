@@ -2037,6 +2037,9 @@
       <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\filesys_proc.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\gesture.c</name>
     </file>
     <file>
@@ -2053,6 +2056,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\phone.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\recordoperation.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>

@@ -48,7 +48,8 @@ PROCESS_NAME(system_process);
 #define EVENT_WINDOW_PAINT            0xa5 // no parameter
 #define EVENT_NOTIFICATION_DONE       0xa6
 #define EVENT_NOTIFY_RESULT           0xa7 // the notification result
-#define EVENT_FILESYS_EVENT           0xa8 // event to handle file sys works
+#define EVENT_FILESYS_LIST_FILE       0xa8 // parameters 0 - end, -1 - error, address - pointer to char*
+#define EVENT_STLV_DATA_SENT          0xa9
 
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
@@ -235,6 +236,13 @@ enum SPORTS_GRID
     GRID_LAPTIME_AVG,
 
     GRID_MAX,
+};
+
+struct MenuItem
+{
+  unsigned char icon;
+  const char *name;
+  windowproc handler;
 };
 
 #endif

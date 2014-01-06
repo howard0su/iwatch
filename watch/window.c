@@ -21,6 +21,7 @@ static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
 extern const unsigned char logoPixel[];
+extern void filesys_init();
 
 union _data d;
 
@@ -88,6 +89,7 @@ static uint8_t stackptr = 0;
 void window_init()
 {
   backlight_on(255);
+  filesys_init();
 
   current_clip = client_clip;
   memlcd_DriverInit();
@@ -235,6 +237,10 @@ static void window_handle_event(uint8_t ev, void* data)
         // event converter to pass data as lparam
         ui_window(ev, (uint16_t)data, NULL);
       }
+    }
+    else if (ev == EVENT_FILESYS_LIST_FILE)
+    {
+        ui_window(ev, 0, data);
     }
 
     // check if there is more message in the queue

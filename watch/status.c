@@ -207,7 +207,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       }
       if (minute % 5 == 0 && second <= 10)
       {
-        printf("status:save data\n", hour, minute, second);
+        printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
         uint32_t data[3] = {0};
         data[0] = ped_get_steps();
         data[1] = ped_get_calorie();

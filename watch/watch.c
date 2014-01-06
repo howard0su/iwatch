@@ -23,6 +23,7 @@
 #include <stdio.h> /* For printf() */
 
 extern const unsigned char logoPixel[];
+extern void filesys_init();
 
 /*
 * This process is the startup process.
@@ -37,6 +38,7 @@ uint8_t watch_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       backlight_on(255);
       window_timer(CLOCK_SECOND);
+      filesys_init();
       break;
     }
   case EVENT_WINDOW_PAINT:

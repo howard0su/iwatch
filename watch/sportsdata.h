@@ -18,6 +18,7 @@ typedef struct _record_desc_t
     uint8_t  hour;
     uint8_t  min;
     uint8_t  sec;
+    uint8_t  is_continue;
 }record_desc_t;
 
 void save_data_start(uint8_t mode, uint32_t timestamp);

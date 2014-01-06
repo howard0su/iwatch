@@ -110,7 +110,7 @@ static int create_data_file(uint8_t mode, const data_desc_t* desc, data_file_t* 
                 iscontinue);
     }
 
-    printf("create_data_file(%s)\n", filename);
+    printf("create_data_file(%s(%d))\n", filename, timestamp);
 
     cfs_remove(filename);
 
@@ -186,7 +186,8 @@ void save_data(uint8_t mode, uint32_t timestamp, uint32_t data[], uint8_t size)
     printf("save_data(fd=%d, row=%d)\n", file->file_id, file->row_cursor);
     if (file->file_id == -1 || file->row_cursor >= MAX_ROW_COUNT)
     {
-        if (create_data_file(mode, desc, file, timestamp, 1 /* continue */) == -1)
+        uint8_t iscontinue = file->row_cursor >= MAX_ROW_COUNT ? 0x01 : 0x00;
+        if (create_data_file(mode, desc, file, timestamp, iscontinue /* continue */) == -1)
         {
             printf("create data file failed\n");
             return;
@@ -218,9 +219,7 @@ char* get_first_record(uint8_t mode)
         cfs_closedir(&s_sports_dir);
     }
 
-    char dir_name[32] = "";
-    sprintf(dir_name, "");
-    int ret = cfs_opendir(&s_sports_dir, dir_name);
+    int ret = cfs_opendir(&s_sports_dir, "");
     if (ret == -1)
     {
         printf("cfs_opendir() failed: %d\n", ret);
@@ -306,6 +305,8 @@ uint8_t get_record_desc(char* filename, record_desc_t* record)
 
                 case 13: record->sec = filename[i] - '0'; break;
                 case 14: record->sec = record->sec * 10 + filename[i] - '0'; break;
+
+                case 15: record->is_continue = filename[i] - '0'; break;
                 default:
                     return 0;
                     break;
