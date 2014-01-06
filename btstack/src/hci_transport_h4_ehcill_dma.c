@@ -84,7 +84,7 @@ typedef enum {
 
 typedef enum {
     EHCILL_STATE_SLEEP = 1,
-    EHCILL_STATE_W4_ACK,
+    EHCILL_STATE_W4_ACK, // wart for wakeup
     EHCILL_STATE_AWAKE
 } EHCILL_STATE;
 
@@ -224,6 +224,7 @@ static void h4_block_received(void){
                 case EHCILL_GO_TO_SLEEP_IND:
                 case EHCILL_WAKE_UP_IND:
                 case EHCILL_WAKE_UP_ACK:
+                case EHCILL_GO_TO_SLEEP_ACK:
                     ehcill_handle(hci_packet[0]);
                     read_pos = 0;
                     bytes_to_read = 1;
@@ -352,7 +353,7 @@ static int h4_process(struct data_source *ds) {
 
 
 int  ehcill_sleep_mode_active(void){
-    return ehcill_state == EHCILL_STATE_SLEEP;
+    return ehcill_state != EHCILL_STATE_AWAKE;
 }
 
 static void ehcill_cts_irq_handler(){
@@ -410,8 +411,7 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_WAKE_UP_IND:
                     // we can accept a WAKEUP_IND even we alrady in wake up state?
                     log_info("RX: EHCILL_WAKE_UP_IND 1 TX_STATE = %d\n", tx_state);
-                    tx_state = TX_W4_HEADER_SENT;
-                    hal_uart_dma_send_block(&tx_packet_type, 1);
+                    ehcill_schedule_ecill_command(EHCILL_WAKE_UP_ACK);
                     break;
 
                 default:
@@ -455,7 +455,6 @@ static void ehcill_handle(uint8_t action){
             switch(action){
                 case EHCILL_WAKE_UP_IND:
                 case EHCILL_WAKE_UP_ACK:
-
                     log_info("RX: EHCILL_WAKE_UP_IND or ACK\n");
 
                     tx_state = TX_W4_HEADER_SENT;
@@ -463,7 +462,10 @@ static void ehcill_handle(uint8_t action){
                     ehcill_state = EHCILL_STATE_AWAKE;
 
                     break;
-
+                case EHCILL_GO_TO_SLEEP_IND:
+                    // ignore this
+                    // keep wait for wakeup ack
+                    break;                
                 default:
                     log_error("3: unknow action: %d\n", action);
                     break;
