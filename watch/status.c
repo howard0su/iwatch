@@ -203,16 +203,16 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       if (hour == 0 && minute == 0 && second <= 19)
       {
         ped_reset();
-        save_data_start(DATA_MODE_NORMAL, timestamp);
+        //save_data_start(DATA_MODE_NORMAL, timestamp);
       }
       if (minute % 5 == 0 && second <= 10)
       {
-        printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
-        uint32_t data[3] = {0};
-        data[0] = ped_get_steps();
-        data[1] = ped_get_calorie();
-        data[2] = ped_get_distance();
-        save_data(DATA_MODE_NORMAL, timestamp, data, sizeof(data));
+        //printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
+        //uint32_t data[3] = {0};
+        //data[0] = ped_get_steps();
+        //data[1] = ped_get_calorie();
+        //data[2] = ped_get_distance();
+        //save_data(DATA_MODE_NORMAL, timestamp, data, sizeof(data));
       }
     check_battery();
       //write_walkstatus();
