@@ -9,6 +9,7 @@
 #include "rtc.h"
 #include "pedometer/pedometer.h"
 #include "sportsdata.h"
+#include "memory.h"
 
 #include <stdio.h>
 
@@ -182,6 +183,16 @@ static void check_battery()
   }
 }
 
+static void save_daily_data()
+{
+  // normal  : steps, cals, distance
+  uint32_t data[3] = {0};
+  data[0] = ped_get_steps();
+  data[1] = ped_get_calorie();
+  data[2] = ped_get_distance();
+  save_activity(DATA_MODE_NORMAL, data, count_elem(data));
+}
+
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   uint8_t old_status = status;
@@ -199,21 +210,22 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       uint8_t hour, minute, second;
       rtc_readtime(&hour, &minute, &second);
-      uint32_t timestamp = rtc_readtime32();
       if (hour == 0 && minute == 0 && second <= 19)
       {
+        save_daily_data();
         ped_reset();
         //save_data_start(DATA_MODE_NORMAL, timestamp);
       }
-      if (minute % 5 == 0 && second <= 10)
-      {
-        //printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
-        //uint32_t data[3] = {0};
-        //data[0] = ped_get_steps();
-        //data[1] = ped_get_calorie();
-        //data[2] = ped_get_distance();
-        //save_data(DATA_MODE_NORMAL, timestamp, data, sizeof(data));
-      }
+      //if (minute % 5 == 0 && second <= 10)
+      //{
+      //  uint32_t timestamp = rtc_readtime32();
+      //  printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
+      //  uint32_t data[3] = {0};
+      //  data[0] = ped_get_steps();
+      //  data[1] = ped_get_calorie();
+      //  data[2] = ped_get_distance();
+      //  save_data(DATA_MODE_NORMAL, timestamp, data, sizeof(data));
+      //}
     check_battery();
       //write_walkstatus();
     status ^= MID_STATUS;

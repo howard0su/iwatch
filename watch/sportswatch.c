@@ -11,6 +11,7 @@
 #include <cfs/cfs.h>
 #include "btstack/include/btstack/utils.h"
 #include "pedometer/pedometer.h"
+#include "sportsdata.h"
 
 #define GRID_3 			0
 #define GRID_4 			1
@@ -607,6 +608,27 @@ static uint8_t fileidx, sportnum;
 static int fileid;
 static uint16_t entrycount;
 static uint8_t sports_type = 0;
+
+//running : time_offset, steps, cals, distance, alt, heartrate
+//biking  : time_offset, cads,  cals, distance, alt, heartrate*/
+#define MAX(a, b) ((a) < (b) ? (b) : (a))
+static void save_activity_data()
+{
+    uint8_t mode = sports_type == SPORTS_DATA_FLAG_RUN ? DATA_MODE_RUNNING : DATA_MODE_BIKING;
+    uint32_t data[5] = {0};
+    if (mode == DATA_MODE_RUNNING)
+        data[0] = base_data[SPORTS_STEPS];
+    else
+        data[0] = base_data[SPORTS_CADENCE];
+
+    data[1] = MAX(base_data[SPORTS_CALS],      base_data[SPORTS_PED_CALORIES]);
+    data[2] = MAX(base_data[SPORTS_DISTANCE],  base_data[SPORTS_PED_DISTANCE]);
+    data[3] = base_data[SPORTS_ALT];
+    data[4] = base_data[SPORTS_HEARTRATE];
+
+    save_activity(mode, data, count_elem(data));
+}
+
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   UNUSED_VAR(lparam);
@@ -657,11 +679,11 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
           workout_time % upload_data_interval == 0)
       {
         // send data to phone
-        uint16_t stlv_data[6] = {0};
+        uint32_t stlv_data[6] = {0};
         uint32_t ble_data_buf[5] = {0};
         for(int i = 0; i < sportnum; i++)
         {
-            stlv_data[i]    = htons((short)(grid_data[i]));
+            stlv_data[i]    = grid_data[i];
             ble_data_buf[i] = stlv_data[i];
         }
 
@@ -697,7 +719,9 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       rtc_enablechange(0);
       ant_shutdown();
 
-      uint16_t dummy_stlv_data[4] = {0};
+      save_activity_data();
+
+      uint32_t dummy_stlv_data[4] = {0};
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, 4);
 
       ble_stop_sync();
@@ -709,3 +733,4 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 
   return 1;
 }
+

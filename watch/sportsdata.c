@@ -199,7 +199,106 @@ void save_data(uint8_t mode, uint32_t timestamp, uint32_t data[], uint8_t size)
     file->row_cursor++;
 }
 
+void write_rows(activity_raw_t row[], uint8_t size)
+{
+    char filename[32] = "_sportsdata";
+    int fd = cfs_open(filename, CFS_WRITE | CFS_APPEND);
+    if (fd == -1)
+    {
+        printf("cfs_open(%s) failed\n", filename);
+        return;
+    }
 
+    for (uint8_t i = 0; i < size; ++i)
+    {
+        if (row[i].mode != DATA_MODE_TOOMSTONE)
+        {
+            int bytewritten = cfs_write(fd, &row[i], sizeof(row[i]));
+            printf("write_data() %d/%d\n", bytewritten, sizeof(row[i]));
+        }
+    }
+
+    cfs_close(fd);
+}
+
+void save_activity(uint8_t mode, uint32_t data[], uint8_t size)
+{
+    uint16_t year  = 0;
+    uint8_t  month = 0;
+    uint8_t  day   = 0, wday = 0;
+    rtc_readdate(&year, &month, &day, &wday);
+
+    uint8_t hour = 0, min = 0, sec = 0;
+    if (mode != DATA_MODE_NORMAL)
+        rtc_readtime(&hour, &min, &sec);
+
+    activity_raw_t row;
+    row.year      = year & 0xff;
+    row.month     = month;
+    row.day       = day;
+    row.hour      = hour;
+    row.minute    = min;
+    row.second    = sec;
+    row.mode      = mode;
+    row.signature = 0xfe;
+
+    for (uint8_t i = 0; i < size; ++i)
+        row.data[i] = data[i];
+
+    printf("save_activity(%02d/%0dd/%02d-%02d)\n", row.year, row.month, row.day, row.second);
+    write_rows(&row, 1);
+}
+
+uint8_t load_history(activity_raw_t row[], uint8_t size)
+{
+    int fd = cfs_open("_sportsdata", CFS_READ);
+    if (fd == -1)
+    {
+        printf("cfs_open(sportsdata, read) failed\n");
+        return 0;
+    }
+
+    int pos = cfs_seek(fd, 0, CFS_SEEK_END);
+    if (pos == -1)
+    {
+        printf("cfs_seek(end) failed\n");
+        return 0;
+    }
+
+    int filesize = pos;
+    if (pos > (int)sizeof(activity_raw_t) * size)
+        pos = - sizeof(activity_raw_t) * size;
+
+    int newpos = cfs_seek(fd, pos, CFS_SEEK_END);
+    if (newpos == -1)
+    {
+        printf("cfs_seek(%d) failed\n", pos);
+        return 0;
+    }
+
+    uint8_t i = 0;
+    for (; i < size; ++i)
+    {
+        int byteread = cfs_read(fd, &row[i], sizeof(row[0]));
+        if (byteread != sizeof(row[0]))
+        {
+            printf("cfs_read() failed: %d/%d\n", byteread, sizeof(row[0]));
+            break;
+        }
+    }
+
+    cfs_close(fd);
+
+    if (i == size && filesize > size * 4 * sizeof(row[0]))
+    {
+        //write back if the file is too big
+        printf("GC sportsdata:%d/%d\n", i, filesize);
+        cfs_remove("_sportsdata");
+        write_rows(row, i);
+    }
+
+    return i;
+}
 
 static struct cfs_dir s_sports_dir;
 static uint8_t s_sports_dir_flag = 0;

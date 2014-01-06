@@ -22,9 +22,10 @@ void send_file_list(char* files);
 #define SPORTS_DATA_FLAG_START 0x01
 #define SPORTS_DATA_FLAG_STOP  0x02
 #define SPORTS_DATA_FLAG_PRE   0x04
+#define SPORTS_DATA_FLAG_SYNC  0x08
 #define SPORTS_DATA_FLAG_BIKE  0x10
 #define SPORTS_DATA_FLAG_RUN   0x20
-void send_sports_data(uint8_t id, uint8_t flag, uint16_t* data, uint8_t size);
+void send_sports_data(uint8_t id, uint8_t flag, uint32_t data[], uint8_t size);
 void send_sports_grid(uint8_t* data, uint8_t size);
 
 //notification
