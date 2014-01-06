@@ -138,12 +138,11 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             else
             {
                 ui_config* conf = window_readconfig();
-                uint8_t valid_cnt = 0;
-                for (uint8_t i = 0; i < buffer_size && i + 1 < sizeof(conf->sports_grid_data); ++i)
+                uint8_t i = 0;
+                for (; i < buffer_size && i + 1 < sizeof(conf->sports_grid_data); ++i)
                 {
                     if (buffer[i] == 0xff)
                     {
-                        valid_cnt = i;
                         break;
                     }
                     else
@@ -151,7 +150,8 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
                         conf->sports_grid_data[i + 1] = buffer[i];
                     }
                 }
-                conf->sports_grid = valid_cnt - 2;
+                if (i < 2) i = 2;
+                conf->sports_grid = i - 2;
                 window_writeconfig();
                 window_loadconfig();
             }
