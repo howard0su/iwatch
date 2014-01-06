@@ -2112,7 +2112,7 @@
         <name>$PROJ_DIR$\..\btstack\ble\ad_parser.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\btstack\ble\ble_client.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\ble_central.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\ble\ble_sm.c</name>
@@ -2196,6 +2196,9 @@
         <name>$PROJ_DIR$\..\btstack\src\utils.c</name>
       </file>
     </group>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_client.c</name>
+    </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_handler.c</name>
     </file>
