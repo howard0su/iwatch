@@ -147,6 +147,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         // single package
         pid = avctph->pid;
         buf = (uint8_t*)(avch+1);
+        size -= sizeof(struct avctp_header) + sizeof(struct avc_header);
       }
       else if (avctph->packet_type == AVCTP_PACKET_START)
       {
@@ -192,7 +193,7 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       }
       else
       {
-        printf("unknow pid %dn", pid);
+        log_error("unknow pid %dn", pid);
       }
       break;
     }

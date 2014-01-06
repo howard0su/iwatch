@@ -48,6 +48,8 @@ static uint8_t state;
 #define length d.music.length
 #define position d.music.position
 
+static const tRectangle rect = {12, 24, 144, 88};
+
 static void OnDraw(tContext *pContext)
 {
   // clear the region
@@ -128,17 +130,13 @@ void handle_av_events(uint16_t lparam, void* rparam)
     switch(lparam)
     {
     case EVENT_AV_CONNECTED:
-      window_invalid(NULL);
       break;
     case EVENT_AV_DISCONNECTED:
        break;
     case EVENT_AV_STATUS:
         if (state != (int)rparam)
         {
-          if (state == AVRCP_PLAY_STATUS_ERROR)
-          {
-            avrcp_get_attributes(0);
-          }
+          avrcp_get_attributes(0);
 
           state = (int)rparam;
           if (state == AVRCP_PLAY_STATUS_PLAYING)
@@ -170,11 +168,12 @@ void handle_av_events(uint16_t lparam, void* rparam)
     case EVENT_AV_POS:
         position = (uint16_t)((uint32_t)rparam/1000);
         PRINTF("position set to %d\n", position);
-        window_invalid(NULL);
+        window_invalid(&rect);
         break;
     case EVENT_AV_TRACK:
         position = 0;
-        avrcp_get_attributes(0);
+        state = AVRCP_PLAY_STATUS_ERROR;
+        avrcp_get_playstatus();
         break;
     }
 }
@@ -182,7 +181,7 @@ void handle_av_events(uint16_t lparam, void* rparam)
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev){
-  case EVENT_WINDOW_CREATED:
+  case EVENT_WINDOW_ACTIVE:
     {
       position = 0;
       state = AVRCP_PLAY_STATUS_ERROR;
@@ -202,7 +201,6 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case PROCESS_EVENT_TIMER:
     {
-      const tRectangle rect = {12, 24, 144, 88};
       if (position < length && state == AVRCP_PLAY_STATUS_PLAYING)
       {
         position++;
