@@ -153,6 +153,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
                 }
                 conf->sports_grid = valid_cnt - 2;
                 window_writeconfig();
+                window_loadconfig();
             }
             break;
 
