@@ -181,6 +181,15 @@ void handle_av_events(uint16_t lparam, void* rparam)
 uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev){
+  case EVENT_WINDOW_CREATED:
+  {
+      if (!hfp_connected())
+      {
+        window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
+        return 1;
+      }
+      break;    
+  }
   case EVENT_WINDOW_ACTIVE:
     {
       position = 0;
@@ -190,11 +199,6 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         avrcp_connect(*hfp_remote_addr());
         title = "Connecting";
-      }
-      else
-      {
-        window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
-        return 1;
       }
       window_invalid(NULL);
       break;
