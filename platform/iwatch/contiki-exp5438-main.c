@@ -144,7 +144,7 @@ main(int argc, char **argv)
   */
   msp430_dco_required = 0;
 
- // watchdog_start();
+  watchdog_start();
 
   while(1) {
     int r;
