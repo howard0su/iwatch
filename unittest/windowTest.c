@@ -143,6 +143,8 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    
    // date config
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},

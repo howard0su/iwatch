@@ -35,5 +35,5 @@ void hfp_test_setstatus(uint8_t ind, uint8_t value)
 
 uint8_t hfp_connected()
 {
-    return 1;
+    return 0;
 }
