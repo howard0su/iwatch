@@ -26,7 +26,7 @@ void backlight_shutdown()
 
 void backlight_on(uint8_t level)
 {
-  if (level > 16) level = 16;
+  if (level > 8) level = 8;
 
   if (level == 0)
   {
@@ -35,7 +35,7 @@ void backlight_on(uint8_t level)
   else
   {
     LIGHTCONTROL = OUTMOD_7;
-    LIGHTLEVEL = level;
+    LIGHTLEVEL = level * 2;
   }
 }
 
