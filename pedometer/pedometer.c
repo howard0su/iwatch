@@ -36,7 +36,7 @@ static inline int32_t filter2(int32_t value)
 {
   static int32_t lastsample = 0;
   
-  uint32_t ret;
+  int32_t ret;
   if (value > lastsample)
     ret = (value - lastsample) / 2  + lastsample;
   else
@@ -117,6 +117,7 @@ uint16_t calc_step_len(uint16_t interval, uint8_t height)
 
 static void increasestep(uint16_t interval)
 {
+    printf("increasestep(%d)\n", interval);
   step_cnt++;
 
   if (interval < SAMPLE_HZ * 2)
@@ -148,7 +149,7 @@ char ped_update_sample(int16_t *data)
   data[2] = window[0][2] + window[1][2] + window[2][2] + window[3][2];
 #endif
   uint32_t total = totalaccel(data);
-  uint16_t threshold = filter2(total);
+  int32_t threshold = filter2(total);
   
   static int holdoff = 0;
 
@@ -156,6 +157,8 @@ char ped_update_sample(int16_t *data)
 
   interval++;
   
+  //printf("total=%d, ", total, threshold);
+  printf("total=%ld, threshold=%ld, holdoff=%d\n", total, threshold, holdoff);
   if (threshold < 100)
   {
     return 1;
