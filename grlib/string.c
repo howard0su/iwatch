@@ -2849,25 +2849,28 @@ void GrStringDrawWrap(const tContext* pContext, const char* pcString, long start
 
         }while(w < width && ulChar != '\0'&& ulChar != '\n');
  
-        if (laststop == -1) 
+        if (w >= width)
         {
-            // no way to put this string, then we just wrappt it
-            laststop = iterator;
-        }
-        else
-        {
-            iterator = laststop;
+            if (laststop == -1) 
+            {
+                // no way to put this string, then we just wrappt it
+                laststop = iterator;
+            }
+            else
+            {
+                iterator = laststop;
+            }
         }
         //printf("start: %d count:%d\n", start, iterator - start);
-    // now we need draw
+        // now we need draw
         GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
-     if (ulChar == '\0')
-       return;
-         start = laststop;
-     starty += margin;
+        if (ulChar == '\0')
+            return;
+        start = laststop;
+        starty += margin;
 
-     if (starty > pContext->sClipRegion.sYMax)
-        return;
+        if (starty > pContext->sClipRegion.sYMax)
+            return;
    }
 }
 //*****************************************************************************
