@@ -78,8 +78,6 @@ static void sendinformation(uint16_t cmpersec)
 uint16_t calc_step_len(uint16_t interval, uint8_t height)
 {
     uint16_t dist;
-    if (interval < SAMPLE_HZ * 2)
-        return 0;
 
     if (interval > SAMPLE_HZ)
     {
@@ -110,14 +108,14 @@ uint16_t calc_step_len(uint16_t interval, uint8_t height)
       dist = height * 6 / 5;
     }
 
-    printf("speed= %d\n", dist * SAMPLE_HZ / interval);
+    //printf("speed= %d\n", dist * SAMPLE_HZ / interval);
     sendinformation(dist * SAMPLE_HZ / interval);
     return dist;
 }
 
 static void increasestep(uint16_t interval)
 {
-    printf("increasestep(%d)\n", interval);
+    //printf("increasestep(%d)\n", interval);
   step_cnt++;
 
   if (interval < SAMPLE_HZ * 2)
@@ -158,8 +156,8 @@ char ped_update_sample(int16_t *data)
   interval++;
   
   //printf("total=%d, ", total, threshold);
-  printf("total=%ld, threshold=%ld, holdoff=%d\n", total, threshold, holdoff);
-  if (threshold < 100)
+  //printf("total=%ld, threshold=%ld, holdoff=%d\n", total, threshold, holdoff);
+  if (threshold < 500)
   {
     return 1;
   } 
@@ -170,19 +168,19 @@ char ped_update_sample(int16_t *data)
   }
   else if (holdoff < 0)
   {
-    if (total > threshold)
-    {
-    }
-    else
+    if (total < threshold - 400)
     {
       holdoff = 1;
     }
   }
-  else if (total > threshold)
+  else if (total > threshold + 1000)
   {
-    increasestep(interval);
-    interval = 0;
-    holdoff = -1;
+      if (interval >= 20)
+      {
+          increasestep(interval);
+          interval = 0;
+      }
+      holdoff = -1;
   }
 
   //printf("%ld\t%d\n", threshold, step_cnt);
