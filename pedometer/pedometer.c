@@ -32,9 +32,9 @@ static inline int16_t filter(int16_t value, int16_t *slot)
   return ret;
 }
 
-static inline uint32_t filter2(uint32_t value)
+static inline int32_t filter2(int32_t value)
 {
-  static uint32_t lastsample = 0;
+  static int32_t lastsample = 0;
   
   uint32_t ret;
   if (value > lastsample)
