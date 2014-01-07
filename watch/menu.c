@@ -102,9 +102,38 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define HistoryActivity d.menu.HistoryActivity
 #define history_names   d.menu.displaynames
 #define file_names      d.menu.filenames
+#define rows            d.menu.rows
+#define row_count       d.menu.row_count
 
 #define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
 
+
+static void load_history_menu()
+{
+    row_count = load_history(rows, count_elem(rows) - 1);
+    for (int i = 0; i < row_count; ++i)
+    {
+        if (rows[i].mode == DATA_MODE_TOOMSTONE)
+            continue;
+
+        if (rows[i].mode != DATA_MODE_NORMAL)
+        {
+            sprintf(history_names[i], "%02d/%02d/%02d %02d:%02d",
+                    rows[i].month, rows[i].day, rows[i].year, rows[i].hour, rows[i].minute);
+        }
+        else
+        {
+            sprintf(history_names[i], "%02d/%02d/%02d",
+                    rows[i].month, rows[i].day, rows[i].year);
+        }
+        HistoryActivity[i].handler = &menu_process;
+        HistoryActivity[i].icon    = rows[i].mode == DATA_MODE_RUNNING ? 'h' : 'a';
+        HistoryActivity[i].name    = history_names[i];
+    }
+    SET_MENU_END(row_count, HistoryActivity);
+}
+
+/*
 static uint8_t s_record_pos = 0;
 static uint8_t loadHistoryRecord(char* filename)
 {
@@ -139,6 +168,7 @@ static uint8_t loadHistoryRecord(char* filename)
     }
     return 1;
 }
+*/
 
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
@@ -407,7 +437,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         if (Items == HistoryActivity)
         {
-            window_open(&recordoperation_process, file_names[current]);
+            window_open(&recordoperation_process, (void*)current);
         }
         else if (Items[current].handler)
         {
@@ -415,10 +445,14 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
           {
             if (current == 9)
             {
-              s_record_pos = 0;
-              SET_MENU_END(0, HistoryActivity);
+              //s_record_pos = 0;
+              //SET_MENU_END(0, HistoryActivity);
+              //Items = HistoryActivity;
+              //process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
+
+              load_history_menu();
               Items = HistoryActivity;
-              process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
+
             }
             else if (current == 10)
             {
@@ -478,15 +512,15 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       break;
     }
 
-    case EVENT_FILESYS_LIST_FILE:
-      if ((int)rparam != 0 && (int)rparam != -1)
-      {
-        loadHistoryRecord((char*)rparam);
-        process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
-      }
-      else
-        window_invalid(NULL);
-      break;
+    //case EVENT_FILESYS_LIST_FILE:
+    //  if ((int)rparam != 0 && (int)rparam != -1)
+    //  {
+    //    loadHistoryRecord((char*)rparam);
+    //    process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
+    //  }
+    //  else
+    //    window_invalid(NULL);
+    //  break;
 
     default:
       return 0;

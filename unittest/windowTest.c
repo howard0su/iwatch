@@ -296,6 +296,34 @@ static void test_window_stopwatch(windowproc window, void* data)
   window(EVENT_WINDOW_CLOSING, 0, 0);
 }
 
+void TestStatus(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };
+
+  run_window_events(&status_process, test_events);
+}
+
+void TestHistory(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };
+}
+
 void TestSportWatch(CuTest* tc)
 {
   struct _event test_events[] = {

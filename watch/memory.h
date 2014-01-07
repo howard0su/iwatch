@@ -2,6 +2,7 @@
 #define _MEMORY_H
 #include  <stdint.h>
 #include "window.h"
+#include "sportsdata.h"
 
 extern union _data
 {
@@ -67,9 +68,11 @@ extern union _data
 
   struct
   {
-      char filenames[8][32];
+      //char filenames[8][32];
       char displaynames[8][20];
+      activity_raw_t rows[8];
       struct MenuItem HistoryActivity[8];
+      uint8_t row_count;
   }menu;
 
   struct
@@ -78,7 +81,9 @@ extern union _data
       char* record_name;
       int   fd_read;
       int   fd_send;
+      activity_raw_t* row;
   }recordoperation;
+
 
 }d;
 
