@@ -47,7 +47,7 @@ int putchar(int data)
     int tempData;
     int parity_mask = 0x200;
     char bitCount = 0xB;                    // Load Bit counter, 8data + ST/SP +parity
-
+    int flag;
     //while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
 
     TA0CCR0 = TA0R;                       // Current state of TA counter
@@ -61,12 +61,16 @@ int putchar(int data)
         while (!(TA0CCTL0 & CCIFG)) ;
         TA0CCTL0 &= ~CCIFG;
         TA0CCR0 += BitTime_115200;
-        TA0CCTL0 |=  OUTMOD2;             // TX '0'
         if (tempData & 0x01)
         {
             tempData ^= parity_mask;
             TA0CCTL0 &= ~OUTMOD2;         // TX '1'
         }
+        else
+        {
+            TA0CCTL0 |=  OUTMOD2;             // TX '0'
+        }
+
         parity_mask = parity_mask >> 1;
         tempData = tempData >> 1;
         bitCount--;
