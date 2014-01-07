@@ -91,6 +91,7 @@ WATCH = \
     watch/analog-watch.c \
     watch/configtime.c \
     watch/countdown.c \
+    watch/controller.c \
     watch/controls.c \
     watch/digit-watch.c \
     watch/stopwatch.c \
@@ -103,6 +104,7 @@ WATCH = \
     watch/sportswatch.c \
     watch/sportwait.c \
     watch/sportselect.c \
+    watch/sportsdata.c \
     watch/phone.c \
     watch/notification.c \
     watch/worldclock.c \
@@ -113,6 +115,8 @@ WATCH = \
     watch/status.c \
     watch/test.c \
     watch/siri.c \
+    watch/filesys_proc.c \
+    watch/recordoperation.c \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \

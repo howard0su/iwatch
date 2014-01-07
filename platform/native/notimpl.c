@@ -9,6 +9,9 @@
 #include "ant/ant.h"
 #include <stdio.h>
 #include <string.h>
+
+#include "btstack/utils.h"
+
 uint8_t shutdown_mode;
 
 void rtc_init(){}
@@ -32,9 +35,9 @@ void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 }
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday)
 {
-  if (year) *year = 2013;
-  if (month) *month = 12;
-  if (day) *day = 12;
+  if (year) *year = 2014;
+  if (month) *month = 1;
+  if (day) *day = 1;
   if (weekday) *weekday = 3;
 }
 
@@ -93,7 +96,6 @@ void mpu6050_init() {}
 
 
 uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
-uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 
@@ -221,3 +223,104 @@ uint16_t __swap_bytes(uint16_t d)
 }
 
 void codec_setvolume(int a) {}
+
+char *bluetooth_address() {return "TH:IS:IS:AD:DR";}
+
+
+static const uint8_t month_day_map[] = {
+    31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+};
+uint32_t calc_timestamp(uint8_t year, uint8_t month, uint8_t day, uint8_t hh, uint8_t mm, uint8_t ss)
+{
+    uint8_t leap_years = year / 4 + 1;
+    if (year % 4 == 0 && month < 2)
+        leap_years -= 1;
+
+    uint32_t days = year * 365 + leap_years;
+    for (uint8_t i = 0; i < month - 1; ++i)
+        days += month_day_map[i];
+    days += day;
+    return ((days * 24 + hh) * 60 + mm) * 60 + ss;
+
+}
+
+void parse_timestamp(uint32_t time, uint8_t* year, uint8_t* month, uint8_t* day, uint8_t* hh, uint8_t* mm, uint8_t* ss)
+{
+    uint32_t temp = 0;
+
+    *ss = time % 60;
+    temp = time / 60;
+
+    *mm = temp % 60;
+    temp = temp / 60;
+
+    *hh = temp % 24;
+    temp = temp / 24;
+
+    uint16_t total_day = temp;
+    uint8_t tyear = 0;
+    while(1)
+    {
+        if (tyear % 4 == 0)
+        {
+            if (total_day >= 366)
+                total_day -= 366;
+            else
+                break;
+        }
+        else
+        {
+            if (total_day >= 365)
+                total_day -= 365;
+            else
+                break;
+        }
+        tyear++;
+    }
+
+    uint8_t i = 0;
+    for (; i < count_elem(month_day_map); ++i)
+    {
+        if (tyear % 4 == 0 && i == 1)
+        {
+            if (total_day < month_day_map[i] + 1)
+                break;
+            total_day -= month_day_map[i] + 1;
+        }
+        else
+        {
+            if (total_day < month_day_map[i])
+                break;
+            total_day -= month_day_map[i];
+        }
+    }
+
+    *year  = tyear;
+    *month = i + 1;
+    *day   = total_day;
+
+}
+
+uint32_t rtc_readtime32()
+{
+    uint16_t year  = 0;
+    uint8_t  month = 0;
+    uint8_t  day   = 0;
+    uint8_t  wday  = 0;
+    rtc_readdate(&year, &month, &day, &wday);
+
+    uint8_t  hour  = 0;
+    uint8_t  min   = 0;
+    uint8_t  sec   = 0;
+    rtc_readtime(&hour, &min, &sec);
+    return calc_timestamp(year - 2000, month, day, hour, min, sec);
+}
+
+
+
+int avrcp_get_attributes(uint32_t item) {return 1;}
+int avrcp_get_playstatus() {return 1;}
+uint8_t avrcp_connected(){ return 0;}
+void avctp_send_passthrough(uint8_t op) {}
+void avrcp_connect(bd_addr_t remote_addr) {}
+bd_addr_t* hfp_remote_addr() {return NULL;}
