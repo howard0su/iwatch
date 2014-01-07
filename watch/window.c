@@ -267,7 +267,7 @@ static void window_handle_event(uint8_t ev, void* data)
       {
         ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
         GrContextForegroundSet(&context, ClrWhite);
-        printf("update %d, %d %d, %d\n", current_clip.sXMin, current_clip.sYMin, current_clip.sXMax, current_clip.sYMax);
+        //printf("update %d, %d %d, %d\n", current_clip.sXMin, current_clip.sYMin, current_clip.sXMax, current_clip.sYMax);
         GrContextClipRegionSet(&context, &current_clip);
         ui_window(EVENT_WINDOW_PAINT, 0, &context);
         current_clip.sXMin = 255;
@@ -342,7 +342,7 @@ void window_invalid(const tRectangle *rect)
 void status_invalid()
 {
   if (!window_isstatusoff())
-  ui_window_flag |= WINDOW_FLAGS_STATUSUPDATE;
+    ui_window_flag |= WINDOW_FLAGS_STATUSUPDATE;
 }
 
 void window_close()
@@ -376,7 +376,7 @@ void window_close()
 void window_loadconfig()
 {
   ui_config data;
-  printf("load config file\n");
+  //printf("load config file\n");
   int fd = cfs_open(WINDOWCONFIG, CFS_READ);
   if (fd != -1)
   {

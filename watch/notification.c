@@ -27,11 +27,6 @@ static const tRectangle contentrect =
 
 static void onDraw(tContext *pContext)
 {
-  printf("draw something %d, %d %d,%d\n", pContext->sClipRegion.sXMin,
-                            pContext->sClipRegion.sYMin,
-                            pContext->sClipRegion.sXMax,
-                            pContext->sClipRegion.sYMax
-    );
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &fullscreen_clip);
