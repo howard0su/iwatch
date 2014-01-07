@@ -602,7 +602,12 @@ const uint8_t chinesedata[] = {
 };
 void TestNotification(CuTest *tc)
 {
-  handle_message('S', "+8615618273349", "123456780abcdefghijklmnopqrstuvwxyz");
+  handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  handle_message('S', "+8615618273349", "testing 123");
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();
