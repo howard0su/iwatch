@@ -11,7 +11,7 @@ static uint8_t message_buttons;
 static uint8_t message_result;
 
 #define BORDER 5
-#define BOTTOMBAR 25
+#define BOTTOMBAR 0
 
 static const tRectangle rect[5] =
 {
@@ -45,6 +45,7 @@ static void onDraw(tContext *pContext)
     GrStringDraw(pContext, &message_icon, 1, 12, 6, 0);
   }
 
+#if 0
   switch(message_buttons)
   {
   case NOTIFY_OK:
@@ -59,6 +60,7 @@ static void onDraw(tContext *pContext)
     window_button(pContext, KEY_DOWN, "Reject");
     break;
   }
+#endif
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
@@ -67,11 +69,11 @@ static void onDraw(tContext *pContext)
   // draw title
   GrStringDraw(pContext, message_title, -1, 34, 6, 0);
   // draw the line
-  GrLineDrawH(pContext, 5, 126, 23);
+  GrLineDrawH(pContext, 5, LCD_X_SIZE - 4, 23);
 
   GrContextClipRegionSet(pContext, &contentrect);
   //draw message
-  GrStringDrawWrap(pContext, message, 8, 26, LCD_X_SIZE - 26,  16);
+  GrStringDrawWrap(pContext, message, 8, 26, LCD_X_SIZE - 12,  16);
 
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 }
@@ -119,6 +121,7 @@ void window_notify(const char* title, const char* msg, uint8_t buttons, char ico
   message_buttons = buttons;
   message_icon = icon;
   motor_on(50, CLOCK_SECOND);
+  backlight_on(window_readconfig()->light_level);
 
   if (window_current() == notify_process)
     window_invalid(NULL);
