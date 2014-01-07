@@ -75,7 +75,6 @@ PROCESS_THREAD(button_process, ev, data)
               (P2IN & mask))
           {
             P2IES |= (P2IN & mask);
-            P2IE |= mask;
           }
 
           // need handle this button
@@ -100,8 +99,8 @@ PROCESS_THREAD(button_process, ev, data)
               else
                 process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
             }
-            downtime[i] = 0;
-          }
+              downtime[i] = 0;
+            }
 
           P2IES ^= mask;
           P2IE |= mask;
