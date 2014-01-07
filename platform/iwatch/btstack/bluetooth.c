@@ -156,13 +156,17 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       att_response_handle =0;
       att_response_size = 0;
 
-      if (READ_BT_16(packet, 3) == handle_audio)
+      uint16_t handle = READ_BT_16(packet, 3);
+      if (handle == handle_audio)
       {
         handle_audio = 0;
         codec_suspend();
       }
-      // restart advertising
-      // hci_send_cmd(&hci_le_set_advertise_enable, 1);
+      else if (handle > 1024)
+      {
+        // restart advertising
+        hci_send_cmd(&hci_le_set_advertise_enable, 1);
+      }
       break;
     }
   case HCI_EVENT_PIN_CODE_REQUEST:
