@@ -83,6 +83,7 @@ extern void window_volume(tContext *pContext, long lX, long lY, int total, int c
 extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
+extern const tRectangle fullscreen_clip;
 
 extern uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam);
 

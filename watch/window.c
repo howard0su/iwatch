@@ -246,18 +246,6 @@ static void window_handle_event(uint8_t ev, void* data)
     // check if there is more message in the queue
     if (!process_moreevent(&system_process))
     {
-      if (ui_window_flag & WINDOW_FLAGS_REFRESH)
-      {
-        ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
-        GrContextForegroundSet(&context, ClrWhite);
-        GrContextClipRegionSet(&context, &current_clip);
-        ui_window(EVENT_WINDOW_PAINT, 0, &context);
-        current_clip.sXMin = 255;
-        current_clip.sXMax = 0;
-        current_clip.sYMin = 255;
-        current_clip.sYMax = 0;
-      }
-
       if (ui_window_flag & WINDOW_FLAGS_STATUSUPDATE)
       {
         ui_window_flag &= ~WINDOW_FLAGS_STATUSUPDATE;
@@ -273,6 +261,19 @@ static void window_handle_event(uint8_t ev, void* data)
           GrContextForegroundSet(&context, ClrWhite);
           status_process(EVENT_WINDOW_PAINT, 0, &context);
         }
+      }
+
+      if (ui_window_flag & WINDOW_FLAGS_REFRESH)
+      {
+        ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
+        GrContextForegroundSet(&context, ClrWhite);
+        printf("update %d, %d %d, %d\n", current_clip.sXMin, current_clip.sYMin, current_clip.sXMax, current_clip.sYMax);
+        GrContextClipRegionSet(&context, &current_clip);
+        ui_window(EVENT_WINDOW_PAINT, 0, &context);
+        current_clip.sXMin = 255;
+        current_clip.sXMax = 0;
+        current_clip.sYMin = 255;
+        current_clip.sYMax = 0;
       }
 
       GrFlush(&context);
@@ -340,6 +341,7 @@ void window_invalid(const tRectangle *rect)
 
 void status_invalid()
 {
+  if (!window_isstatusoff())
   ui_window_flag |= WINDOW_FLAGS_STATUSUPDATE;
 }
 
@@ -358,12 +360,15 @@ void window_close()
   statusflag &= ~(1 << stackptr);
   stackptr--;
   ui_window_flag &= ~WINDOW_FLAGS_REFRESH;
-  GrContextForegroundSet(&context, ClrWhite);
-  GrContextClipRegionSet(&context, &client_clip);
   ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
+  current_clip.sXMin = 255;
+  current_clip.sXMax = 0;
+  current_clip.sYMin = 255;
+  current_clip.sYMax = 0;
 //  ui_window(EVENT_WINDOW_PAINT, 0, &context);
 //  GrFlush(&context);
   window_invalid(NULL);
+  status_invalid();
 }
 
 #define WINDOWCONFIG "_uiconfig"

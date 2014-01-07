@@ -14,7 +14,7 @@ static void OnDraw(tContext *pContext)
   // clear screen
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
-  GrRectFill(pContext, &client_clip);
+  GrRectFill(pContext, &fullscreen_clip);
 
   // draw table title
   GrContextForegroundSet(pContext, ClrWhite);

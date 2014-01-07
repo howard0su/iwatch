@@ -17,7 +17,7 @@ static void onDraw(tContext *pContext)
 {
   int width;
   GrContextForegroundSet(pContext, ClrBlack);
-  GrRectFill(pContext, &client_clip);
+  GrRectFill(pContext, &fullscreen_clip);
 
   GrContextForegroundSet(pContext, ClrWhite);
 

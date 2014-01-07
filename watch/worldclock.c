@@ -55,7 +55,7 @@ static void onDraw(tContext *pContext)
   uint8_t month, day;
   // clear the screen
   GrContextForegroundSet(pContext, ClrBlack);
-  GrRectFill(pContext, &client_clip);
+  GrRectFill(pContext, &fullscreen_clip);
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
 

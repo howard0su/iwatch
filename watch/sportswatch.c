@@ -704,7 +704,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       tContext *pContext = (tContext*)rparam;
       GrContextForegroundSet(pContext, ClrBlack);
-      GrRectFill(pContext, &client_clip);
+      GrRectFill(pContext, &fullscreen_clip);
       GrContextForegroundSet(pContext, ClrWhite);
       onDraw(pContext);
       break;

@@ -11,23 +11,34 @@ static uint8_t message_buttons;
 static uint8_t message_result;
 
 #define BORDER 5
+#define BOTTOMBAR 25
 
 static const tRectangle rect[5] =
 {
-  {0, 17, LCD_X_SIZE, 17 + BORDER},
-  {0, 17, BORDER, LCD_Y_SIZE},
-  {0, LCD_Y_SIZE - BORDER, LCD_X_SIZE, LCD_Y_SIZE},
-  {LCD_X_SIZE - BORDER, 17, LCD_X_SIZE, LCD_Y_SIZE},
-  {BORDER/2, 17 + BORDER/2, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2}
+  {0, 0, LCD_X_SIZE, BORDER},
+  {0, 0, BORDER, LCD_Y_SIZE},
+  {0, LCD_Y_SIZE - BORDER - BOTTOMBAR, LCD_X_SIZE, LCD_Y_SIZE - BOTTOMBAR},
+  {LCD_X_SIZE - BORDER, 0, LCD_X_SIZE, LCD_Y_SIZE - BOTTOMBAR},
+  {BORDER/2, BORDER/2, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2 - BOTTOMBAR}
 };
+
+static const tRectangle contentrect = 
+{8, 26, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2 - BOTTOMBAR};
 
 static void onDraw(tContext *pContext)
 {
-
+  printf("draw something %d, %d %d,%d\n", pContext->sClipRegion.sXMin,
+                            pContext->sClipRegion.sYMin,
+                            pContext->sClipRegion.sXMax,
+                            pContext->sClipRegion.sYMax
+    );
   GrContextForegroundSet(pContext, ClrBlack);
-  for(int i = 0; i < 4; i++)
-    GrRectFill(pContext, &rect[i]);
+  GrContextBackgroundSet(pContext, ClrWhite);
+  GrRectFill(pContext, &fullscreen_clip);
+
+  // draw table title
   GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
   GrRectFillRound(pContext, &rect[4], 4);
 
   GrContextForegroundSet(pContext, ClrBlack);
@@ -36,20 +47,8 @@ static void onDraw(tContext *pContext)
   if (message_icon)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);    
-    GrStringDraw(pContext, &message_icon, 1, 12, 23, 0);
+    GrStringDraw(pContext, &message_icon, 1, 12, 6, 0);
   }
-
-  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
-
-  // draw title
-  GrStringDraw(pContext, message_title, -1, 34, 23, 0);
-  // draw the line
-  GrLineDrawH(pContext, 5, 126, 40);
-  //draw message
-  GrStringDrawWrap(pContext, message, 8, 43, LCD_X_SIZE - 26,  16);
-
-  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 
   switch(message_buttons)
   {
@@ -65,6 +64,21 @@ static void onDraw(tContext *pContext)
     window_button(pContext, KEY_DOWN, "Reject");
     break;
   }
+
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
+  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
+
+  // draw title
+  GrStringDraw(pContext, message_title, -1, 34, 6, 0);
+  // draw the line
+  GrLineDrawH(pContext, 5, 126, 23);
+
+  GrContextClipRegionSet(pContext, &contentrect);
+  //draw message
+  GrStringDrawWrap(pContext, message, 8, 26, LCD_X_SIZE - 26,  16);
+
+  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 }
 
 // notify window process
