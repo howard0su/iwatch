@@ -198,7 +198,7 @@ static void window_handle_event(uint8_t ev, void* data)
     }
     else if (ev == EVENT_BT_BVRA)
     {
-      if (window_current() != &siri_process && data)
+      if (window_current() != &siri_process && window_current() != &phone_process && data)
       {
         window_open(&siri_process, NULL);
       }
