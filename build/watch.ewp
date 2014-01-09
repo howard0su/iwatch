@@ -2411,6 +2411,9 @@
     <name>mpl</name>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu.c</name>
+      <excluded>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu_dmp_motion_driver.c</name>
