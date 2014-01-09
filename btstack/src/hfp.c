@@ -25,8 +25,18 @@ static enum
   WAIT_OK,
   IDLE,
   WAIT_RESP,
-  ERROR
+  ERROR,
+  READY_SEND
 }state;
+
+static enum
+{
+  PENDING_HFP = 0x01,
+  PENDING_ATA = 0x02,
+  PENDING_CHUP= 0x04,
+  PENDING_BRVAON = 0x08,
+  PENDING_BRVAOFF = 0x10,
+}pending;
 
 static uint16_t hfp_response_size;
 static void*    hfp_response_buffer;
@@ -34,9 +44,11 @@ static uint16_t rfcomm_channel_id = 0;
 static uint16_t rfcomm_connection_handle;
 static bd_addr_t currentbd;
 
-static void hfp_try_respond(uint16_t rfcomm_channel_id){
-    if (!hfp_response_size) return;
-    if (!rfcomm_channel_id) return;
+static void hfp_run();
+
+static int hfp_try_respond(uint16_t rfcomm_channel_id){
+    if (!hfp_response_size) return 0;
+    if (!rfcomm_channel_id) return 0;
 
     //hci_exit_sniff(rfcomm_connection_handle);
 
@@ -48,9 +60,13 @@ static void hfp_try_respond(uint16_t rfcomm_channel_id){
     if ((error = rfcomm_send_internal(rfcomm_channel_id, hfp_response_buffer, size)) != 0)
     {
       // if error, we need retry
-      log_error("HFP: send failed. %x\n", error);
+      log_error("HFP: send failed. %x %s\n", error, hfp_response_buffer);
       hfp_response_size = size;
+
+      return error;
     }
+
+    return 0;
 }
 
 static bd_addr_t event_addr;
@@ -167,8 +183,8 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define AT_CLIP  "\r\nAT+CLIP=1\r\n"
 #define AT_BVRAON  "\r\nAT+BVRA=1\r\n"
 #define AT_BVRAOFF  "\r\nAT+BVRA=0\r\n"
-#define AT_BTRH1 "\r\nAT+BTRH=1\r\n"
-#define AT_BTRH2 "\r\nAT+BTRH=2\r\n"
+//#define AT_BTRH1 "\r\nAT+BTRH=1\r\n"
+//#define AT_BTRH2 "\r\nAT+BTRH=2\r\n"
 #define AT_CHUP  "\r\nAT+CHUP\r\n"
 #define AT_ATA   "\r\nATA\r\n"
 #define AT_CMGS  "\r\nAT+CMGS=?\r\n"
@@ -600,15 +616,82 @@ static void hfp_state_handler(int code, char* buf)
   }
   else if (code == R_VGS)
   {
-
+    //handle_VGS(buf);
   }
   else if (code == R_OK || code == R_ERROR)
   {
+    if (state == WAIT_OK)
+      state = IDLE;
   }
   else
   {
-    log_error("HFP: enter error state");
-    state = ERROR;
+    log_error("HFP: enter error state %s\n", buf);
+    state = IDLE;
+  }
+
+  hci_run();
+}
+
+static void hfp_run()
+{
+  printf("hfp_run %d\n", state);
+  if (state != IDLE && state != READY_SEND)
+  {
+    hfp_try_respond(rfcomm_channel_id);
+    return;
+  }
+
+  log_debug("hfp_run_1 %d %x\n", state, pending);
+
+  if (pending == 0)
+    return;
+#if 0
+  if (state == IDLE)
+  {
+    hci_exit_sniff(rfcomm_connection_handle);
+    state = READY_SEND;
+    return;
+  }
+#endif
+  if (pending & PENDING_ATA)
+  {
+    hfp_response_buffer = AT_ATA;
+    hfp_response_size = sizeof(AT_ATA);
+    if (!hfp_try_respond(rfcomm_channel_id))
+      {
+        pending &=~PENDING_ATA;
+        state = WAIT_OK;
+      }
+  }
+  else if (pending & PENDING_CHUP)
+  {
+      hfp_response_buffer = AT_CHUP;
+      hfp_response_size = sizeof(AT_CHUP);
+      if (!hfp_try_respond(rfcomm_channel_id))
+      {
+        pending &= ~PENDING_CHUP;
+        state = WAIT_OK;
+      }
+  }
+  else if (pending & PENDING_BRVAON)
+  {
+      hfp_response_buffer = AT_BVRAON;
+      hfp_response_size = sizeof(AT_BVRAON);
+      if (!hfp_try_respond(rfcomm_channel_id))
+      {
+        pending &= ~PENDING_BRVAON;
+        state = WAIT_OK;
+      }
+  }
+  else if (!pending & PENDING_BRVAOFF)
+  {
+      hfp_response_buffer = AT_BVRAOFF;
+      hfp_response_size = sizeof(AT_BVRAOFF);
+      if (hfp_try_respond(rfcomm_channel_id))
+      {
+        pending &= ~PENDING_BRVAOFF;
+        state = WAIT_OK;
+      }
   }
 }
 
@@ -707,7 +790,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
       case DAEMON_EVENT_HCI_PACKET_SENT:
       case RFCOMM_EVENT_CREDITS:
         {
-          hfp_try_respond(rfcomm_channel_id);
+          hfp_run();
           break;
         }
       case RFCOMM_EVENT_CHANNEL_CLOSED:
@@ -727,52 +810,37 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
 
 uint8_t hfp_enable_voicerecog(uint8_t onoff)
 {
-  if (hfp_response_size)
-  {
-    hfp_try_respond(rfcomm_channel_id);
-  }
-
-  if (hfp_response_size)
-  {
-    return -1;
-  }
-
+printf("enable voice %d\n", onoff);
   if (onoff)
   {
-    hfp_response_buffer = AT_BVRAON;
-    hfp_response_size = sizeof(AT_BVRAON);
+    pending |= PENDING_BRVAON;
+    pending &= ~PENDING_BRVAOFF;
   }
   else
   {
-    hfp_response_buffer = AT_BVRAOFF;
-    hfp_response_size = sizeof(AT_BVRAOFF);
+    pending |= PENDING_BRVAOFF;
+    pending &= ~PENDING_BRVAON;
   }
  
-  hfp_try_respond(rfcomm_channel_id);
+  hfp_run();
 
   return 0;
 }
 
 uint8_t hfp_accept_call(uint8_t accept)
 {
-  if (hfp_response_size)
-  {
-    log_info("pending %s", hfp_response_buffer);
-    return -1;
-  }
 
+  printf("accept call %d\n", accept);
   if (accept)
   {
-    hfp_response_buffer = AT_ATA;
-    hfp_response_size = sizeof(AT_ATA);
-    hfp_try_respond(rfcomm_channel_id);    
+    pending |= PENDING_ATA;
   }
   else
   {
-    hfp_response_buffer = AT_CHUP;
-    hfp_response_size = sizeof(AT_CHUP);
-    hfp_try_respond(rfcomm_channel_id);
+    pending |= PENDING_CHUP;
   }
+
+  hfp_run();
 
   return 0;
 }
