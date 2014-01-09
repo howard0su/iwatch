@@ -39,4 +39,12 @@ void cordic_sincos(int,
                    int *,
                    int *);
 
+#define cordic_multipy(sincos, value) ((value *(sincos >> 8)) >> 7)
+/*
+  how to use this function
+    int cos_val, sin_val;
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    sx = CENTER_X + cordic_multipy(sin_val, 52);
+    sy = CENTER_Y - ((52 * (cos_val >> 8)) >> 7);
+*/
 #endif /* CORDIC_H */
