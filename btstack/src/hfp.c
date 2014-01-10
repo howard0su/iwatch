@@ -680,7 +680,7 @@ static void hfp_run()
       if (!hfp_try_respond(rfcomm_channel_id))
       {
         pending &= ~PENDING_BRVAON;
-        state = WAIT_OK;
+        state = IDLE;
       }
   }
   else if (!pending & PENDING_BRVAOFF)
@@ -690,7 +690,7 @@ static void hfp_run()
       if (hfp_try_respond(rfcomm_channel_id))
       {
         pending &= ~PENDING_BRVAOFF;
-        state = WAIT_OK;
+        state = IDLE;
       }
   }
 }
