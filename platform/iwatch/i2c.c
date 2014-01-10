@@ -128,6 +128,7 @@ void  I2C_addr(unsigned char address)
 
 void I2C_done()
 {
+  while(UCB1STAT & UCBUSY);
 }
 
 ISR(USCI_B1, USCI_B1_ISR)
