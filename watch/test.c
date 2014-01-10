@@ -378,6 +378,143 @@ static const uint8_t HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd[] =
     //HCI_VS_DRPb_Tester_Packet_TX_RX
     0x85, 0xFD, 12, 0x03, 0, 0xFF, 0x01, 0x02, 0x00, 0x1b, 0x00, 15, 0x01, 0xFF, 0x01
 };
+static const uint8_t HCI_VS_Set_LE_Test_Mode_Parameters[] =
+{
+	// HCI_VS_Set_LE_Test_Mode_Parameters
+	0x77, 0xFD, 17
+	, 0x01, 0x00, 0x00, 0x00, 0x29, 0x41, 0x76, 0x71 //(TX_AC)
+	, 0x00 //(Enable_BER)
+	, 0x00 //(PayloadType)
+	, 0x0A//(Payload_Length)
+	, 0x14 //(FA_THR_inBits)
+	, 0x00 //(En_Traces)
+	, 0x00, 0x00, 0x00, 0x00
+};
+
+uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	uint8_t buf[200];
+	switch(ev)
+	{
+		case EVENT_WINDOW_CREATED:
+		onoff = 0;
+		data = 0;
+		hci_send_cmd_packet((uint8_t*)HCI_VS_Set_LE_Test_Mode_Parameters, sizeof(HCI_VS_Set_LE_Test_Mode_Parameters));
+		break;
+
+		case EVENT_KEY_PRESSED:
+		{
+			if (lparam == KEY_ENTER)
+			{
+				onoff++;
+				if (onoff == 9) onoff = 0;
+			}
+
+			if (lparam == KEY_UP && data < 37)
+			{
+				data++;
+			}
+
+			if (lparam == KEY_DOWN && data >= 0)
+			{
+				data--;
+			}
+
+			if (onoff == 0)
+			{
+				//switch off
+				hci_send_cmd(&hci_le_test_end);
+			}
+			else
+			{
+				hci_send_cmd(&hci_le_transmitter_test, data, 0x25, onoff - 1);
+			}
+			
+			window_invalid(NULL);
+			break;
+		}
+		case EVENT_WINDOW_PAINT:
+		{
+		  tContext *pContext = (tContext*)rparam;
+		  const char *text;
+		  GrContextForegroundSet(pContext, ClrBlack);
+		  GrRectFill(pContext, &client_clip);
+
+		  GrContextForegroundSet(pContext, ClrWhite);
+      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      switch(onoff)
+      {
+ 		  	case 0:
+ 		  	text = "BLE TX is off";
+ 		  	break;
+
+ 		  	case 1:
+ 		  	text = "PRBS 9";
+ 		  	break;
+
+ 		  	case 2:
+ 		  	text = "FOFO";
+ 		  	break;
+
+ 		  	case 3:
+ 		  	text = "ZOZO";
+ 		  	break;
+
+ 		  	case 4:
+ 		  	text = "PRBS 15";
+ 		  	break;
+
+ 		  	case 5:
+ 		  	text = "All Ones";
+ 		  	break;
+ 		  
+ 		  	case 6:
+ 		  	text = "All Zeros";
+ 		  	break;
+
+ 		  	case 7:
+ 		  	text = "OFOF";
+ 		  	break;
+
+ 		  	case 8:
+ 		  	text = "OZOZ";
+ 		  	break;
+			}
+			GrStringDraw(pContext, text, -1, 32, 50, 0);
+
+ 		  if (data >= 0)
+ 		  {
+	 		  char buf[32];
+			  sprintf(buf, "Freqency: %dMhz", data < 40 ? 
+			  									2402 + data * 2:
+			  									2403 + (data - 40) * 2);
+	 		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
+			}
+			else
+			{
+	 		  GrStringDraw(pContext, "Hoping mode", -1, 5, 70, 0);
+			}
+
+ 		  window_button(pContext, KEY_UP, "+");
+ 		  window_button(pContext, KEY_DOWN, "-");
+	  	window_button(pContext, KEY_ENTER, "Switch");
+ 		  break;
+ 		}
+ 		case EVENT_WINDOW_CLOSING:
+ 		if (onoff)
+		{
+			hci_send_cmd(&hci_le_test_end);
+ 		}
+ 		break;
+
+ 		default:
+ 		return 0;
+	}
+
+	return 1;
+}
+
+
 
 uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 {
