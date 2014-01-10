@@ -374,24 +374,26 @@ void window_close()
 
 void window_loadconfig()
 {
-  ui_config data;
-  //printf("load config file\n");
+  printf("load config file\n");
   int fd = cfs_open(WINDOWCONFIG, CFS_READ);
   if (fd != -1)
   {
-    int length = cfs_read(fd, &data, sizeof(data));
-    cfs_close(fd); 
-  
-    if (length == sizeof(data) && (data.signature == UI_CONFIG_SIGNATURE))
+    uint16_t signature;
+    cfs_read(fd, &signature, 2);
+
+    if (signature == UI_CONFIG_SIGNATURE)
     {
       // valid config
-      memcpy(&ui_config_data, &data, sizeof(data));
+      cfs_read(fd, ((char*)&ui_config_data) + sizeof(uint16_t), sizeof(ui_config) - sizeof(uint16_t));
+      cfs_close(fd);
     }
     else
     {
       // if invalid file, flush current
+      cfs_close(fd); 
       window_writeconfig();      
     }
+
   }
 }
 

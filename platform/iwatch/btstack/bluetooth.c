@@ -39,8 +39,6 @@
 #include "debug.h"
 #define DEVICENAME "Kreyos %02X%02X"
 
-#include "att.h"
-
 #include "bluetooth.h"
 #include "ble_handler.h"
 
@@ -48,55 +46,7 @@ extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
-#define BLE_MTU 23
-
-static att_connection_t att_connection;
-static uint16_t         att_response_handle = 0;
-static uint16_t         att_response_size   = 0;
-static uint8_t          att_response_buffer[BLE_MTU + 1];
-
 static bd_addr_t currentbd;
-
-static void att_try_respond(void){
-  if (!att_response_size) return;
-  if (!att_response_handle) return;
-  if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
-
-  // update state before sending packet
-  uint16_t size = att_response_size;
-  att_response_size = 0;
-  l2cap_send_connectionless(att_response_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, att_response_buffer, size);
-}
-
-
-static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
-  if (packet_type != ATT_DATA_PACKET) return;
-
-  att_response_handle = handle;
-  att_response_size = att_handle_request(&att_connection, packet, size, att_response_buffer);
-  att_try_respond();
-}
-
-// test profile
-#include "profile.h"
-
-static uint8_t test_value = 0;
-
-// write requests
-static void att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
-
-    printf("ATT Write Handle: 0x%4x, size:%d\n", handle, buffer_size);
-    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_WRITE);
-
-}
-
-// read requests
-static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
-
-    printf("ATT Read Handle: 0x%4x, size:%d\n", handle, buffer_size);
-    return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
-}
-
 
 static uint16_t handle_audio = 0;
 
@@ -112,22 +62,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   }
 
   switch (packet[0]) {
-  case HCI_EVENT_LE_META:
-    switch (packet[2]) {
-    case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
-      // reset connection MTU
-      att_connection.mtu = BLE_MTU;
-      break;
-    default:
-      break;
-    }
-    break;
-
-    case DAEMON_EVENT_HCI_PACKET_SENT:
-        att_try_respond();
-        break; 
-
-
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
     {
       if (packet[2]) {
@@ -153,9 +87,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   }
   case HCI_EVENT_DISCONNECTION_COMPLETE:
     {
-      att_response_handle =0;
-      att_response_size = 0;
-
       uint16_t handle = READ_BT_16(packet, 3);
       if (handle == handle_audio)
       {
@@ -200,22 +131,9 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       //sdpc_open(event_addr);
       break;
     }
-  case BTSTACK_EVENT_DISCOVERABLE_ENABLED:
-    {
-      if (packet[2])
-      {
-        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-      }
-      else
-      {
-        hci_send_cmd(&hci_le_set_advertise_enable, 0);
-      }
-      break;
-    }
   }
 }
 
-const static uint8_t adv_data[] = { 02, 01, 05, 03, 02, 0xf0, 0xff, 0x06, 0x08, 'K', 'y', 'r', 'o', 's' }; 
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
@@ -235,72 +153,12 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     // bt stack activated, get started - set local name
     if (packet[2] == HCI_STATE_WORKING) {
       log_info("Start initialize bluetooth chip!\n");
-      hci_send_cmd(&hci_le_set_advertising_data, 3, adv_data); // only adv small data to save battery
+      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
     }
     break;
-
-  case DAEMON_EVENT_HCI_PACKET_SENT:
-        att_try_respond();
-        break; 
   case HCI_EVENT_COMMAND_COMPLETE:
     {
-#if 0
-      if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)){
-        bt_flip_addr(host_addr, &packet[6]);
-        printf("BD ADDR: %s\n", bd_addr_to_str(host_addr));
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
-        printf("Local supported features: %04lX%04lX\n", READ_BT_32(packet, 10), READ_BT_32(packet, 6));
-
-        uint8_t addr[6];
-        system_getserial(addr);
-        hci_send_cmd(&hci_vs_write_bd_addr, addr);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_bd_addr)){
-        printf("Changed BD Address\n");
-
-        hci_send_cmd(&hci_set_event_mask, 0xffffffff, 0x20001fff);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_mask)){
-        hci_send_cmd(&hci_write_le_host_supported, 1, 1);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_le_host_supported)){
-        hci_send_cmd(&hci_le_set_event_mask, 0xffffffff, 0xffffffff);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_event_mask)){
-        hci_send_cmd(&hci_le_read_buffer_size);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
-        log_info("LE buffer size: %u, count %u\n", READ_BT_16(packet,6), packet[8]);
-        hci_send_cmd(&hci_le_read_supported_states);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_supported_states)){
-        hci_send_cmd(&hci_le_set_advertising_parameters,  0x2000, 0x4000, 0, 0, 0, &event_addr, 0x07, 0);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_parameters)){
-        hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
-        break;
-      }
-      else 
-      #endif
-      if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
-        hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
-
-        hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
+      if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
         hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, (uint32_t)8000, 0, 1, 0, 0,
                        16, 1, 0, 16, 1, 1, 0,
                        16, 40, 0, 16, 40, 1, 0
@@ -326,7 +184,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         l2cap_unregister_packet_handler(init_packet_handler);
         l2cap_register_packet_handler(packet_handler);
         printf("\n$$OK BLUETOOTH\n");
-
 
         // as testing
         ant_shutdown();
@@ -379,18 +236,12 @@ static void btstack_setup(){
   // init L2CAP
   l2cap_init();
   l2cap_register_packet_handler(init_packet_handler);
-  l2cap_register_fixed_channel(att_packet_handler, L2CAP_CID_ATTRIBUTE_PROTOCOL);
 
   // init RFCOMM
   rfcomm_init();
 
-  // set up ATT
-  //create_ble_handle_db();
-  att_set_db(profile_data);
-  att_set_write_callback(att_write_callback);
-  att_set_read_callback(att_read_callback);
-  //att_dump_attributes();
-  att_connection.mtu = BLE_MTU;
+  // set up BLE
+  ble_init();
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();
