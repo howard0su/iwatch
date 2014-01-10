@@ -207,9 +207,10 @@ unsigned int BSL_RX_TXT_File( char* fileName, unsigned char fast)
     stop = GetTickCount();
     seconds = ((float)stop-(float)start)/(float)1000;
     kbs = ((float)numBytes/(float)1024)/(float)seconds;
-    printf( "Wrote %i bytes in %.2f seconds [%.2f Kbytes/s]\n", numBytes, seconds, kbs);
-
   }
+
+  printf( "Wrote %i bytes in %.2f seconds [%.2f Kbytes/s]\n", numBytes, seconds, kbs);
+
   return BSL_ACK;
 }
 
