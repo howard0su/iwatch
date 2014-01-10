@@ -114,6 +114,7 @@ main(int argc, char **argv)
   button_init();
   rtc_init();
   SPI_FLASH_Init();
+  CFSFontWrapperLoad();
 
   system_init(); // check system status and do factor reset if needed
 
