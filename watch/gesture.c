@@ -29,29 +29,19 @@ static int16_t data[MOVE_WINDOW][3];
 static uint8_t datap = 0;
 static int32_t currentsum[3];
 
-#define NUM_GESTURES 6
+#define NUM_GESTURES 4
 #define MAX_GESTURES 25
 
-static const int8_t Gesture1[] = {
-  0,0,16, 0,0,15, 0,0,15, -1,0,10, -2,2,10, -2,2,10, -4,1,10, -3,1,10, 0,2,10, 6,5,16, 
-  10,8,16, 10,10,16, 10,9,10, 10,9,10, 7,10,8, 6,10,8, 5,10,10, -2,10,10, -9,10,16, 
-  -9,10,16, -6,10,16, -4,10,16, -3,10,16};
-static const int8_t Gesture2[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
-, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 7,0,10, 6,0,10, 5,-1,10};
-static const int8_t Gesture3[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
-, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
-static const int8_t Gesture4[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
-, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
-static const int8_t Gesture5[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
-, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
-static const int8_t Gesture6[] = {5,1,10, 3,0,10, 1,0,15, 0,0,15, -1,-1,16, -2,-1,16, -4,-1,16, -7,-2,16, -10,-2,16, -10,0,16, -10,0,15, -10,1,16, -7,3,15
-, 4,9,10, 15,10,10, 16,10,10, 16,6,10, 10,1,10, 9,0,10, 5,10,10, -2,10,10, -9,10,16, -9,10,16, 7,0,10, 6,0,10, 5,-1,10};
+#include "gesture_sample.h"
+
 static const int8_t *GestureData[NUM_GESTURES] =
-{Gesture1, Gesture2, Gesture3, Gesture4, Gesture5, Gesture6};
+{
+  Gesture1, Gesture2, Gesture3, Gesture4
+};
 static const int8_t GestureDataLength[NUM_GESTURES] =
 {
-  sizeof(Gesture1)/3, sizeof(Gesture2)/3, sizeof(Gesture3)/3,
-  sizeof(Gesture4)/3, sizeof(Gesture5)/3, sizeof(Gesture6)/3
+  sizeof(Gesture1)/3, sizeof(Gesture2)/3, 
+  sizeof(Gesture3)/3, sizeof(Gesture4)/3
 };
 
 static uint16_t distances[NUM_GESTURES][MAX_GESTURES];
@@ -63,6 +53,7 @@ static int fd;
 
 void gesture_init(int8_t _recording)
 {
+ return;
   // init gesture structure
   memset(distances, 0, sizeof(distances));
   memset(data, 0, sizeof(data));
@@ -73,17 +64,8 @@ void gesture_init(int8_t _recording)
   if (state != STATE_NONE)
     return;
   
-  if (fd != 0)
-  {
-    cfs_close(fd);
-    fd = 0;
-  }
-  
   if (_recording){
     state = STATE_RECORDING;
-    char name[40];
-    sprintf(name, "record%d.dat", startno++);
-    fd = cfs_open(name, CFS_WRITE | CFS_APPEND);
   }
   else
   {
@@ -103,7 +85,7 @@ static uint16_t Dist(const int8_t* p1, const int8_t *p2)
   return t;
 }
 
-#define SCALE_2G 2047
+#define SCALE_2G (8192 * 2)
 #define SCALE_1G (SCALE_2G/2)
 
 static int8_t Normalize(int16_t data)
@@ -203,7 +185,7 @@ void gesture_processdata(int16_t *input)
     return;
   }
   
-  //printf("%d %d %d\n", input[0], input[1], input[2]);
+  printf("%d %d %d\n", input[0], input[1], input[2]);
   
   count++;
   
@@ -231,11 +213,7 @@ void gesture_processdata(int16_t *input)
   {
     if (state == STATE_RECORDING)
     {
-      char buf[30];
-      int length = sprintf(buf, "%d %d %d\n", result[0], result[1], result[2]);
-      cfs_write(fd, result, 3 * sizeof(result[0]));
-      //spp_send(buf, length);
-      printf(buf);
+      printf("%d,%d,%d\n", result[0], result[1], result[2]);
       if (count > MAX_DATAPOINTS)
       {
         printf("===\n");
@@ -244,7 +222,7 @@ void gesture_processdata(int16_t *input)
     }
     else
     {
-      PRINTF("%d %d %d\n", result[0], result[1], result[2]);
+      //PRINTF("%d %d %d\n", result[0], result[1], result[2]);
       uint16_t shortestDistance = 0xffff;
       uint16_t longestDistance = 0;
       uint8_t bestMatch;
@@ -265,12 +243,12 @@ void gesture_processdata(int16_t *input)
       }
       
       uint16_t averageDistance = totalDistance/NUM_GESTURES;
-      //			PRINTF("averageDistance: %d, shortestDistance: %d, longestDistance: %d, variance: %d\n", 
-      //				averageDistance, shortestDistance, longestDistance, longestDistance - shortestDistance);
+      			PRINTF("ad: %d, sd: %d, ld: %d, var: %d\n", 
+      				averageDistance, shortestDistance, longestDistance, longestDistance - shortestDistance);
       
       if (shortestDistance > averageDistance / 2)
       {
-        PRINTF("almost matched %d\n", bestMatch+1);
+        //PRINTF("almost matched %d\n", bestMatch+1);
         return;
       }
       // matched
