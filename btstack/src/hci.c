@@ -66,7 +66,7 @@ static void hci_update_scan_enable(void);
 // the STACK is here
 static hci_stack_t       hci_stack;
 
-static const uint16_t       sniff_max_interval = 0x690;  // time unit: 0.625ms
+static const uint16_t       sniff_max_interval = 0x340;  // time unit: 0.625ms
 static const uint16_t       sniff_min_interval = 0xA0;
 static const uint16_t       sniff_attempt = 1;
 static const uint16_t       sniff_timeout = 0x10;
@@ -456,6 +456,16 @@ static uint16_t hci_acl_packet_types_for_buffer_size_and_local_features(uint16_t
     // flip bits for "may not be used"
     packet_types ^= 0x3306;
     return packet_types;
+}
+
+// get addr type and address used in advertisement packets
+void hci_le_advertisement_address(uint8_t * addr_type, bd_addr_t * addr){
+    *addr_type = hci_stack.adv_addr_type;
+    if (hci_stack.adv_addr_type){
+        memcpy(addr, hci_stack.adv_address, 6);
+    } else {
+        memcpy(addr, hci_stack.local_bd_addr, 6);
+    }
 }
 
 uint16_t hci_usable_acl_packet_types(void){
@@ -927,6 +937,10 @@ void hci_init(hci_transport_t *transport, void *config, bt_control_t *control, r
     hci_stack.ssp_enable = 0;
     hci_stack.ssp_io_capability = SSP_IO_CAPABILITY_UNKNOWN;
     hci_stack.ssp_authentication_requirement = 0;
+
+    // LE
+    hci_stack.adv_addr_type = 0;
+    memset(hci_stack.adv_address, 0, 6);
 }
 
 void hci_close(){
@@ -1635,6 +1649,15 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
             hci_stack.remote_device_db->delete_link_key(&addr);
         }
     }
+
+#ifdef HAVE_BLE
+    if (IS_COMMAND(packet, hci_le_set_advertising_parameters)){
+        hci_stack.adv_addr_type = packet[8];
+    }
+    if (IS_COMMAND(packet, hci_le_set_random_address)){
+        bt_flip_addr(hci_stack.adv_address, &packet[3]);
+    }
+#endif
 
     hci_stack.num_cmd_packets--;
     return hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, packet, size);

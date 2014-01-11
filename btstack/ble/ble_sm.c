@@ -367,7 +367,7 @@ static inline void swap128(uint8_t src[16], uint8_t dst[16]){
 }
 
 static void print_hex16(const char * name, uint16_t value){
-    printf("%-6s 0x%04x\n", name, value);
+    printf("%s 0x%04x\n", name, value);
 }
 
 // @returns 1 if all bytes are 0

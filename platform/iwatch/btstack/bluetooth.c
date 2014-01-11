@@ -242,6 +242,7 @@ static void btstack_setup(){
 
   // set up BLE
   ble_init();
+  connect_to_ancs();
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();

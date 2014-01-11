@@ -99,6 +99,11 @@ void print_bd_addr( bd_addr_t addr){
     log_info("%s", bd_addr_to_str(addr));
 }
 
+void print_key(const char * name, sm_key_t key){
+    printf("%s ", name);
+    hexdump(key, 16);
+}
+
 #ifndef EMBEDDED
 int sscan_bd_addr(uint8_t * addr_string, bd_addr_t addr){
 	unsigned int bd_addr_buffer[BD_ADDR_LEN];  //for sscanf, integer needed

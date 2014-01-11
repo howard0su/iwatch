@@ -49,6 +49,11 @@ void run_loop_set_timer(timer_source_t *a, uint32_t timeout_in_ms)
   a->timeout = ticks;
 }
 
+void run_loop_set_timer_handler(timer_source_t *ts, void (*process)(timer_source_t *_ts))
+{
+  ts->process = process;
+}
+
 // add/remove timer_source
 void run_loop_add_timer(timer_source_t *a)
 {

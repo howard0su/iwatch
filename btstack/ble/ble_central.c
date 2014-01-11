@@ -865,13 +865,13 @@ int ble_init(void)
     le_central_init();
    
     central_device_db_init();
-#if 0
+
     sm_init();
 
     sm_set_io_capabilities(3);
     sm_set_authentication_requirements( SM_AUTHREQ_BONDING );
     sm_set_request_security(1);
-#endif
+
     // happy compiler!
     return 0;
 }

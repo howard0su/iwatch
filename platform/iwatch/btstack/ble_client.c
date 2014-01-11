@@ -25,12 +25,13 @@ int service_count = 0;
 int service_index = 0;
 
 // static bd_addr_t test_device_addr = {0x1c, 0xba, 0x8c, 0x20, 0xc7, 0xf6};
-static bd_addr_t test_device_addr = {0x00, 0x1b, 0xdc, 0x05, 0xb5, 0xdc};
+//static bd_addr_t test_device_addr = {0x00, 0x1b, 0xdc, 0x05, 0xb5, 0xdc};
+static bd_addr_t test_device_addr = {0x58, 0x52, 0x72, 0xe2, 0xbe, 0xcc};
 
 static void dump_ad_event(ad_event_t* e){
     printf("evt-type %u, addr-type %u, addr %s, rssi %u, length adv %u, data: ", e->event_type, 
             e->address_type, bd_addr_to_str(e->address), e->rssi, e->length); 
-    hexdump2( e->data, e->length);                            
+    hexdump( e->data, e->length);                            
 }
 
 static void dump_peripheral_state(peripheral_state_t p_state){

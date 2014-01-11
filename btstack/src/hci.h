@@ -337,7 +337,10 @@ typedef struct {
     
     // buffer for single connection decline
     uint8_t   decline_reason;
-    bd_addr_t decline_addr;    
+    bd_addr_t decline_addr;
+
+    uint8_t   adv_addr_type;
+    bd_addr_t adv_address;
 } hci_stack_t;
 
 // create and send hci command packets based on a template and a list of parameters
