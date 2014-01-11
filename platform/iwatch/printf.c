@@ -104,6 +104,15 @@ int printf(const char *format, ...)
                     if(c == 'l' &&  n < 0) n = -n, putchar('-');
                     xtoa((unsigned long)n, dv);
                     break;
+                case 'p':
+                    n = va_arg(a, long);
+                    // 20bit pointer
+                    puth(n >> 16, *format);
+                    puth(n >> 12, *format);
+                    puth(n >> 8, *format);
+                    puth(n >> 4, *format);
+                    puth(n, *format);
+                    break;
                 case 'X':
                 case 'x':                       // 16 bit heXadecimal
                     i = va_arg(a, int);
