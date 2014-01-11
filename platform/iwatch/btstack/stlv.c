@@ -167,7 +167,7 @@ typedef struct _stlv_packet_builder
     uint8_t status;
 }stlv_packet_builder;
 
-#define BUILDER_COUNT (1024 / sizeof(stlv_packet_builder))
+#define BUILDER_COUNT (512 / sizeof(stlv_packet_builder))
 static stlv_packet_builder _packet[BUILDER_COUNT];
 static short _packet_reader = 0;
 static short _packet_writer = 0;

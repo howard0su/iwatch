@@ -1998,6 +1998,9 @@
       <name>$PROJ_DIR$\..\ant\cbsc_rx.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\ant\data.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\ant\hrm_rx.c</name>
     </file>
     <file>

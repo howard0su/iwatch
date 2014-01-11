@@ -18,7 +18,7 @@
 // save space.
 //
 //*****************************************************************************
-#define MAX_GLYPH_SIZE 256
+#define MAX_GLYPH_SIZE 128
 
 #define SPI_OFFSET 0
 
