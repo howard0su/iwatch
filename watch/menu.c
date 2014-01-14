@@ -92,6 +92,7 @@ static const struct MenuItem TestMenu[] =
   {0, "Bluetooth", &test_bluetooth},
   {0, "BT DUT", &test_dut},
   {0, "BLE", &test_ble},
+  {0, "Codec", &test_codec},
   {0, "Self-test", &selftest_process},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}

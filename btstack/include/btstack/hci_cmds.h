@@ -397,6 +397,7 @@ extern const hci_cmd_t hci_vs_write_codec_config;
 extern const hci_cmd_t hci_vs_write_codec_config_enhanced;
 extern const hci_cmd_t hci_vs_le_enable;
 extern const hci_cmd_t hci_vs_write_sco_config;
+extern const hci_cmd_t hci_vs_set_pcm_loopback_enable;
 
 extern const hci_cmd_t hci_enable_device_under_test_mode;
 
