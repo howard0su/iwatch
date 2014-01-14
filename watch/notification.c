@@ -25,6 +25,9 @@ static const tRectangle rect[5] =
 static const tRectangle contentrect = 
 {8, 26, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2 - BOTTOMBAR};
 
+static int more = 0;
+static uint8_t skip = 0;
+
 static void onDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrBlack);
@@ -73,7 +76,7 @@ static void onDraw(tContext *pContext)
 
   GrContextClipRegionSet(pContext, &contentrect);
   //draw message
-  GrStringDrawWrap(pContext, message, 8, 26, LCD_X_SIZE - 12,  16);
+  more = GrStringDrawWrap(pContext, message, 8, 26 - skip, LCD_X_SIZE - 12,  16);
 
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 }
@@ -101,10 +104,21 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
       message_result = NOTIFY_RESULT_OK;
       window_close();
     }
-    else if ((lparam == KEY_DOWN) && (message_buttons != NOTIFY_OK))
+    else if (lparam == KEY_DOWN)
     {
-      message_result = NOTIFY_RESULT_NO;
-      window_close();
+      if (more)
+      {
+        skip += 16;
+        window_invalid(NULL);
+      }
+    }
+    else if (lparam == KEY_UP)
+    {
+      if (skip >= 16)
+      {
+        skip-=16;
+        window_invalid(NULL);
+      }
     }
     break;
   default:

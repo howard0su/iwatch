@@ -2815,7 +2815,7 @@ GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
     return(ulLen);
 }
 
-void GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
+int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
 {
      int start, laststop, iterator, w, count, lastc;
      unsigned long ulChar, ulSkip;
@@ -2865,12 +2865,12 @@ void GrStringDrawWrap(const tContext* pContext, const char* pcString, long start
         // now we need draw
         GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
         if (ulChar == '\0')
-            return;
+            return 0;
         start = laststop;
         starty += margin;
 
         if (starty > pContext->sClipRegion.sYMax)
-            return;
+            return 1;
    }
 }
 //*****************************************************************************
