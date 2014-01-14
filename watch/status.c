@@ -232,9 +232,9 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
     break;
     }
   case EVENT_BT_STATUS:
-    if (lparam == BT_INITIALIZED)
+    if (lparam == BT_CONNECTED)
       status |= BLUETOOTH_STATUS;
-    else if (lparam == BT_SHUTDOWN)
+    else if (lparam == BT_DISCONNECTED)
       status &= ~BLUETOOTH_STATUS;
     break;
   case EVENT_ANT_STATUS:
