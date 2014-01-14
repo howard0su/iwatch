@@ -192,8 +192,18 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
   tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
-  GrContextForegroundSet(pContext, !selected);
-  GrContextBackgroundSet(pContext, selected);
+  if (!selected)
+  {
+    // draw a rect
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextBackgroundSet(pContext, ClrBlack);
+  }
+  else
+  {
+    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextBackgroundSet(pContext, ClrWhite);
+  }
+  
   if (item->icon < 0x80)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
