@@ -70,7 +70,7 @@ static ui_config ui_config_data =
 const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
 const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
 const tRectangle fullscreen_clip = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-static tContext context;
+tContext context;
 static struct etimer timer, status_timer, backlight_timer;
 
 // the real stack is like this

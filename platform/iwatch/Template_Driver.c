@@ -820,3 +820,8 @@ PROCESS_THREAD(lcd_process, ev, d)
 
   PROCESS_END();
 }
+
+void flushlcdsync()
+{
+  SPISend(&lines[0], (148 + 1) * sizeof(struct _linebuf) + 2);
+}

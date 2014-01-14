@@ -56,6 +56,18 @@ void button_init()
   }
 }
 
+int button_snapshot()
+{
+  int ret;
+  ret = 0;
+  for(int i = 0; i <3; i++)
+  {
+    if (!(P2IN & (getmask(i))))
+      ret |= (1 << i);
+  }
+  return ret;
+}
+
 PROCESS_THREAD(button_process, ev, data)
 {
   PROCESS_BEGIN();
