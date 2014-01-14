@@ -179,11 +179,7 @@ void codec_setvolume(uint8_t level)
 /* set volume, levle is from 0 - 10 */
 uint8_t codec_getvolume()
 {
-  uint8_t value;
-  I2C_addr(CODEC_ADDRESS);
-  value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
-  I2C_done();
-  return ((value & 0x3F) + 1) / 8;
+  return last_vol;
 }
 
 void codec_wakeup()
