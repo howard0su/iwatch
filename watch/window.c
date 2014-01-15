@@ -100,6 +100,7 @@ void window_init()
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, ClrWhite);
+  GrContextBackgroundSet(&context, ClrBlack);
   GrImageDraw(&context, logoPixel, 8, 60);
 
   GrFlush(&context);
