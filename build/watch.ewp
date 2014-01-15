@@ -1714,11 +1714,11 @@
         </option>
         <option>
           <name>XclOverride</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\lnk430F5438A.xcl</state>
+          <state>$PROJ_DIR$\iwatch-lnk430F5438A.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
