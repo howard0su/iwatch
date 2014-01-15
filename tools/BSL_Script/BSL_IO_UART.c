@@ -13,7 +13,7 @@
 void SetRSTpin(BOOL level);
 void SetTESTpin(BOOL level);
 
-#define TIMEOUT_MS 8000
+#define TIMEOUT_MS 20000
 
 HANDLE       hComPort;    /* COM-Port Handle             */
 DCB          comDCB;      /* COM-Port Control-Settings   */
