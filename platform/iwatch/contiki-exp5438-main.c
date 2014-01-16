@@ -37,7 +37,6 @@
 #include "dev/flash.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-#include "dev/uart1.h"
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
