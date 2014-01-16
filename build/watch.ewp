@@ -1177,15 +1177,15 @@
         </option>
         <option>
           <name>CCListCFile</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListCMnemonics</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListCMessages</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListAssFile</name>
@@ -1341,7 +1341,7 @@
         </option>
         <option>
           <name>ReduceStack</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>Save20bit</name>
@@ -2495,6 +2495,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\progam.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>

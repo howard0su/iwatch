@@ -196,7 +196,8 @@
 // ---------------------------
 // Code
 //
-
+-QRAMCODE=FLASHCODE                         // Needed to tell compiler that user will copy flash code to ram code
+-Z(CODE)FLASHCODE=5C00-FF7F,10000-45BFF     // Add FLASHCODE into Flash segment
 -P(CODE)CODE=5C00-FF7F,10000-45BFF
 -Z(CODE)CODE_ID
 
