@@ -54,6 +54,7 @@ typedef enum
 //------------------------------------------------------------------------------
 // Copy flash function to RAM.
 //------------------------------------------------------------------------------
+// TODO verify CRC
 void copy_flash_to_RAM(void)
 {
   unsigned char *flash_start_ptr;           // Initialize pointers
@@ -104,7 +105,7 @@ void write_block_int()
     switch(state)
     {
       case STATE_NEEDSIGNATURE:
-      NumByteToRead = 4;
+      NumByteToRead = 8;
       SPI_FLASH_CS_LOW();
       SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
 
@@ -121,7 +122,7 @@ void write_block_int()
     }
  
     pBuffer = (char*)&buffer[0];;
-    while (NumByteToRead--)
+    for(int i = 0; i < NumByteToRead; i++)
     {
       *pBuffer = SPI_FLASH_SendByte(Dummy_Byte);
       pBuffer++;
@@ -164,13 +165,20 @@ void write_block_int()
       {
         // Write Flash
         FCTL1 = FWKEY+BLKWRT+WRT;                 // Enable block write
-        for(i = 0; i < NumByteToRead; i++)
+        for(i = 0; i < NumByteToRead /4 ; i++)
         {
           *write_ptr++ = buffer[i];                 // Write long int to Flash
 
           while(!(WAIT & FCTL3));                 // Test wait until ready for next byte
         }
+        char* ptr = (char*)write_ptr;
+        char* src = (char*)&buffer[i];
+        for(i = 0; i < NumByteToRead%4; i++)
+        {
+          *ptr++ = src[i];                 // Write long int to Flash
 
+          while(!(WAIT & FCTL3));                 // Test wait until ready for next byte
+        }
         FCTL1 = FWKEY;                            // Clear WRT, BLKWRT
         while(BUSY & FCTL3);                      // Check for write completion
         FCTL3 = FWKEY+LOCK;                       // Set LOCK
