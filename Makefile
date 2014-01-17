@@ -21,7 +21,7 @@ CFLAGS = $(CFLAGS0)
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives HAVE_BLE=1
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -122,6 +122,7 @@ WATCH = \
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
+	btstack/src/hci_cmds.c \
 	platform/iwatch/btstack/ble_handler.c \
 	platform/iwatch/btstack/stlv.c \
 	platform/iwatch/btstack/stlv_client.c \
