@@ -47,11 +47,36 @@ typedef enum
 #define INTERRUPT_VECTOR_START 0xFFE0
 #define SIGNATURE 0xFACE0001
 
+
+#pragma segment="FLASHCODE"                 // Define flash segment code
+#pragma segment="RAMCODE"
+
+//------------------------------------------------------------------------------
+// Copy flash function to RAM.
+//------------------------------------------------------------------------------
+void copy_flash_to_RAM(void)
+{
+  unsigned char *flash_start_ptr;           // Initialize pointers
+  unsigned char *flash_end_ptr;
+  unsigned char *RAM_start_ptr;
+
+  //Initialize flash and ram start and end address
+  flash_start_ptr = (unsigned char *)__segment_begin("FLASHCODE");
+  flash_end_ptr = (unsigned char *)__segment_end("FLASHCODE");
+  RAM_start_ptr = (unsigned char *)__segment_begin("RAMCODE");
+
+  //calculate function size
+  unsigned long function_size = (unsigned long)(flash_end_ptr) - (unsigned long)(flash_start_ptr);
+
+  // Copy flash function to RAM
+  memcpy(RAM_start_ptr,flash_start_ptr,function_size);
+}
+
 //------------------------------------------------------------------------------
 // This portion of the code is first stored in Flash and copied to RAM then
 // finally executes from RAM.
 //-------------------------------------------------------------------------------
-#pragma location="RAMCODE"
+#pragma location="FLASHCODE"
 void write_block_int()
 {
   const uint32_t ReadAddr = 4UL * 1024 * 1024 - 256UL * 1024; // last 256KB position

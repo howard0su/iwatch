@@ -19,33 +19,9 @@
 #include "rtc.h"
 #include <stdio.h>
 
-#pragma segment="FLASHCODE"                 // Define flash segment code
-#pragma segment="RAMCODE"
-
 // Function prototypes
 void copy_flash_to_RAM(void);
 void write_block_int(void);
-
-//------------------------------------------------------------------------------
-// Copy flash function to RAM.
-//------------------------------------------------------------------------------
-void copy_flash_to_RAM(void)
-{
-  unsigned char *flash_start_ptr;           // Initialize pointers
-  unsigned char *flash_end_ptr;
-  unsigned char *RAM_start_ptr;
-
-  //Initialize flash and ram start and end address
-  flash_start_ptr = (unsigned char *)__segment_begin("FLASHCODE");
-  flash_end_ptr = (unsigned char *)__segment_end("FLASHCODE");
-  RAM_start_ptr = (unsigned char *)__segment_begin("RAMCODE");
-
-  //calculate function size
-  unsigned long function_size = (unsigned long)(flash_end_ptr) - (unsigned long)(flash_start_ptr);
-
-  // Copy flash function to RAM
-  memcpy(RAM_start_ptr,flash_start_ptr,function_size);
-}
 
 static uint8_t enter_bsl()
 {
