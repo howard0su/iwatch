@@ -25,12 +25,20 @@ extern void gesture_processdata(int16_t *input);
 #define MPU_INT_IE  P1IE
 #define MPU_INT_BIT BIT6
 
+#define GESTURE_INTERVAL (CLOCK_SECOND >> 3)
+#define NORMAL_INTERVAL (CLOCK_SECOND)
+
+/* Starting sampling rate. */
+#define DEFAULT_MPU_HZ  (50)
+#define GESTURE_MPU_HZ  (150)
+
+
 const static uint8_t init_data[] =
 {
   MPU6050_RA_PWR_MGMT_1, 0x04, // wake up sensor
   MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G, //set acc sensitivity to 2G
   MPU6050_RA_CONFIG, 0x01, //set DLPF to 21 Hz
-  MPU6050_RA_SMPLRT_DIV, 0x13, ////set sampling to 62.5 Hz
+  MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1), ////set sampling to 62.5 Hz
   MPU6050_RA_FIFO_EN, 0x08, // enable fifo for accel x, y, z
   MPU6050_RA_USER_CTRL, 0x40, // enable fifo
 
@@ -42,11 +50,7 @@ const static uint8_t init_data[] =
 
 PROCESS(mpu6050_process, "MPU6050 Driver");
 
-/* Starting sampling rate. */
-#define DEFAULT_MPU_HZ  (50)
-#define GESTURE_MPU_HZ  (150)
-
-static uint16_t read_interval = CLOCK_SECOND;
+static uint16_t read_interval;
 static struct etimer timer;
 
 void delay_ms(unsigned long num_ms)
@@ -132,6 +136,7 @@ void mpu6050_init()
   }
 #endif
 
+  read_interval = NORMAL_INTERVAL;
   I2C_done();
   printf("Done\n");
   process_start(&mpu6050_process, NULL);
@@ -224,12 +229,17 @@ PROCESS_THREAD(mpu6050_process, ev, data)
               accel[2] = (((int)data[index + 4]) << 8) | data[index + 5];
               
               //printf("%d,%d,%d\t", accel[0], accel[1], accel[2]);
-              if (ped_update_sample(accel) == 1)
+              if (read_interval == NORMAL_INTERVAL)
               {
-                ped_step_detect();
+                if (ped_update_sample(accel) == 1)
+                {
+                  ped_step_detect();
+                }
               }
-              
-              gesture_processdata(accel);
+              else
+              {
+                gesture_processdata(accel);
+              }
             }
             continue;
           }
@@ -258,13 +268,15 @@ void mpu_gesturemode(int d)
   I2C_addr(MPU6050_ADDR);
   if (d)
   {
+    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_4G);
     I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/GESTURE_MPU_HZ - 1));
-    read_interval = CLOCK_SECOND >> 3; // every 8/1 sec
+    read_interval = GESTURE_INTERVAL; // every 8/1 sec
   }
   else
   {
+    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
     I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1));
-    read_interval = CLOCK_SECOND; // every 3 second we read fifo buffer
+    read_interval = NORMAL_INTERVAL;
   }
   I2C_done();
 }
