@@ -1024,7 +1024,7 @@
         </option>
         <option>
           <name>Hardware Multiplier</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>GOutputBinary</name>
@@ -1058,20 +1058,20 @@
         <option>
           <name>Input variant</name>
           <version>1</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>Input description</name>
-          <state>No specifier n, no float or long long.</state>
+          <state>Automatic choice of formatter.</state>
         </option>
         <option>
           <name>Output variant</name>
           <version>1</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>Output description</name>
-          <state>No specifier a or A.</state>
+          <state>Automatic choice of formatter.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
@@ -1096,7 +1096,7 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>2500</state>
+          <state>2300</state>
         </option>
         <option>
           <name>GHeapSize2</name>
@@ -1121,7 +1121,7 @@
         </option>
         <option>
           <name>RadioHardwareMultiplierType</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>GeneralMisraVer</name>
@@ -1226,7 +1226,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>11111</state>
+          <state>10111</state>
         </option>
         <option>
           <name>CCObjUseModuleName</name>
@@ -1358,7 +1358,7 @@
         <option>
           <name>CCOptStrategy</name>
           <version>0</version>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCOptLevelSlave</name>
