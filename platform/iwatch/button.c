@@ -8,7 +8,7 @@
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
-#define PRINTF(...) PRINTF(__VA_ARGS__)
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -80,17 +80,10 @@ PROCESS_THREAD(button_process, ev, data)
       {
         uint8_t mask = getmask(i);
 
-        if ((P2IE & mask) == 0)
+       // if ((P2IE & mask) == 0)
         {
-          // check if P2IES & P2IN is in sync
-          if ((P2IES & mask) ==
-              (P2IN & mask))
-          {
-            P2IES |= (P2IN & mask);
-          }
-
           // need handle this button
-          if ((P2IN & mask) == 0)
+          if (((P2IN & mask) == 0) && ((P2IES & mask) != 0)) // button is down
           {
             // key is down
             //process_post(ui_process, EVENT_KEY_DOWN, (void*)i);
@@ -100,8 +93,9 @@ PROCESS_THREAD(button_process, ev, data)
               // first button
               etimer_set(&button_timer, CLOCK_SECOND/2);
             }
+            P2IES ^= mask;
           }
-          else
+          else if (((P2IN & mask) != 0) && ((P2IES & mask) == 0)) 
           {
             //process_post(ui_process, EVENT_KEY_UP, (void*)i);
             if (downtime[i] > 0)
@@ -111,10 +105,22 @@ PROCESS_THREAD(button_process, ev, data)
               else
                 process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
             }
-              downtime[i] = 0;
+            downtime[i] = 0;
+            P2IES ^= mask;
+          }
+          else if (((P2IN & mask) == 0) && ((P2IES & mask) == 0)) // key is still down
+          {
+            if (etimer_expired(&button_timer))
+            {
+              // first button
+              etimer_set(&button_timer, CLOCK_SECOND/2);
             }
+          }
+          else if (((P2IN & mask)) && ((P2IES & mask))) // key is still up
+          {
+            downtime[i] = 0;
+          }
 
-          P2IES ^= mask;
           P2IE |= mask;
         }
       }
@@ -143,7 +149,7 @@ PROCESS_THREAD(button_process, ev, data)
         }
       }
 
-      PRINTF("%d buttons down, now=%ld\n", downbutton, clock_time());
+      PRINTF("%d buttons down, now=%ld\n", downbutton, RTIMER_NOW());
 
       if (reboot == 4)
         system_reset();
