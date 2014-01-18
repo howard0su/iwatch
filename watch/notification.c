@@ -135,7 +135,7 @@ void window_notify(const char* title, const char* msg, uint8_t buttons, char ico
   message_buttons = buttons;
   message_icon = icon;
   motor_on(50, CLOCK_SECOND);
-  backlight_on(window_readconfig()->light_level);
+  backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
 
   if (window_current() == notify_process)
     window_invalid(NULL);

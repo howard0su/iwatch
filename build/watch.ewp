@@ -2104,9 +2104,6 @@
       <name>$PROJ_DIR$\..\watch\upgrade.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\watch.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
     </file>
     <file>

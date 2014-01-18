@@ -217,7 +217,7 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 				data = 0;
 				break;
 			}
-			backlight_on(data);
+			backlight_on(data, 0);
 			window_invalid(NULL);
 			break;
 		}
@@ -240,7 +240,7 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
  		  break;
  		}
 		case EVENT_EXIT_PRESSED:
-		backlight_on(0);
+		backlight_on(0, 0);
 		return 0; // return 0 to close the window
 		default:
 		return 0;
