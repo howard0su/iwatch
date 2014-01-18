@@ -178,8 +178,8 @@ char ped_update_sample(int16_t *data)
       if (interval >= 20)
       {
           increasestep(interval);
-          interval = 0;
       }
+      interval = 0;
       holdoff = -1;
   }
 
