@@ -773,6 +773,7 @@ static void hfp_handler(uint8_t type, uint16_t channelid, uint8_t *packet, uint1
 
           if (state == INITIALIZING)
           {
+            pending = 0;
             state = WAIT_BRSF;
             rfcomm_connection_handle = READ_BT_16(packet, 9);
             hfp_response_buffer = AT_BRSF;
