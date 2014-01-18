@@ -4,10 +4,13 @@
 
 #define SIGNATURE 0xFACE0001
 
-
+/*
+ * When update this structure, also update platform/iwatch/progam.c, check watch/upgrade.c
+ */
 struct _header
 {
   uint32_t signature;
+  uint32_t length;
   uint8_t crch;
   uint8_t crcl;
 }header;
@@ -40,6 +43,7 @@ void crc(void* ptr, int length)
 int main(int argc, char* argv[])
 {
   header.signature = SIGNATURE;
+  header.length = 0;
 
   if (argc < 2)
   {
@@ -66,10 +70,13 @@ int main(int argc, char* argv[])
     {
   //    printf("address: %x length=%d\n", d->currentAddr, d->size);
       fwrite(&d->currentAddr, 4, 1, fp);
+      header.length+=4;
       crc(&d->currentAddr, 4);
       fwrite(&d->size, 4, 1, fp);
+      header.length+=4;
       crc(&d->size, 4);
       fwrite(d->data, d->size, 1, fp);
+      header.length+=d->size;
       crc(d->data, d->size);
     }
   }
@@ -83,5 +90,6 @@ int main(int argc, char* argv[])
   fclose(fp);
 
   printf("%s is created.\n", argv[2]);
+  printf("Length: %d\n", header.length);
   printf("CRC H is %d\nCRC L is %d\n", header.crch, header.crcl);
 }

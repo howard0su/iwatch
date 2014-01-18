@@ -105,7 +105,7 @@ void write_block_int()
     switch(state)
     {
       case STATE_NEEDSIGNATURE:
-      NumByteToRead = 8;
+      NumByteToRead = 10; // the size of file header, sync with main.c under convert tool src
       SPI_FLASH_CS_LOW();
       SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
 
