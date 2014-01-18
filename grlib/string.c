@@ -2831,20 +2831,16 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
           // Get the next character to render.
           //
           ulChar = GrStringNextCharGet(pContext, pcString + iterator, -1, &ulSkip);
+          w += GrStringWidthGet(pContext, pcString + iterator, ulSkip);
           iterator += ulSkip;
 
           if (!ulChar)
               break;
-          //
-          // If we ran out of characters to render, return immediately.
-          //
+
           if(ulChar == ' ')
           {
               laststop = iterator;
           }
-   
-          w += GrStringWidthGet(pContext, pcString + iterator - ulSkip, ulSkip);
-
       }while(w < width && ulChar != '\0'&& ulChar != '\n');
  
         if (w >= width)
@@ -2862,10 +2858,15 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
         }
         //printf("start: %d count:%d\n", start, iterator - start);
         // now we need draw
-        GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
+        if (ulChar == '\n')
+            GrStringDraw(pContext, pcString + start, iterator - start - 1, startx, starty, 0);
+        else
+            GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
         if (ulChar == '\0')
             return 0;
-        start = laststop;
+        start = iterator;
+        while(*(pcString + start) == '\n' || *(pcString + start) == ' ')
+            start++;
         starty += margin;
 
         if (starty > pContext->sClipRegion.sYMax)
