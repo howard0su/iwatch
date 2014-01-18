@@ -239,6 +239,7 @@ unsigned char readByte_s(int timeoutMS)
   unsigned int error_flag = 0;
   unsigned int timeout = GetTickCount()+ timeoutMS;
   
+  #if 0
   if (timeoutMS != -1)
   {
   do
@@ -249,10 +250,13 @@ unsigned char readByte_s(int timeoutMS)
   }
   while(comState.cbInQue == 0 && error_flag == 0);
   }
-
+#endif
   if( error_flag == 0 )
   {
-    ReadFile(hComPort, &byte, 1, &dwRead, NULL);
+    if (!ReadFile(hComPort, &byte, 1, &dwRead, NULL))
+    {
+      byte = TIMEOUT_ERROR;
+    }
   }
   if( UART_verbose )
   {
@@ -323,11 +327,11 @@ int initializeCommPort(unsigned char* comPort, unsigned char parity)
 
   GetCommTimeouts(hComPort, &orgTimeouts);
   /* Set Windows timeout values (disable build-in timeouts): */
-  timeouts.ReadIntervalTimeout= 0;
-  timeouts.ReadTotalTimeoutMultiplier= 0;
-  timeouts.ReadTotalTimeoutConstant= 0;
-  timeouts.WriteTotalTimeoutMultiplier= 0;
-  timeouts.WriteTotalTimeoutConstant= 0;
+  timeouts.ReadIntervalTimeout= 10;
+  timeouts.ReadTotalTimeoutMultiplier= TIMEOUT_MS;
+  timeouts.ReadTotalTimeoutConstant= 10;
+  timeouts.WriteTotalTimeoutMultiplier= TIMEOUT_MS;
+  timeouts.WriteTotalTimeoutConstant= 10;
 
   SetCommTimeouts(hComPort, &timeouts);
 
