@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "window.h"
-#include "gesture.h"
+#include "gesture/gesture.h"
 #include "battery.h"
 #include "hfp.h"
 #include <stdio.h>

@@ -6,7 +6,7 @@
 #include "window.h"
 #include "backlight.h"
 #include "hfp.h"
-#include "gesture.h"
+#include "gesture/gesture.h"
 #include "bluetooth.h"
 #include <string.h>
 #include <stdio.h>

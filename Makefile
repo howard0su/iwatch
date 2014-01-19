@@ -97,7 +97,7 @@ WATCH = \
     watch/stopwatch.c \
     watch/names.c \
     watch/menu.c \
-    watch/gesture.c \
+    gesture/gesture.c \
     watch/cordic.c \
     watch/calendar.c \
     watch/stopwatch.c \
