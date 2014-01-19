@@ -1,8 +1,10 @@
 #include "msp430.h"
 #include "stdarg.h"
 #include <stdio.h>
+#include <stdint.h>
 
 extern int putchar(int c);
+extern uint8_t uartattached;
 
 static const unsigned long dv[] = {
 //  4294967296      // 32 bit unsigned max
@@ -62,6 +64,9 @@ int printf(const char *format, ...)
     int i;
     long n;
     int len;
+
+    if (!uartattached)
+        return 0;
 
     va_list a;
     va_start(a, format);

@@ -29,6 +29,8 @@
 #define BitTime_115200   (DCO_SPEED / 115200)
 #define BitTime_5_115200 (BitTime_115200 / 2)
 
+extern uint8_t uartattached;
+
 void
 uart_init(char rate)
 {
@@ -45,6 +47,10 @@ uart_init(char rate)
 int putchar(int data)
 {
     int tempData;
+
+    if (!uartattached)
+        return data;
+
     int parity_mask = 0x200;
     char bitCount = 0xB;                    // Load Bit counter, 8data + ST/SP +parity
     int flag;
