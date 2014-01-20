@@ -12,7 +12,7 @@
 
 extern void mpu_gesturemode(int onoff);
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -29,7 +29,7 @@ static int16_t data[MOVE_WINDOW][3];
 static uint8_t datap = 0;
 
 #define NUM_GESTURES 4
-#define MAX_GESTURES 25
+#define MAX_GESTURES 32
 
 #include "gesture_sample.h"
 
@@ -43,12 +43,15 @@ static const int8_t GestureDataLength[NUM_GESTURES] =
   sizeof(Gesture3)/3, sizeof(Gesture4)/3
 };
 
-static uint16_t distances[NUM_GESTURES][MAX_GESTURES];
-static uint16_t count;
-static enum{STATE_NONE, STATE_RECORDING, STATE_RECON} state;
+CASSERT(sizeof(Gesture1) < MAX_GESTURES * 3 * 2, Gesture1);
+CASSERT(sizeof(Gesture2) < MAX_GESTURES * 3 * 2, Gesture2);
+CASSERT(sizeof(Gesture3) < MAX_GESTURES * 3 * 2, Gesture3);
+CASSERT(sizeof(Gesture4) < MAX_GESTURES * 3 * 2, Gesture4);
 
-static uint8_t startno;
-static int fd;
+
+static uint16_t distances[NUM_GESTURES][MAX_GESTURES + 1];
+static uint16_t count;
+static enum { STATE_NONE, STATE_RECORDING, STATE_RECON } state;
 
 void gesture_init(int8_t _recording)
 {
@@ -61,7 +64,8 @@ void gesture_init(int8_t _recording)
   if (state != STATE_NONE)
     return;
   
-  if (_recording){
+  if (_recording)
+  {
     state = STATE_RECORDING;
   }
   else
@@ -89,6 +93,7 @@ static int8_t Normalize(int16_t input)
 {
   int16_t value;
   int8_t ret;
+  
   if (input == 0)
     return 0;
   else if (input > 0) 
@@ -168,7 +173,6 @@ static uint16_t gesture_caculate(int index, const int8_t* point)
 
 void gesture_processdata(int16_t *input)
 {
-  int16_t current[3];
   int8_t result[3];
   
   if (state == STATE_NONE)
@@ -182,7 +186,7 @@ void gesture_processdata(int16_t *input)
     return;
   }
   
-  //PRINTF("[%d,%d,%d]\n", input[0], input[1], input[2]);
+  PRINTF("%d,%d,%d,\n", input[0], input[1], input[2]);
   
   count++;
   
@@ -194,23 +198,22 @@ void gesture_processdata(int16_t *input)
     data[datap][i] = input[i] / MOVE_WINDOW;        
     if ((datap & (MOVE_STEP - 1)) != (MOVE_STEP -1))
       continue;
-
+    
     currentsum = data[0][i] + data[1][i] + data[2][i] + data[3][i];
-
+    
     //		if (count < MOVE_WINDOW)
     //			continue;
     
-    current[i] = currentsum;
-    result[i] = Normalize(current[i]);
+    result[i] = Normalize(currentsum);
   }  
-    
+  
   datap++;
   datap &= (MOVE_WINDOW - 1);
   if ((datap % MOVE_STEP == 0) && (count >=  MOVE_WINDOW))
   {
+    //    PRINTF("%d,%d,%d,\n", (int)result[0], (int)result[1], (int)result[2]);
     if (state == STATE_RECORDING)
     {
-      PRINTF("%d,%d,%d\n", result[0], result[1], result[2]);
       if (count > MAX_DATAPOINTS)
       {
         PRINTF("===\n");
@@ -241,12 +244,12 @@ void gesture_processdata(int16_t *input)
       }
       
       uint16_t averageDistance = totalDistance/NUM_GESTURES;
-      			PRINTF("ad: %d, sd: %d, ld: %d, var: %d\n", 
-      				averageDistance, shortestDistance, longestDistance, longestDistance - shortestDistance);
+      PRINTF("ad: %d, sd: %d, ld: %d, var: %d\n", 
+             averageDistance, shortestDistance, longestDistance, longestDistance - shortestDistance);
       
       if (shortestDistance > averageDistance / 2)
       {
-        //PRINTF("almost matched %d\n", bestMatch+1);
+        PRINTF("almost matched %d\n", bestMatch+1);
         return;
       }
       // matched

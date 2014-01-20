@@ -3,15 +3,17 @@
 #include "gesture/gesture.h"
 #include "battery.h"
 #include "hfp.h"
+#include "backlight.h"
 #include <stdio.h>
 
 #include "cfs/cfs.h"
 
-static enum {RECORDING, RECOGNIZE, DONE} state;
+static enum {NONE, RECORDING, RECOGNIZE, DONE} state;
+static uint8_t matched = 0;
 
 void test_cfs()
 {
-   /*        */
+  /*        */
   /* step 1 */
   /*        */
   char message[32];
@@ -89,121 +91,138 @@ void test_cfs()
   } else {
     printf("ERROR: could read from memory in step 6.\n");
   }
-
+  
 }
 void handle_message(uint8_t msg_type, char* ident, char* message);
 
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev)
+  {
+  case EVENT_WINDOW_CREATED:
     {
-    case EVENT_WINDOW_CREATED:
-      {
-		//test_cfs();
-		window_timer(CLOCK_SECOND * 5);
-		break;
-      }
-    case EVENT_WINDOW_PAINT:
-      {
-	tContext *pContext = (tContext*)rparam;
-	GrContextForegroundSet(pContext, ClrBlack);
-	GrRectFill(pContext, &client_clip);
-	GrContextForegroundSet(pContext, ClrWhite);
-
-	GrContextFontSet(pContext, &g_sFontNova16);
-	const char* msg;
-	// draw the state
-	switch(battery_state())
-	  {
-	  case BATTERY_DISCHARGING:
-	    msg = "battery is discharging.";
-	    break;
-	  case BATTERY_CHARGING:
-	    msg = "battery is charging.";
-	    break;
-	  case BATTERY_FULL:
-	    msg = "battery is full. charged stopped.";
-	    break;
-	  }
-	GrStringDraw(pContext, msg, -1, 10, 20, 0);
-	char buf[50];
-	uint8_t level = battery_level();
-	sprintf(buf, "battery level is %d\n", level);
-	GrStringDraw(pContext, buf, -1, 10, 40, 0);
-
-#if ENERGEST_CONF_ON
-	sprintf(buf, "cpu %lu lpm %lu irq %lu serial %lu\n",
-	 energest_total_time[ENERGEST_TYPE_CPU].current,
-	 energest_total_time[ENERGEST_TYPE_LPM].current,
-	 energest_total_time[ENERGEST_TYPE_IRQ].current,
-	 energest_total_time[ENERGEST_TYPE_SERIAL].current);
-
-  printf("cpu %lu lpm %lu irq %lu serial %lu\n",
-	 energest_total_time[ENERGEST_TYPE_CPU].current,
-	 energest_total_time[ENERGEST_TYPE_LPM].current,
-	 energest_total_time[ENERGEST_TYPE_IRQ].current,
-	 energest_total_time[ENERGEST_TYPE_SERIAL].current);
-
-	GrStringDrawWrap(pContext, buf, 0, 55, 100, 15);
-#endif
-
-	if (state == RECORDING)
-	{
-		GrStringDraw(pContext, "RECORDING", -1, 55, 100, 0);	
-	}
-	else
-	{
-		GrStringDraw(pContext, "RECOGNIZE", -1, 55, 100, 0);		
-	}
-	window_timer(CLOCK_SECOND * 5);
-	break;
-      }
-    case PROCESS_EVENT_TIMER:
-      window_invalid(NULL);
+      //test_cfs();
+      window_timer(CLOCK_SECOND * 5);
       break;
-    case EVENT_KEY_PRESSED:
-    	if (lparam == KEY_ENTER)
-      	{
-      		for(int i = 0; i < 10; i++)
-	      	{
-	      		char name[32];
-	      		sprintf(name, "record%d.dat", i);
-
-	      		int fd = cfs_open(name, CFS_READ);
-	      		if (fd == -1)
-	      			break;
-	      		uint8_t buf[128];
-	      		int len = cfs_read(fd, buf, 128);
-	      		while(len > 0)
-	      		{
-	      			hexdump(buf, len);
-	      			len = cfs_read(fd, buf, 128);
-	      		}
-	      		cfs_close(fd);
-	      	}
-
-      	}
-      	//	hfp_enable_voicerecog();
-      	else if (lparam == KEY_UP)
-      	{
-      		handle_message('S', "From: +8615618273349", "Message: Shd/dhdjbdjhdbd#shs#bdhjsbxhxjjxhdhdhhdjjdjd");
-          printf("\nStart Recoding...\n");
-      		gesture_init(1); // recording
-      		state = RECORDING;
-      	}
-      	else if (lparam == KEY_DOWN)
-      	{
-      		printf("\nStart Recongize...\n");
-      		gesture_init(0); // recording	
-      		state = RECOGNIZE;
-      	}
-      break;
-    case EVENT_WINDOW_CLOSING:
-      window_timer(0);
-      break;
-    default:
-      return 0;
     }
-
+  case EVENT_WINDOW_PAINT:
+    {
+      tContext *pContext = (tContext*)rparam;
+      GrContextForegroundSet(pContext, ClrBlack);
+      GrRectFill(pContext, &client_clip);
+      GrContextForegroundSet(pContext, ClrWhite);
+      
+      GrContextFontSet(pContext, &g_sFontNova16);
+      const char* msg;
+      // draw the state
+      switch(battery_state())
+      {
+      case BATTERY_DISCHARGING:
+        msg = "battery is discharging.";
+        break;
+      case BATTERY_CHARGING:
+        msg = "battery is charging.";
+        break;
+      case BATTERY_FULL:
+        msg = "battery is full. charged stopped.";
+        break;
+      }
+      GrStringDraw(pContext, msg, -1, 10, 20, 0);
+      char buf[50];
+      uint8_t level = battery_level();
+      sprintf(buf, "battery level is %d\n", level);
+      GrStringDraw(pContext, buf, -1, 10, 40, 0);
+      
+#if ENERGEST_CONF_ON
+      sprintf(buf, "cpu %lu lpm %lu irq %lu serial %lu\n",
+              energest_total_time[ENERGEST_TYPE_CPU].current,
+              energest_total_time[ENERGEST_TYPE_LPM].current,
+              energest_total_time[ENERGEST_TYPE_IRQ].current,
+              energest_total_time[ENERGEST_TYPE_SERIAL].current);
+      
+      printf("cpu %lu lpm %lu irq %lu serial %lu\n",
+             energest_total_time[ENERGEST_TYPE_CPU].current,
+             energest_total_time[ENERGEST_TYPE_LPM].current,
+             energest_total_time[ENERGEST_TYPE_IRQ].current,
+             energest_total_time[ENERGEST_TYPE_SERIAL].current);
+      
+      GrStringDrawWrap(pContext, buf, 0, 55, 100, 15);
+#endif
+      
+      if (state == RECORDING)
+      {
+        GrStringDraw(pContext, "RECORDING", -1, 15, 60, 0);	
+      }
+      else if (state == RECOGNIZE)
+      {
+        if (matched != 0)
+        {
+          char buf[30];
+          sprintf(buf, "matched %d", matched);
+          GrStringDraw(pContext, buf, -1, 15, 90, 0);
+        }
+        GrStringDraw(pContext, "RECOGNIZE", -1, 15, 60, 0);
+      }
+      
+      window_timer(CLOCK_SECOND * 5);
+      break;
+    }
+  case EVENT_GESTURE_MATCHED:
+    {
+      matched = lparam;
+      window_invalid(NULL);
+      if (matched != 0)
+        motor_on(200, CLOCK_SECOND/4);
+      break;
+    }
+  case PROCESS_EVENT_TIMER:
+    window_invalid(NULL);
+    break;
+  case EVENT_KEY_PRESSED:
+    if (lparam == KEY_ENTER)
+    {
+      for(int i = 0; i < 10; i++)
+      {
+        char name[32];
+        sprintf(name, "record%d.dat", i);
+        
+        int fd = cfs_open(name, CFS_READ);
+        if (fd == -1)
+          break;
+        uint8_t buf[128];
+        int len = cfs_read(fd, buf, 128);
+        while(len > 0)
+        {
+          hexdump(buf, len);
+          len = cfs_read(fd, buf, 128);
+        }
+        cfs_close(fd);
+      }
+      
+    }
+    //	hfp_enable_voicerecog();
+    else if (lparam == KEY_UP)
+    {
+      //handle_message('S', "From: +8615618273349", "Message: Shd/dhdjbdjhdbd#shs#bdhjsbxhxjjxhdhdhhdjjdjd");
+      printf("\nStart Recoding...\n");
+      gesture_init(1); // recording
+      state = RECORDING;
+    }
+    else if (lparam == KEY_DOWN)
+    {
+      printf("\nStart Recongize...\n");
+      gesture_init(0); // recording	
+      state = RECOGNIZE;
+    }
+  
+    window_invalid(NULL);
+    break;
+  case EVENT_WINDOW_CLOSING:
+    window_timer(0);
+    break;
+  default:
+    return 0;
+  }
+  
   return 1;
 }
