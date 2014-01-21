@@ -40,7 +40,6 @@
 #define DEVICENAME "Kreyos %02X%02X"
 
 #include "bluetooth.h"
-#include "ble_handler.h"
 
 extern void deviceid_init();
 extern void spp_init();
@@ -137,10 +136,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
-  //const uint8_t adv_data[] = { 
-  //       0x02,  0x01, 0x09,
-  //       16+1, 0x06, 0x54, 0xf1, 0xad, 0xde, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0xf1, 0xad, 0xde
-  //   };
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
