@@ -9,12 +9,11 @@
 
 #include "cfs/cfs.h"
 #include "gesture.h"
-
+#include <stdio.h>
 extern void mpu_gesturemode(int onoff);
 
 #define DEBUG 0
 #if DEBUG
-#include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
@@ -29,7 +28,7 @@ static int16_t data[MOVE_WINDOW][3];
 static uint8_t datap = 0;
 
 #define NUM_GESTURES 4
-#define MAX_GESTURES 32
+#define MAX_GESTURES 35
 
 #include "gesture_sample.h"
 
@@ -124,7 +123,7 @@ static int8_t Normalize(int16_t input)
 static uint16_t gesture_caculate(int index, const int8_t* point)
 {
   const int8_t *gestureData = GestureData[index];
-  int8_t gestureLength = GestureDataLength[index];
+  uint8_t gestureLength = GestureDataLength[index];
   uint16_t *distance = distances[index];
   // caculate with template
   uint16_t lastvalue = Dist(&gestureData[0], point);
@@ -186,7 +185,7 @@ void gesture_processdata(int16_t *input)
     return;
   }
   
-  PRINTF("%d,%d,%d,\n", input[0], input[1], input[2]);
+  //PRINTF("%d,%d,%d,\n", input[0], input[1], input[2]);
   
   count++;
   
@@ -206,11 +205,13 @@ void gesture_processdata(int16_t *input)
     
     result[i] = Normalize(currentsum);
   }  
+
   
   datap++;
   datap &= (MOVE_WINDOW - 1);
   if ((datap % MOVE_STEP == 0) && (count >=  MOVE_WINDOW))
   {
+    printf("%d,%d,%d,\n", (int)result[0], (int)result[1], (int)result[2]);
     //    PRINTF("%d,%d,%d,\n", (int)result[0], (int)result[1], (int)result[2]);
     if (state == STATE_RECORDING)
     {
@@ -247,7 +248,7 @@ void gesture_processdata(int16_t *input)
       PRINTF("ad: %d, sd: %d, ld: %d, var: %d\n", 
              averageDistance, shortestDistance, longestDistance, longestDistance - shortestDistance);
       
-      if (shortestDistance > averageDistance / 2)
+      if ((shortestDistance > averageDistance / 2) || count < MAX_GESTURES)
       {
         PRINTF("almost matched %d\n", bestMatch+1);
         return;
