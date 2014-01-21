@@ -250,7 +250,10 @@ PROCESS_THREAD(mpu6050_process, ev, data)
           }
           else if (result == -2)
           {
+            // reset fifo
+            I2C_write(MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_RESET_BIT | MPU6050_USERCTRL_FIFO_EN_BIT);
             printf("fifo overflow\n");
+            more = 0;
             break;
           }
 
