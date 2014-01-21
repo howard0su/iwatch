@@ -109,7 +109,6 @@ WATCH = \
     watch/notification.c \
     watch/worldclock.c \
     watch/host.c \
-    watch/watch.c \
     watch/today.c \
     watch/test.c \
     watch/status.c \
