@@ -45,6 +45,8 @@ extern const tRectangle status_clip;
 
 static uint16_t status;
 
+void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+
 static void OnDraw(tContext* pContext)
 {
   // clear the region
@@ -122,14 +124,11 @@ static void OnDraw(tContext* pContext)
   {
     uint8_t hour, minute;
     char buf[20];
-    uint8_t ampm = 0;
+    uint8_t ampm;
     rtc_readtime(&hour, &minute, NULL);
 
-    if (hour > 12)
-    {
-      hour -= 12;
-      ampm = 1;
-    }
+    adjustAMPM(hour, &hour, &ampm);
+
     sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontNova12b);
     int width = GrStringWidthGet(pContext, buf, -1);

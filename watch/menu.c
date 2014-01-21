@@ -175,6 +175,8 @@ static uint8_t loadHistoryRecord(char* filename)
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
 
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+
 static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
@@ -241,11 +243,8 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
         uint8_t ampm = 0;
         rtc_readtime(&hour, &minute, NULL);
           // draw time
-        if (hour > 12)
-        {
-          ampm = 1; // pm
-          hour -= 12;
-        }  
+        adjustAMPM(hour, &hour, &ampm);
+
         if (ampm) buf0[0] = 'P';
           else buf0[0] = 'A';
         buf0[1] = 'M';
