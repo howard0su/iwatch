@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 by BlueKitchen GmbH
+ * Copyright (C) 2011-2012 BlueKitchen GmbH
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,8 +13,9 @@
  * 3. Neither the name of the copyright holders nor the names of
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 4. This software may not be used in a commercial product
- *    without an explicit license granted by the copyright holder. 
+ * 4. Any redistribution, use, or modification is done solely for
+ *    personal benefit and not for any commercial purpose or for
+ *    monetary gain.
  *
  * THIS SOFTWARE IS PROVIDED BY MATTHIAS RINGWALD AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -29,43 +30,38 @@
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * Please inquire about commercial licensing options at contact@bluekitchen-gmbh.com
+ *
  */
+#include  "central_device_db.h"
 
-//*****************************************************************************
-//
-// Advertising Data Parser 
-//
-//*****************************************************************************
+ // Central Device db interface
+void central_device_db_init(){}
 
-#pragma once
-
-#include "config.h"
-
-#if defined __cplusplus
-extern "C" {
-#endif
-
-typedef struct ad_context {
-     uint8_t * data;
-     uint8_t   offset;
-     uint8_t   length;
-} ad_context_t;
-
-// Advertising or Scan Response data iterator
-void ad_iterator_init(ad_context_t *context, uint8_t ad_len, uint8_t * ad_data);
-int  ad_iterator_has_more(ad_context_t * context);
-void ad_iterator_next(ad_context_t * context);
-
-// Access functions
-uint8_t   ad_iterator_get_data_type(ad_context_t * context);
-uint8_t   ad_iterator_get_data_len(ad_context_t * context);
-uint8_t * ad_iterator_get_data(ad_context_t * context);
-
-// convenience function on complete advertisements
-int ad_data_contains_uuid16(uint8_t ad_len, uint8_t * ad_data, uint16_t uuid);
-int ad_data_contains_uuid128(uint8_t ad_len, uint8_t * ad_data, uint8_t * uuid128);
-
-
-#if defined __cplusplus
+// @returns index if successful, -1 otherwise
+int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t csrk){
+	return -1;
 }
-#endif
+
+// @returns number of device in db
+int central_device_db_count(void){
+	return 0;
+}
+
+// get device information: addr type and address
+void central_device_db_info(int index, int * addr_type, bd_addr_t addr, sm_key_t csrk){}
+
+// get signature key
+void central_device_db_csrk(int index, sm_key_t csrk){}
+
+// query last used/seen signing counter
+uint32_t central_device_db_counter_get(int index){ 
+	return 0xffffffff;
+}
+
+// update signing counter
+void central_device_db_counter_set(int index, uint32_t counter){}
+
+// free device
+void central_device_db_remove(int index){}
+

@@ -2115,19 +2115,34 @@
     <group>
       <name>ble</name>
       <file>
-        <name>$PROJ_DIR$\..\btstack\ble\ad_parser.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\att.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\btstack\ble\ble_central.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\att_server.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\btstack\ble\ble_sm.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\central_device_db_dummy.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\ble\central_device_db_memory.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\btstack\ble\rijndael.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\l2cap_le.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\sm.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\sm_minimal.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
       </file>
     </group>
     <group>
@@ -2203,10 +2218,10 @@
       </file>
     </group>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_client.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_handler.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_handler.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_peripheral.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\bluetooth.c</name>

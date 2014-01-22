@@ -33,85 +33,51 @@
  * Please inquire about commercial licensing options at contact@bluekitchen-gmbh.com
  *
  */
- 
-#ifndef __CENTRAL_DEVICE_DB_H
-#define __CENTRAL_DEVICE_DB_H
+#ifndef __ATT_SERVER_H
+#define __ATT_SERVER_H
 
-#include <btstack/utils.h>
+#include <btstack/btstack.h>
+#include <stdint.h>
+#include "att.h"
 
 #if defined __cplusplus
 extern "C" {
 #endif
 
-/** 
+ /*
+  * @brief setup ATT server
+  * @param db attribute database created by compile-gatt.ph
+  * @param read_callback, see att.h, can be NULL
+  * @param write_callback, see attl.h, can be NULL
+  */
+void att_server_init(uint8_t const * db, att_read_callback_t read_callback, att_write_callback_t write_callback);
 
-	A Central Device DB is only required for signed writes
-	
-	Per bonded device, it stores the Identity Resolving Key (IRK), the Connection Signature Resolving Key (CSRK)
-	   and the last used counter
-
-	The IRK is necessary to identify a device that uses private addresses
-	The CSRK is used to generate the signatur on the remote device and is needed to verify the signature itself
-	The Counter is necessary to prevent reply attacks
-
-*/
-
-
-// Central Device db interface
-
-
-/**
- * @brief init
+/*
+ * @brief register packet handler for general HCI Events like connect, diconnect, etc.
+ * @param handler
  */
-void central_device_db_init();
+void att_server_register_packet_handler(btstack_packet_handler_t handler);
 
-/**
- * @brief add device to db
- * @param addr_type, address of the device
- * @param irk and csrk of the device
- * @returns index if successful, -1 otherwise
+/*
+ * @brief tests if a notification or indication can be send right now
+ * @return 1, if packet can be sent
  */
-int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t csrk);
+int  att_server_can_send();
 
-/**
- * @brief get number of devices in db for enumeration
- * @returns number of device in db
+/*
+ * @brief notify client about attribute value change
+ * @ereturns 0 if ok, error otherwise
  */
-int central_device_db_count(void);
+int att_server_notify(uint16_t handle, uint8_t *value, uint16_t value_len);
 
-/**
- * @brief get device information: addr type and address needed to identify device
- * @param index
- * @param addr_type, address of the device as output
- * @param irk of the device
+/*
+ * @brief indicate value change to client. client is supposed to reply with an indication_response
+ * @ereturns 0 if ok, error otherwise
  */
-void central_device_db_info(int index, int * addr_type, bd_addr_t addr, sm_key_t irk);
+int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len);
 
-/**
- * @brief get signing key for this device
- * @param index
- * @param signing key as output
- */
-void central_device_db_csrk(int index, sm_key_t csrk);
+#if defined __cplusplus
+}
+#endif
 
-/**
- * @brief query last used/seen signing counter
- * @param index
- * @returns next expected counter, 0 after devices was added
- */
-uint32_t central_device_db_counter_get(int index);
-
-/**
- * @brief update signing counter
- * @param index
- * @param counter to store
- */
-void central_device_db_counter_set(int index, uint32_t counter);
-
-/**
- * @brief free device
- * @param index
- */
-void central_device_db_remove(int index);
-
-#endif // __CENTRAL_DEVICE_DB_H
+#endif // __ATT_SERVER_H

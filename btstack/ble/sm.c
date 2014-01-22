@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2013 by Matthias Ringwald
+ * Copyright (C) 2011-2012 BlueKitchen GmbH
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,8 +13,9 @@
  * 3. Neither the name of the copyright holders nor the names of
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 4. This software may not be used in a commercial product
- *    without an explicit license granted by the copyright holder. 
+ * 4. Any redistribution, use, or modification is done solely for
+ *    personal benefit and not for any commercial purpose or for
+ *    monetary gain.
  *
  * THIS SOFTWARE IS PROVIDED BY MATTHIAS RINGWALD AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -29,66 +30,19 @@
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * Please inquire about commercial licensing options at contact@bluekitchen-gmbh.com
+ *
  */
-
-//*****************************************************************************
-//
-// att device demo
-//
-//*****************************************************************************
-
-// TODO: seperate BR/EDR from LE ACL buffers
-// ..
-
-// NOTE: Supports only a single connection
-
-#include <stdint.h>
+ 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-
-#include <btstack/run_loop.h>
 #include "debug.h"
-#include "btstack_memory.h"
 #include "hci.h"
-#include "hci_dump.h"
-
 #include "l2cap.h"
-
-#include "sm.h"
-#include "att.h"
 #include "central_device_db.h"
-
-//
-// GAP API
-//
-
-// IO Capability Values
-typedef enum {
-    IO_CAPABILITY_DISPLAY_ONLY = 0,
-    IO_CAPABILITY_DISPLAY_YES_NO,
-    IO_CAPABILITY_KEYBOARD_ONLY,
-    IO_CAPABILITY_NO_INPUT_NO_OUTPUT,
-    IO_CAPABILITY_KEYBOARD_DISPLAY, // not used by secure simple pairing
-    IO_CAPABILITY_UNKNOWN = 0xff
-} io_capability_t;
-
-// address type
-typedef enum {
-    GAP_RANDOM_ADDRESS_TYPE_OFF = 0,
-    GAP_RANDOM_ADDRESS_NON_RESOLVABLE,
-    GAP_RANDOM_ADDRESS_RESOLVABLE,
-} gap_random_address_type_t;
-
-// pairing user interacation
-typedef struct sm_event {
-    uint8_t   type;   // see <btstack/hci_cmds.h> SM_...
-    uint8_t   addr_type;
-    bd_addr_t address;
-    uint32_t  passkey;  // only used for SM_PASSKEY_DISPLAY_NUMBER 
-} sm_event_t;
+#include "sm.h"
+#include "gap_le.h"
 
 //
 // SM internal types and globals
@@ -228,7 +182,6 @@ static uint8_t sm_accepted_stk_generation_methods;
 static uint8_t sm_max_encryption_key_size;
 static uint8_t sm_min_encryption_key_size;
 
-static uint8_t sm_encryption_key_size;
 static uint8_t sm_s_auth_req = 0;
 static uint8_t sm_s_io_capabilities = IO_CAPABILITY_UNKNOWN;
 static uint8_t sm_s_request_security = 0;
@@ -248,6 +201,10 @@ static int sm_central_ah_calculation_active;
 //
 static uint8_t   sm_s_addr_type;
 static bd_addr_t sm_s_address;
+static uint8_t   sm_actual_encryption_key_size;
+static uint8_t   sm_connection_encrypted;
+static uint8_t   sm_connection_authenticated;   // [0..1]
+static uint8_t   sm_connection_authorization_state;
 
 // PER INSTANCE DATA
 
@@ -261,7 +218,7 @@ static timer_source_t sm_timeout;
 // data to send to aes128 crypto engine, see sm_aes128_set_key and sm_aes128_set_plaintext
 static sm_key_t   sm_aes128_key;
 static sm_key_t   sm_aes128_plaintext;
-static uint8_t sm_aes128_active;
+static uint8_t    sm_aes128_active;
 
 // generation method and temporary key for STK - STK is stored in sm_s_ltk
 static stk_generation_method_t sm_stk_generation_method;
@@ -300,18 +257,20 @@ static uint16_t  sm_s_y;
 static uint16_t  sm_s_div;
 static uint16_t  sm_s_ediv;
 static uint8_t   sm_s_rand[8];
-static sm_key_t  sm_s_csrk;
+// commented keys are not used in Perihperal role
+// static sm_key_t  sm_s_csrk;
 
 // key distribution, received from master
-static sm_key_t  sm_m_ltk;
-static uint16_t  sm_m_ediv;
-static uint8_t   sm_m_rand[8];
+// commented keys that are not stored or used by Peripheral role
+// static sm_key_t  sm_m_ltk;
+// static uint16_t  sm_m_ediv;
+// static uint8_t   sm_m_rand[8];
 static uint8_t   sm_m_addr_type;
 static bd_addr_t sm_m_address;
 static sm_key_t  sm_m_csrk;
 static sm_key_t  sm_m_irk;
 
-// CMAC calculation
+// CMAC calculation - only used by signed writes
 static cmac_state_t sm_cmac_state;
 static sm_key_t     sm_cmac_k;
 static uint16_t     sm_cmac_message_len;
@@ -341,12 +300,6 @@ static const stk_generation_method_t stk_generation_method[5][5] = {
 
 static void sm_run();
 
-/// CMAC Suppport
-int sm_cmac_ready();
-static void sm_cmac_handle_encryption_result(sm_key_t data);
-static void sm_cmac_handle_aes_engine_ready();
-static void sm_cmac_start(sm_key_t k, uint16_t message_len, uint8_t * message, void (*done_handler)(uint8_t hash[8]));
-
 // Utils
 static inline void swapX(uint8_t *src, uint8_t *dst, int len){
     int i;
@@ -367,7 +320,7 @@ static inline void swap128(uint8_t src[16], uint8_t dst[16]){
 }
 
 static void print_hex16(const char * name, uint16_t value){
-    printf("%s 0x%04x\n", name, value);
+    printf("%-6s 0x%04x\n", name, value);
 }
 
 // @returns 1 if all bytes are 0
@@ -409,7 +362,7 @@ static void sm_truncate_key(sm_key_t key, int max_encryption_size){
 // established.
 
 static void sm_timeout_handler(timer_source_t * timer){
-    printf("SM timeout");
+    printf("SM timeout\n");
     sm_state_responding = SM_STATE_TIMEOUT;
 }
 static void sm_timeout_start(){
@@ -487,7 +440,6 @@ static void sm_dm_r_prime(uint8_t r[8], sm_key_t r_prime){
     memcpy(&r_prime[8], r, 8);
 }
 
-
 // calculate arguments for first AES128 operation in C1 function
 static void sm_c1_t1(sm_key_t r, uint8_t preq[7], uint8_t pres[7], uint8_t iat, uint8_t rat, sm_key_t t1){
 
@@ -543,19 +495,33 @@ static void sm_s1_r_prime(sm_key_t r1, sm_key_t r2, sm_key_t r_prime){
     memcpy(&r_prime[0], &r1[8], 8);
 }
 
-static void sm_notify_client(uint8_t type, uint8_t addr_type, bd_addr_t address, uint32_t passkey){
+static void sm_notify_client(uint8_t type, uint8_t addr_type, bd_addr_t address, uint32_t passkey, uint16_t index){
 
     sm_event_t event;
     event.type = type;
     event.addr_type = addr_type;
     BD_ADDR_COPY(event.address, address);
     event.passkey = passkey;
+    event.central_device_db_index = index;
 
-    // dummy implementation
-    printf("sm_notify_client: event 0x%02x, addres_type %u, address (), num '%06u'", event.type, event.addr_type, event.passkey);
+    log_info("sm_notify_client %02x, addres_type %u, address %s, num '%06u', index %u", event.type, event.addr_type, bd_addr_to_str(event.address), event.passkey, event.central_device_db_index);
 
     if (!sm_client_packet_handler) return;
-    sm_client_packet_handler(HCI_EVENT_PACKET, 0, (uint8_t*) &event, sizeof(sm_event_t));
+    sm_client_packet_handler(HCI_EVENT_PACKET, 0, (uint8_t*) &event, sizeof(event));
+}
+
+static void sm_notify_client_authorization(uint8_t type, uint8_t addr_type, bd_addr_t address, uint8_t result){
+
+    sm_event_t event;
+    event.type = type;
+    event.addr_type = addr_type;
+    BD_ADDR_COPY(event.address, address);
+    event.authorization_result = result;
+
+    log_info("sm_notify_client_authorization %02x, address_type %u, address %s, result %u", event.type, event.addr_type, bd_addr_to_str(event.address), event.authorization_result);
+
+    if (!sm_client_packet_handler) return;
+    sm_client_packet_handler(HCI_EVENT_PACKET, 0, (uint8_t*) &event, sizeof(event));
 }
 
 // decide on stk generation based on
@@ -590,7 +556,9 @@ static void sm_tk_setup(){
 
     // Otherwise the IO capabilities of the devices shall be used to determine the
     // pairing method as defined in Table 2.4.
-    sm_stk_generation_method = stk_generation_method[sm_m_io_capabilities][sm_s_io_capabilities];
+    sm_stk_generation_method = stk_generation_method[sm_s_io_capabilities][sm_m_io_capabilities];
+    printf("sm_tk_setup: master io cap: %u, slave io cap: %u -> method %u\n",
+        sm_m_io_capabilities, sm_s_io_capabilities, sm_stk_generation_method);
 }
 
 static int sm_key_distribution_flags_for_set(uint8_t key_set){
@@ -634,7 +602,7 @@ static int sm_cmac_last_block_complete(){
     return (sm_cmac_message_len & 0x0f) == 0;
 }
 
-static void sm_cmac_start(sm_key_t k, uint16_t message_len, uint8_t * message, void (*done_handler)(uint8_t hash[8])){
+void sm_cmac_start(sm_key_t k, uint16_t message_len, uint8_t * message, void (*done_handler)(uint8_t hash[8])){
     memcpy(sm_cmac_k, k, 16);
     sm_cmac_message_len = message_len;
     sm_cmac_message = message;
@@ -721,14 +689,13 @@ static void sm_cmac_handle_encryption_result(sm_key_t data){
             print_key("k2", k2);
 
             // step 4: set m_last
+            int i;
             if (sm_cmac_last_block_complete()){
-                int i;
                 for (i=0;i<16;i++){
                     sm_cmac_m_last[i] = sm_cmac_message[sm_cmac_message_len - 16 + i] ^ k1[i];
                 }
             } else {
                 int valid_octets_in_last_block = sm_cmac_message_len & 0x0f;
-                int i;
                 for (i=0;i<16;i++){
                     if (i < valid_octets_in_last_block){
                         sm_cmac_m_last[i] = sm_cmac_message[(sm_cmac_message_len & 0xfff0) + i] ^ k2[i];
@@ -850,6 +817,7 @@ static void sm_run(void){
                 sm_central_device_matched = sm_central_device_test;
                 sm_central_device_test = -1;
                 central_device_db_csrk(sm_central_device_matched, sm_m_csrk);
+                sm_notify_client(SM_IDENTITY_RESOLVING_SUCCEEDED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 break;
             }
 
@@ -873,6 +841,7 @@ static void sm_run(void){
         if (sm_central_device_test >= central_device_db_count()){
             printf("Central Device Lookup: not found\n");
             sm_central_device_test = -1;
+            sm_notify_client(SM_IDENTITY_RESOLVING_FAILED, sm_m_addr_type, sm_m_address, 0, 0);
         }
     }
 
@@ -924,17 +893,17 @@ static void sm_run(void){
             switch (sm_stk_generation_method){
                 case PK_RESP_INPUT:
                     sm_user_response = SM_USER_RESPONSE_PENDING;
-                    sm_notify_client(SM_PASSKEY_INPUT_NUMBER, sm_m_addr_type, sm_m_address, 0); 
+                    sm_notify_client(SM_PASSKEY_INPUT_NUMBER, sm_m_addr_type, sm_m_address, 0, 0); 
                     break;
                 case PK_INIT_INPUT:
-                    sm_notify_client(SM_PASSKEY_DISPLAY_NUMBER, sm_m_addr_type, sm_m_address, READ_NET_32(sm_tk, 12)); 
+                    sm_notify_client(SM_PASSKEY_DISPLAY_NUMBER, sm_m_addr_type, sm_m_address, READ_NET_32(sm_tk, 12), 0); 
                     break;
                 case JUST_WORKS:
                     switch (sm_s_io_capabilities){
                         case IO_CAPABILITY_KEYBOARD_DISPLAY:
                         case IO_CAPABILITY_DISPLAY_YES_NO:
                             sm_user_response = SM_USER_RESPONSE_PENDING;
-                            sm_notify_client(SM_JUST_WORKS_REQUEST, sm_m_addr_type, sm_m_address, READ_NET_32(sm_tk, 12));
+                            sm_notify_client(SM_JUST_WORKS_REQUEST, sm_m_addr_type, sm_m_address, READ_NET_32(sm_tk, 12), 0);
                             break;
                         default:
                             // cannot ask user
@@ -1064,7 +1033,8 @@ static void sm_run(void){
                 sm_key_distribution_send_set &= ~SM_KEYDIST_FLAG_SIGNING_IDENTIFICATION;
                 uint8_t buffer[17];
                 buffer[0] = SM_CODE_SIGNING_INFORMATION;
-                swap128(sm_s_csrk, &buffer[1]);
+                // swap128(sm_s_csrk, &buffer[1]);
+                memset(&buffer[1], 0, 16);  // csrk not calculated
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
                 return;
@@ -1122,9 +1092,9 @@ static void sm_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pac
             }
 
             // min{}
-            sm_encryption_key_size = sm_max_encryption_key_size;
+            sm_actual_encryption_key_size = sm_max_encryption_key_size;
             if (sm_m_max_encryption_key_size < sm_max_encryption_key_size){
-                sm_encryption_key_size = sm_m_max_encryption_key_size;
+                sm_actual_encryption_key_size = sm_m_max_encryption_key_size;
             }
 
             // setup key distribution
@@ -1139,6 +1109,7 @@ static void sm_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pac
 
             // decide on STK generation method
             sm_tk_setup();
+            printf("SMP: generation method %u\n", sm_stk_generation_method);
 
             // check if STK generation method is acceptable by client
             int ok = 0;
@@ -1161,6 +1132,9 @@ static void sm_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pac
                 break;
             }
 
+            // JUST WORKS doens't provide authentication
+            sm_connection_authenticated = sm_stk_generation_method == JUST_WORKS ? 0 : 1;
+
             // generate random number first, if we need to show passkey
             if (sm_stk_generation_method == PK_INIT_INPUT){
                 sm_state_responding = SM_STATE_PH2_GET_RANDOM_TK;
@@ -1182,7 +1156,7 @@ static void sm_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pac
 
             // notify client to hide shown passkey
             if (sm_stk_generation_method == PK_INIT_INPUT){
-                sm_notify_client(SM_PASSKEY_DISPLAY_CANCEL, sm_m_addr_type, sm_m_address, 0);
+                sm_notify_client(SM_PASSKEY_DISPLAY_CANCEL, sm_m_addr_type, sm_m_address, 0, 0);
             }
 
             // handle user cancel pairing?
@@ -1222,13 +1196,13 @@ static void sm_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pac
             switch(packet[0]){
                 case SM_CODE_ENCRYPTION_INFORMATION:
                     sm_key_distribution_received_set |= SM_KEYDIST_FLAG_ENCRYPTION_INFORMATION;
-                    swap128(&packet[1], sm_m_ltk);
+                    // swap128(&packet[1], sm_m_ltk);
                     break;
 
                 case SM_CODE_MASTER_IDENTIFICATION:
                     sm_key_distribution_received_set |= SM_KEYDIST_FLAG_MASTER_IDENTIFICATION;
-                    sm_m_ediv = READ_BT_16(packet, 1);
-                    swap64(&packet[3], sm_m_rand);
+                    // sm_m_ediv = READ_BT_16(packet, 1);
+                    // swap64(&packet[3], sm_m_rand);
                     break;
 
                 case SM_CODE_IDENTITY_INFORMATION:
@@ -1238,8 +1212,10 @@ static void sm_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pac
 
                 case SM_CODE_IDENTITY_ADDRESS_INFORMATION:
                     sm_key_distribution_received_set |= SM_KEYDIST_FLAG_IDENTITY_ADDRESS_INFORMATION;
-                    sm_m_addr_type = packet[1];
-                    BD_ADDR_COPY(sm_m_address, &packet[2]); 
+                    // note: we don't update addr_type and address as higher layer would get confused
+                    // note: if needed, we could use a different variable pair
+                    // sm_m_addr_type = packet[1];
+                    // BD_ADDR_COPY(sm_m_address, &packet[2]); 
                     break;
 
                 case SM_CODE_SIGNING_INFORMATION:
@@ -1288,7 +1264,7 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                         dkg_state = DKG_CALC_IRK;
 
                         sm_run();
-                        return; // don't notify app packet handler
+                        return; // don't notify app packet handler just yet
 					}
 					break;
                 
@@ -1311,14 +1287,20 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                             printf("Incoming connection, own address ");
                             print_bd_addr(sm_s_address);
 
-                            // try to lookup device
-                            sm_central_device_test = 0;
-                            sm_central_device_matched = -1;
+                            // reset security properties
+                            sm_connection_encrypted = 0;
+                            sm_connection_authenticated = 0;
+                            sm_connection_authorization_state = AUTHORIZATION_UNKNOWN;
 
                             // request security
                             if (sm_s_request_security){
                                 sm_state_responding = SM_STATE_SEND_SECURITY_REQUEST;
                             }
+
+                            // try to lookup device
+                            sm_central_device_test = 0;
+                            sm_central_device_matched = -1;
+                            sm_notify_client(SM_IDENTITY_RESOLVING_STARTED, sm_m_addr_type, sm_m_address, 0, 0);
                             break;
 
                         case HCI_SUBEVENT_LE_LONG_TERM_KEY_REQUEST:
@@ -1344,12 +1326,11 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                             }
 
                             // re-establish used key encryption size
-                            if (sm_max_encryption_key_size == sm_min_encryption_key_size){
-                                sm_encryption_key_size = sm_max_encryption_key_size;
-                            } else {
-                                // no db for encryption size hack: encryption size is stored in lowest nibble of sm_s_rand
-                                sm_encryption_key_size = (sm_s_rand[7] & 0x0f) + 1;
-                            }
+                            // no db for encryption size hack: encryption size is stored in lowest nibble of sm_s_rand
+                            sm_actual_encryption_key_size = (sm_s_rand[7] & 0x0f) + 1;
+
+                            // no db for authenticated flag hack: flag is stored in bit 4 of LSB
+                            sm_connection_authenticated = (sm_s_rand[7] & 0x10) >> 4;
 
                             log_info("LTK Request: recalculating with ediv 0x%04x", sm_s_ediv);
 
@@ -1373,7 +1354,10 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                     break;
 
                 case HCI_EVENT_ENCRYPTION_CHANGE: 
-                    log_info("Connection encrypted");
+                    if (sm_response_handle != READ_BT_16(packet, 3)) break;
+                    sm_connection_encrypted = packet[5];
+                    log_info("Eencryption state change: %u", sm_connection_encrypted);
+                    if (!sm_connection_encrypted) break;
                     if (sm_state_responding == SM_STATE_PH2_W4_CONNECTION_ENCRYPTED) {
                         sm_state_responding = SM_STATE_PH3_GET_RANDOM;
                     }
@@ -1397,7 +1381,8 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                                 sm_central_device_matched = sm_central_device_test;
                                 sm_central_device_test = -1;
                                 central_device_db_csrk(sm_central_device_matched, sm_m_csrk);
-                                printf("Central Device Lookup: matched resolvable private address\n");
+				                sm_notify_client(SM_IDENTITY_RESOLVING_SUCCEEDED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
+                                log_info("Central Device Lookup: matched resolvable private address");
                                 break;
                             }
                             // no match
@@ -1478,7 +1463,7 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                                 break;
                             case SM_STATE_PH2_W4_STK:
                                 swap128(&packet[6], sm_s_ltk);
-                                sm_truncate_key(sm_s_ltk, sm_encryption_key_size);
+                                sm_truncate_key(sm_s_ltk, sm_actual_encryption_key_size);
                                 print_key("stk", sm_s_ltk);
                                 sm_state_responding = SM_STATE_PH2_SEND_STK;
                                 break;
@@ -1520,7 +1505,7 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                                 break;                                
                             case SM_STATE_PH4_LTK_W4_ENC:
                                 swap128(&packet[6], sm_s_ltk);
-                                sm_truncate_key(sm_s_ltk, sm_encryption_key_size);
+                                sm_truncate_key(sm_s_ltk, sm_actual_encryption_key_size);
                                 print_key("ltk", sm_s_ltk);
                                 sm_state_responding = SM_STATE_PH4_SEND_LTK;
                                 break;                                
@@ -1588,7 +1573,9 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                             case SM_STATE_PH3_W4_RANDOM:
                                 swap64(&packet[6], sm_s_rand);
                                 // no db for encryption size hack: encryption size is stored in lowest nibble of sm_s_rand
-                                sm_s_rand[7] =  (sm_s_rand[7] & 0xf0) + (sm_encryption_key_size - 1);
+                                sm_s_rand[7] = (sm_s_rand[7] & 0xf0) + (sm_actual_encryption_key_size - 1);
+                                // no db for authenticated flag hack: store flag in bit 4 of LSB
+                                sm_s_rand[7] = (sm_s_rand[7] & 0xef) + (sm_connection_authenticated << 4);
                                 sm_state_responding = SM_STATE_PH3_GET_DIV;
                                 break;
                             case SM_STATE_PH3_W4_DIV:
@@ -1596,28 +1583,11 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                                 sm_s_div = READ_NET_16(packet, 6);
                                 print_hex16("div", sm_s_div);
 
-                                // PLAN
-                                // PH3B1 - calculate DHK from IR - enc
-                                // PH3B2 - calculate Y from      - enc
-                                // PH3B3 - calculate EDIV
-                                // PH3B4 - calculate LTK         - enc
-
-                                // skip PH3B1 - we got DHK during startup
                                 // PH3B2 - calculate Y from      - enc
                                 // Y = dm(DHK, Rand)
                                 sm_aes128_set_key(sm_persistent_dhk);
                                 sm_dm_r_prime(sm_s_rand, sm_aes128_plaintext);
                                 sm_state_responding = SM_STATE_PH3_Y_GET_ENC;
-
-                                // // calculate EDIV and LTK
-                                // sm_s_ediv = sm_ediv(sm_persistent_dhk, sm_s_rand, sm_s_div);
-                                // sm_s_ltk(sm_persistent_er, sm_s_div, sm_s_ltk);
-                                // print_key("ltk", sm_s_ltk);
-                                // print_hex16("ediv", sm_s_ediv);
-                                // // distribute keys
-                                // sm_distribute_keys();
-                                // // done
-                                // sm_state_responding = SM_STATE_IDLE;
                                 break;
 
                             default:
@@ -1627,13 +1597,44 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                     }
 			}
 
-            // forward packet to ATT or so
+            // forward packet to higher layer
             if (sm_client_packet_handler){
                 sm_client_packet_handler(packet_type, 0, packet, size);
             }
 	}
 
     sm_run();
+}
+
+
+// Security Manager Client API
+void sm_register_oob_data_callback( int (*get_oob_data_callback)(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data)){
+    sm_get_oob_data = get_oob_data_callback;
+}
+
+void sm_register_packet_handler(btstack_packet_handler_t handler){
+    sm_client_packet_handler = handler;    
+}
+
+void sm_set_accepted_stk_generation_methods(uint8_t accepted_stk_generation_methods){
+    sm_accepted_stk_generation_methods = accepted_stk_generation_methods;
+}
+
+void sm_set_encryption_key_size_range(uint8_t min_size, uint8_t max_size){
+	sm_min_encryption_key_size = min_size;
+	sm_max_encryption_key_size = max_size;
+}
+
+void sm_set_authentication_requirements(uint8_t auth_req){
+    sm_s_auth_req = auth_req;
+}
+
+void sm_set_io_capabilities(io_capability_t io_capability){
+    sm_s_io_capabilities = io_capability;
+}
+
+void sm_set_request_security(int enable){
+    sm_s_request_security = enable;
 }
 
 void sm_set_er(sm_key_t er){
@@ -1655,10 +1656,6 @@ void sm_init(){
         er[i] = 0x30 + i;
         ir[i] = 0x90 + i;
     }
-
-    l2cap_register_fixed_channel(sm_packet_handler, L2CAP_CID_SECURITY_MANAGER_PROTOCOL);
-    l2cap_register_packet_handler(sm_event_packet_handler);
-
     sm_set_er(er);
     sm_set_ir(ir);
     sm_state_responding = SM_STATE_IDLE;
@@ -1676,60 +1673,57 @@ void sm_init(){
     sm_central_ah_calculation_active = 0;
 
     gap_random_adress_update_period = 15 * 60 * 1000;
+
+    // attach to lower layers
+    l2cap_register_fixed_channel(sm_packet_handler, L2CAP_CID_SECURITY_MANAGER_PROTOCOL);
+    l2cap_register_packet_handler(sm_event_packet_handler);
 }
 
-// GAP LE API
-void gap_random_address_set_mode(gap_random_address_type_t random_address_type){
-    gap_random_address_update_stop();
-    gap_random_adress_type = random_address_type;
-    if (random_address_type == GAP_RANDOM_ADDRESS_TYPE_OFF) return;
-    gap_random_address_update_start();
-}
-
-void gap_random_address_set_update_period(int period_ms){
-    gap_random_adress_update_period = period_ms;
-    if (gap_random_adress_type == GAP_RANDOM_ADDRESS_TYPE_OFF) return;
-    gap_random_address_update_stop();
-    gap_random_address_update_start();
-}
-
-// Security Manager Client API
-void sm_register_oob_data_callback( int (*get_oob_data_callback)(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data)){
-    sm_get_oob_data = get_oob_data_callback;
-}
-
-void sm_register_packet_handler(btstack_packet_handler_t handler){
-    sm_client_packet_handler = handler;    
-}
-
-void sm_set_accepted_stk_generation_methods(uint8_t accepted_stk_generation_methods){
-    sm_accepted_stk_generation_methods = accepted_stk_generation_methods;
-}
-
-void sm_set_max_encrypted_key_size(uint8_t size) {
-    sm_max_encryption_key_size = size;
-}
-
-void sm_set_min_encrypted_key_size(uint8_t size) {
-    sm_min_encryption_key_size = size;
-}
-
-void sm_set_authentication_requirements(uint8_t auth_req){
-    sm_s_auth_req = auth_req;
-}
-
-void sm_set_io_capabilities(io_capability_t io_capability){
-    sm_s_io_capabilities = io_capability;
-}
-
-void sm_set_request_security(int enable){
-    sm_s_request_security = enable;
-}
-
-int sm_get_connection(uint8_t addr_type, bd_addr_t address){
+static int sm_get_connection(uint8_t addr_type, bd_addr_t address){
     // TODO compare to current connection
     return 1;
 }
+
+// @returns 0 if not encrypted, 7-16 otherwise
+int sm_encryption_key_size(uint8_t addr_type, bd_addr_t address){
+    if (!sm_get_connection(addr_type, address)) return 0; // wrong connection
+    if (!sm_connection_encrypted) return 0;
+    return sm_actual_encryption_key_size;
+}
+
+int sm_authenticated(uint8_t addr_type, bd_addr_t address){
+    if (!sm_get_connection(addr_type, address)) return 0; // wrong connection
+    if (!sm_connection_encrypted) return 0; // unencrypted connection cannot be authenticated
+    return sm_connection_authenticated;
+}
+
+authorization_state_t sm_authorization_state(uint8_t addr_type, bd_addr_t address){
+    if (!sm_get_connection(addr_type, address)) return 0; // wrong connection
+    if (!sm_connection_encrypted) return 0;    // unencrypted connection cannot be authorized
+    if (!sm_connection_authenticated) return 0; // unauthenticatd connection cannot be authorized
+    return sm_connection_authorization_state;
+}
+
+// request authorization
+void sm_request_authorization(uint8_t addr_type, bd_addr_t address){
+    sm_connection_authorization_state = AUTHORIZATION_PENDING;
+    sm_notify_client(SM_AUTHORIZATION_REQUEST, sm_m_addr_type, sm_m_address, 0, 0);
+}
+
+// called by client app on authorization request
+void sm_authorization_decline(uint8_t addr_type, bd_addr_t address){
+    if (!sm_get_connection(addr_type, address)) return; // wrong connection
+    sm_connection_authorization_state = AUTHORIZATION_DECLINED;
+    sm_notify_client_authorization(SM_AUTHORIZATION_RESULT, sm_m_addr_type, sm_m_address, 0);
+}
+
+void sm_authorization_grant(uint8_t addr_type, bd_addr_t address){
+    if (!sm_get_connection(addr_type, address)) return; // wrong connection
+    sm_connection_authorization_state = AUTHORIZATION_GRANTED;
+    sm_notify_client_authorization(SM_AUTHORIZATION_RESULT, sm_m_addr_type, sm_m_address, 1);
+}
+
+// GAP Bonding API
 
 void sm_bonding_decline(uint8_t addr_type, bd_addr_t address){
     if (!sm_get_connection(addr_type, address)) return; // wrong connection
@@ -1760,4 +1754,19 @@ void sm_passkey_input(uint8_t addr_type, bd_addr_t address, uint32_t passkey){
         sm_state_responding = SM_STATE_PH2_C1_GET_RANDOM_A;
     }
     sm_run();
+}
+
+// GAP LE API
+void gap_random_address_set_mode(gap_random_address_type_t random_address_type){
+    gap_random_address_update_stop();
+    gap_random_adress_type = random_address_type;
+    if (random_address_type == GAP_RANDOM_ADDRESS_TYPE_OFF) return;
+    gap_random_address_update_start();
+}
+
+void gap_random_address_set_update_period(int period_ms){
+    gap_random_adress_update_period = period_ms;
+    if (gap_random_adress_type == GAP_RANDOM_ADDRESS_TYPE_OFF) return;
+    gap_random_address_update_stop();
+    gap_random_address_update_start();
 }

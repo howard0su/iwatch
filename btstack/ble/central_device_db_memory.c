@@ -48,7 +48,7 @@ typedef struct central_device_memory_db {
     uint32_t signing_counter;
 } central_device_memory_db_t;
 
-#define CENTRAL_DEVICE_MEMORY_SIZE 1
+#define CENTRAL_DEVICE_MEMORY_SIZE 4
 static central_device_memory_db_t central_devices[CENTRAL_DEVICE_MEMORY_SIZE];
 static int central_devices_count;
 
