@@ -42,6 +42,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+ #include "contiki.h"
+ #include "window.h"
+
 #include "config.h"
 
 #include <btstack/run_loop.h>
@@ -58,6 +61,8 @@
 #include "gap_le.h"
 #include "central_device_db.h"
 
+#include "ble_handler.h"
+
 #define HEARTBEAT_PERIOD_MS 5000
 
 // test profile
@@ -65,56 +70,21 @@
 
 ///------
 static int advertisements_enabled = 0;
-static timer_source_t heartbeat;
-static uint8_t counter = 0;
-static int update_client = 0;
-static int client_configuration = 0;
-
-static void app_run();
-
-static void app_run(){
-    if (!update_client) return;
-    if (!att_server_can_send()) return;
-
-    int result = -1;
-    switch (client_configuration){
-        case 0x01:
-            printf("Notify value %u\n", counter);
-            result = att_server_notify(0x0f, &counter, 1);
-            break;
-        case 0x02:
-            printf("Indicate value %u\n", counter);
-            result = att_server_indicate(0x0f, &counter, 1);
-            break;
-        default:
-            return;
-    }        
-    if (result){
-        printf("Error 0x%02x\n", result);
-        return;        
-    }
-    update_client = 0;
-}
 
 // write requests
 static int att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
-    printf("WRITE Callback, handle %04x\n", handle);
-    switch(handle){
-        case 0x0010:
-            client_configuration = buffer[0];
-            printf("Client Configuration set to %u\n", client_configuration);
-            break;
-        default:
-            printf("Value: ");
-            hexdump(buffer, buffer_size);
-            break;
-    }
-    return 1;
+    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_WRITE);
 }
+
+static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
+    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
+}
+
 
 static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     
-    uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff }; 
+    uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff,
+        17, 0x15,  0x79, 0x05, 0xF4, 0x31, 0xB5, 0xCE, 0x4E, 0x99, 0xA4, 0x0F, 0x4B, 0x1E, 0x12, 0x2D, 0x00, 0xD0}; 
 
     switch (packet_type) {
             
@@ -125,7 +95,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                     // bt stack activated, get started
                     if (packet[2] == HCI_STATE_WORKING) {
                         printf("SM Init completed\n");
-                        hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data), adv_data);
+                        hci_send_cmd(&hci_le_set_advertising_data, 7, adv_data);
                     }
                     break;
                 
@@ -155,7 +125,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                 case HCI_EVENT_COMMAND_COMPLETE:
                     if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
                          // only needed for BLE Peripheral
-                       hci_send_cmd(&hci_le_set_scan_response_data, 10, adv_data);
+                       hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
                        break;
                     }
                     if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
@@ -169,7 +139,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                 case SM_PASSKEY_DISPLAY_NUMBER: {
                     // display number
                     sm_event_t * event = (sm_event_t *) packet;
-                    printf("GAP Bonding: Display Passkey '%06u\n", event->passkey);
+                    printf("%06u\n", event->passkey);
                     break;
                 }
 
@@ -201,10 +171,10 @@ void ble_init(void){
     sm_init();
     sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY);
     sm_set_authentication_requirements( SM_AUTHREQ_BONDING | SM_AUTHREQ_MITM_PROTECTION); 
-    // sm_set_request_security(1);
-    // sm_set_encryption_key_size_range(7,15);
+    sm_set_request_security(1);
+    //sm_set_encryption_key_size_range(7,15);
 
     // setup ATT server
-    att_server_init(profile_data, NULL, att_write_callback);    
+    att_server_init(profile_data, att_read_callback, att_write_callback);
     att_server_register_packet_handler(app_packet_handler);
 }

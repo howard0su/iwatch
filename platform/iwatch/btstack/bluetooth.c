@@ -92,11 +92,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         handle_audio = 0;
         codec_suspend();
       }
-      else if (handle > 1024)
-      {
-        // restart advertising
-        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-      }
       break;
     }
   case HCI_EVENT_PIN_CODE_REQUEST:
@@ -185,20 +180,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         printf("\n$$END\n");
       }
       break;
-
-    case BTSTACK_EVENT_DISCOVERABLE_ENABLED:
-      {
-        if (packet[2])
-        {
-          printf("enabled advertising\n");
-          hci_send_cmd(&hci_le_set_advertise_enable, 1);
-        }
-        else
-        {
-          hci_send_cmd(&hci_le_set_advertise_enable, 0);
-        }
-        break;
-      }
     }
   }
 }
