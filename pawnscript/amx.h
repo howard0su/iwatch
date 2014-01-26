@@ -19,7 +19,8 @@
 
 #ifndef AMX_H_INCLUDED
 #define AMX_H_INCLUDED
-
+#include "amxconfig.h"
+ 
 #include <stdlib.h>   /* for size_t */
 #include <limits.h>
 

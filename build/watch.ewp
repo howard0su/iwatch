@@ -1096,7 +1096,7 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>2300</state>
+          <state>2000</state>
         </option>
         <option>
           <name>GHeapSize2</name>
@@ -1108,7 +1108,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>0</state>
+          <state>2000</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>
@@ -1155,13 +1155,7 @@
         <debug>0</debug>
         <option>
           <name>CCDefines</name>
-          <state>AUTOSTART_ENABLE=1</state>
-          <state>HAVE_BLE=1</state>
-          <state>HAVE_ALLOCA_H=0</state>
-          <state>AMX_ANSIONLY=1</state>
-          <state>BYTE_ORDER=LITTLE_ENDIAN</state>
-          <state>PAWN_CELL_SIZE=16</state>
-          <state>AMX_NATIVETABLE=window_natives</state>
+          <state></state>
         </option>
         <option>
           <name>CCPreprocFile</name>

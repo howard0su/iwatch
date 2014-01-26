@@ -1,5 +1,6 @@
 #define EMBEDDED
 
+#define HAVE_MALLOC
 #define HAVE_INIT_SCRIPT
 #define HAVE_BZERO
 #define HAVE_TICK
@@ -11,9 +12,12 @@
 //#define ENABLE_LOG_DEBUG
 
 #define HCI_ACL_PAYLOAD_SIZE 102
+#define HAVE_BLE 1
 
 //
+#if 0
 #define MAX_SPP_CONNECTIONS 5
+
 
 #define MAX_NO_HCI_CONNECTIONS (MAX_SPP_CONNECTIONS + 3)
 #define MAX_NO_L2CAP_SERVICES  5
@@ -24,3 +28,4 @@
 #define MAX_NO_DB_MEM_DEVICE_LINK_KEYS  0
 #define MAX_NO_DB_MEM_DEVICE_NAMES 0
 #define MAX_NO_DB_MEM_SERVICES 0
+#endif
