@@ -36,6 +36,8 @@
  
 #include "central_device_db.h"
 
+#include "contiki.h"
+#include "cfs/cfs.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -48,12 +50,61 @@ typedef struct central_device_memory_db {
     uint32_t signing_counter;
 } central_device_memory_db_t;
 
-#define CENTRAL_DEVICE_MEMORY_SIZE 4
-static central_device_memory_db_t central_devices[CENTRAL_DEVICE_MEMORY_SIZE];
+#define CENTRAL_DEVICE_MEMORY_SIZE 10
 static int central_devices_count;
+
+/* Read the content from disk */
+static int central_device_db_read(int index, central_device_memory_db_t *device)
+{
+    char name[20];
+    sprintf(name, "_LE_%d", index);
+    int handle = cfs_open(name, CFS_READ);
+    if (handle == -1)
+        return -1;
+
+    int size = cfs_read(handle, device, sizeof(central_device_memory_db_t));
+    if (size != sizeof(central_device_memory_db_t))
+    {
+        cfs_close(handle);
+        return -1;
+    }
+
+    cfs_close(handle);
+    return 0;
+}
+
+static int central_device_db_write(int index, central_device_memory_db_t *device)
+{
+    char name[20];
+    sprintf(name, "_LE_%d", index);
+    int handle = cfs_open(name, CFS_WRITE);
+    if (handle == -1)
+        return -1;
+
+    int size = cfs_write(handle, device, sizeof(central_device_memory_db_t));
+    if (size != sizeof(central_device_memory_db_t))
+    {
+        cfs_close(handle);
+        return -1;
+    }
+
+    cfs_close(handle);
+    return 0;    
+}
 
 void central_device_db_init(){
     central_devices_count = 0;
+
+    struct cfs_dir dir;
+    struct cfs_dirent entry;
+    cfs_opendir(&dir, "/");
+    while(!cfs_readdir(&dir, &entry))
+    {
+        if (strncmp(entry.name, "_LE_", 4))
+            central_devices_count++;
+    }
+
+    printf("central device db init: count = %d\n", central_devices_count);
 }
 
 // @returns number of device in db
@@ -61,8 +112,11 @@ int central_device_db_count(void){
     return central_devices_count;
 }
 
-// free device - TODO not implemented
 void central_device_db_remove(int index){
+    char name[20];
+    sprintf(name, "_LE_%d", index);
+
+    cfs_remove(name);
 }
 
 int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t csrk){
@@ -75,12 +129,16 @@ int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t 
 
     int index = central_devices_count;
     central_devices_count++;
+    central_device_memory_db_t info;
 
-    central_devices[index].addr_type = addr_type;
-    memcpy(central_devices[index].addr, addr, 6);
-    memcpy(central_devices[index].csrk, csrk, 16);
-    memcpy(central_devices[index].irk, irk, 16);
-    central_devices[index].signing_counter = 0; 
+    info.addr_type = addr_type;
+    memcpy(info.addr, addr, 6);
+    memcpy(info.csrk, csrk, 16);
+    memcpy(info.irk, irk, 16);
+    info.signing_counter = 0; 
+
+    if (central_device_db_write(index, &info))
+        return -1;
 
     return index;
 }
@@ -88,34 +146,61 @@ int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t 
 
 // get device information: addr type and address
 void central_device_db_info(int index, int * addr_type, bd_addr_t addr, sm_key_t irk){
-    if (addr_type) *addr_type = central_devices[index].addr_type;
-    if (addr) memcpy(addr, central_devices[index].addr, 6);
-    if (irk) memcpy(irk, central_devices[index].irk, 16);
+    central_device_memory_db_t info;
+
+    if (central_device_db_read(index, &info))
+        return;
+
+    if (addr_type) *addr_type = info.addr_type;
+    if (addr) memcpy(addr, info.addr, 6);
+    if (irk) memcpy(irk, info.irk, 16);
 }
 
 // get signature key
 void central_device_db_csrk(int index, sm_key_t csrk){
-    if (csrk) memcpy(csrk, central_devices[index].csrk, 16);
+    if (csrk) 
+    {
+        central_device_memory_db_t info;
+
+        if (central_device_db_read(index, &info))
+            return;
+        memcpy(csrk, info.csrk, 16);
+    }
 }
 
 
 // query last used/seen signing counter
 uint32_t central_device_db_counter_get(int index){
-    return central_devices[index].signing_counter;
+    central_device_memory_db_t info;
+
+    if (central_device_db_read(index, &info))
+        return 0;
+    else
+        return info.signing_counter;
 }
 
 // update signing counter
 void central_device_db_counter_set(int index, uint32_t counter){
-    central_devices[index].signing_counter = counter;
+    central_device_memory_db_t info;
+
+    if (central_device_db_read(index, &info))
+        return;
+
+    info.signing_counter = counter;
+    central_device_db_write(index, &info);
 }
 
 void central_device_db_dump(){
     printf("Central Device DB dump, devices: %u\n", central_devices_count);
     int i;
     for (i=0;i<central_devices_count;i++){
-        printf("%u: %u ", i, central_devices[i].addr_type);
-        print_bd_addr(central_devices[i].addr);
-        print_key("irk", central_devices[i].irk);
-        print_key("csrk", central_devices[i].csrk);
+        central_device_memory_db_t info;
+
+        if (central_device_db_read(i, &info))
+            continue;
+        printf("%u: %u ", i, info.addr_type);
+        print_bd_addr(info.addr);
+        print_key("irk", info.irk);
+        print_key("csrk", info.csrk);
     }
 }

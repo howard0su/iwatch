@@ -2122,12 +2122,12 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\ble\central_device_db_dummy.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\btstack\ble\central_device_db_memory.c</name>
         <excluded>
           <configuration>Retail</configuration>
         </excluded>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\central_device_db_memory.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\ble\l2cap_le.c</name>
