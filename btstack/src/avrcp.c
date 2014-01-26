@@ -243,9 +243,11 @@ static void handle_pdu(uint8_t code, uint8_t *data, uint16_t size)
         avrcp_enable_notification(AVRCP_EVENT_ADDRESSED_PLAYER_CHANGED);
         break;
       case 3:
+	{
         uint16_t playerid = READ_NET_16(pdu->params, 1);
         avrcp_set_player(playerid);
         break;
+	}
       case 4:
         avrcp_enable_notification(AVRCP_EVENT_TRACK_CHANGED);
       break;

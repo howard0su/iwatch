@@ -1,7 +1,7 @@
 ifeq ($(MSPPATH),)
 MSPPATH = /home/junsu/mspgccx/bin
 endif
-CC      = gcc
+CC      = clang 
 OBJCOPY = objcopy
 SIZE    = size
 NM	= nm
