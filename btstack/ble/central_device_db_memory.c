@@ -77,6 +77,7 @@ static int central_device_db_write(int index, central_device_memory_db_t *device
 {
     char name[20];
     sprintf(name, "_LE_%d", index);
+    cfs_remove(name);
     int handle = cfs_open(name, CFS_WRITE);
     if (handle == -1)
         return -1;
@@ -100,7 +101,7 @@ void central_device_db_init(){
     cfs_opendir(&dir, "/");
     while(!cfs_readdir(&dir, &entry))
     {
-        if (strncmp(entry.name, "_LE_", 4))
+        if (strncmp(entry.name, "_LE_", 4) == 0)
             central_devices_count++;
     }
 
@@ -149,7 +150,10 @@ void central_device_db_info(int index, int * addr_type, bd_addr_t addr, sm_key_t
     central_device_memory_db_t info;
 
     if (central_device_db_read(index, &info))
+    {
+        printf("faile to read the device info: %d\n", index);
         return;
+    }
 
     if (addr_type) *addr_type = info.addr_type;
     if (addr) memcpy(addr, info.addr, 6);
