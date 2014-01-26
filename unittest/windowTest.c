@@ -505,13 +505,36 @@ void TestControl(CuTest* tc)
     GrFlush(&context);    
 }
 
+void TestScriptEngine(CuTest *tc)
+{
+    // COPY A SCRIPT FILE FOR SCRIPT TESTING
+  FILE* fp = fopen("script1.amx", "rb");
+  int fd = cfs_open("/script1.amx", CFS_WRITE);
+
+  if (fp != NULL && fd != -1)
+  {
+    // copy the file
+    char buf[1024];
+    int length;
+
+    length = fread(buf, 1, 1024, fp);
+    while(length > 0)
+    {
+      cfs_write(fd, buf, length);
+      length = fread(buf, 1, 1024, fp);
+    }
+    fclose(fp);
+    cfs_close(fd);
+  }
+
+  test_window(&script_process, "/script1.amx");
+  test_window(&script_process, "/notexist.amx");
+}
 
 void TestWindows(CuTest *tc)
 { 
   //load_script("script1.amx", rom);
   //test_window(&script_process, rom);
-  test_window(&script_process, "/script1.amx");
-  test_window(&script_process, "/notexist.amx");
 
   //for(int i = 0; fonts[i]; i++)
   //  test_window(&testfont, (void*)fonts[i]);
@@ -638,6 +661,7 @@ CuSuite* WindowGetSuite(void)
   window_init();
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
+  SUITE_ADD_TEST(suite, TestScriptEngine);
   SUITE_ADD_TEST(suite, TestTriagle);
   SUITE_ADD_TEST(suite, TestWideFont);
 

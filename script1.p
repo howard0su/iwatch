@@ -46,6 +46,8 @@ refreshdata()
 	strformat command, _, true, "%d %d, %d", month, day, year
 	width = window_getwidth(context, command)
 	window_drawtext context, command, (LCD_WIDTH - width)/2, 35, 0
+
+	window_drawtext context, "from script", (LCD_WIDTH - width)/2, 115, 0
 }
 
 @onclock()
