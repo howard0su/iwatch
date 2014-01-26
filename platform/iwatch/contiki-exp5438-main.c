@@ -40,7 +40,6 @@
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
-#include "sys/autostart.h"
 #include "sys/profile.h"
 #include "sys/ctimer.h"
 
@@ -137,7 +136,7 @@ main(int argc, char **argv)
 //  protocol_init();
 //  protocol_start(1);
   
-  autostart_start(autostart_processes);
+  process_start(&system_process, NULL);
 
   /*
   * This is the scheduler loop.
