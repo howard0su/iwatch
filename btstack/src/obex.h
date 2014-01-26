@@ -1,6 +1,5 @@
 #ifndef _OBEX_H_
 #define _OBEX_H_
-#include <wchar.h>
 #include <stdint.h>
 
 #define OBEX_OP_FINAL		0x80

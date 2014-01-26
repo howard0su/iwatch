@@ -1,5 +1,5 @@
 ifeq ($(MSPPATH),)
-MSPPATH = /home/junsu/mspgccx/bin
+MSPPATH = /usr/local/bin/
 endif
 CC      = $(MSPPATH)/msp430-gcc
 OBJCOPY = $(MSPPATH)/msp430-objcopy
@@ -9,11 +9,10 @@ MAKETXT = tools/srec_cat
 ECHO	= echo
 
 TARGET_CPU = msp430f5438a
-MEMORY_MODEL = medium
-WARNING_FLAGS = -W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wmissing-format-attribute -pedantic -Wno-long-long -Wno-variadic-macros -Wno-overlength-strings -Wold-style-definition -Wc++-compat
-CFLAGS0  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -mmemory-model=$(MEMORY_MODEL) \
+#WARNING_FLAGS = -W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wmissing-format-attribute -pedantic -Wno-long-long -Wno-variadic-macros -Wno-overlength-strings -Wold-style-definition -Wc++-compat
+CFLAGS0  = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) \
 	-ffunction-sections -fdata-sections
-LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -Wl,-gc-sections -mmemory-model=$(MEMORY_MODEL)
+LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=c99 -Os $(WARNING_FLAGS) -Wl,-gc-sections 
 
 
 CFLAGS = $(CFLAGS0)
@@ -52,7 +51,7 @@ CORE   = \
 PLATFORM = \
 	platform/iwatch/backlight.c \
 	platform/iwatch/battery.c \
-	platform/iwatch/button-sensor.c \
+	platform/iwatch/button.c \
 	platform/iwatch/clock.c \
 	platform/iwatch/flash.c \
 	platform/iwatch/i2c.c \
@@ -61,7 +60,6 @@ PLATFORM = \
 	platform/iwatch/rtc.c \
 	platform/iwatch/rtimer-arch.c \
 	platform/iwatch/uart1-putchar.c \
-	platform/iwatch/uart1x.c \
 	platform/iwatch/watchdog.c \
 	platform/iwatch/Template_Driver.c
 
@@ -133,7 +131,7 @@ BTSTACK1 = \
 
 BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1))
 
-MPL0 = inv_mpu.c inv_mpu_dmp_motion_driver.c mpu6050.c
+MPL0 = mpu6050.c
 MPL = $(addprefix platform/iwatch/mpl/, $(MPL0))
 
 WATCH = \
@@ -146,7 +144,6 @@ WATCH = \
     watch/digit-watch.c \
     watch/stopwatch.c \
     watch/menu.c \
-    watch/watch.c \
     watch/cordic.c \
     watch/calendar.c \
     watch/selftest.c \
@@ -158,10 +155,10 @@ WATCH = \
     watch/today.c \
     watch/window.c
 
-OBJDIR = objs
+OBJDIR = objs.msp430
 SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL)
 OBJS0 = $(SRCS:.c=.o)
-OBJS = $(addprefix objs/, $(OBJS0))
+OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
 DEPFILES = $(OBJS:.o=.d)
 
 #####################

@@ -654,10 +654,12 @@ splx_(int sr)
 #endif
 }
 
-__no_init uint8_t SysRstIv;
+
 #ifdef __IAR_SYSTEMS_ICC__
+__no_init uint8_t SysRstIv;
 int __low_level_init(void)
 #else
+uint8_t SysRstIv __attribute__ ((section (".noinit")));
 int _system_pre_init(void)
 #endif
 {

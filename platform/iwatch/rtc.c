@@ -8,6 +8,10 @@
 PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
 
+#ifndef __IAR_SYSTEMS_ICC__
+#define __no_init __attribute__ ((section (".noinit")))
+#endif
+
 __no_init static struct datetime now;
 __no_init static uint16_t checksum;
 static uint8_t source;
