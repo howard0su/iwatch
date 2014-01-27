@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-extern int putchar(int c);
+//extern int putchar(int c);
 extern uint8_t uartattached;
 
 static const unsigned long dv[] = {
