@@ -7,6 +7,8 @@
 #include "cfs/cfs.h"
 #include "memory.h"
 #include "rtc.h"
+#include <stdio.h> // for sprintf
+
 
 //#define record_name d.recordoperation.record_name
 //#define filebuf     d.recordoperation.filebuf

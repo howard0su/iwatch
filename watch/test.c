@@ -7,7 +7,7 @@
 #include "ant/ant.h"
 #include "ant/antinterface.h"
 #include "btstack/src/hci.h"
-
+#include "bluetooth.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -137,6 +137,62 @@ uint8_t test_motor(uint8_t ev, uint16_t lparam, void* rparam)
 	return 1;
 }
 
+uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	switch(ev)
+	{
+		case EVENT_WINDOW_CREATED:
+		codec_wakeup();
+		hci_send_cmd(&hci_vs_set_pcm_loopback_enable, 1);
+		break;
+
+		case EVENT_WINDOW_PAINT:
+		{
+		  tContext *pContext = (tContext*)rparam;
+		  GrContextForegroundSet(pContext, ClrBlack);
+		  GrRectFill(pContext, &client_clip);
+
+		  GrContextForegroundSet(pContext, ClrWhite);
+      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+ 		  GrStringDraw(pContext, "Speaker is looping back to mic", -1, 0, 50, 0);
+
+  		window_volume(pContext, 30, 125, 8, codec_getvolume());
+
+ 		  window_button(pContext, KEY_UP, "+");
+ 		  window_button(pContext, KEY_DOWN, "-");
+
+ 		  break;
+ 		}
+ 		case EVENT_KEY_PRESSED:
+		  switch(lparam)
+		      {
+		      case KEY_UP:
+		        {
+		          codec_changevolume(+1);
+		          break;
+		        }
+		      case KEY_DOWN:
+		        {
+		          // decrease voice
+		          codec_changevolume(-1);
+		          break;
+		        }
+					}
+					window_invalid(NULL);
+			break;
+		case EVENT_EXIT_PRESSED:
+		hci_send_cmd(&hci_vs_set_pcm_loopback_enable, 1);
+		codec_suspend();
+		return 0; // return 0 to close the window
+
+		default:
+		return 0;
+	}
+
+	return 1;
+}
+
+
 uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
@@ -161,7 +217,7 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 				data = 0;
 				break;
 			}
-			backlight_on(data);
+			backlight_on(data, 0);
 			window_invalid(NULL);
 			break;
 		}
@@ -184,7 +240,7 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
  		  break;
  		}
 		case EVENT_EXIT_PRESSED:
-		backlight_on(0);
+		backlight_on(0, 0);
 		return 0; // return 0 to close the window
 		default:
 		return 0;

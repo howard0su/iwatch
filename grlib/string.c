@@ -2815,9 +2815,9 @@ GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
     return(ulLen);
 }
 
-void GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
+int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
 {
-     int start, laststop, iterator, w, count, lastc;
+     int start, laststop, iterator, w;
      unsigned long ulChar, ulSkip;
 
     start = 0;
@@ -2825,35 +2825,30 @@ void GrStringDrawWrap(const tContext* pContext, const char* pcString, long start
     {
       laststop = -1;
       iterator = start;
-      lastc = count = 0;
+      w = 0;
       do{
- 
-            //
-            // Get the next character to render.
-            //
-            ulChar = GrStringNextCharGet(pContext, pcString + iterator, -1, &ulSkip);
-            iterator += ulSkip;
+          //
+          // Get the next character to render.
+          //
+          ulChar = GrStringNextCharGet(pContext, pcString + iterator, -1, &ulSkip);
+          w += GrStringWidthGet(pContext, pcString + iterator, ulSkip);
+          iterator += ulSkip;
 
-            if (!ulChar)
-                break;
-            //
-            // If we ran out of characters to render, return immediately.
-            //
-            if(ulChar == ' ')
-            {
-                laststop = iterator;
-                lastc = count;
-            }
-     
-            w = GrStringWidthGet(pContext, pcString + start, iterator - start);
+          if (!ulChar)
+              break;
 
-        }while(w < width && ulChar != '\0'&& ulChar != '\n');
+          if(ulChar == ' ')
+          {
+              laststop = iterator;
+          }
+      }while(w < width && ulChar != '\0'&& ulChar != '\n');
  
         if (w >= width)
         {
             if (laststop == -1) 
             {
                 // no way to put this string, then we just wrappt it
+                iterator -= ulSkip; // remove last character
                 laststop = iterator;
             }
             else
@@ -2863,14 +2858,19 @@ void GrStringDrawWrap(const tContext* pContext, const char* pcString, long start
         }
         //printf("start: %d count:%d\n", start, iterator - start);
         // now we need draw
-        GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
+        if (ulChar == '\n')
+            GrStringDraw(pContext, pcString + start, iterator - start - 1, startx, starty, 0);
+        else
+            GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
         if (ulChar == '\0')
-            return;
-        start = laststop;
+            return 0;
+        start = iterator;
+        while(*(pcString + start) == '\n' || *(pcString + start) == ' ')
+            start++;
         starty += margin;
 
         if (starty > pContext->sClipRegion.sYMax)
-            return;
+            return 1;
    }
 }
 //*****************************************************************************

@@ -33,7 +33,19 @@
  * Please inquire about commercial licensing options at contact@bluekitchen-gmbh.com
  *
  */
- 
+
+#ifndef __SM_H
+#define __SM_H
+
+#include <btstack/utils.h>
+#include <btstack/btstack.h>
+#include <stdint.h>
+
+#if defined __cplusplus
+extern "C" {
+#endif
+
+
 // Bluetooth Spec definitions
 typedef enum {
     SM_CODE_PAIRING_REQUEST = 0X01,
@@ -48,6 +60,24 @@ typedef enum {
     SM_CODE_SIGNING_INFORMATION,
     SM_CODE_SECURITY_REQUEST
 } SECURITY_MANAGER_COMMANDS;
+
+// IO Capability Values
+typedef enum {
+    IO_CAPABILITY_DISPLAY_ONLY = 0,
+    IO_CAPABILITY_DISPLAY_YES_NO,
+    IO_CAPABILITY_KEYBOARD_ONLY,
+    IO_CAPABILITY_NO_INPUT_NO_OUTPUT,
+    IO_CAPABILITY_KEYBOARD_DISPLAY, // not used by secure simple pairing
+    IO_CAPABILITY_UNKNOWN = 0xff
+} io_capability_t;
+
+// Authorization state
+typedef enum {
+    AUTHORIZATION_UNKNOWN,
+    AUTHORIZATION_PENDING,
+    AUTHORIZATION_DECLINED,
+    AUTHORIZATION_GRANTED
+} authorization_state_t;
 
 // Authentication requirement flags
 #define SM_AUTHREQ_NO_BONDING 0x00
@@ -85,5 +115,147 @@ typedef enum {
 // also, invalid parameters
 // and reserved
 
-// BTstack Security Manager API
+// Security Manager Events
+typedef struct sm_event {
+    uint8_t   type;   // see <btstack/hci_cmds.h> SM_...
+    uint8_t   addr_type;
+    bd_addr_t address;
+    uint32_t  passkey;  // only used for SM_PASSKEY_DISPLAY_NUMBER 
+    uint16_t  central_device_db_index; // only used for SM_IDENTITY_RESOLVING_..
+    uint8_t   authorization_result; // only use for SM_AUTHORIZATION_RESULT
+} sm_event_t;
 
+//
+// Security Manager Client API
+//
+
+/**
+ * @brief Initializes the Security Manager, connects to L2CAP
+ */
+void sm_init();
+
+/**
+ * @brief Set secrect ER key for key generation as described in Core V4.0, Vol 3, Part G, 5.2.2 
+ */
+void sm_set_er(sm_key_t er);
+
+/**
+ * @brief Set secrect IR key for key generation as described in Core V4.0, Vol 3, Part G, 5.2.2 
+ */
+void sm_set_ir(sm_key_t ir);
+
+/**
+ *
+ * @brief Registers OOB Data Callback. The callback should set the oob_data and return 1 if OOB data is availble
+ * @param get_oob_data_callback
+ */
+void sm_register_oob_data_callback( int (*get_oob_data_callback)(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data));
+
+/**
+ *
+ * @brief Registers packet handler. Called by att_server.c
+ */
+void sm_register_packet_handler(btstack_packet_handler_t handler);
+
+/**
+ * @brief Limit the STK generation methods. Bonding is stopped if the resulting one isn't in the list
+ * @param OR combination of SM_STK_GENERATION_METHOD_ 
+ */
+void sm_set_accepted_stk_generation_methods(uint8_t accepted_stk_generation_methods);
+
+/**
+ * @brief Set the accepted encryption key size range. Bonding is stopped if the result isn't within the range
+ * @param min_size (default 7)
+ * @param max_size (default 16)
+ */
+void sm_set_encryption_key_size_range(uint8_t min_size, uint8_t max_size);
+
+/**
+ * @brief Sets the requestsd authentication requirements, bonding yes/no, MITM yes/no
+ * @param OR combination of SM_AUTHREQ_ flags
+ */
+void sm_set_authentication_requirements(uint8_t auth_req);
+
+/**
+ * @brief Sets the availabe IO Capabilities
+ * @param IO_CAPABILITY_
+ */
+void sm_set_io_capabilities(io_capability_t io_capability);
+
+/**
+ * @brief Let Peripheral request an encrypted connection right after connecting
+ * @note Not used normally. Bonding is triggered by access to protected attributes in ATT Server
+ */
+void sm_set_request_security(int enable);
+
+/**
+ * @brief Decline bonding triggered by event before
+ * @param addr_type and address
+ */
+void sm_bonding_decline(uint8_t addr_type, bd_addr_t address);
+
+/**
+ * @brief Confirm Just Works bonding 
+ * @param addr_type and address
+ */
+void sm_just_works_confirm(uint8_t addr_type, bd_addr_t address);
+
+/**
+ * @brief Reports passkey input by user
+ * @param addr_type and address
+ * @param passkey in [0..999999]
+ * @returns
+ */
+void sm_passkey_input(uint8_t addr_type, bd_addr_t address, uint32_t passkey);
+
+/**
+ *
+ * @brief Get encryption key size
+ * @param addr_type and address
+ * @returns 0 if not encrypted, 7-16 otherwise
+ */
+int sm_encryption_key_size(uint8_t addr_type, bd_addr_t address);
+
+/**
+ * @brief Get authentication property
+ * @param addr_type and address
+ * @returns 1 if bonded with OOB/Passkey (AND MITM protection)
+ */
+int sm_authenticated(uint8_t addr_type, bd_addr_t address);
+
+/**
+ * @brief Queries authorization state
+ * @param addr_type and address
+ * @returns authorization_state for the current session
+ */
+authorization_state_t sm_authorization_state(uint8_t addr_type, bd_addr_t address);
+
+/**
+ * @brief Used by att_server.c to request user authorization
+ * @param addr_type and address
+ * @returns
+ */
+void sm_request_authorization(uint8_t addr_type, bd_addr_t address);
+
+/**
+ * @brief Report user authorization decline
+ * @param addr_type and address
+ */
+void sm_authorization_decline(uint8_t addr_type, bd_addr_t address);
+
+/**
+ *
+ * @brief Report user authorization grant
+ * @param addr_type and address
+ */
+void sm_authorization_grant(uint8_t addr_type, bd_addr_t address);
+
+// Support for signed writes, used by att_server.c
+int  sm_cmac_ready();
+void sm_cmac_start(sm_key_t k, uint16_t message_len, uint8_t * message, void (*done_handler)(uint8_t hash[8]));
+
+#if defined __cplusplus
+}
+#endif
+
+#endif // __SM_H

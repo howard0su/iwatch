@@ -37,11 +37,9 @@
 #include "dev/flash.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-#include "dev/uart1.h"
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
-#include "sys/autostart.h"
 #include "sys/profile.h"
 #include "sys/ctimer.h"
 
@@ -138,7 +136,7 @@ main(int argc, char **argv)
 //  protocol_init();
 //  protocol_start(1);
   
-  autostart_start(autostart_processes);
+  process_start(&system_process, NULL);
 
   /*
   * This is the scheduler loop.
@@ -190,9 +188,9 @@ main(int argc, char **argv)
 
       /* We get the current processing time for interrupts that was
          done during the LPM and store it for next time around.  */
-      dint();
+      __disable_interrupt();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
-      eint();
+      __enable_interrupt();
       watchdog_start();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);

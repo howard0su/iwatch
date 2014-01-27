@@ -39,6 +39,8 @@
 #ifndef __PLATFORM_CONF_H__
 #define __PLATFORM_CONF_H__
 
+#include "msp430def.h"
+
 /*
  * Definitions below are dictated by the hardware and not really
  * changeable!
@@ -58,13 +60,12 @@
 
 #define HAVE_STDINT_H 1
 #define MSP430_MEMCPY_WORKAROUND 1
-#include "msp430def.h"
 
 
 /* Types for clocks and uip_stats */
 typedef unsigned short uip_stats_t;
 typedef unsigned long clock_time_t;
-typedef unsigned long off_t;
+//typedef unsigned long off_t;
 
 /* the low-level radio driver */
 //#define NETSTACK_CONF_RADIO   cc2420_driver

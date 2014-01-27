@@ -762,3 +762,7 @@ OPCODE(OGF_VENDOR, 0xFD5B), "11"
 const hci_cmd_t hci_vs_write_sco_config = {
 OPCODE(OGF_VENDOR, 0xFE10), "1121"
 };
+
+const hci_cmd_t hci_vs_set_pcm_loopback_enable = {
+OPCODE(OGF_VENDOR, 0xFE28), "1"
+};

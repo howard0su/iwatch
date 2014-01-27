@@ -64,7 +64,7 @@
   		SPI_FLASH_BufferRead((char *)(buf), COFFEE_START + (offset), (size))
 
 #define COFFEE_ERASE(sector)					\
-		SPI_FLASH_SectorErase(sector * COFFEE_SECTOR_SIZE, COFFEE_SECTOR_SIZE)
+		SPI_FLASH_SectorErase(COFFEE_START + sector * COFFEE_SECTOR_SIZE, COFFEE_SECTOR_SIZE)
 
 #if 0
 #define COFFEE_ERASEALL() \

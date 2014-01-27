@@ -442,7 +442,6 @@ static void gatt_client_run(){
 
     // check if command is send 
     if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
-    if (!l2cap_can_send_conectionless_packet_now()) return;
     
     switch(state){
         case START_SCAN:
@@ -458,6 +457,7 @@ static void gatt_client_run(){
         default:
             break;
     }
+
     test_client();
 }
 

@@ -70,8 +70,8 @@ static ui_config ui_config_data =
 const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
 const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
 const tRectangle fullscreen_clip = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
-static tContext context;
-static struct etimer timer, status_timer, backlight_timer;
+tContext context;
+static struct etimer timer, status_timer;
 
 // the real stack is like this
 //     uistack[4]
@@ -88,7 +88,7 @@ static uint8_t stackptr = 0;
 
 void window_init()
 {
-  backlight_on(255);
+  backlight_on(255, 5 * CLOCK_SECOND);
   filesys_init();
 
   current_clip = client_clip;
@@ -100,6 +100,7 @@ void window_init()
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, ClrWhite);
+  GrContextBackgroundSet(&context, ClrBlack);
   GrImageDraw(&context, logoPixel, 8, 60);
 
   GrFlush(&context);
@@ -141,8 +142,6 @@ static void window_handle_event(uint8_t ev, void* data)
 {
     if (ev == PROCESS_EVENT_INIT)
     {
-      backlight_on(0);
-
       window_loadconfig();
 
       // continue create menu window
@@ -160,10 +159,6 @@ static void window_handle_event(uint8_t ev, void* data)
       {
         status_process(ev, 0, data);
         etimer_set(&status_timer, CLOCK_SECOND * 10);
-      }
-      else if (data == &backlight_timer)
-      {
-        backlight_on(0);
       }
       else
       {
@@ -213,8 +208,7 @@ static void window_handle_event(uint8_t ev, void* data)
     }
     else if (ev == EVENT_KEY_PRESSED || ev == EVENT_KEY_LONGPRESSED)
     {
-      backlight_on(window_readconfig()->light_level);
-      etimer_set(&backlight_timer, CLOCK_SECOND * 3);
+      backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
 
       if (ev == EVENT_KEY_PRESSED && (uint16_t)data == KEY_EXIT)
       {

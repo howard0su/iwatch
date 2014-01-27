@@ -157,7 +157,7 @@ void SPI_FLASH_PageWrite(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
   while (NumByteToWrite--)
   {
     /*发送数据*/
-    SPI_FLASH_SendByte(~(*pBuffer));
+    SPI_FLASH_SendByte(*pBuffer);
     /* 指针移到下一个写入数据 */
     pBuffer++;
   }
@@ -272,7 +272,7 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
   while (NumByteToRead--) /* 循环读取数据*/
   {
     /*读取一个字节数据*/
-    *pBuffer = ~SPI_FLASH_SendByte(Dummy_Byte);
+    *pBuffer = SPI_FLASH_SendByte(Dummy_Byte);
     /*数据指针加1*/
     pBuffer++;
   }
@@ -458,7 +458,7 @@ void SPI_FLASH_Init(void)
 
   SPI_Flash_Reset();
 
-#if 0
+#if 1
   uint8_t FLASH_Status;
   SPI_FLASH_CS_LOW();
   /*发送读状态指令 */
@@ -467,7 +467,7 @@ void SPI_FLASH_Init(void)
   FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
-  printf("status register 1 = %x ", FLASH_Status);
+  //printf("status register 1 = %x ", FLASH_Status);
 
   SPI_FLASH_CS_LOW();
   /*发送读状态指令 */
@@ -476,7 +476,7 @@ void SPI_FLASH_Init(void)
   FLASH_Status = SPI_FLASH_SendByte(Dummy_Byte);
   /*失能片选*/
   SPI_FLASH_CS_HIGH();
-  printf("status register 2 = %x ", FLASH_Status);  
+  //printf("status register 2 = %x ", FLASH_Status);  
 #endif
   //printf("Find SPI Flash DeviceId = %x\n", (uint16_t)SPI_FLASH_ReadDeviceID());
 

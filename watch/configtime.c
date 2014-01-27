@@ -32,6 +32,8 @@ enum _statedate{
   STATE_CONFIG_DAY,
 };
 
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+
 static void GrStringDrawReverse(tContext *pContext, char* pcString, long lLength, long lX, long lY, unsigned long bOpaque)
 {
   int height = GrStringHeightGet(pContext);
@@ -83,7 +85,10 @@ static void OnDrawTime(tContext *pContext)
 
   GrContextFontSet(pContext, &g_sFontNova16b);
   // draw AM/PM
-  if (HOUR > 12)
+  uint8_t out;
+  uint8_t ampm;
+  adjustAMPM(HOUR, &out, &ampm);
+  if (ampm)
     GrStringDraw(pContext, "PM", 2, 120, 93, 0);
   else
     GrStringDraw(pContext, "AM", 2, 120, 93, 0);

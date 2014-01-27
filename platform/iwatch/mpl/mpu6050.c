@@ -7,6 +7,7 @@
 #include "dev/watchdog.h"
 #include <stdio.h>
 #include "window.h"
+#include "mpu6050_def.h"
 
 //#include "inv_mpu.h"
 //#include "inv_mpu_dmp_motion_driver.h"
@@ -24,52 +25,32 @@ extern void gesture_processdata(int16_t *input);
 #define MPU_INT_IE  P1IE
 #define MPU_INT_BIT BIT6
 
-#define REG_SMPLRT_DIV 25
-#define REG_INT_ENABLE 56
-#define REG_INT_STATUS 58
-#define REG_POWER_1 107
-#define REG_FIFO_H 114
-#define REG_FIFO_L 115
-#define REG_FIFO_RW 116
-#define REG_MOT_THR 31
-#define REG_MOT_DETECT_CTRL 105
-#define BIT_FIFO_OVERFLOW BIT4
-
-
-const static uint8_t init_data[] =
-{
-  REG_POWER_1, 0x00,
-  27, 0x18,
-  28, 0x00,
-  26, 0x03,
-  26, 0x04,
-  106, 0x20,
-  55, 0x80,
-  REG_POWER_1, 0x40,
-  108, 0x3F,
-  REG_POWER_1, 0,
-  108, 0x07,
-  28, 0x08,
-  35, 0x00,
-  106, 0x00,
-  106, 0x04,
-  106, 0x40,
-  REG_INT_ENABLE, BIT6,
-  35, 0x08,
-  REG_SMPLRT_DIV, 0x13, // 1000/(0x19+1)  = 50HZ
-
-  REG_MOT_THR, 20,
-  REG_MOT_DETECT_CTRL, BIT4
-};
-
-
-PROCESS(mpu6050_process, "MPU6050 Driver");
+#define GESTURE_INTERVAL (CLOCK_SECOND >> 3)
+#define NORMAL_INTERVAL (CLOCK_SECOND)
 
 /* Starting sampling rate. */
 #define DEFAULT_MPU_HZ  (50)
 #define GESTURE_MPU_HZ  (150)
 
-static uint16_t read_interval = CLOCK_SECOND;
+
+const static uint8_t init_data[] =
+{
+  MPU6050_RA_PWR_MGMT_1, 0x04, // wake up sensor
+  MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G, //set acc sensitivity to 2G
+  MPU6050_RA_CONFIG, 0x01, //set DLPF to 21 Hz
+  MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1), ////set sampling to 62.5 Hz
+  MPU6050_RA_FIFO_EN, 0x08, // enable fifo for accel x, y, z
+  MPU6050_RA_USER_CTRL, 0x40, // enable fifo
+
+  MPU6050_RA_INT_ENABLE, BIT6, // enable motion detection interrupt
+  MPU6050_RA_MOT_THR, 20,
+  MPU6050_RA_MOT_DETECT_CTRL, BIT4,
+};
+
+
+PROCESS(mpu6050_process, "MPU6050 Driver");
+
+static uint16_t read_interval;
 static struct etimer timer;
 
 void delay_ms(unsigned long num_ms)
@@ -147,7 +128,7 @@ void mpu6050_init()
 
   printf("mpu6050_selftest\n");  
 #else
-  I2C_write(REG_POWER_1, 0x80);
+  I2C_write(MPU6050_RA_PWR_MGMT_1, 0x80);
   delay_ms(100);
   for(int i = 0; i < sizeof(init_data); i+=2)
   {
@@ -155,6 +136,7 @@ void mpu6050_init()
   }
 #endif
 
+  read_interval = NORMAL_INTERVAL;
   I2C_done();
   printf("Done\n");
   process_start(&mpu6050_process, NULL);
@@ -175,7 +157,7 @@ void mpu6050_shutdown(void)
 {
   MPU_INT_IE  &=  ~MPU_INT_BIT;  // enable IRQ for P1.6
   I2C_addr(MPU6050_ADDR);
-  I2C_write(REG_POWER_1, BIT6);
+  I2C_write(MPU6050_RA_PWR_MGMT_1, BIT6);
   I2C_done();
 }
 
@@ -192,14 +174,14 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
     unsigned short fifo_count;
 
     
-    if (I2C_readbytes(REG_FIFO_H, tmp, 2))
+    if (I2C_readbytes(MPU6050_RA_FIFO_COUNTH, tmp, 2))
         return -1;
     fifo_count = (tmp[0] << 8) | tmp[1];
     if (fifo_count > (1024 >> 1)) {
         /* FIFO is 50% full, better check overflow bit. */
-        if (I2C_readbytes(REG_INT_STATUS, tmp, 1))
+        if (I2C_readbytes(MPU6050_RA_INT_STATUS, tmp, 1))
             return -1;
-        if (tmp[0] & BIT_FIFO_OVERFLOW) {
+        if (tmp[0] & MPU6050_INTERRUPT_FIFO_OFLOW_BIT) {
             return -2;
         }
     }
@@ -211,7 +193,7 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
     
     //printf("there is %d\n", fifo_count);
 
-    if (I2C_readbytes(REG_FIFO_RW, data, *length))
+    if (I2C_readbytes(MPU6050_RA_FIFO_R_W, data, *length))
       return -1;
     
     return 0;
@@ -233,20 +215,30 @@ PROCESS_THREAD(mpu6050_process, ev, data)
         unsigned char more = 0;
         do
         {
-          int16_t accel[3];
-          char data[1020];
+          int accel[3];
+          unsigned char data[1020];
           unsigned short length = sizeof(data);
-          int result = read_fifo_all(&length, (unsigned char*)data, &more);
+          int result = read_fifo_all(&length, data, &more);
 
           if (result == 0)
           {
             for (int index = 0; index < length; index += 6)
             {
-              accel[0] = (data[index + 0] << 8) | data[index + 1];
-              accel[1] = (data[index + 2] << 8) | data[index + 3];
-              accel[2] = (data[index + 4] << 8) | data[index + 5];
-              ped_update_sample(accel);
-              gesture_processdata(accel);
+              accel[0] = (((int)data[index + 0]) << 8) | data[index + 1];
+              accel[1] = (((int)data[index + 2]) << 8) | data[index + 3];
+              accel[2] = (((int)data[index + 4]) << 8) | data[index + 5];
+              
+              if (read_interval == NORMAL_INTERVAL)
+              {
+                if (ped_update_sample(accel) == 1)
+                {
+                  ped_step_detect();
+                }
+              }
+              else
+              {
+                gesture_processdata(accel);
+              }
             }
             continue;
           }
@@ -257,7 +249,10 @@ PROCESS_THREAD(mpu6050_process, ev, data)
           }
           else if (result == -2)
           {
+            // reset fifo
+            I2C_write(MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_RESET_BIT | MPU6050_USERCTRL_FIFO_EN_BIT);
             printf("fifo overflow\n");
+            more = 0;
             break;
           }
 
@@ -275,15 +270,19 @@ void mpu_gesturemode(int d)
   I2C_addr(MPU6050_ADDR);
   if (d)
   {
-    I2C_write(REG_SMPLRT_DIV, (uint8_t)(1000/GESTURE_MPU_HZ - 1));
-    read_interval = CLOCK_SECOND >> 3; // every 8/1 sec
+    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_4G);
+    I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/GESTURE_MPU_HZ - 1));
+    read_interval = GESTURE_INTERVAL; // every 8/1 sec
   }
   else
   {
-    I2C_write(REG_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1));
-    read_interval = CLOCK_SECOND; // every 3 second we read fifo buffer
+    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
+    I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1));
+    read_interval = NORMAL_INTERVAL;
   }
   I2C_done();
+
+  process_poll(&mpu6050_process);
 }
 
 #if 0

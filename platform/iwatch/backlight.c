@@ -2,6 +2,8 @@
 #include "backlight.h"
 #include "sys/ctimer.h"
 
+static struct ctimer light_timer;
+static struct ctimer motor_timer;
 void backlight_init()
 {
   LIGHTDIR |= LIGHT;
@@ -23,8 +25,12 @@ void backlight_shutdown()
   LIGHTCONTROL = OUTMOD_0;
 }
 
+void light_stop(void *ptr)
+{
+  LIGHTCONTROL = OUTMOD_0;
+}
 
-void backlight_on(uint8_t level)
+void backlight_on(uint8_t level, clock_time_t length)
 {
   if (level > 8) level = 8;
 
@@ -36,10 +42,11 @@ void backlight_on(uint8_t level)
   {
     LIGHTCONTROL = OUTMOD_7;
     LIGHTLEVEL = level * 2;
+    if (length > 0)
+      ctimer_set(&light_timer, length, light_stop, NULL);
   }
 }
 
-static struct ctimer motor_timer;
 void motor_stop(void *ptr)
 {
   MOTORCONTROL = OUTMOD_0;

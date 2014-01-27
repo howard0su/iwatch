@@ -40,7 +40,6 @@
 #define DEVICENAME "Kreyos %02X%02X"
 
 #include "bluetooth.h"
-#include "ble_handler.h"
 
 extern void deviceid_init();
 extern void spp_init();
@@ -93,11 +92,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         handle_audio = 0;
         codec_suspend();
       }
-      else if (handle > 1024)
-      {
-        // restart advertising
-        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-      }
       break;
     }
   case HCI_EVENT_PIN_CODE_REQUEST:
@@ -137,10 +131,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   bd_addr_t event_addr;
-  //const uint8_t adv_data[] = { 
-  //       0x02,  0x01, 0x09,
-  //       16+1, 0x06, 0x54, 0xf1, 0xad, 0xde, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0xf1, 0xad, 0xde
-  //   };
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
@@ -190,20 +180,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         printf("\n$$END\n");
       }
       break;
-
-    case BTSTACK_EVENT_DISCOVERABLE_ENABLED:
-      {
-        if (packet[2])
-        {
-          printf("enabled advertising\n");
-          hci_send_cmd(&hci_le_set_advertise_enable, 1);
-        }
-        else
-        {
-          hci_send_cmd(&hci_le_set_advertise_enable, 0);
-        }
-        break;
-      }
     }
   }
 }
@@ -242,7 +218,6 @@ static void btstack_setup(){
 
   // set up BLE
   ble_init();
-  connect_to_ancs();
 
   // init SDP, create record for SPP and register with SDP
   sdp_init();

@@ -29,6 +29,23 @@ static uint8_t _selection;
 
 typedef void (*draw_function)(tContext *pContext);
 
+void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm)
+{
+  if (hour > 12) // 12 - 23
+  {
+    *ampm = 1;
+    *outhour -= 12;
+  }
+  else if (hour == 12)
+  {
+    *ampm = 1;
+  }
+  else if (hour == 0)
+  {
+    *outhour = 12;
+  }
+}
+
 static void drawClock0(tContext *pContext)
 {
   uint16_t year;
@@ -40,11 +57,7 @@ static void drawClock0(tContext *pContext)
   rtc_readdate(&year, &month, &day, NULL);
 
   // draw time
-  if (hour > 12)
-  {
-    ampm = 1; // pm
-    hour -= 12;
-  }
+  adjustAMPM(hour, &hour, &ampm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44);
 
@@ -69,11 +82,7 @@ static void drawClock1(tContext *pContext)
   char buf[20];
 
   // draw time
-  if (hour > 12)
-  {
-    ampm = 1; // pm
-    hour -= 12;
-  }
+  adjustAMPM(hour, &hour, &ampm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
 
@@ -99,11 +108,7 @@ static void drawClock2(tContext *pContext)
   const char* buffer;
 
   // draw time
-  if (hour > 12)
-  {
-    ampm = 1; // pm
-    hour -= 12;
-  }
+  adjustAMPM(hour, &hour, &ampm);
 
   GrContextFontSet(pContext, &g_sFontNova38);
   buffer = toEnglish(hour, buf);
@@ -133,11 +138,7 @@ static void drawClock3(tContext *pContext)
   const char* buffer;
 
   // draw time
-  if (hour > 12)
-  {
-    ampm = 1; // pm
-    hour -= 12;
-  }
+  adjustAMPM(hour, &hour, &ampm);
 
   GrContextFontSet(pContext, &g_sFontNova38);
 
@@ -205,11 +206,7 @@ static void drawClock5(tContext *pContext)
   rtc_readdate(&year, &month, &day, NULL);
 
   // draw time
-  if (hour > 12)
-  {
-    ampm = 1; // pm
-    hour -= 12;
-  }
+  adjustAMPM(hour, &hour, &ampm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
 
@@ -265,11 +262,7 @@ static void drawClock7(tContext *pContext)
   rtc_readdate(&year, &month, &day, NULL);
 
   // draw time
-  if (hour > 12)
-  {
-    ampm = 1; // pm
-    hour -= 12;
-  }
+  adjustAMPM(hour, &hour, &ampm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
 

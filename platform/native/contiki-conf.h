@@ -273,4 +273,8 @@ int strcasecmp(const char*, const char*);
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
+#ifndef CASSERT
+#define CASSERT(exp, name) typedef int dummy##name [(exp) ? 1 : -1];
+#endif
+
 #endif /* __CONTIKI_CONF_H__ */

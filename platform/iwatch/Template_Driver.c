@@ -151,7 +151,7 @@ static void SPIInit()
 
   UCB0CTL0 = UCMODE0 + UCMST + UCSYNC + UCCKPH; // master, 3-pin SPI mode, LSB
   UCB0CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCB0BR0 = 8; // 8MHZ / 8 = 1Mhz
+  UCB0BR0 = 4; // 8MHZ / 8 = 1Mhz
   UCB0BR1 = 0;
 
   //Configure ports.
@@ -819,4 +819,9 @@ PROCESS_THREAD(lcd_process, ev, d)
   }
 
   PROCESS_END();
+}
+
+void flushlcdsync()
+{
+  SPISend(&lines[0], (148 + 1) * sizeof(struct _linebuf) + 2);
 }

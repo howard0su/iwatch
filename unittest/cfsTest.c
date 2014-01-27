@@ -87,26 +87,6 @@ void test_cfs(CuTest* tc)
   } else {
     CuFail(tc, "ERROR: could read from memory in step 6.\n");
   }
-
-  // COPY A SCRIPT FILE FOR SCRIPT TESTING
-  FILE* fp = fopen("script1.amx", "rb");
-  int fd = cfs_open("/script1.amx", CFS_WRITE);
-
-  if (fp != NULL && fd != -1)
-  {
-    // copy the file
-    char buf[1024];
-    int length;
-
-    length = fread(buf, 1, 1024, fp);
-    while(length > 0)
-    {
-      cfs_write(fd, buf, length);
-      length = fread(buf, 1, 1024, fp);
-    }
-    fclose(fp);
-    cfs_close(fd);
-  }
 }
 
 void test_remote_db(CuTest* tc)

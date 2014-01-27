@@ -58,11 +58,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xsfn.r43</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dl430xlfn.r43</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -113,7 +113,7 @@
         </option>
         <option>
           <name>RadioDataModelType</name>
-          <state>0</state>
+          <state>2</state>
         </option>
         <option>
           <name>GHeap20Size</name>
@@ -317,7 +317,7 @@
         </option>
         <option>
           <name>newCCIncludePaths</name>
-          <state></state>
+          <state>$PROJ_DIR$\</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -826,11 +826,11 @@
         </option>
         <option>
           <name>AllowExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GenerateExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XExtraOutOverride</name>
@@ -838,12 +838,12 @@
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>flash.a43</state>
+          <state>flash.txt</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
           <version>11</version>
-          <state>23</state>
+          <state>33</state>
         </option>
         <option>
           <name>ExtraFormatVariant</name>
@@ -1620,7 +1620,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state>templproj.txt</state>
+          <state>flash.txt</state>
         </option>
         <option>
           <name>OutputFormat</name>

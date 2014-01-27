@@ -34,7 +34,8 @@
 #include "dev/watchdog.h"
 #include "dev/leds.h"
 #include "net/uip.h"
-
+#include <stddef.h>
+#include <stdint.h>
 
 /*---------------------------------------------------------------------------*/
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
@@ -568,7 +569,7 @@ static void SetSystemClock()
 void
 msp430_cpu_init(void)
 {
-  dint();
+  __disable_interrupt();
   watchdog_init();
   init_ports();
 
@@ -577,7 +578,7 @@ msp430_cpu_init(void)
   StartCrystalOscillator();
   SetSystemClock();
 
-  eint();
+  __enable_interrupt();
 #ifndef __IAR_SYSTEMS_ICC__
   if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
     cur_break++;
@@ -654,10 +655,12 @@ splx_(int sr)
 #endif
 }
 
-__no_init uint8_t SysRstIv;
+
 #ifdef __IAR_SYSTEMS_ICC__
+__no_init uint8_t SysRstIv;
 int __low_level_init(void)
 #else
+uint8_t SysRstIv __attribute__ ((section (".noinit")));
 int _system_pre_init(void)
 #endif
 {

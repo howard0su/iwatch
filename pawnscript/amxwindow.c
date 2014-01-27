@@ -54,7 +54,7 @@ static cell AMX_NATIVE_CALL n_setfont(AMX *amx, const cell *params)
   tContext *context = window_context();
   uint8_t font = (uint8_t)params[2];
 
-  if (font < sizeof(fonts))
+  if (font < sizeof(fonts)/sizeof(tFont*))
     GrContextFontSet(context, fonts[font]);
 
   return 0;

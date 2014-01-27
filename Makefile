@@ -1,7 +1,7 @@
 ifeq ($(MSPPATH),)
 MSPPATH = /home/junsu/mspgccx/bin
 endif
-CC      = gcc
+CC      = clang 
 OBJCOPY = objcopy
 SIZE    = size
 NM	= nm
@@ -21,7 +21,7 @@ CFLAGS = $(CFLAGS0)
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives HAVE_BLE=1
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -97,7 +97,7 @@ WATCH = \
     watch/stopwatch.c \
     watch/names.c \
     watch/menu.c \
-    watch/gesture.c \
+    gesture/gesture.c \
     watch/cordic.c \
     watch/calendar.c \
     watch/stopwatch.c \
@@ -109,7 +109,6 @@ WATCH = \
     watch/notification.c \
     watch/worldclock.c \
     watch/host.c \
-    watch/watch.c \
     watch/today.c \
     watch/test.c \
     watch/status.c \
@@ -122,6 +121,7 @@ WATCH = \
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
+	btstack/src/hci_cmds.c \
 	platform/iwatch/btstack/ble_handler.c \
 	platform/iwatch/btstack/stlv.c \
 	platform/iwatch/btstack/stlv_client.c \

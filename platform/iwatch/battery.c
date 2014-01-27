@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 static uint8_t level;
+uint8_t uartattached = 1;
 
 static void setoutputfloat()
 {
@@ -51,8 +52,12 @@ BATTERY_STATE battery_state(void)
   setoutputfloat();
   __delay_cycles(10);
   if (BATININ & BATINPIN) // if it is high
+  {
+    uartattached = 0;
     return BATTERY_DISCHARGING;
+  }
 
+  uartattached = 1;
   setoutputhigh();
   __delay_cycles(10);
   int instate = (BATININ & BATINPIN) == 1; // if it is high

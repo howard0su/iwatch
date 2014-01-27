@@ -92,6 +92,7 @@ static const struct MenuItem TestMenu[] =
   {0, "Bluetooth", &test_bluetooth},
   {0, "BT DUT", &test_dut},
   {0, "BLE", &test_ble},
+  {0, "Codec", &test_codec},
   {0, "Self-test", &selftest_process},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
@@ -174,6 +175,8 @@ static uint8_t loadHistoryRecord(char* filename)
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
 
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+
 static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
@@ -191,8 +194,18 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
   tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
-  GrContextForegroundSet(pContext, !selected);
-  GrContextBackgroundSet(pContext, selected);
+  if (!selected)
+  {
+    // draw a rect
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextBackgroundSet(pContext, ClrBlack);
+  }
+  else
+  {
+    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextBackgroundSet(pContext, ClrWhite);
+  }
+  
   if (item->icon < 0x80)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
@@ -230,11 +243,8 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
         uint8_t ampm = 0;
         rtc_readtime(&hour, &minute, NULL);
           // draw time
-        if (hour > 12)
-        {
-          ampm = 1; // pm
-          hour -= 12;
-        }  
+        adjustAMPM(hour, &hour, &ampm);
+
         if (ampm) buf0[0] = 'P';
           else buf0[0] = 'A';
         buf0[1] = 'M';

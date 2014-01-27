@@ -477,7 +477,7 @@ void SPI_FLASH_Init(void)
   //SPI_Flash_Reset();
 
   printf("\n$$OK SPIFLASH\n");
-#if 0
+#if 1
   uint8_t FLASH_Status;
   SPI_FLASH_CS_LOW();
   /*·¢ËÍ¶Á×´Ì¬Ö¸Áî */

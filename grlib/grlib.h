@@ -1326,7 +1326,7 @@ extern void GrContextFontSet(tContext *pContext, const tFont *pFnt);
 #define ClrAzure                0x00F0FFFF
 #define ClrBeige                0x00F5F5DC
 #define ClrBisque               0x00FFE4C4
-#define ClrBlack                0x00000000
+#define ClrBlack                0x00FFFFFF //0x00000000
 #define ClrBlanchedAlmond       0x00FFEBCD
 #define ClrBlue                 0x000000FF
 #define ClrBlueViolet           0x008A2BE2
@@ -1455,7 +1455,7 @@ extern void GrContextFontSet(tContext *pContext, const tFont *pFnt);
 #define ClrTurquoise            0x0040E0D0
 #define ClrViolet               0x00EE82EE
 #define ClrWheat                0x00F5DEB3
-#define ClrWhite                0x00FFFFFF
+#define ClrWhite                0x00000000 // 0x00FFFFFF
 #define ClrWhiteSmoke           0x00F5F5F5
 #define ClrYellow               0x00FFFF00
 #define ClrYellowGreen          0x009ACD32
@@ -2302,7 +2302,8 @@ extern const tFontEx g_sFontExDigit52b;
 extern const tFontWrapper g_sFontUnicode;
 
 extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
-extern void GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin);
+// return 0 when the region is enough, otherwise some text cannot draw due to limit
+extern int GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin);
 extern int NumLeadingZeros(long x);
 
 extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,

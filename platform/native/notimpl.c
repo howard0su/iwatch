@@ -91,7 +91,7 @@ void rtimer_arch_init(void) {}
 void rtimer_arch_schedule(rtimer_clock_t t){}
 uint8_t battery_level() {return 71;}
 BATTERY_STATE battery_state() {return BATTERY_CHARGING;}
-void backlight_on(uint8_t level) {}
+void backlight_on(uint8_t level, clock_time_t length) {}
 void mpu6050_init() {}
 
 
@@ -178,10 +178,6 @@ ANT_ChannelPower(
 }
 
 
-void hci_send_cmd_packet()
-{
-  
-}
 
 FILE *fp;
 void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
@@ -324,3 +320,11 @@ uint8_t avrcp_connected(){ return 0;}
 void avctp_send_passthrough(uint8_t op) {}
 void avrcp_connect(bd_addr_t remote_addr) {}
 bd_addr_t* hfp_remote_addr() {return NULL;}
+
+ void codec_wakeup(){}
+ void codec_suspend() {}
+
+#include "hci.h"
+int hci_send_cmd(const hci_cmd_t *cmd, ...) {}
+
+int hci_send_cmd_packet(uint8_t *packet, int size){}

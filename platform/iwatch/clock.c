@@ -136,7 +136,7 @@ clock_fine(void)
 void
 clock_init(void)
 {
-  dint();
+  __disable_interrupt();
 
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
@@ -165,7 +165,7 @@ clock_init(void)
   count = 0;
 
   /* Enable interrupts. */
-  eint();
+  __enable_interrupt();
 
 }
 

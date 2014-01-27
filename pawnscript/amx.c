@@ -34,7 +34,7 @@
 #include <string.h>
 #include "osdefs.h"
 #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__
-  #include <sclinux.h>
+  #include "sclinux.h"
   #if !defined AMX_NODYNALOAD
     #include <dlfcn.h>
   #endif
