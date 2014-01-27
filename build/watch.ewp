@@ -1096,11 +1096,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>2000</state>
+          <state>2048</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>4000</state>
+          <state>4096</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1108,7 +1108,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>0</state>
+          <state>4096</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>

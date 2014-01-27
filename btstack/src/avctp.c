@@ -58,7 +58,7 @@ static void     avctp_packet_handler(uint8_t packet_type, uint16_t channel,
 #define MAX_PAYLOAD_SIZE 64
 #define MAX_RESPONSE_SIZE 256
 static uint8_t avctp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_PAYLOAD_SIZE];
-static uint8_t avctp_resp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_RESPONSE_SIZE];
+static uint8_t *avctp_resp_buf;
 static uint16_t resp_size;
 static uint8_t id = 0;
 static uint8_t need_send_release = 0;
@@ -68,6 +68,7 @@ static uint16_t current_pid;
 void avctp_init()
 {
   packet_handler = NULL;
+  avctp_resp_buf = NULL;
   l2cap_cid = 0;
   l2cap_register_service_internal(NULL, avctp_packet_handler, PSM_AVCTP, 0xffff);
 }
@@ -156,7 +157,15 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         log_info("pid=%x package#=%d\n", avctph2->pid, avctph2->num_package);
         avch = (struct avc_header*)(avctph2 + 1);
         resp_size = size - sizeof(struct avctp_header_start) - sizeof(struct avc_header);
-        memcpy(avctp_resp_buf, (void*)(avch+1), resp_size);
+        if (avctp_resp_buf)
+        {
+          // safe guard
+          free(avctp_resp_buf);
+        }
+        
+        avctp_resp_buf = malloc(MAX_RESPONSE_SIZE);
+        if (avctp_resp_buf)
+          memcpy(avctp_resp_buf, (void*)(avch+1), resp_size);
         break;
       }
       else if (avctph->packet_type == AVCTP_PACKET_CONTINUE)
@@ -167,7 +176,8 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
           log_error("resp size is too small\n");
           return;
         }
-        memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
+        if (avctp_resp_buf)
+          memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
         resp_size += size - 1;
         break;
       }
@@ -180,13 +190,20 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         }
 
         // end packet
-        memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
-        resp_size += size - 1;
-        size = resp_size;
-        buf = (uint8_t*)&avctp_resp_buf;
-        resp_size = 0;
+        if (avctp_resp_buf)
+        {
+          memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
+          resp_size += size - 1;
+          size = resp_size;
+          buf = (uint8_t*)avctp_resp_buf;
+          resp_size = 0;
+        }
+        else
+        {
+          break;
+        }
       }
-
+      
       if (current_pid == pid)
       {
         (*packet_handler)(avch->code, buf, size);
@@ -194,6 +211,12 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
       else
       {
         log_error("unknow pid %dn", pid);
+      }
+      
+      if (avctph->packet_type == AVCTP_PACKET_END)
+      {
+        if (avctp_resp_buf)
+          free(avctp_resp_buf);
       }
       break;
     }

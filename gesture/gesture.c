@@ -10,6 +10,8 @@
 #include "cfs/cfs.h"
 #include "gesture.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <backlight.h>
 extern void mpu_gesturemode(int onoff);
 
 #define DEBUG 0
@@ -48,13 +50,17 @@ CASSERT(sizeof(Gesture3) < MAX_GESTURES * 3 * 2, Gesture3);
 CASSERT(sizeof(Gesture4) < MAX_GESTURES * 3 * 2, Gesture4);
 
 
-static uint16_t distances[NUM_GESTURES][MAX_GESTURES + 1];
+static uint16_t *distances;
 static uint16_t count;
 static enum { STATE_NONE, STATE_RECORDING, STATE_RECON } state;
 
 void gesture_init(int8_t _recording)
 {
   // init gesture structure
+  distances = (uint16_t*)malloc(NUM_GESTURES * MAX_GESTURES * 2);
+  if (!distances)
+    return;
+
   memset(distances, 0, sizeof(distances));
   memset(data, 0, sizeof(data));
   datap = 0;
@@ -124,7 +130,7 @@ static uint16_t gesture_caculate(int index, const int8_t* point)
 {
   const int8_t *gestureData = GestureData[index];
   uint8_t gestureLength = GestureDataLength[index];
-  uint16_t *distance = distances[index];
+  uint16_t *distance = distances + (MAX_GESTURES * index);
   // caculate with template
   uint16_t lastvalue = Dist(&gestureData[0], point);
   
@@ -255,6 +261,7 @@ void gesture_processdata(int16_t *input)
       }
       // matched
       PRINTF("Matched %d\n", bestMatch+1);
+      motor_on(200, CLOCK_SECOND/4);
       process_post(ui_process, EVENT_GESTURE_MATCHED, (void*)(bestMatch + 1));
       gesture_shutdown();
       return;
@@ -266,4 +273,10 @@ void gesture_shutdown()
 {
   state = STATE_NONE;
   mpu_gesturemode(0);
+
+  if (distances)
+  {
+    free(distances);
+    distances = NULL;
+  }
 }
