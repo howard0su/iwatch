@@ -888,6 +888,61 @@ void getPDUName(char** name_string, uint8_t *pdu, uint8_t in)
         strcpy(name_string, "Invalid HCI Testing Command");
       }
       break;
+    case 8: /* LE commands */
+      switch(pdu[0])
+      {
+        case 0x01:
+          strcpy(name_string, "LE Set Event Mask");
+          break;
+       case 0x02:
+          strcpy(name_string, "LE Read Buffer Size");
+          break;
+        case 0x03:
+          strcpy(name_string, "LE Read Local Supported Features");
+          break;
+        case 0x05:
+          strcpy(name_string, "LE Set Random Address");
+          break;
+        case 0x06:
+          strcpy(name_string, "LE Set Advertising Parameters");
+          break;
+        case 0x07:
+          strcpy(name_string, "LE Read Advertising Channel Tx Power");
+          break;
+        case 0x08:
+          strcpy(name_string, "LE Set Advertising Data");
+          break;
+        case 0x09:
+          strcpy(name_string, "LE Set Scan Response Data");
+          break;
+        case 0x0a:
+          strcpy(name_string, "LE Set Advertise Enable");
+          break;
+        case 0x0b:
+          strcpy(name_string, "LE Set Scan Parameters");
+          break;
+        case 0x0c:
+          strcpy(name_string, "LE Set Scan Enable");
+          break;
+        case 0x0d:
+          strcpy(name_string, "LE CreateConnection");
+          break;
+         
+        case 0x17:
+          strcpy(name_string, "LE Encrypt");
+          break;
+        case 0x18:
+          strcpy(name_string, "LE Rand");
+          break;
+        case 0x19:
+          strcpy(name_string, "LE Start Encryption");
+          break;
+
+        default:
+          strcpy(name_string, "Invalid LE command");
+          break;
+      }
+
     default:
       strcpy(name_string, "Invalid HCI OGF");
 
