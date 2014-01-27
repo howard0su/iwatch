@@ -77,6 +77,7 @@ extern int avrcp_enable_notification(uint8_t event);
 extern int avrcp_get_attributes(uint32_t item);
 extern int avrcp_get_capability();
 extern int avrcp_get_playstatus();
+extern int avrcp_set_player(uint16_t playerid);
 
 #define EVENT_AV_CONNECTED 0xA0
 #define EVENT_AV_DISCONNECTED 0xA1

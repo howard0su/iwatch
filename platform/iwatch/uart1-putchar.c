@@ -1,5 +1,4 @@
 #include "contiki.h"
-#include <stdio.h>
 #include "uart1.h"
 #include "isr_compat.h"
 

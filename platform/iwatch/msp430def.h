@@ -41,16 +41,8 @@
 
 #else /* __IAR_SYSTEMS_ICC__ */
 
-#ifdef __MSPGCC__
 #include <msp430.h>
-#include <legacymsp430.h>
-#else /* __MSPGCC__ */
-#include <io.h>
-#include <signal.h>
-#if !defined(MSP430_MEMCPY_WORKAROUND) && (__GNUC__ < 4)
-#define MSP430_MEMCPY_WORKAROUND 1
-#endif
-#endif /* __MSPGCC__ */
+//#include <legacymsp430.h>
 
 #define CC_CONF_INLINE inline
 
@@ -60,24 +52,7 @@
 #define BV(x) (1 << x)
 #endif
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#else
-#ifndef uint8_t
-typedef unsigned char   uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned long  uint32_t;
-typedef   signed char    int8_t;
-typedef          short  int16_t;
-typedef          long   int32_t;
-#endif
-#endif /* !HAVE_STDINT_H */
-
-/* These names are deprecated, use C99 names. */
-typedef  uint8_t    u8_t;
-typedef uint16_t   u16_t;
-typedef uint32_t   u32_t;
-typedef  int32_t   s32_t;
 
 /* default DCOSYNCH Period is 30 seconds */
 #ifdef DCOSYNCH_CONF_PERIOD

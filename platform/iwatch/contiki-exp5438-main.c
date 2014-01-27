@@ -188,9 +188,9 @@ main(int argc, char **argv)
 
       /* We get the current processing time for interrupts that was
          done during the LPM and store it for next time around.  */
-      dint();
+      __disable_inteerupt();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
-      eint();
+      __enable_inteerupt();
       watchdog_start();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
