@@ -228,7 +228,6 @@ PROCESS_THREAD(mpu6050_process, ev, data)
               accel[1] = (((int)data[index + 2]) << 8) | data[index + 3];
               accel[2] = (((int)data[index + 4]) << 8) | data[index + 5];
               
-              //printf("%d,%d,%d\t", accel[0], accel[1], accel[2]);
               if (read_interval == NORMAL_INTERVAL)
               {
                 if (ped_update_sample(accel) == 1)
@@ -282,6 +281,8 @@ void mpu_gesturemode(int d)
     read_interval = NORMAL_INTERVAL;
   }
   I2C_done();
+
+  process_poll(&mpu6050_process);
 }
 
 #if 0
