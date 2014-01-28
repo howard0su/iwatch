@@ -144,6 +144,22 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_BT_RING:
     motor_on(100, CLOCK_SECOND * 2 /3);
     break;
+
+  case EVENT_GESTURE_MATCHED:
+    if (lparam > 0)
+    {
+      uint8_t data = window_readconfig()->gesture_map[lparam];
+
+      if (data & BIT5)
+      {
+          handleKey(KEY_ENTER);
+      }
+      else if (data & BIT6)
+      {
+          handleKey(KEY_EXIT);
+      }
+    }
+    break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;

@@ -224,6 +224,42 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       OnDraw((tContext*)rparam);
       break;
     }
+  case EVENT_GESTURE_MATCHED:
+    if (lparam > 0)
+    {
+      uint8_t data = window_readconfig()->gesture_map[lparam];
+
+      if (data & BIT0)
+      {
+        // Next Song
+        lparam = KEY_DOWN;
+      }
+      else if (data & BIT1)
+      {
+          // Previous Song
+          lparam = KEY_ENTER;
+      }
+      else if (data & BIT2)
+      {
+          //Play/Pause
+          lparam = KEY_UP;
+      }
+      else if (data & BIT3)
+      {
+          // Volume Up
+          avctp_send_passthrough(VOL_UP_OP);
+          break;
+      }
+      else if (data & BIT4)
+      {
+          // Volume Down
+          avctp_send_passthrough(VOL_DOWN_OP);
+          break;
+      }
+    }
+    else
+      break;
+    // fall through
   case EVENT_KEY_PRESSED:
     {
       if (state == AVRCP_PLAY_STATUS_ERROR)
