@@ -5,6 +5,7 @@
 #include "hfp.h"
 #include "backlight.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "cfs/cfs.h"
 
@@ -205,14 +206,15 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       //handle_message('S', "From: +8615618273349", "Message: Shd/dhdjbdjhdbd#shs#bdhjsbxhxjjxhdhdhhdjjdjd");
       printf("\nStart Recoding...\n");
-      gesture_init(1); // recording
+      gesture_init(1, 0); // recording
       state = RECORDING;
     }
     else if (lparam == KEY_DOWN)
     {
       printf("\nStart Recongize...\n");
-      gesture_init(0); // recording	
+      gesture_init(0, 0); // recording	
       state = RECOGNIZE;
+      matched = 0;
     }
   
     window_invalid(NULL);

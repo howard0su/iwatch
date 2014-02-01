@@ -14,11 +14,11 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
 #include "avctp.h"
 #include "avrcp.h"
 #include "hfp.h"
 #include "memory.h"
+#include "gesture/gesture.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -201,6 +201,14 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
         title = "Connecting";
       }
       window_invalid(NULL);
+
+      uint8_t flag = window_readconfig()->gesture_flag;
+      if (flag & BIT0)
+      {
+        // gesture is enabled
+        gesture_init(0, flag & BIT1);
+      }
+
       break;
     }
   case PROCESS_EVENT_TIMER:

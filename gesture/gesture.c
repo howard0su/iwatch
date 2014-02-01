@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <backlight.h>
+
 extern void mpu_gesturemode(int onoff);
 
 #define DEBUG 0
@@ -34,27 +35,38 @@ static uint8_t datap = 0;
 
 #include "gesture_sample.h"
 
-static const int8_t *GestureData[NUM_GESTURES] =
+static const int8_t *GestureData[NUM_GESTURES * 2] =
 {
-  Gesture1, Gesture2, Gesture3, Gesture4
-};
-static const int8_t GestureDataLength[NUM_GESTURES] =
-{
-  sizeof(Gesture1)/3, sizeof(Gesture2)/3, 
-  sizeof(Gesture3)/3, sizeof(Gesture4)/3
+  LeftGesture1, LeftGesture2, LeftGesture3, LeftGesture4,
+  RightGesture1, RightGesture2, RightGesture3, RightGesture4
 };
 
-CASSERT(sizeof(Gesture1) < MAX_GESTURES * 3 * 2, Gesture1);
-CASSERT(sizeof(Gesture2) < MAX_GESTURES * 3 * 2, Gesture2);
-CASSERT(sizeof(Gesture3) < MAX_GESTURES * 3 * 2, Gesture3);
-CASSERT(sizeof(Gesture4) < MAX_GESTURES * 3 * 2, Gesture4);
+static const int8_t GestureDataLength[NUM_GESTURES * 2] =
+{
+  sizeof(LeftGesture1)/3, sizeof(LeftGesture2)/3, 
+  sizeof(LeftGesture3)/3, sizeof(LeftGesture4)/3,
+
+  sizeof(RightGesture1)/3, sizeof(RightGesture2)/3, 
+  sizeof(RightGesture3)/3, sizeof(RightGesture4)/3,
+};
+
+CASSERT(sizeof(LeftGesture1) < MAX_GESTURES * 3 * 2, LeftGesture1);
+CASSERT(sizeof(LeftGesture2) < MAX_GESTURES * 3 * 2, LeftGesture2);
+CASSERT(sizeof(LeftGesture3) < MAX_GESTURES * 3 * 2, LeftGesture3);
+CASSERT(sizeof(LeftGesture4) < MAX_GESTURES * 3 * 2, LeftGesture4);
+
+CASSERT(sizeof(RightGesture1) < MAX_GESTURES * 3 * 2, RightGesture1);
+CASSERT(sizeof(RightGesture2) < MAX_GESTURES * 3 * 2, RightGesture2);
+CASSERT(sizeof(RightGesture3) < MAX_GESTURES * 3 * 2, RightGesture3);
+CASSERT(sizeof(RightGesture4) < MAX_GESTURES * 3 * 2, RightGesture4);
 
 
 static uint16_t *distances;
 static uint16_t count;
 static enum { STATE_NONE, STATE_RECORDING, STATE_RECON } state;
+static uint8_t gestureoffset;
 
-void gesture_init(int8_t _recording)
+void gesture_init(int8_t _recording, uint8_t leftorright)
 {
   // init gesture structure
   distances = (uint16_t*)malloc(NUM_GESTURES * MAX_GESTURES * 2);
@@ -76,6 +88,15 @@ void gesture_init(int8_t _recording)
   else
   {
     state = STATE_RECON;
+  }
+
+  if (leftorright)
+  {
+    gestureoffset = NUM_GESTURES;
+  }
+  else
+  {
+    gestureoffset = 0;
   }
   
   mpu_gesturemode(1);
@@ -128,18 +149,18 @@ static int8_t Normalize(int16_t input)
 //extern int spp_send(char* buf, int count);
 static uint16_t gesture_caculate(int index, const int8_t* point)
 {
-  const int8_t *gestureData = GestureData[index];
-  uint8_t gestureLength = GestureDataLength[index];
+  const int8_t *currentGesture = GestureData[index + gestureoffset];
+  uint8_t gestureLength = GestureDataLength[index + gestureoffset];
   uint16_t *distance = distances + (MAX_GESTURES * index);
   // caculate with template
-  uint16_t lastvalue = Dist(&gestureData[0], point);
+  uint16_t lastvalue = Dist(&currentGesture[0], point);
   
   if (count == MOVE_WINDOW)
   {
     distance[0] = lastvalue;
     for(int tindex = 1; tindex < gestureLength; tindex++)
     {
-      distance[tindex] = distance[tindex - 1] + Dist(&gestureData[tindex * 3], point);
+      distance[tindex] = distance[tindex - 1] + Dist(&currentGesture[tindex * 3], point);
     }
   }
   else
@@ -148,7 +169,7 @@ static uint16_t gesture_caculate(int index, const int8_t* point)
       lastvalue = distance[0];
     for(int tindex = 1; tindex < gestureLength; tindex++)
     {
-      uint16_t local = Dist(&gestureData[tindex * 3], point);
+      uint16_t local = Dist(&currentGesture[tindex * 3], point);
       uint16_t min = lastvalue;
       if (min > distance[tindex])
         min = distance[tindex];
