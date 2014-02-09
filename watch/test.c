@@ -8,6 +8,7 @@
 #include "ant/antinterface.h"
 #include "btstack/src/hci.h"
 #include "bluetooth.h"
+#include "stlv_client.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -779,3 +780,9 @@ uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 
 	return 1;
 }
+
+uint8_t test_googlenow(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	launch_google_now();
+}
+
