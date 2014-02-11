@@ -44,6 +44,18 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
     //cfs_closedir(&dir);
 }
 
+static uint8_t _phone_info[2] = {0};
+void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
+{
+    _phone_info[0] = phone_type;
+    _phone_info[1] = phone_ver;
+}
+
+uint8_t get_phone_type()
+{
+    return _phone_info[0];
+}
+
 #define ICON_FACEBOOK 's'
 #define ICON_TWITTER  't'
 #define ICON_MSG      'u'

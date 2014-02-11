@@ -8,9 +8,15 @@
 #include "contiki.h"
 #include "window.h"
 
+#define PHONE_TYPE_IOS     0x00
+#define PHONE_TYPE_ANDROID 0x01
+#define PHONE_TYPE_WP      0x02
+uint8_t get_phone_type();
+
 //-----------------------message handlers----------------------
 void handle_echo(uint8_t* data, int size);
 void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
+void handle_phone_info(uint8_t phone_type, uint8_t phone_ver);
 void handle_message(uint8_t msg_type, char* ident, char* message);
 
 //-----------------------data----------------------
