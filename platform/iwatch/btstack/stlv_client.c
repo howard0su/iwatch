@@ -210,3 +210,12 @@ void send_file_list(char* files)
     send_packet(p, NULL, 0);
 }
 
+void launch_google_now()
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "*", 1);
+    element_append_char(p, h, '*');
+    send_packet(p, NULL, 0);
+}

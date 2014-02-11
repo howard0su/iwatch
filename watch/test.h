@@ -14,4 +14,5 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam);
 uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam);
 uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam);
 uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam);
+uint8_t test_googlenow(uint8_t ev, uint16_t lparam, void* rparam);
 #endif
