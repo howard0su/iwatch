@@ -1,14 +1,14 @@
 /** 
- *	@file pedometer.c
- *
- *	@details Description:
- *  This file provides basic pedometer algorithm designed for 62.5Hz (16msec) sample rates
- *
- * @author S. Ravindran
- * @author Texas Instruments, Inc
- * @version 1.0 - Original release Dec 2011
- * @note Built with CCS Version 5.1.0.09000
- * 
+*	@file pedometer.c
+*
+*	@details Description:
+*  This file provides basic pedometer algorithm designed for 62.5Hz (16msec) sample rates
+*
+* @author S. Ravindran
+* @author Texas Instruments, Inc
+* @version 1.0 - Original release Dec 2011
+* @note Built with CCS Version 5.1.0.09000
+* 
 */
 //Pedometer Source and Object Code Software License Agreement
 //
@@ -302,7 +302,7 @@ const unsigned short firmware_version = 0x0100;
 
 unsigned short ped_get_version(void)
 {
-    return(firmware_version);
+  return(firmware_version);
 }
 /**
 * @brief <b>Description:</b> Updates pedometer sample every time accelerometer is read
@@ -311,22 +311,22 @@ unsigned short ped_get_version(void)
 **/
 char ped_update_sample(short* p_data)
 {
-	// WE COME HERE ON EVERY ACCEL SAMPLE
-	static unsigned int sample_index = 0;
-	unsigned char result = 0;
-	
-	x[sample_index] = (unsigned int) *p_data++;		// x
-	y[sample_index] = (unsigned int) *p_data++;		// y
-	z[sample_index] = (unsigned int) *p_data;		//z
-	
-	sample_index++;
-	
-	if(sample_index > 49)
-	{
-		sample_index = 24;
-		result = 1;
-	}
-	return(result);
+  // WE COME HERE ON EVERY ACCEL SAMPLE
+  static unsigned int sample_index = 0;
+  unsigned char result = 0;
+  
+  x[sample_index] = (unsigned int) *p_data++;		// x
+  y[sample_index] = (unsigned int) *p_data++;		// y
+  z[sample_index] = (unsigned int) *p_data;		//z
+  
+  sample_index++;
+  
+  if(sample_index > 49)
+  {
+    sample_index = 24;
+    result = 1;
+  }
+  return(result);
 }
 
 /**
@@ -334,32 +334,32 @@ char ped_update_sample(short* p_data)
 **/
 void ped_step_detect_init(void)
 {
-	for(index=0; index < 50; index++)
-	{
-		x[index] = 0;	
-		y[index] = 0;
-		z[index] = 0;
-	}
-	
-	index = 0;
-	first_loop = 1;
-	step_cnt=0;
-	cnt=0;
-	prev_cnt=0;
-	cnt_flg=1;
-	cnt_trip=46;
-	disp_trip=0;
-	i=0;
-	g_index=0;
-	reset_time=99;
-	length_g=14;
-	pos_flg=1;
-	vcnt_up=0;
-	vcnt_dn=0;
-	strt_trip=0;
-	up_flg=1;
-	dn_flg=0;
-
+  for(index=0; index < 50; index++)
+  {
+    x[index] = 0;	
+    y[index] = 0;
+    z[index] = 0;
+  }
+  
+  index = 0;
+  first_loop = 1;
+  step_cnt=0;
+  cnt=0;
+  prev_cnt=0;
+  cnt_flg=1;
+  cnt_trip=46;
+  disp_trip=0;
+  i=0;
+  g_index=0;
+  reset_time=99;
+  length_g=14;
+  pos_flg=1;
+  vcnt_up=0;
+  vcnt_dn=0;
+  strt_trip=0;
+  up_flg=1;
+  dn_flg=0;
+  
 }
 
 /**
@@ -368,143 +368,143 @@ void ped_step_detect_init(void)
 **/
 unsigned short ped_step_detect(void)
 {
-
-	// do processing
-	b_filter(&x[0], &x_temp[0], first_loop);	   
-	b_filter(&y[0], &y_temp[0], first_loop);
-	b_filter(&z[0], &z_temp[0], first_loop);
-	
-		
-	for(j=0;j<26;j++)
-	{
-		if (x[j] < 0)
-		{do_q15_mult(0x8000,&x[j]);} // mult by -1
-		if (y[j] < 0)
-		{do_q15_mult(0x8000,&y[j]);}
-		if (z[j] < 0)
-		{do_q15_mult(0x8000,&z[j]);}
-		g[j+g_index] = x[j]+y[j]+z[j];
-	}		
-	
-	b2_filter(&g[0], &g_temp[0], first_loop);	
-	
-	if (first_loop==1)
-	{
-		g_prev=g[0];
-	}
-		
-	for (j=0;j<length_g;j++)
-	{
-		if (g[j]-g_prev > 0)
-		{
-			pos_flg=1;
-		}
-		else if (g[j]-g_prev < 0)
-		{
-			pos_flg=0;
-		}
-
-		if (cnt_flg==1 && pos_flg==1)
-		{
-			if( (cnt_trip>11 && vcnt_up > 91) || (cnt_trip>15 && vcnt_up > 71)||(cnt_trip>19 && vcnt_up > 54) || (cnt_trip>23 && vcnt_up > 41) || (cnt_trip>29 && vcnt_up>33) )
-			{
-				cnt_flg=0;
-                cnt=cnt+1;
-                cnt_trip=0;
-                vcnt_up=0;
-                up_flg=0;
-                strt_trip=1;
-			}
-		}
-		else if(cnt_flg==0) 
-		{
-			if ((cnt_trip>5) && (vcnt_dn > 3)) //15
-			{
-				cnt_flg=1;
-				vcnt_dn=0;
-	           	dn_flg=0;
-			}
-			
-			else if (cnt_trip>59)
-			{
-				cnt_flg=1;
-				vcnt_dn=0;
-	            dn_flg=0;
-			}
-		}
-			
-		if (pos_flg==1 && cnt_flg==1)
-		{
-            up_flg=1;
-		}
-        else if (pos_flg==0 && cnt_flg==0)
-        {
-            dn_flg=1;
-            if (strt_trip==1)
-            {
-                cnt_trip=0;
-                strt_trip=0;
-                vcnt_up=0;
-            }
-        }
-        
-        if (up_flg==1)
-        {
-            vcnt_up=vcnt_up+(g[j]-g_prev);
-        }
-        else if (dn_flg==1)
-        {
-            vcnt_dn=vcnt_dn+(g_prev-g[j]);
-        }
-
-        if (vcnt_up < 0)
-        {
-            vcnt_up=0;
-            up_flg=0;
-        }
-        else if (vcnt_dn < 0)
-        {
-            vcnt_dn=0;
-            dn_flg=0;
-        }
- 
-		cnt_trip++;
-        g_prev=g[j];
-
-        if (prev_cnt==cnt)
-        {
-        	no_cnt_flg=1;
-        }
-        else
-        {
-            no_cnt_flg=0;
-            prev_cnt=cnt;
-        }
-        
-        if ((no_cnt_flg==1) && (cnt_trip > reset_time))
-        {
-            disp_trip=0;
-            cnt=step_cnt;
-            reset_time=99;
-		}
-	}
-		
-    	if (disp_trip > 15)
-        {
-        	step_cnt=cnt;
-        	reset_time=85;
-        }
-
-    	if (disp_trip < 16)
-        	disp_trip++;
-
+  
+  // do processing
+  b_filter(&x[0], &x_temp[0], first_loop);	   
+  b_filter(&y[0], &y_temp[0], first_loop);
+  b_filter(&z[0], &z_temp[0], first_loop);
+  
+  
+  for(j=0;j<26;j++)
+  {
+    if (x[j] < 0)
+    {do_q15_mult(0x8000,&x[j]);} // mult by -1
+    if (y[j] < 0)
+    {do_q15_mult(0x8000,&y[j]);}
+    if (z[j] < 0)
+    {do_q15_mult(0x8000,&z[j]);}
+    g[j+g_index] = x[j]+y[j]+z[j];
+  }		
+  
+  b2_filter(&g[0], &g_temp[0], first_loop);	
+  
+  if (first_loop==1)
+  {
+    g_prev=g[0];
+  }
+  
+  for (j=0;j<length_g;j++)
+  {
+    if (g[j]-g_prev > 0)
+    {
+      pos_flg=1;
+    }
+    else if (g[j]-g_prev < 0)
+    {
+      pos_flg=0;
+    }
     
-		first_loop=0;	
-		length_g=26;
-		g_index=12;
-
-	return(step_cnt);
-
+    if (cnt_flg==1 && pos_flg==1)
+    {
+      if( (cnt_trip>11 && vcnt_up > 91) || (cnt_trip>15 && vcnt_up > 71)||(cnt_trip>19 && vcnt_up > 54) || (cnt_trip>23 && vcnt_up > 41) || (cnt_trip>29 && vcnt_up>33) )
+      {
+        cnt_flg=0;
+        cnt=cnt+1;
+        cnt_trip=0;
+        vcnt_up=0;
+        up_flg=0;
+        strt_trip=1;
+      }
+    }
+    else if(cnt_flg==0) 
+    {
+      if ((cnt_trip>5) && (vcnt_dn > 3)) //15
+      {
+        cnt_flg=1;
+        vcnt_dn=0;
+        dn_flg=0;
+      }
+      
+      else if (cnt_trip>59)
+      {
+        cnt_flg=1;
+        vcnt_dn=0;
+        dn_flg=0;
+      }
+    }
+    
+    if (pos_flg==1 && cnt_flg==1)
+    {
+      up_flg=1;
+    }
+    else if (pos_flg==0 && cnt_flg==0)
+    {
+      dn_flg=1;
+      if (strt_trip==1)
+      {
+        cnt_trip=0;
+        strt_trip=0;
+        vcnt_up=0;
+      }
+    }
+    
+    if (up_flg==1)
+    {
+      vcnt_up=vcnt_up+(g[j]-g_prev);
+    }
+    else if (dn_flg==1)
+    {
+      vcnt_dn=vcnt_dn+(g_prev-g[j]);
+    }
+    
+    if (vcnt_up < 0)
+    {
+      vcnt_up=0;
+      up_flg=0;
+    }
+    else if (vcnt_dn < 0)
+    {
+      vcnt_dn=0;
+      dn_flg=0;
+    }
+    
+    cnt_trip++;
+    g_prev=g[j];
+    
+    if (prev_cnt==cnt)
+    {
+      no_cnt_flg=1;
+    }
+    else
+    {
+      no_cnt_flg=0;
+      prev_cnt=cnt;
+    }
+    
+    if ((no_cnt_flg==1) && (cnt_trip > reset_time))
+    {
+      disp_trip=0;
+      cnt=step_cnt;
+      reset_time=99;
+    }
+  }
+  
+  if (disp_trip > 15)
+  {
+    step_cnt=cnt;
+    reset_time=85;
+  }
+  
+  if (disp_trip < 16)
+    disp_trip++;
+  
+  
+  first_loop=0;	
+  length_g=26;
+  g_index=12;
+  
+  return(step_cnt);
+  
 }
 
 /**
@@ -515,42 +515,42 @@ unsigned short ped_step_detect(void)
 **/
 void b_filter(signed int *d, signed int *t, unsigned short first_loop)
 {
-	unsigned short i,j;
-	signed int R=0;
-
-	WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
-  	MPY32CTL0 = MPYFRAC;                      // Set fractional mode
-  	
-  	// initialize data
-  	if(first_loop==1)
-  	{
-	  	for(i=0;i<24;i++)
-	  	{
-	  		*(t+i)= *(d+26+i);
-	  	}
-  	}
-  	else
-  	{
-  		for (i=0;i<24;i++)
-  		{
-  			*(d+i) = *(t+i);
-  			*(t+i) = *(d+26+i);
-  		}
-  	}
-  	
-  	for(j=24;j<50;j++)
-  	{
-  		R=0;
-  		for(i=0;i<25;i++)
-  		{
-  			MPYS = FILTER_COEFF_b[i];                            // Load first operand
-  			OP2 = d[j-i];                             // Load second operand
-  			R += RESHI;
-  		}  
-  		d[j-24]=R;         
-  	}
-  	
-  	MPY32CTL0 &= ~MPYFRAC;  	
+  unsigned short i,j;
+  signed int R=0;
+  
+  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
+  MPY32CTL0 = MPYFRAC;                      // Set fractional mode
+  
+  // initialize data
+  if(first_loop==1)
+  {
+    for(i=0;i<24;i++)
+    {
+      *(t+i)= *(d+26+i);
+    }
+  }
+  else
+  {
+    for (i=0;i<24;i++)
+    {
+      *(d+i) = *(t+i);
+      *(t+i) = *(d+26+i);
+    }
+  }
+  
+  for(j=24;j<50;j++)
+  {
+    R=0;
+    for(i=0;i<25;i++)
+    {
+      MPYS = FILTER_COEFF_b[i];                            // Load first operand
+      OP2 = d[j-i];                             // Load second operand
+      R += RESHI;
+    }  
+    d[j-24]=R;         
+  }
+  
+  MPY32CTL0 &= ~MPYFRAC;  	
 }
 
 /**
@@ -561,43 +561,43 @@ void b_filter(signed int *d, signed int *t, unsigned short first_loop)
 **/
 void b2_filter(signed int *d, signed int *t, unsigned short first_loop)
 {
-	unsigned short i,j,nn=26;
-	signed int R=0;
-
-	WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
-  	MPY32CTL0 = MPYFRAC;                      // Set fractional mode
-  	
-  	// initialize data
-  	if(first_loop==1)
-  	{
-	  	for(i=0;i<12;i++)
-	  	{
-	  		*(t+i)= *(d+14+i);
-	  	}
-  	}
-  	else
-  	{
-  		for (i=0;i<12;i++)
-  		{
-  			*(d+i) = *(t+i);
-  			*(t+i) = *(d+26+i);
-  		}
-  		nn=38;
-  	}
-  	
-  	for(j=12;j<nn;j++)
-  	{
-  		R=0;
-  		for(i=0;i<13;i++)
-  		{
-  			MPYS = 0x09D8;                            // Load first operand
-  			OP2 = d[j-i];                             // Load second operand
-  			R += RESHI;
-  		}  
-  		d[j-12]=R;         
-  	}
-  	
-  	MPY32CTL0 &= ~MPYFRAC;  	
+  unsigned short i,j,nn=26;
+  signed int R=0;
+  
+  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
+  MPY32CTL0 = MPYFRAC;                      // Set fractional mode
+  
+  // initialize data
+  if(first_loop==1)
+  {
+    for(i=0;i<12;i++)
+    {
+      *(t+i)= *(d+14+i);
+    }
+  }
+  else
+  {
+    for (i=0;i<12;i++)
+    {
+      *(d+i) = *(t+i);
+      *(t+i) = *(d+26+i);
+    }
+    nn=38;
+  }
+  
+  for(j=12;j<nn;j++)
+  {
+    R=0;
+    for(i=0;i<13;i++)
+    {
+      MPYS = 0x09D8;                            // Load first operand
+      OP2 = d[j-i];                             // Load second operand
+      R += RESHI;
+    }  
+    d[j-12]=R;         
+  }
+  
+  MPY32CTL0 &= ~MPYFRAC;  	
 }
 
 
@@ -608,14 +608,14 @@ void b2_filter(signed int *d, signed int *t, unsigned short first_loop)
 **/
 void do_q15_mult(signed int a, signed int * var)
 {
-	WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
-
-  	MPY32CTL0 = MPYFRAC;                      // Set fractional mode
-  	MPYS = a;                            // Load first operand
-  	OP2 = *(var);                             // Load second operand
-  	*(var) = RESHI;                       // Q15 result
+  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
   
-  	MPY32CTL0 &= ~MPYFRAC;
+  MPY32CTL0 = MPYFRAC;                      // Set fractional mode
+  MPYS = a;                            // Load first operand
+  OP2 = *(var);                             // Load second operand
+  *(var) = RESHI;                       // Q15 result
+  
+  MPY32CTL0 &= ~MPYFRAC;
 }
 
 
