@@ -2458,10 +2458,7 @@
       <name>$PROJ_DIR$\..\pedometer\pedometer.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\pedometer\ti_pedometer.r43</name>
-      <excluded>
-        <configuration>Retail</configuration>
-      </excluded>
+      <name>$PROJ_DIR$\..\pedometer\pedometer_dist.c</name>
     </file>
   </group>
   <group>
