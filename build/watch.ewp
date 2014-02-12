@@ -1024,7 +1024,7 @@
         </option>
         <option>
           <name>Hardware Multiplier</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GOutputBinary</name>
@@ -1100,7 +1100,7 @@
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>4096</state>
+          <state>3800</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1108,7 +1108,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>4096</state>
+          <state>3800</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>

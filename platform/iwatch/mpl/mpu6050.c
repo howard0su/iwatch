@@ -14,6 +14,7 @@
 
 #include "pedometer/pedometer.h"
 
+extern void ped_step_detect_run();
 extern void gesture_processdata(int16_t *input);
 
 #define MPU6050_ADDR 0x69
@@ -104,8 +105,6 @@ void mpu6050_init()
     goto error;
   }
   
-  ped_step_detect_init();
-
   printf("mpu_set_sensors\n");
   if (mpu_set_sensors(INV_XYZ_ACCEL))
     goto error;
@@ -146,6 +145,8 @@ void mpu6050_init()
     printf("\n$$OK MPU6050\n");
     return;
   }
+  
+  ped_reset();
 
 error:
   printf("\n$$FAIL MPU6050\n");
@@ -230,9 +231,13 @@ PROCESS_THREAD(mpu6050_process, ev, data)
               
               if (read_interval == NORMAL_INTERVAL)
               {
+                accel[0] >>= 6;
+                accel[1] >>= 6;
+                accel[2] >>= 6;
+             
                 if (ped_update_sample(accel) == 1)
                 {
-                  ped_step_detect();
+                  ped_step_detect_run();
                 }
               }
               else

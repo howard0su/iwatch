@@ -281,8 +281,6 @@
 #ifndef PEDOMETER_H
 #define PEDOMETER_H
 
-extern unsigned short step_cnt;
-   
 /*
 * Initalize the pedometer algorithm
 */
@@ -303,5 +301,11 @@ unsigned short ped_step_detect(void);
 * 0xmmnn where mm = major, nn = minor
 */
 unsigned short ped_get_version(void);
+
+#include <stdint.h>
+uint16_t ped_get_steps();
+uint16_t ped_get_calorie();
+uint16_t ped_get_time();
+uint16_t ped_get_distance();
 
 #endif
