@@ -107,10 +107,10 @@ static void OnDraw(tContext* pContext)
     // todo: fetch goal
     int part = window_readconfig()->goal_steps / 5;
     steps = ped_get_steps();
-    for(int i = 0; i < 5; i++)
+    for(int i = 1; i <= 5; i++)
     {
       tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
-      if (i * part <= steps)
+      if (i * part / 2 <= steps)
       {
         GrRectFill(pContext, &rect);
       }
