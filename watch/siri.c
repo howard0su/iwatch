@@ -9,6 +9,8 @@
 #include "bluetooth.h"
 #include <string.h>
 #include <stdio.h>
+#include "stlv_client.h"
+#include "stlv_handler.h"
 
 static void onDraw(tContext *pContext)
 {
@@ -36,7 +38,12 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
       window_close();
     
     if (rparam)
-      hfp_enable_voicerecog(1);
+    {
+      if (get_phone_type() == PHONE_TYPE_ANDROID)
+        launch_google_now();
+      else
+        hfp_enable_voicerecog(1);
+    }
 
     codec_setvolume(window_readconfig()->volume_level);
     break;
