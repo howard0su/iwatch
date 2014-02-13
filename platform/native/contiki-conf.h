@@ -277,4 +277,13 @@ int strcasecmp(const char*, const char*);
 #define CASSERT(exp, name) typedef int dummy##name [(exp) ? 1 : -1];
 #endif
 
+#define BIT0 1
+#define BIT1 2
+#define BIT2 4
+#define BIT3 8
+#define BIT4 16
+#define BIT5 32
+#define BIT6 64
+#define BIT7 128
+
 #endif /* __CONTIKI_CONF_H__ */
