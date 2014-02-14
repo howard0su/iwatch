@@ -38,10 +38,13 @@
  *  Based on information found at http://e2e.ti.com/support/low_power_rf/f/660/t/134855.aspx
  *
  *  Created by Matthias Ringwald on 9/16/11.
+ * 
+ * Changed by Howard Su based on http://processors.wiki.ti.com/index.php/CC256x_eHCILL_Low_Power_Protocol
+ * 
  */
 
 #include "config.h"
-
+//#define ENABLE_LOG_INFO
 #include <stdio.h>
 #include <string.h>
 
@@ -53,14 +56,14 @@
 
 #include <btstack/hal_uart_dma.h>
 
-// #define DUMP
+//#define DUMP
 
 // eHCILL commands (+interal CTS signal)
 #define EHCILL_GO_TO_SLEEP_IND 0x030
 #define EHCILL_GO_TO_SLEEP_ACK 0x031
 #define EHCILL_WAKE_UP_IND     0x032
 #define EHCILL_WAKE_UP_ACK     0x033
-#define EHCILL_CTS_SIGNAL      0x034
+#define EHCILL_CTS_SIGNAL      0x0EF
 
 typedef enum {
     H4_W4_PACKET_TYPE = 1,
@@ -81,7 +84,7 @@ typedef enum {
 
 typedef enum {
     EHCILL_STATE_SLEEP = 1,
-    EHCILL_STATE_W4_ACK,
+    EHCILL_STATE_W4_ACK, // wart for wakeup
     EHCILL_STATE_AWAKE
 } EHCILL_STATE;
 
@@ -174,7 +177,6 @@ static int h4_open(void *transport_config){
 	hal_uart_dma_init();
     hal_uart_dma_set_block_received(h4_block_received);
     hal_uart_dma_set_block_sent(h4_block_sent);
-    hal_uart_dma_set_csr_irq_handler(ehcill_cts_irq_handler);
 
 	// set up data_source
     run_loop_add_data_source(&hci_transport_h4_dma_ds);
@@ -199,7 +201,7 @@ static int h4_close(){
     hal_uart_dma_set_csr_irq_handler(NULL);
 
     // close device
-    // ...
+    hal_uart_dma_shutdown();
     return 0;
 }
 
@@ -220,9 +222,9 @@ static void h4_block_received(void){
                     bytes_to_read = HCI_EVENT_HEADER_SIZE;
                     break;
                 case EHCILL_GO_TO_SLEEP_IND:
-                case EHCILL_GO_TO_SLEEP_ACK:
                 case EHCILL_WAKE_UP_IND:
                 case EHCILL_WAKE_UP_ACK:
+                case EHCILL_GO_TO_SLEEP_ACK:
                     ehcill_handle(hci_packet[0]);
                     read_pos = 0;
                     bytes_to_read = 1;
@@ -328,8 +330,8 @@ static int h4_process(struct data_source *ds) {
     if (tx_state == TX_DONE){
         // reset state
         tx_state = TX_IDLE;
-        uint8_t event = DAEMON_EVENT_HCI_PACKET_SENT;
-        packet_handler(HCI_EVENT_PACKET, &event, 1);
+        uint8_t event[] = {DAEMON_EVENT_HCI_PACKET_SENT, 0};
+        packet_handler(HCI_EVENT_PACKET, &event[0], sizeof(event));
     }
 
     if (h4_state != H4_PACKET_RECEIVED) return 0;
@@ -351,7 +353,7 @@ static int h4_process(struct data_source *ds) {
 
 
 int  ehcill_sleep_mode_active(void){
-    return ehcill_state == EHCILL_STATE_SLEEP;
+    return ehcill_state != EHCILL_STATE_AWAKE;
 }
 
 static void ehcill_cts_irq_handler(){
@@ -365,6 +367,22 @@ static void ehcill_schedule_ecill_command(uint8_t command){
         case TX_IDLE:
         case TX_DONE:
             tx_state = TX_W4_EHCILL_SENT;
+            switch(command)
+            {
+                case EHCILL_WAKE_UP_ACK:
+                    log_info("TX: EHCILL_WAKE_UP_ACK\n");
+                    break;
+                case EHCILL_GO_TO_SLEEP_ACK:
+                    log_info("TX: EHCILL_GO_TO_SLEEP_ACK\n");
+                    break;
+                case EHCILL_GO_TO_SLEEP_IND:
+                    log_info("TX: EHCILL_GO_TO_SLEEP_ACK\n");
+                    break;
+                case EHCILL_WAKE_UP_IND:
+                    log_info("TX: EHCILL_WAKE_UP_IND\n");
+                    break;
+            }
+            
             hal_uart_dma_send_block(&ehcill_command_to_send, 1);
             break;
         default:
@@ -382,14 +400,22 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_GO_TO_SLEEP_IND:
 
                     // 1. set RTS high - already done by BT RX ISR
-                    // 2. enable CTS   - CTS always enabled
+                    // 2. enable CTS
+					hal_uart_dma_set_csr_irq_handler(ehcill_cts_irq_handler);
 
                     ehcill_state = EHCILL_STATE_SLEEP;
-                    //log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
+                    log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
                     ehcill_schedule_ecill_command(EHCILL_GO_TO_SLEEP_ACK);
                     break;
 
+                case EHCILL_WAKE_UP_IND:
+                    // we can accept a WAKEUP_IND even we alrady in wake up state?
+                    log_info("RX: EHCILL_WAKE_UP_IND 1 TX_STATE = %d\n", tx_state);
+                    ehcill_schedule_ecill_command(EHCILL_WAKE_UP_ACK);
+                    break;
+
                 default:
+                    log_error("1: unknow action: %d\n", action);
                     break;
             }
             break;
@@ -399,12 +425,14 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_CTS_SIGNAL:
 
                     // re-activate rx (also clears RTS)
-                    if (!ehcill_defer_rx_size) break;
+					hal_uart_dma_set_csr_irq_handler(NULL);
+
+					if (!ehcill_defer_rx_size) break;
 
                     // UART needed again
-                    hal_uart_dma_set_sleep(0);
+					hal_uart_dma_set_sleep(0);
 
-                    //log_info ("Re-activate rx\n");
+                    log_info ("RX: EHCILL_CTS_SIGNAL\n");
                     size = ehcill_defer_rx_size;
                     ehcill_defer_rx_size = 0;
                     hal_uart_dma_receive_block(ehcill_defer_rx_buffer, size);
@@ -413,11 +441,12 @@ static void ehcill_handle(uint8_t action){
                 case EHCILL_WAKE_UP_IND:
 
                     ehcill_state = EHCILL_STATE_AWAKE;
-                    //log_info("RX: EHCILL_GO_TO_SLEEP_IND\n");
+                    log_info("RX: EHCILL_WAKE_UP_IND 2\n");
                     ehcill_schedule_ecill_command(EHCILL_WAKE_UP_ACK);
                     break;
 
                 default:
+                    log_error("2: unknow action: %d\n", action);
                     break;
             }
             break;
@@ -426,7 +455,6 @@ static void ehcill_handle(uint8_t action){
             switch(action){
                 case EHCILL_WAKE_UP_IND:
                 case EHCILL_WAKE_UP_ACK:
-
                     log_info("RX: EHCILL_WAKE_UP_IND or ACK\n");
 
                     tx_state = TX_W4_HEADER_SENT;
@@ -434,8 +462,12 @@ static void ehcill_handle(uint8_t action){
                     ehcill_state = EHCILL_STATE_AWAKE;
 
                     break;
-
+                case EHCILL_GO_TO_SLEEP_IND:
+                    // ignore this
+                    // keep wait for wakeup ack
+                    break;                
                 default:
+                    log_error("3: unknow action: %d\n", action);
                     break;
             }
             break;
@@ -465,6 +497,9 @@ static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
         return 0;
     }
 
+    // disable CTS
+    hal_uart_dma_set_csr_irq_handler(NULL);
+
     // UART needed again
     hal_uart_dma_set_sleep(0);
 
@@ -474,9 +509,6 @@ static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
 
     // wake up
     log_info("RX: SLEEP\n");
-    log_info("TX: EHCILL_WAKE_UP_IND\n");
-    ehcill_command_to_send = EHCILL_WAKE_UP_IND;
-    hal_uart_dma_send_block(&ehcill_command_to_send, 1);
 
     if (!ehcill_defer_rx_size){
         log_error("ERROR: NO RX REQUEST PENDING\n");
@@ -487,6 +519,11 @@ static int ehcill_send_packet(uint8_t packet_type, uint8_t *packet, int size){
     int rx_size = ehcill_defer_rx_size;
     ehcill_defer_rx_size = 0;
     hal_uart_dma_receive_block(ehcill_defer_rx_buffer, rx_size);
+
+    log_info("TX: EHCILL_WAKE_UP_IND\n");
+    ehcill_command_to_send = EHCILL_WAKE_UP_IND;
+    hal_uart_dma_send_block(&ehcill_command_to_send, 1);
+
     return 0;
 }
 

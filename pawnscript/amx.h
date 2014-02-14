@@ -19,7 +19,8 @@
 
 #ifndef AMX_H_INCLUDED
 #define AMX_H_INCLUDED
-
+#include "amxconfig.h"
+ 
 #include <stdlib.h>   /* for size_t */
 #include <limits.h>
 
@@ -30,7 +31,7 @@
   #define __FreeBSD__
 #endif
 #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__
-  #include <sclinux.h>
+  #include "sclinux.h"
 #endif
 
 #if !defined HAVE_STDINT_H

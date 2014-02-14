@@ -141,6 +141,7 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
   openFile( argv[1] );
   while( fgets( line, sizeof line, scriptFile ) )
   {
+    fflush(stdout);
 	if( line[strlen(line)-1] == '\n' ){
 		line[strlen(line)-1] =' ';
 	}
@@ -462,6 +463,7 @@ unsigned int main(unsigned int argc, unsigned char* argv[])
 			c = readByte_s(-1);
 			if (c != 0xEE)
 				putchar(c);
+      fflush(stdout);
 		}
 		printf("Done\n");
 	}

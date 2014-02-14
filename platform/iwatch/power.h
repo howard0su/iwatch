@@ -14,12 +14,11 @@
 #ifndef _POWER_H
 #define _POWER_H
 
-#define POWER_SMCLK BIT0
-#define POWER_ACLK  BIT1
-#define POWER_HIGH  BIT2
+#define MODULE_LCD BIT0
+#define MODULE_BT  BIT1
+#define MODULE_CODEC BIT2
 
-extern void power_pin(int clock);
-extern void power_unpin(int clock);
-extern void power_sleep();
+void power_pin(uint8_t module);
+void power_unpin(uint8_t module);
 
 #endif

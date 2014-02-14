@@ -19,16 +19,17 @@
 #include "rtc.h"
 #include <stdio.h>
 
+// Function prototypes
+void copy_flash_to_RAM(void);
+void write_block_int(void);
+
 static uint8_t enter_bsl()
 {
-  // enable RESET as real reset
-  SFRRPCR &= ~SYSNMI;
+  copy_flash_to_RAM();                      // Copy flash to RAM function
 
-  __disable_interrupt();
+  write_block_int();                        // This portion of code is executed
 
-  ((void(*)())0x1000)();
-
-  return 0;
+  while(1);
 }
 
 static enum {W4CONFIRM, CONFIRMED} state = W4CONFIRM;

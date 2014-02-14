@@ -20,6 +20,8 @@
 #include "btstack/bluetooth.h"
 #include <stdio.h>
 #include <string.h>
+#include "memory.h"
+#include "sportsdata.h"
 
 #include "test.h"
 
@@ -34,22 +36,19 @@
 #define DATA_VERSION 0xF5
 #define DATA_BTADDR 0xF6
 #define DATA_LEGAL 0xF7
+#define DATA_LIGHT 0xF8
+#define DATA_VOL  0xF9
 #define NO_DATA   0xFF
-
-struct MenuItem
-{
-  unsigned char icon;
-  const char *name;
-  windowproc handler;
-};
 
 static const struct MenuItem SetupMenu[] =
 {
   {DATA_DATE, "Date", &configdate_process},
   {DATA_TIME, "Time", &configtime_process},
+  {DATA_LIGHT, "Back Light", &configlight_process},
+  {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
   {NO_DATA, "Upgrade Firmware", &upgrade_process},
-  {NO_DATA, "Self-test", &selftest_process},
+//  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
 
@@ -63,6 +62,7 @@ static const struct MenuItem AboutMenu[] =
   {-1, NULL, NULL}
 };
 
+
 static const struct MenuItem MainMenu[] =
 {
   {'a', "Today's Activity", &today_process},
@@ -74,24 +74,109 @@ static const struct MenuItem MainMenu[] =
   {'g', "Countdown Timer", &countdown_process},
   {'k', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
-  {'l', "Watch Setup", &menu_process},
+  {'a', "History", &menu_process},
+  {'l', "Setup", &menu_process},
   {0,   "About", &menu_process},
   {0, NULL, NULL}
 };
 
 static const struct MenuItem TestMenu[] = 
 {
+  {DATA_BTADDR, "", NULL},
   {0, "Button", &test_button},
   {0, "Motor", &test_motor},
   {0, "Light", &test_light},
   {0, "LCD", &test_lcd},
   {0, "ANT+", &test_ant},
+  {0, "MPU6050", &test_mpu6050},
+  {0, "Bluetooth", &test_bluetooth},
+  {0, "GoogleNow", &test_googlenow},
+  {0, "BT DUT", &test_dut},
+  {0, "BLE", &test_ble},
+  {0, "Codec", &test_codec},
+  {0, "Self-test", &selftest_process},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };
 
+extern struct process filesys_process;
+extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam);
+
+#define HistoryActivity d.menu.HistoryActivity
+#define history_names   d.menu.displaynames
+#define file_names      d.menu.filenames
+#define rows            d.menu.rows
+#define row_count       d.menu.row_count
+
+#define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
+
+
+static void load_history_menu()
+{
+    row_count = load_history(rows, count_elem(rows) - 1);
+    for (int i = 0; i < row_count; ++i)
+    {
+        if (rows[i].mode == DATA_MODE_TOOMSTONE)
+            continue;
+
+        if (rows[i].mode != DATA_MODE_NORMAL)
+        {
+            sprintf(history_names[i], "%02d/%02d/%02d %02d:%02d",
+                    rows[i].month, rows[i].day, rows[i].year, rows[i].hour, rows[i].minute);
+        }
+        else
+        {
+            sprintf(history_names[i], "%02d/%02d/%02d",
+                    rows[i].month, rows[i].day, rows[i].year);
+        }
+        HistoryActivity[i].handler = &menu_process;
+        HistoryActivity[i].icon    = rows[i].mode == DATA_MODE_RUNNING ? 'h' : 'a';
+        HistoryActivity[i].name    = history_names[i];
+    }
+    SET_MENU_END(row_count, HistoryActivity);
+}
+
+/*
+static uint8_t s_record_pos = 0;
+static uint8_t loadHistoryRecord(char* filename)
+{
+    uint8_t pos = s_record_pos;
+    if (pos >= count_elem(HistoryActivity) - 1)
+    {
+        printf("max history entris reach:%d\n", count_elem(HistoryActivity) - 1);
+        return 0;
+    }
+
+    record_desc_t record;
+    if(get_record_desc(filename, &record) != 0 && !record.is_continue)
+    {
+        printf("load %s\n", filename);
+        strcpy(file_names[pos], filename);
+        if (record.mode != DATA_MODE_NORMAL || record.sec != 0)
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d %02d:%02d",
+                    record.month, record.day, record.year, record.hour, record.min);
+        }
+        else
+        {
+            sprintf(history_names[pos], "%02d/%02d/%02d",
+                    record.month, record.day, record.year);
+        }
+        HistoryActivity[pos].handler = &menu_process;
+        HistoryActivity[pos].icon    = record.mode == DATA_MODE_RUNNING ? 'h' : 'a';
+        HistoryActivity[pos].name    = history_names[pos];
+
+        s_record_pos++;
+        SET_MENU_END(s_record_pos, HistoryActivity);
+    }
+    return 1;
+}
+*/
+
 #define NUM_MENU_A_PAGE 5
 #define MENU_SPACE 30
+
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
 static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
 {
@@ -107,11 +192,21 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {8, 17 + index * MENU_SPACE, 136, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
-  GrContextForegroundSet(pContext, !selected);
-  GrContextBackgroundSet(pContext, selected);
+  if (!selected)
+  {
+    // draw a rect
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextBackgroundSet(pContext, ClrBlack);
+  }
+  else
+  {
+    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextBackgroundSet(pContext, ClrWhite);
+  }
+  
   if (item->icon < 0x80)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
@@ -136,16 +231,26 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
         return;
       case DATA_DATE:
       {
-        uint8_t month, day;
-        rtc_readdate(NULL, &month, &day, NULL);
-        sprintf(buf, "%s %d", month_shortname[month], day);
+        uint8_t  month, day;
+        uint16_t year;
+        rtc_readdate(&year, &month, &day, NULL);
+        sprintf(buf, "%s %d, %04d", month_shortname[month - 1], day, year);
         break;
       }
       case DATA_TIME:
       {
         uint8_t hour, minute;
+        char buf0[2];
+        uint8_t ampm = 0;
         rtc_readtime(&hour, &minute, NULL);
-        sprintf(buf, "%02d:%02d", hour, minute);
+          // draw time
+        adjustAMPM(hour, &hour, &ampm);
+
+        if (ampm) buf0[0] = 'P';
+          else buf0[0] = 'A';
+        buf0[1] = 'M';
+
+        sprintf(buf, "%02d:%02d %c%c", hour, minute, buf0[0], buf0[1]);
         break;
       }
       case DATA_BT:
@@ -160,11 +265,15 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       case DATA_VERSION:
       strcpy(buf, "1.0.0.1");
       break;
+      case DATA_LIGHT:
+      sprintf(buf, "%d", window_readconfig()->light_level);
+      break;
+      case DATA_VOL:
+      sprintf(buf, "%d", window_readconfig()->volume_level);
+      break;
       case DATA_BTADDR:
       {
-      uint8_t serial[6];
-      system_getserial(serial);
-      sprintf(buf, "%02X%02X%02X%02X%02X%02X", serial[0], serial[1],serial[2],serial[3],serial[4],serial[5]);
+      sprintf(buf, "%s", bluetooth_address());
       break;
       }
       default:
@@ -206,6 +315,26 @@ static void OnDraw(tContext *pContext)
   {
     // there is something more
   }
+
+  if (NUM_MENU_A_PAGE < menuLength)
+  {
+    // draw progress bar
+    #define STEPS 128
+    int length = NUM_MENU_A_PAGE * STEPS / menuLength;
+    int start = currentTop * STEPS / menuLength;
+
+    tRectangle rect = {136, 20, 143, 20 + STEPS + 10};
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrRectFillRound(pContext, &rect, 3);
+    GrContextForegroundSet(pContext, ClrBlack);
+
+    rect.sXMin += 2;
+    rect.sXMax -= 2;
+
+    rect.sYMin += 4 + start;
+    rect.sYMax = rect.sYMin + length;
+    GrRectFill(pContext, &rect);
+  }
 }
 
 static void getMenuLength()
@@ -238,6 +367,10 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       else if (strcmp(rparam, "Test") == 0)
       {
         Items = TestMenu;
+      }
+      else if (strcmp(rparam, "History") == 0)
+      {
+        Items = HistoryActivity;
       }
 
       getMenuLength();
@@ -314,17 +447,32 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else if (lparam == KEY_ENTER)
       {
-        if (Items[current].handler)
+        if (Items == HistoryActivity)
+        {
+            window_open(&recordoperation_process, (void*)current);
+        }
+        else if (Items[current].handler)
         {
           if (Items[current].handler == &menu_process)
           {
             if (current == 9)
             {
-              Items = SetupMenu;
+              //s_record_pos = 0;
+              //SET_MENU_END(0, HistoryActivity);
+              //Items = HistoryActivity;
+              //process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
+
+              load_history_menu();
+              Items = HistoryActivity;
+
             }
             else if (current == 10)
             {
-              Items = AboutMenu;              
+              Items = SetupMenu;
+            }
+            else if (current == 11)
+            {
+              Items = AboutMenu;
             }
             getMenuLength();
             current = currentTop = 0;
@@ -343,18 +491,26 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       if (Items == SetupMenu)
       {
         Items = MainMenu;
-        currentTop = 5;
-        current = 9;
+        currentTop = 6;
+        current = 10;
         getMenuLength();
         window_invalid(NULL);
       }
       else if (Items == AboutMenu)
       {
         Items = MainMenu;
-        currentTop = 6;
-        current = 10;
+        currentTop = 7;
+        current = 11;
         getMenuLength();
-        window_invalid(NULL);        
+        window_invalid(NULL);
+      }
+      else if (Items == HistoryActivity)
+      {
+        Items = MainMenu;
+        currentTop = 5;
+        current = 9;
+        getMenuLength();
+        window_invalid(NULL);
       }
       else
       {
@@ -367,9 +523,28 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       break;
     }
+
+    //case EVENT_FILESYS_LIST_FILE:
+    //  if ((int)rparam != 0 && (int)rparam != -1)
+    //  {
+    //    loadHistoryRecord((char*)rparam);
+    //    process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
+    //  }
+    //  else
+    //    window_invalid(NULL);
+    //  break;
+
     default:
       return 0;
   }
 
+  return 1;
+}
+
+extern uint8_t shutdown_mode;
+uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  shutdown_mode = 1;
+  
   return 1;
 }

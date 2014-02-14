@@ -1,5 +1,6 @@
 #define EMBEDDED
 
+#define HAVE_MALLOC
 #define HAVE_INIT_SCRIPT
 #define HAVE_BZERO
 #define HAVE_TICK
@@ -7,67 +8,24 @@
 #define HAVE_EHCILL
 
 #define ENABLE_LOG_ERROR
-#define ENABLE_LOG_INFO
+//#define ENABLE_LOG_INFO
 //#define ENABLE_LOG_DEBUG
 
-#define HCI_ACL_PAYLOAD_SIZE 52
+#define HCI_ACL_PAYLOAD_SIZE 102
+#define HAVE_BLE 1
 
 //
+#if 0
 #define MAX_SPP_CONNECTIONS 5
 
+
 #define MAX_NO_HCI_CONNECTIONS (MAX_SPP_CONNECTIONS + 3)
-#define MAX_NO_L2CAP_SERVICES  3
+#define MAX_NO_L2CAP_SERVICES  5
 #define MAX_NO_L2CAP_CHANNELS  (3 + MAX_SPP_CONNECTIONS)
 #define MAX_NO_RFCOMM_MULTIPLEXERS MAX_SPP_CONNECTIONS
-#define MAX_NO_RFCOMM_SERVICES 3
+#define MAX_NO_RFCOMM_SERVICES 4
 #define MAX_NO_RFCOMM_CHANNELS MAX_SPP_CONNECTIONS
 #define MAX_NO_DB_MEM_DEVICE_LINK_KEYS  0
 #define MAX_NO_DB_MEM_DEVICE_NAMES 0
 #define MAX_NO_DB_MEM_SERVICES 0
-
-#define BT_ACLK_SEL		P11SEL
-#define BT_ACLK_DIR		P11DIR
-#define BT_ACLK_BIT		BIT0 		// P11.0 ACLK 32Khz -> BT
-
-#define BT_SHUTDOWN_SEL	P10SEL
-#define BT_SHUTDOWN_DIR	P10DIR
-#define BT_SHUTDOWN_OUT	P10OUT
-#define BT_SHUTDOWN_BIT BIT7		// P10.7 nShutdown
-
-// TXD P3.4
-#define BT_TXD_OUT      P3OUT
-#define BT_TXD_SEL     	P3SEL
-#define BT_TXD_DIR     	P3DIR
-#define BT_TXD_BIT      BIT4
-
-// RXD P3.5
-#define BT_RXD_OUT      P3OUT
-#define BT_RXD_SEL     	P3SEL
-#define BT_RXD_DIR     	P3DIR
-#define BT_RXD_BIT      BIT5
-
-// RTS P1.4
-#define BT_RTS_OUT      P1OUT
-#define BT_RTS_SEL     	P1SEL
-#define BT_RTS_DIR     	P1DIR
-#define BT_RTS_BIT      BIT4
-
-// CTS P1.3
-#define BT_CTS_OUT      P1OUT
-#define BT_CTS_SEL     	P1SEL
-#define BT_CTS_DIR     	P1DIR
-#define BT_CTS_IFG     	P1IFG
-#define BT_CTS_IES     	P1IES
-#define BT_CTS_IE     	P1IE
-#define BT_CTS_IN       P1IN
-#define BT_CTS_BIT      BIT3
-
-//P9.7 nOE SLOW clk
-#define OECLKDIR		P9DIR
-#define OECLKOUT		P9OUT
-#define OECLKBIT		BIT7
-
-//P9.2 nOE HCI 
-#define OEHCIDIR		P9DIR
-#define OEHCIOUT		P9OUT
-#define OEHCIBIT		BIT2
+#endif

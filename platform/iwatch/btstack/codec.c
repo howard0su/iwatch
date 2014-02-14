@@ -1,9 +1,11 @@
 #include "contiki.h"
 #include "window.h"
-
+#include "bluetooth.h"
 #include <stdint.h>
 #include <stdio.h>
 #include "i2c.h"
+#include "power.h"
+
 /*
  * Codec NAU1080 for BT
  */
@@ -64,26 +66,41 @@
 #define REG_OUT3_MIXER_CTRL             (0x038)
 #define REG_OUT4_MIXER_CTRL             (0x039)
 
-extern uint8_t SMCLK_NEED;
-
 static const uint16_t config[] =
 {
+//0  1      2     3 
   0, 0x17d, 0x15, 0x75, //Power Management
-  0x090, 0x0, 0x1E0, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0xFF, 0x108, 0x1ff, // Audio Control
+//4      5    6      7    8    9    a    b      c    d     e      f
+  0x090, 0x0, 0x100, 0x0, 0x0, 0x0, 0x8, 0x1ff, 0x0, 0xFF, 0x108, 0x1ff, // Audio Control
+//10      11
   0xFFFF, 0xFFFF, // skip 2
+//12     13    14   15     16
   0x12c, 0x2c, 0x2c, 0x2c, 0x2c, //Equalizer
+//17
   0xFFFF, // skip 1
-  0x32, 0x00, // DAC Limiter
+//18    19
+  0x32, 0x07, // DAC Limiter
+//1a
   0xFFFF, // skip 1
+//1b   1c   1d   1e
   0x0, 0x0, 0x0, 0x0, //Notch Filter
+//1f
   0xffff, // skip 1
+//20    21   22    23
   0x38, 0xb, 0x32, 0x0, //ALC Control
-  0x6, 0x9, 0x6E, 0x12F, //PLL Control for 16mhz MCLK
-//  0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz MCLK
+//24   25   26    27
+  0x6, 0x9, 0x6E, 0x12F, //PLL Control for 8mhz MCLK
+  //0x6, 0x9, 0x6E, 0x12F, //PLL Control for 16mhz MCLK
+  //0x8, 0xc, 0x93, 0xE9, // PLL Control for 12Mhz MCLK
+//28
   0x0, // BYP Control
+//29      2a      2b
   0xFFFF, 0xFFFF, 0xFFFF, // skip 3
-  0x3, 0x10, 0x0, 0x100, 0x0, 0x2, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40 + 63, 0x1, //Input Output Mixer
+//2c   2d    2e   2f     30   31   32   33   34    35    36    37         38
+  0x3, 0x10, 0x0, 0x100, 0x0, 0x6, 0x1, 0x0, 0x40, 0x40, 0xbf, 0x40 + 63, 0x0, //Input Output Mixer
 };
+
+static uint8_t last_vol = 7;
 
 static int codec_write(uint8_t reg, uint16_t data)
 {
@@ -98,19 +115,18 @@ static uint16_t codec_read(uint8_t reg)
   return (data[0] << 8) | data[1];
 }
 
-#define AUDOUT P10OUT
-#define AUDDIR P10DIR
-#define AUDBIT BIT6
-
-#define CLKSEL P11SEL
-#define CLKDIR P11DIR
-#define CLKBIT BIT2
-
-#define PCODECDIR P7DIR
-#define PCODECOUT P7OUT
-#define PCODECBIT BIT7
-
 void codec_shutdown()
+{
+  codec_suspend();
+
+  AUDOUT |= AUDBIT; // output direction, value = H
+
+  SMCLKSEL &= ~SMCLKBIT;     // output SMCLK
+
+  PCODECOUT &= ~PCODECBIT;
+}
+
+void codec_suspend()
 {
   /*
   Mute DAC  DACMT[6] = 1
@@ -120,11 +136,10 @@ void codec_shutdown()
   NSPKEN[6]
   PSPKEN[5]
   */
-  printf("codec_shutdown\n");
-  SMCLK_NEED--;
-  CLKSEL &= ~CLKBIT;     // disable SMCLK
+  SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
+  power_unpin(MODULE_CODEC);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   codec_write(REG_POWER_MANAGEMENT1, 0);
   codec_write(REG_POWER_MANAGEMENT2, 0);
   codec_write(REG_POWER_MANAGEMENT3, 0);
@@ -136,66 +151,56 @@ void codec_shutdown()
 uint8_t codec_changevolume(int8_t diff)
 {
   uint8_t current;
-  I2C_addr(CODEC_ADDRESS, 1);
-  uint16_t value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
-  current = value & 0x3F;
-  value &= ~0x3F;
-  
-  if (diff > 0)
-  {
-    if (current + diff <= 0x3f)
-      current += diff;
-  }
-  else
-  {
-    if (current > -diff)
-      current += diff;
-  }
-
-  value |= current;
-  
-  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
-  I2C_done();
+  current = codec_getvolume();  
+  if (!(current == 0 && diff < 0))
+    current += diff;
+  codec_setvolume(current);
 
   return current;
 }
 
-/* set volume, levle is from 0 - 255 */
+/* set volume, levle is from 0 - 8 */
 void codec_setvolume(uint8_t level)
 {
+  if (level > 8) level = 8;
+  if (level == 0) level = 1;
+
+  last_vol = level;
+
   uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
   value &= ~0x3F;
-  value |= level >> 2;
+  value |= ((level * 8 - 1) & 0x3F);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
   I2C_done();
 }
 
-/* set volume, levle is from 0 - 64 */
-uint8_t codec_getvolume(uint8_t level)
+/* set volume, levle is from 0 - 10 */
+uint8_t codec_getvolume()
 {
-  uint16_t value;
-  I2C_addr(CODEC_ADDRESS, 1);
-  value = codec_read(REG_LOUT2_SPKR_VOLUME_CTRL);
-  I2C_done();
-  return value & 0x3F;
+  return last_vol;
 }
 
 void codec_wakeup()
 {
-  printf("codec_wakeup\n");
-  CLKSEL |= CLKBIT;     // output SMCLK
-  SMCLK_NEED++;
+  SMCLKSEL |= SMCLKBIT;     // output SMCLK
+  power_pin(MODULE_CODEC);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   codec_write(REG_POWER_MANAGEMENT1, config[REG_POWER_MANAGEMENT1]);
   codec_write(REG_POWER_MANAGEMENT2, config[REG_POWER_MANAGEMENT2]);
   codec_write(REG_POWER_MANAGEMENT3, config[REG_POWER_MANAGEMENT3]);
 
   codec_write(REG_CLK_GEN_CTRL, config[REG_CLK_GEN_CTRL]);
+
+  uint16_t value = config[REG_LOUT2_SPKR_VOLUME_CTRL];
+  value &= ~0x3F;
+  value |= ((last_vol * 8 - 1) & 0x3F);
+
+  codec_write(REG_LOUT2_SPKR_VOLUME_CTRL, value);
+
   I2C_done();
-  printf("code_wakeup done\n");
 }
 
 void codec_init()
@@ -203,15 +208,15 @@ void codec_init()
   AUDDIR |= AUDBIT;
   AUDOUT &= ~AUDBIT; // output direction, value = H
 
-  CLKDIR |= CLKBIT;
-  CLKSEL |= CLKBIT;     // output SMCLK
+  SMCLKDIR |= SMCLKBIT;
+  SMCLKSEL |= SMCLKBIT;     // output SMCLK
 
- PCODECDIR |= PCODECBIT;
- PCODECOUT |= PCODECBIT;
+  PCODECDIR |= PCODECBIT;
+  PCODECOUT |= PCODECBIT;
 
-  SMCLK_NEED++;
+  power_pin(MODULE_CODEC);
 
-  I2C_addr(CODEC_ADDRESS, 1);
+  I2C_addr(CODEC_ADDRESS);
   //reset codec ?
   codec_write(REG_RESET, 0);
   __delay_cycles(5000);
@@ -241,7 +246,7 @@ void codec_init()
   }
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
-  printf("initialize codec sucess\n");
+  printf("$$OK CODEC\n");
 
 #if 0
   for(int i = 1; i <= 0x38; i++)
@@ -259,5 +264,5 @@ void codec_init()
 #endif
   I2C_done();
 
-  codec_shutdown();
+  codec_suspend();
 }

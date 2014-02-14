@@ -2,8 +2,9 @@
 #ifndef _STLV_H_
 #define _STLV_H_
 
-#include "stdint.h"
+#include <stdint.h>
 
+#define UNUSED_VAR(a) a = a
 #define STLV_INVALID_HANDLE 0
 #define IS_VALID_STLV_HANDLE(h) (h != STLV_INVALID_HANDLE)
 
@@ -26,7 +27,21 @@
 #define ELEMENT_TYPE_SPORT_HEARTBEAT  'H'
 #define ELEMENT_TYPE_GET_FILE         'G'
 #define ELEMENT_TYPE_LIST_FILES       'L'
-#define ELEMENT_TYPE_REMOVE_FILE      'R'
+#define ELEMENT_TYPE_REMOVE_FILE      'X'
+#define ELEMENT_TYPE_SPORTS_DATA      'A'
+#define     SUB_TYPE_SPORTS_DATA_ID       'i'
+#define     SUB_TYPE_SPORTS_DATA_DATA     'd'
+#define     SUB_TYPE_SPORTS_DATA_FLAG     'f'
+
+#define ELEMENT_TYPE_SPORTS_GRID      'R'
+#define ELEMENT_TYPE_SN               'S'
+#define ELEMENT_TYPE_WATCHFACE        'W'
+#define ELEMENT_TYPE_GESTURE_CONTROL  'D'
+#define ELEMENT_TYPE_WATCHCONFIG      'P'
+
+#define ELEMENT_TYPE_ALARM            'I'
+#define     SUB_TYPE_ALARM_OPERATION  'o'
+#define     SUB_TYPE_ALARM_VALUE      'd'
 
 #define ELEMENT_TYPE_FILE             'F'
 #define     SUB_TYPE_FILE_NAME        'n'
@@ -37,11 +52,34 @@
 #define     ELEMENT_TYPE_MESSAGE_SMS      'S'
 #define     ELEMENT_TYPE_MESSAGE_FB       'F'
 #define     ELEMENT_TYPE_MESSAGE_TW       'T'
+#define     ELEMENT_TYPE_MESSAGE_WEATHER  'W'
+#define     ELEMENT_TYPE_MESSAGE_BATTERY  'B'
+#define     ELEMENT_TYPE_MESSAGE_CALL     'C'
+#define     ELEMENT_TYPE_MESSAGE_REMINDER 'R'
+#define     ELEMENT_TYPE_MESSAGE_RANGE    'L'
 #define         SUB_TYPE_MESSAGE_IDENTITY 'i'
 #define         SUB_TYPE_MESSAGE_MESSAGE  'd'
 
+#define ELEMENT_TYPE_ACTIVITY       'Z'
+#define     SUB_TYPE_ACTIVITY_UTC   't'
+#define     SUB_TYPE_ACTIVITY_LAT   'l'
+#define     SUB_TYPE_ACTIVITY_LON   'n'
+#define     SUB_TYPE_ACTIVITY_ALT   'a'
+#define     SUB_TYPE_ACTIVITY_SPD   's'
+#define     SUB_TYPE_ACTIVITY_DIS   'd'
+#define     SUB_TYPE_ACTIVITY_HRT   'h'
+#define     SUB_TYPE_ACTIVITY_CAL   'c'
+#define     SUB_TYPE_ACTIVITY_ID    'i'
+
+
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;
+
+#define BTSTACK_TYPE_UNKNOWN 0
+#define BTSTACK_TYPE_RFCOMM  1
+#define BTSTACK_TYPE_GATT    2
+void set_btstack_type(uint8_t type);
+uint8_t get_btstack_type();
 
 //parse packet
 int get_version(stlv_packet pack);

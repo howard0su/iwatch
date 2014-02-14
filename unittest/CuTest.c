@@ -135,6 +135,7 @@ void CuTestDelete(CuTest *t)
 
 void CuTestRun(CuTest* tc)
 {
+    printf("------TestCase [%s]------\n", tc->name);
 	jmp_buf buf;
 	tc->jumpBuf = &buf;
 	if (setjmp(buf) == 0)
@@ -143,6 +144,7 @@ void CuTestRun(CuTest* tc)
 		(tc->function)(tc);
 	}
 	tc->jumpBuf = 0;
+    printf("\n");
 }
 
 static void CuFailInternal(CuTest* tc, const char* file, int line, CuString* string)
@@ -235,17 +237,18 @@ void CuAssertPtrEquals_LineMsg(CuTest* tc, const char* file, int line, const cha
  * CuSuite
  *-------------------------------------------------------------------------*/
 
-void CuSuiteInit(CuSuite* testSuite)
+void CuSuiteInit(CuSuite* testSuite, char* name)
 {
+    testSuite->name  = name;
 	testSuite->count = 0;
 	testSuite->failCount = 0;
-        memset(testSuite->list, 0, sizeof(testSuite->list));
+    memset(testSuite->list, 0, sizeof(testSuite->list));
 }
 
-CuSuite* CuSuiteNew(void)
+CuSuite* CuSuiteNew(char* name)
 {
 	CuSuite* testSuite = CU_ALLOC(CuSuite);
-	CuSuiteInit(testSuite);
+	CuSuiteInit(testSuite, name);
 	return testSuite;
 }
 
@@ -282,6 +285,7 @@ void CuSuiteAddSuite(CuSuite* testSuite, CuSuite* testSuite2)
 
 void CuSuiteRun(CuSuite* testSuite)
 {
+    printf("============Enter TestSuit [%s]============\n", testSuite->name);
 	int i;
 	for (i = 0 ; i < testSuite->count ; ++i)
 	{
@@ -289,6 +293,7 @@ void CuSuiteRun(CuSuite* testSuite)
 		CuTestRun(testCase);
 		if (testCase->failed) { testSuite->failCount += 1; }
 	}
+    printf("============Leave TestSuit [%s]============\n\n", testSuite->name);
 }
 
 void CuSuiteSummary(CuSuite* testSuite, CuString* summary)

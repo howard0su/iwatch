@@ -7,6 +7,9 @@
 #include "btstack/bluetooth.h"
 #include "battery.h"
 #include "rtc.h"
+#include "pedometer/pedometer.h"
+#include "sportsdata.h"
+#include "memory.h"
 
 #include <stdio.h>
 
@@ -41,6 +44,8 @@ extern const tRectangle status_clip;
 #define BATTERY_MORE_CHARGE 6
 
 static uint16_t status;
+
+void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
 static void OnDraw(tContext* pContext)
 {
@@ -97,15 +102,15 @@ static void OnDraw(tContext* pContext)
     char icon = ICON_RUN;
     // draw activity
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, &icon, 1, 54, 0, 0);
-    unsigned long steps;
+    GrStringDraw(pContext, &icon, 1, 48, 0, 0);
+    uint16_t steps;
     // todo: fetch goal
-    int part = 12000 / 5;
-    steps = 100;
-    for(int i = 1; i < 6; i++)
+    int part = window_readconfig()->goal_steps / 5;
+    steps = ped_get_steps();
+    for(int i = 1; i <= 5; i++)
     {
-      tRectangle rect = {67 + i * 5, 6, 70 + i * 5, 9};
-      if (i * part <= steps)
+      tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
+      if (i * part / 2 <= steps)
       {
         GrRectFill(pContext, &rect);
       }
@@ -119,13 +124,11 @@ static void OnDraw(tContext* pContext)
   {
     uint8_t hour, minute;
     char buf[20];
-    uint8_t ampm = 0;
+    uint8_t ampm;
     rtc_readtime(&hour, &minute, NULL);
-    if (hour > 12)
-    {
-      hour -= 12;
-      ampm = 1;
-    }
+
+    adjustAMPM(hour, &hour, &ampm);
+
     sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontNova12b);
     int width = GrStringWidthGet(pContext, buf, -1);
@@ -144,34 +147,49 @@ static void check_battery()
   uint8_t level = battery_level();
   uint8_t state = battery_state();
 
+  status &= ~BATTERY_STATUS;
   if (state == BATTERY_DISCHARGING)
   {
-    status &= ~BATTERY_STATUS;
-    // not charging
-    if (level < 190)
+    switch(level)
     {
+      case 0: case 1: case 2:
       status |= BATTERY_EMPTY;
-    }
-    else if (level < 200)
+      break;
+      case 3: case 4: case 5: case 6:
       status |= BATTERY_LESS;
-    else if (level < 212)
+      break;
+      case 7: case 8: case 9: case 10: case 11: case 12: case 13:
       status |= BATTERY_MORE;
-    else
+      break;
+      default:
       status |= BATTERY_FULL;
+  }
   }
   else if (state == BATTERY_CHARGING)
   {
-    if ((status & BATTERY_STATUS) == BATTERY_MORE_CHARGE)
+    if (level >= 15)
     {
-      status &= ~BATTERY_STATUS;
+      status |= BATTERY_FULL;
+    }
+    else if ((status & BATTERY_STATUS) == BATTERY_MORE_CHARGE)
+    {
       status |= BATTERY_LESS_CHARGE;
     }
     else
     {
-      status &= ~BATTERY_STATUS;
       status |= BATTERY_MORE_CHARGE;
     }
   }
+}
+
+static void save_daily_data()
+{
+  // normal  : steps, cals, distance
+  uint32_t data[3] = {0};
+  data[0] = ped_get_steps();
+  data[1] = ped_get_calorie();
+  data[2] = ped_get_distance();
+  save_activity(DATA_MODE_NORMAL, data, count_elem(data));
 }
 
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
@@ -188,13 +206,34 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
     OnDraw((tContext*)rparam);
     break;
   case PROCESS_EVENT_TIMER:
+    {
+      uint8_t hour, minute, second;
+      rtc_readtime(&hour, &minute, &second);
+      if (hour == 0 && minute == 0 && second <= 19)
+      {
+        save_daily_data();
+        ped_reset();
+        //save_data_start(DATA_MODE_NORMAL, timestamp);
+      }
+      //if (minute % 5 == 0 && second <= 10)
+      //{
+      //  uint32_t timestamp = rtc_readtime32();
+      //  printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
+      //  uint32_t data[3] = {0};
+      //  data[0] = ped_get_steps();
+      //  data[1] = ped_get_calorie();
+      //  data[2] = ped_get_distance();
+      //  save_data(DATA_MODE_NORMAL, timestamp, data, sizeof(data));
+      //}
     check_battery();
+      //write_walkstatus();
     status ^= MID_STATUS;
     break;
+    }
   case EVENT_BT_STATUS:
-    if (lparam == BT_INITIALIZED)
+    if (lparam == BT_CONNECTED)
       status |= BLUETOOTH_STATUS;
-    else if (lparam == BT_SHUTDOWN)
+    else if (lparam == BT_DISCONNECTED)
       status &= ~BLUETOOTH_STATUS;
     break;
   case EVENT_ANT_STATUS:

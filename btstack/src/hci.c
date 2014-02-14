@@ -35,7 +35,7 @@
  *  Created by Matthias Ringwald on 4/29/09.
  *
  */
-
+//#define ENABLE_LOG_INFO
 #include "config.h"
 
 #include "hci.h"
@@ -65,6 +65,11 @@ static void hci_update_scan_enable(void);
 
 // the STACK is here
 static hci_stack_t       hci_stack;
+
+static const uint16_t       sniff_max_interval = 0x340;  // time unit: 0.625ms
+static const uint16_t       sniff_min_interval = 0xA0;
+static const uint16_t       sniff_attempt = 1;
+static const uint16_t       sniff_timeout = 0x10;
 
 /**
  * get connection for a given handle
@@ -96,8 +101,19 @@ static void hci_connection_timeout_handler(timer_source_t *timer){
         // connections might be timed out
         hci_emit_l2cap_check_timeout(connection);
     }
+    if (connection->sniff_timeout != -1 &&
+        (connection->mode & MODE_VALUES) == ACTIVE &&
+        embedded_get_ticks() > connection->timestamp + embedded_ticks_for_ms(connection->sniff_timeout)){
+        // switch to sniff mode
+        log_debug("try to go to sniff mode\n");
+        connection->mode |= ENTER_SNIFF;
+        hci_run();
+    }
 #endif
-    run_loop_set_timer(timer, HCI_CONNECTION_TIMEOUT_MS);
+    if (connection->sniff_timeout < HCI_CONNECTION_TIMEOUT_MS)
+        run_loop_set_timer(timer, connection->sniff_timeout);
+    else
+        run_loop_set_timer(timer, HCI_CONNECTION_TIMEOUT_MS);
     run_loop_add_timer(timer);
 }
 
@@ -120,7 +136,9 @@ static hci_connection_t * create_connection_for_addr(bd_addr_t addr, uint8_t typ
     if (!conn) return NULL;
     BD_ADDR_COPY(conn->address, addr);
 	conn->type = type;
+    conn->mode = ACTIVE;
     conn->con_handle = 0xffff;
+    conn->sniff_timeout = 0xffff;
     conn->authentication_flags = AUTH_FLAGS_NONE;
     linked_item_set_user(&conn->timeout.item, conn);
     conn->timeout.process = hci_connection_timeout_handler;
@@ -210,11 +228,28 @@ uint8_t hci_number_outgoing_packets(hci_con_handle_t handle){
     return connection->num_acl_packets_sent;
 }
 
-uint8_t hci_number_free_acl_slots(){
-    uint8_t free_slots = hci_stack.total_num_acl_packets;
+uint8_t hci_number_free_acl_slots(int type ){
+    uint8_t free_slots;
     linked_item_t *it;
+
+    if (!type)
+        free_slots = hci_stack.total_num_acl_packets;
+    else
+        free_slots = hci_stack.total_num_le_packets;
+
     for (it = (linked_item_t *) hci_stack.connections; it ; it = it->next){
         hci_connection_t * connection = (hci_connection_t *) it;
+        if (!type)
+        {
+            if (connection->con_handle > 1024) // if (rquest ble && it is ble)
+                continue;
+        }
+        else
+        {
+            if (connection->con_handle <= 1024)
+                continue;
+        }
+
         if (free_slots < connection->num_acl_packets_sent) {
             log_error("hci_number_free_acl_slots: sum of outgoing packets > total acl packets!\n");
             return 0;
@@ -236,7 +271,7 @@ int hci_can_send_packet_now(uint8_t packet_type){
     // check regular Bluetooth flow control
     switch (packet_type) {
         case HCI_ACL_DATA_PACKET:
-            return hci_number_free_acl_slots();
+            return ((hci_number_free_acl_slots(0) > 0) || (hci_number_free_acl_slots(1) > 0));
         case HCI_COMMAND_DATA_PACKET:
             return hci_stack.num_cmd_packets;
         default:
@@ -245,16 +280,15 @@ int hci_can_send_packet_now(uint8_t packet_type){
 }
 
 int hci_send_acl_packet(uint8_t *packet, int size){
-
-    // check for free places on BT module
-    if (!hci_number_free_acl_slots()) 
+    hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
+    if (!hci_number_free_acl_slots(con_handle > 1024)) 
     {
         log_info("hci_send_acl_packet - BTSTACK_ACL_BUFFERS_FULL\n");
         return BTSTACK_ACL_BUFFERS_FULL;
     }
 
-    hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
     hci_connection_t *connection = connection_for_handle( con_handle);
+    // check for free places on BT module
     if (!connection) 
     {
         log_info("hci_send_acl_packet - connection not found\n");
@@ -264,7 +298,7 @@ int hci_send_acl_packet(uint8_t *packet, int size){
 
     // count packet
     connection->num_acl_packets_sent++;
-    log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
+    //log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
     hci_dump_packet( HCI_ACL_DATA_PACKET, 0, packet, size);
 
     // send packet
@@ -289,6 +323,10 @@ static void acl_handler(uint8_t *packet, int size){
         return;
     }
 
+    if (acl_length + 4 != size){
+         log_error("hci.c: acl_handler called with ACL packet of wrong size %u, expected %u => dropping packet\n", size, acl_length + 4);
+         return;
+    }
     // update idle timestamp
     hci_connection_timestamp(conn);
 
@@ -380,7 +418,25 @@ static const uint16_t packet_type_sizes[] = {
     HCI_ACL_2DH5_SIZE, HCI_ACL_3DH5_SIZE, HCI_ACL_DM5_SIZE, HCI_ACL_DH5_SIZE
 };
 
-static uint16_t hci_acl_packet_types_for_buffer_size(uint16_t buffer_size){
+static const uint8_t  packet_type_feature_requirement_bit[] = {
+     0, // 3 slot packets
+     1, // 5 slot packets
+    25, // EDR 2 mpbs
+    26, // EDR 3 mbps
+    39, // 3 slot EDR packts
+    40, // 5 slot EDR packet
+};
+static const uint16_t packet_type_feature_packet_mask[] = {
+    0x0f00, // 3 slot packets
+    0xf000, // 5 slot packets
+    0x1102, // EDR 2 mpbs
+    0x2204, // EDR 3 mbps
+    0x0300, // 3 slot EDR packts
+    0x3000, // 5 slot EDR packet
+};
+
+static uint16_t hci_acl_packet_types_for_buffer_size_and_local_features(uint16_t buffer_size, uint8_t * local_supported_features){
+    // enable packet types based on size
     uint16_t packet_types = 0;
     int i;
     for (i=0;i<16;i++){
@@ -389,9 +445,27 @@ static uint16_t hci_acl_packet_types_for_buffer_size(uint16_t buffer_size){
             packet_types |= 1 << i;
         }
     }
+    // disable packet types due to missing local supported features
+    for (i=0;i<sizeof(packet_type_feature_requirement_bit);i++){
+        int bit_idx = packet_type_feature_requirement_bit[i];
+        int feature_set = (local_supported_features[bit_idx >> 3] & (1<<(bit_idx & 7))) != 0;
+        if (feature_set) continue;
+        log_info("Features bit %02u is not set, removing packet types 0x%04x", bit_idx, packet_type_feature_packet_mask[i]);
+        packet_types &= ~packet_type_feature_packet_mask[i];
+    }
     // flip bits for "may not be used"
     packet_types ^= 0x3306;
     return packet_types;
+}
+
+// get addr type and address used in advertisement packets
+void hci_le_advertisement_address(uint8_t * addr_type, bd_addr_t * addr){
+    *addr_type = hci_stack.adv_addr_type;
+    if (hci_stack.adv_addr_type){
+        memcpy(addr, hci_stack.adv_address, 6);
+    } else {
+        memcpy(addr, hci_stack.local_bd_addr, 6);
+    }
 }
 
 uint16_t hci_usable_acl_packet_types(void){
@@ -405,6 +479,35 @@ uint8_t* hci_get_outgoing_acl_packet_buffer(void){
 
 uint16_t hci_max_acl_data_packet_length(){
     return hci_stack.acl_data_packet_length;
+}
+
+
+int hci_ssp_supported(void){
+    // No 51, byte 6, bit 3
+    return (hci_stack.local_supported_features[6] & (1 << 3)) != 0;
+}
+
+int hci_classic_supported(void){
+    // No 37, byte 4, bit 5, = No BR/EDR Support
+    return (hci_stack.local_supported_features[4] & (1 << 5)) == 0;
+}
+
+int hci_le_supported(void){
+    // No 37, byte 4, bit 6 = LE Supported (Controller)
+#ifdef HAVE_BLE
+    return (hci_stack.local_supported_features[4] & (1 << 6)) != 0;
+#else
+    return 0;
+#endif    
+}
+
+void hci_set_class_of_device(uint32_t value)
+{
+    hci_stack.class_of_device = value;
+}
+
+bd_addr_t * hci_local_bd_addr(void){
+    return &hci_stack.local_bd_addr;
 }
 
 // avoid huge local variables
@@ -443,23 +546,44 @@ static void event_handler(uint8_t *packet, int size){
                     if (HCI_ACL_PAYLOAD_SIZE < hci_stack.acl_data_packet_length){
                         hci_stack.acl_data_packet_length = HCI_ACL_PAYLOAD_SIZE;
                     }
-                    // determine usable ACL packet types
-                    hci_stack.packet_types = hci_acl_packet_types_for_buffer_size(hci_stack.acl_data_packet_length);
-
-                    log_error("hci_read_buffer_size: used size %u, count %u, packet types %04x\n",
-                             hci_stack.acl_data_packet_length, hci_stack.total_num_acl_packets, hci_stack.packet_types);
+                    log_error("hci_read_buffer_size: used size %u, count %u\n",
+                             hci_stack.acl_data_packet_length, hci_stack.total_num_acl_packets);
                 }
             }
-            // Dump local address
-            if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)) {
-                bd_addr_t addr;
-                bt_flip_addr(addr, &packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE + 1]);
-                log_info("Local Address, Status: 0x%02x: Addr: %s\n",
-                    packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE], bd_addr_to_str(addr));
-            }
-            if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
+           
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
                 hci_emit_discoverable_enabled(hci_stack.discoverable);
             }
+            // Note: HCI init checks
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_read_local_supported_features)){
+                memcpy(hci_stack.local_supported_features, &packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE+1], 8);
+                log_info("Local Supported Features: 0x%02x%02x%02x%02x%02x%02x%02x%02x",
+                    hci_stack.local_supported_features[0], hci_stack.local_supported_features[1],
+                    hci_stack.local_supported_features[2], hci_stack.local_supported_features[3],
+                    hci_stack.local_supported_features[4], hci_stack.local_supported_features[5],
+                    hci_stack.local_supported_features[6], hci_stack.local_supported_features[7]);
+
+                // determine usable ACL packet types based buffer size and supported features
+                hci_stack.packet_types = hci_acl_packet_types_for_buffer_size_and_local_features(hci_stack.acl_data_packet_length, &hci_stack.local_supported_features[0]);
+                log_info("packet types %04x", hci_stack.packet_types);
+
+                // Classic/LE
+                log_info("BR/EDR support %u, LE support %u", hci_classic_supported(), hci_le_supported());
+            }
+#ifdef HAVE_BLE
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
+                hci_stack.le_data_packet_length = READ_BT_16(packet, 6);
+                hci_stack.total_num_le_packets = packet[8];
+                log_info("hci_le_read_buffer_size: size %u, count %u\n", hci_stack.le_data_packet_length, hci_stack.total_num_le_packets);
+            }
+#endif
+                        // Dump local address
+            else if (COMMAND_COMPLETE_EVENT(packet, hci_read_bd_addr)) {
+                bt_flip_addr(hci_stack.local_bd_addr, &packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE + 1]);
+                log_info("Local Address, Status: 0x%02x: Addr: %s\n",
+                    packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE], bd_addr_to_str(hci_stack.local_bd_addr));
+            }
+
             break;
 
         case HCI_EVENT_COMMAND_STATUS:
@@ -566,6 +690,24 @@ static void event_handler(uint8_t *packet, int size){
             hci_stack.remote_device_db->delete_link_key(&addr);
             break;
 
+        case HCI_EVENT_IO_CAPABILITY_REQUEST:
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], RECV_IO_CAPABILITIES_REQUEST);
+            if (hci_stack.ssp_io_capability == SSP_IO_CAPABILITY_UNKNOWN) break;
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], SEND_IO_CAPABILITIES_REPLY);
+            break;
+       
+        case HCI_EVENT_USER_CONFIRMATION_REQUEST:
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], RECV_USER_CONFIRM_REQUEST);
+            if (!hci_stack.ssp_auto_accept) break;
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], SEND_USER_CONFIRM_REPLY);
+            break;
+
+        case HCI_EVENT_USER_PASSKEY_REQUEST:
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], RECV_USER_PASSKEY_REQUEST);
+            if (!hci_stack.ssp_auto_accept) break;
+            hci_add_connection_flags_for_flipped_bd_addr(&packet[2], SEND_USER_PASSKEY_REPLY);
+            break;
+
 #ifndef EMBEDDED
         case HCI_EVENT_REMOTE_NAME_REQUEST_COMPLETE:
             if (!hci_stack.remote_device_db) break;
@@ -614,6 +756,32 @@ static void event_handler(uint8_t *packet, int size){
             }
             break;
 
+        case HCI_EVENT_MODE_CHANGE_EVENT:
+            {
+                // data: event (8), len (8), status (8), handle (16), current_mode (8), interval (16)
+                handle = READ_BT_16(packet, 3);
+                hci_connection_t * conn = connection_for_handle(handle);
+                if (!packet[2])
+                {
+                    if (conn != 0)
+                    {
+                        uint8_t current_mode = packet[5];
+                        uint16_t interval = READ_BT_16(packet,6);
+                        log_debug("current_mode=%d interval=%d\n",current_mode,interval);
+                        conn->mode = current_mode;
+                    }
+                }
+                else
+                {
+                  log_debug("Change mode event failed with 0x%x\n", packet[2]);
+                }
+                break;
+            }
+        case HCI_EVENT_READ_REMOTE_SUPPORTED_FEATURES_COMPLETE:
+            {
+              log_debug("Remote supported features: %04lX%04lX\n", READ_BT_32(packet, 12), READ_BT_32(packet, 8));
+              break;
+            }
 #ifdef HAVE_BLE
         case HCI_EVENT_LE_META:
             switch (packet[2]) {
@@ -671,15 +839,25 @@ static void event_handler(uint8_t *packet, int size){
 
     // handle BT initialization
     if (hci_stack.state == HCI_STATE_INITIALIZING){
-        // handle H4 synchronization loss on restart
-        // if (hci_stack.substate == 1 && packet[0] == HCI_EVENT_HARDWARE_ERROR){
-        //    hci_stack.substate = 0;
-        // }
-        // handle normal init sequence
         if (hci_stack.substate % 2){
             // odd: waiting for event
             if (packet[0] == HCI_EVENT_COMMAND_COMPLETE){
-                hci_stack.substate++;
+                // wait for explicit COMMAND COMPLETE on RESET
+                if (hci_stack.substate > 1 || COMMAND_COMPLETE_EVENT(packet, hci_reset)) {
+                    hci_stack.substate++;
+                }
+            }
+            else if (packet[0] == DAEMON_EVENT_HCI_PACKET_SENT)
+            {
+            }
+            else if (packet[0] == HCI_EVENT_HARDWARE_ERROR)
+            {
+                printf("hardware error %x", packet[2]);
+                hci_stack.substate = 0;
+            }
+            else
+            {
+              log_error("Fail initialize command %d\n", packet[0]);
             }
         }
     }
@@ -751,6 +929,18 @@ void hci_init(hci_transport_t *transport, void *config, bt_control_t *control, r
     transport->register_packet_handler(&packet_handler);
 
     hci_stack.state = HCI_STATE_OFF;
+
+    // class of device
+    hci_stack.class_of_device = 0x007a020c; // Smartphone
+
+    // Secure Simple Pairing
+    hci_stack.ssp_enable = 0;
+    hci_stack.ssp_io_capability = SSP_IO_CAPABILITY_UNKNOWN;
+    hci_stack.ssp_authentication_requirement = 0;
+
+    // LE
+    hci_stack.adv_addr_type = 0;
+    memset(hci_stack.adv_address, 0, 6);
 }
 
 void hci_close(){
@@ -760,7 +950,7 @@ void hci_close(){
     }
     while (hci_stack.connections) {
         hci_shutdown_connection((hci_connection_t *) hci_stack.connections);
-}
+    }
     hci_power_control(HCI_POWER_OFF);
 }
 
@@ -1065,6 +1255,28 @@ void hci_run(){
 
         connection = (hci_connection_t *) it;
 
+        // check if sniff mode is correct
+        if (connection->mode & EXIT_SNIFF)
+        {
+            connection->mode &= ~EXIT_SNIFF;
+            if ((connection->mode & MODE_VALUES) == SNIFF)
+            {
+                log_debug("sending hci_exit_sniff_mode\n");
+                hci_send_cmd(&hci_exit_sniff_mode,connection->con_handle);
+                return;
+            }
+        }
+        else if (connection->mode & ENTER_SNIFF)
+        {
+            connection->mode &= ~ENTER_SNIFF;
+            if ((connection->mode & MODE_VALUES) == ACTIVE)
+            {
+                log_debug("sending hci_sniff_mode\n");
+                hci_send_cmd(&hci_sniff_mode,connection->con_handle,sniff_max_interval,sniff_min_interval,sniff_attempt,sniff_timeout);
+                return;
+            }
+        }
+
         if (connection->state == RECEIVED_CONNECTION_REQUEST){
           if (connection->type == 1)
           {
@@ -1078,9 +1290,8 @@ void hci_run(){
                          0x20, 0x01, 0x003F);
           }
           connection->state = ACCEPTED_CONNECTION_REQUEST;
+          return;
         }
-
-        if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
 
         if (connection->authentication_flags & HANDLE_LINK_KEY_REQUEST){
             link_key_t link_key;
@@ -1091,7 +1302,27 @@ void hci_run(){
                hci_send_cmd(&hci_link_key_request_negative_reply, connection->address);
             }
             connectionClearAuthenticationFlags(connection, HANDLE_LINK_KEY_REQUEST);
+            return;
         }
+
+        if (connection->authentication_flags & SEND_IO_CAPABILITIES_REPLY){
+            hci_send_cmd(&hci_io_capability_request_reply, &connection->address, hci_stack.ssp_io_capability, NULL, hci_stack.ssp_authentication_requirement);
+            connectionClearAuthenticationFlags(connection, SEND_IO_CAPABILITIES_REPLY);
+            return;
+        }
+       
+        if (connection->authentication_flags & SEND_USER_CONFIRM_REPLY){
+            hci_send_cmd(&hci_user_confirmation_request_reply, &connection->address);
+            connectionClearAuthenticationFlags(connection, SEND_USER_CONFIRM_REPLY);
+            return;
+        }
+
+        if (connection->authentication_flags & SEND_USER_PASSKEY_REPLY){
+            hci_send_cmd(&hci_user_passkey_request_reply, &connection->address, 000000);
+            connectionClearAuthenticationFlags(connection, SEND_USER_PASSKEY_REPLY);
+            return;
+        }
+
     }
 
     if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
@@ -1130,7 +1361,6 @@ void hci_run(){
                                 hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, hci_stack.hci_packet_buffer, size);
                             else
                                 log_error("Fail to send another cmd\n");
-                            log_error(".");
                             hci_stack.substate = 4; // more init commands
                             break;
                         }
@@ -1143,35 +1373,75 @@ void hci_run(){
 					hci_send_cmd(&hci_read_buffer_size);
 					break;
                 case 5:
+                    hci_send_cmd(&hci_read_local_supported_features);
+                    break;   
+                case 6:
+                    hci_send_cmd(&hci_set_event_mask,0xffffffff, 0xFFFFFFFF); ///0x1DFFFFFF
+
+                    // skip Classic init commands for LE only chipsets
+                    if (!hci_classic_supported()){
+                        if (hci_le_supported()){
+                            hci_stack.substate = 11 << 1;    // skip all classic command
+                        } else {
+                            log_error("Neither BR/EDR nor LE supported");
+                            hci_stack.substate = 13 << 1;
+                        }
+                    }
+                    break;
+
+                case 7:
+                    if (hci_ssp_supported()){
+                        hci_send_cmd(&hci_write_simple_pairing_mode, hci_stack.ssp_enable);
+                        break;
+                    }
+                    hci_stack.substate += 2;
+                    // break missing here for fall through
+
+                case 8:
                     // ca. 15 sec
                     hci_send_cmd(&hci_write_page_timeout, 0x6000);
                     break;
-				case 6:
-					hci_send_cmd(&hci_write_scan_enable, (hci_stack.connectable << 1) | hci_stack.discoverable); // page scan
-					break;
-                case 7:
-#ifndef EMBEDDED
-                {
-                    char hostname[30];
-                    gethostname(hostname, 30);
-                    hostname[29] = '\0';
-                    hci_send_cmd(&hci_write_local_name, hostname);
-                    break;
-                }
-                case 8:
-#ifdef USE_BLUETOOL
-                    hci_send_cmd(&hci_write_class_of_device, 0x007a020c); // Smartphone
-                    break;
-
                 case 9:
+                    hci_send_cmd(&hci_write_class_of_device, hci_stack.class_of_device);
+                    break;
+                case 10:
+                    if (hci_stack.local_name){
+                        hci_send_cmd(&hci_write_local_name, hci_stack.local_name);
+                        break;
+                    }
+                    hci_stack.substate += 2;
+                    // break missing here for fall through
+                case 11:
+                    hci_send_cmd(&hci_write_scan_enable, (hci_stack.connectable << 1) | hci_stack.discoverable); // page scan
+                    if (!hci_le_supported()){
+                        // SKIP LE init for Classic only configuration
+                        hci_stack.substate = 13 << 1;
+                    }
+                    break;
+                   
+#ifdef HAVE_BLE
+                // LE INIT
+                case 12:
+                    hci_send_cmd(&hci_le_read_buffer_size);
+                    break;
+                case 13:
+                    // LE Supported Host = 1, Simultaneous Host = 0
+                    hci_send_cmd(&hci_write_le_host_supported, 1, 0);
+                    break;
+                case 14:
+                    hci_send_cmd(&hci_le_set_advertising_parameters,  0x2000, 0x4000, 0, 0, 0, &hci_stack.local_bd_addr, 0x07, 0);
+                    break;
 #endif
-#endif
+
+                // DONE
+                case 15:
                     // done.
                     hci_stack.state = HCI_STATE_WORKING;
                     hci_emit_state();
                     break;
                 default:
                     break;
+
             }
             hci_stack.substate++;
             break;
@@ -1267,6 +1537,66 @@ void hci_run(){
     }
 }
 
+void hci_set_sniff_timeout(hci_con_handle_t handle, uint16_t timeout)
+{
+    hci_connection_t *connection = connection_for_handle( handle);
+    if (connection) 
+    {
+        connection->sniff_timeout = timeout;
+        if (timeout == -1)
+        {
+            connection->mode |= EXIT_SNIFF;
+        }
+        else
+        {
+          if (timeout < HCI_CONNECTION_TIMEOUT_MS)
+          {
+            run_loop_remove_timer(&connection->timeout);
+            run_loop_set_timer(&connection->timeout, timeout);
+            run_loop_add_timer(&connection->timeout);
+          }
+        }
+    }
+
+    hci_run();
+}
+
+void hci_exit_sniff(hci_con_handle_t handle)
+{
+    hci_connection_t *connection = connection_for_handle( handle);
+    if (connection) 
+    {
+        connection->mode |= EXIT_SNIFF;
+    }
+
+    hci_run();
+}
+
+// Configure Secure Simple Pairing
+
+// enable will enable SSP during init
+void hci_ssp_set_enable(int enable){
+    hci_stack.ssp_enable = enable;
+}
+
+// if set, BTstack will respond to io capability request using authentication requirement
+void hci_ssp_set_io_capability(int io_capability){
+    hci_stack.ssp_io_capability = io_capability;
+}
+void hci_ssp_set_authentication_requirement(int authentication_requirement){
+    hci_stack.ssp_authentication_requirement = authentication_requirement;
+}
+
+// if set, BTstack will confirm a numberic comparion and enter '000000' if requested
+void hci_ssp_set_auto_accept(int auto_accept){
+    hci_stack.ssp_auto_accept = auto_accept;
+}
+
+void hci_set_local_name(const char* name)
+{
+    hci_stack.local_name = name;
+}
+
 int hci_send_cmd_packet(uint8_t *packet, int size){
     bd_addr_t addr;
     hci_connection_t * conn;
@@ -1319,6 +1649,15 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
             hci_stack.remote_device_db->delete_link_key(&addr);
         }
     }
+
+#ifdef HAVE_BLE
+    if (IS_COMMAND(packet, hci_le_set_advertising_parameters)){
+        hci_stack.adv_addr_type = packet[8];
+    }
+    if (IS_COMMAND(packet, hci_le_set_random_address)){
+        bt_flip_addr(hci_stack.adv_address, &packet[3]);
+    }
+#endif
 
     hci_stack.num_cmd_packets--;
     return hci_stack.hci_transport->send_packet(HCI_COMMAND_DATA_PACKET, packet, size);

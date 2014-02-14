@@ -4,18 +4,6 @@
 #include "isr_compat.h"
 #include "spiflash.h"
 
-#define CLKDIR P3DIR
-#define CLKSEL P3SEL
-#define CLKOUT P3OUT
-#define CLKPIN BIT6
-
-#define SPIDIR P5DIR
-#define SPISEL P5SEL
-#define SPIOUT P5OUT
-#define SIPIN  BIT6
-#define SOPIN  BIT7
-#define CSPIN  BIT5
-
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -58,11 +46,14 @@ static void SPI_FLASH_SendCommandAddress(uint8_t opcode, uint32_t address)
 
 static inline void SPI_FLASH_CS_LOW()
 {
+  UCA1CTL1 &= ~UCSWRST;
   SPIOUT &= ~CSPIN;
 }
 
 static inline void SPI_FLASH_CS_HIGH()
 {
+  while(UCA1STAT & UCBUSY);
+  UCA1CTL1 |= UCSWRST;
   SPIOUT |= CSPIN;
   __delay_cycles(10);
 }
@@ -282,6 +273,34 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 }
 
 /******************************************************************************************
+*函数名：SPI_FLASH_BufferRead()
+* 参数：u8* pBuffer, u32 ReadAddr, u16 NumByteToRead 数据指针，读出的地址，读出的个数
+* 返回值：void
+* 功能：SPIFLASH多个数据函数，外部调用
+*********************************************************************************************/
+void SPI_FLASH_BufferRead_Raw(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
+{
+  PRINTF("Read from Disk: offset:%lx size:%d\n", ReadAddr, NumByteToRead);
+  u16 n = NumByteToRead;
+
+   /* 使能片选 */
+  SPI_FLASH_CS_LOW();
+  /*发送读数据指令*/
+  SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
+  while (NumByteToRead--) /* 循环读取数据*/
+  {
+    /*读取一个字节数据*/
+    *pBuffer = SPI_FLASH_SendByte(Dummy_Byte);
+    /*数据指针加1*/
+    pBuffer++;
+  }
+  /*失能片选*/
+  SPI_FLASH_CS_HIGH();
+
+  hexdump(pBuffer - n, n);
+}
+
+/******************************************************************************************
 *函数名：SPI_FLASH_ReadID()
 * 参数：void
 * 返回值：u32 器件ID
@@ -440,7 +459,7 @@ void SPI_FLASH_Init(void)
 
   UCA1CTL0 |= UCMST + UCSYNC + UCMSB + UCCKPL; // master, 3-pin SPI mode, LSB //UCCKPH
   UCA1CTL1 |= UCSSEL__SMCLK; // SMCLK for now
-  UCA1BR0 = 8; // 16MHZ / 8 = 2Mhz
+  UCA1BR0 = 4; // 8MHZ / 4 = 2Mhz
   UCA1BR1 = 0;
   UCA1MCTL = 0;
 
@@ -455,11 +474,10 @@ void SPI_FLASH_Init(void)
   SPIOUT &= ~SIPIN;
   SPIOUT |= CSPIN; // pull CS high to disable chip
 
-  UCA1CTL1 &= ~UCSWRST;
+  //SPI_Flash_Reset();
 
-  SPI_Flash_Reset();
-
-#if 0
+  printf("\n$$OK SPIFLASH\n");
+#if 1
   uint8_t FLASH_Status;
   SPI_FLASH_CS_LOW();
   /*发送读状态指令 */

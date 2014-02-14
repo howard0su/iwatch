@@ -1,6 +1,7 @@
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
 #include "grlib/grlib.h"
+#include <stdint.h>
 
 PROCESS_NAME(system_process);
 
@@ -20,9 +21,12 @@ PROCESS_NAME(system_process);
 // parameter is used as rparam
 #define EVENT_TIME_CHANGED            0x90
 #define EVENT_NOTIFICATION            0x91
-#define EVENT_ANT_DATA                0x92
-#define EVENT_RING_NUM                0x93
-#define EVENT_RING                    0x94
+#define EVENT_SPORT_DATA              0x92
+#define EVENT_BT_RING                 0x93
+#define EVENT_BT_CLIP                 0x94
+#define EVENT_BT_CIEV                 0x95
+#define EVENT_BT_BVRA                 0x96
+#define EVENT_AV                      0x97
 
 // parameter is used as lparam
 #define EVENT_WINDOW_CREATED          0xc0
@@ -44,6 +48,8 @@ PROCESS_NAME(system_process);
 #define EVENT_WINDOW_PAINT            0xa5 // no parameter
 #define EVENT_NOTIFICATION_DONE       0xa6
 #define EVENT_NOTIFY_RESULT           0xa7 // the notification result
+#define EVENT_FILESYS_LIST_FILE       0xa8 // parameters 0 - end, -1 - error, address - pointer to char*
+#define EVENT_STLV_DATA_SENT          0xa9
 
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
@@ -56,11 +62,13 @@ extern void window_timer(clock_time_t time);
 extern void window_close(void);
 extern windowproc window_current();
 extern tContext* window_context();
+extern void window_postmessage(uint8_t event, uint16_t lparam, void *rparam);
 
 // Common control
 extern void window_button(tContext *pContext, uint8_t key, const char* text);
 extern void window_progress(tContext *pContext, long lY, uint8_t step);
 extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected);
+extern void window_volume(tContext *pContext, long lX, long lY, int total, int current);
 
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1
@@ -75,6 +83,7 @@ extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_
 extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
+extern const tRectangle fullscreen_clip;
 
 extern uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam);
 
@@ -98,33 +107,143 @@ extern uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam);
 
-#define UI_CONFIG_SIGNATURE 0xABADFACF
+#define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {
   uint32_t signature;
+  uint16_t goal_steps;
+  uint16_t goal_distance;
+  uint16_t goal_calories;
+  uint16_t lap_length;
+
   // world clock config
   char worldclock_name[6][10];
   int8_t worldclock_offset[6];
+  // 66 bytes
 
-  uint8_t default_clock;
+  uint8_t default_clock; // 0 - analog, 1 - digit
   // analog clock config
-  uint8_t analog_clock;
+  uint8_t analog_clock;  // num : which clock face
   // digit clock config
-  uint8_t digit_clock;
+  uint8_t digit_clock;   // num : which clock face
+
+  // 69 bytes
 
   // sports watch config
-  uint8_t sports_grid;
-  uint8_t sports_grid_data[5];
-  // default
+  uint8_t sports_grid;   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+  uint8_t sports_grid_data[5]; // each slot means which grid data to show
+  // 75 bytes
+
+
+  //goals
+  // 82 bytes
+
+  uint8_t is_ukuint;
+  // 76 bytes
+
+  uint8_t weight; // in kg
+  uint8_t height; // in cm
+  uint8_t circumference;
+  // 85 bytes
+
+  //gesture
+  //#define GESTURE_FLAG_ENABLE 0x01
+  //#define GESTURE_FLAG_LEFT   0x02
+  uint8_t gesture_flag;
+  uint8_t gesture_map[4];
+  // 90 bytes
+
+  uint8_t volume_level;
+  uint8_t light_level;
+
 }ui_config;
 
 extern ui_config* window_readconfig();
 extern void window_writeconfig();
+extern void window_loadconfig();
 
 // the const strings
 extern const char * const month_name[];
 extern const char * const month_shortname[];
 extern const char * const week_shortname[];
 extern const char* toEnglish(uint8_t number, char* buffer);
+
+// #define EVENT_SPORT_DATA              0x92
+// lparam defined as below
+enum SPORTS_DATA_TYPE
+{
+    SPORTS_INVALID = -1,
+    SPORTS_TIME = 0,
+    SPORTS_SPEED_MAX,
+    SPORTS_TIME_LAST_GPS,
+
+    SPORTS_SPEED,
+    SPORTS_ALT,
+    SPORTS_DISTANCE,
+    SPORTS_ALT_START,
+
+    SPORTS_HEARTRATE,
+    SPORTS_HEARTRATE_AVG,
+    SPORTS_HEARTRATE_MAX,
+    SPORTS_TIME_LAST_HEARTRATE,
+
+    SPORTS_CADENCE,
+    SPORTS_TIME_LAP_BEGIN,
+    SPORTS_LAP_BEST,
+
+    SPORTS_STEPS,
+    SPORTS_PED_SPEED,
+    SPORTS_PED_DISTANCE,
+    SPORTS_PED_CALORIES,
+    SPORTS_PED_STEPS_START,
+    SPORTS_TIME_LAST_PED,
+
+    SPORTS_CALS,
+
+    SPORTS_DATA_MAX
+};
+
+//GRID
+enum SPORTS_GRID
+{
+    GRID_WORKOUT = 0,
+    GRID_SPEED,
+    GRID_HEARTRATE,
+    GRID_CALS,
+
+    GRID_DISTANCE,
+    GRID_SPEED_AVG,
+    GRID_ALTITUTE,
+    GRID_TIME,
+
+    GRID_SPEED_TOP,
+    GRID_CADENCE,
+    GRID_PACE,
+    GRID_HEARTRATE_AVG,
+
+    GRID_HEARTRATE_MAX,
+    GRID_ELEVATION,
+    GRID_LAPTIME_CUR,
+    GRID_LAPTIME_BEST,
+
+    GRID_FLOORS,
+    GRID_STEPS,
+    GRID_PACE_AVG,
+    GRID_LAPTIME_AVG,
+
+    GRID_MAX,
+};
+
+struct MenuItem
+{
+  unsigned char icon;
+  const char *name;
+  windowproc handler;
+};
 
 #endif

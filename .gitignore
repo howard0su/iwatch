@@ -19,3 +19,5 @@ build/Retail
 build/Settings
 build/watchCustomSfr.sfr
 build/*.txt
+*.sublime-project
+*.sublime-workspace

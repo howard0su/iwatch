@@ -37,25 +37,50 @@ assigned_uuids = {
     'GATT_SERVICE'         : 0x1801, 
     'GAP_DEVICE_NAME'      : 0x2a00,
     'GAP_APPEARANCE'       : 0x2a01,
-    'GATT_SERVICE_CHANGED' : 0x2a05
+    'GATT_SERVICE_CHANGED' : 0x2a05,
 }
 
 property_flags = {
-    'BROADCAST' :                  0x01,
-    'READ' :                       0x02,
-    'WRITE_WITHOUT_RESPONSE' :     0x04,
-    'WRITE' :                      0x08,
-    'NOTIFY':                      0x10,
-    'INDICATE' :                   0x20,
-    'AUTHENTICATED_SIGNED_WRITE' : 0x40,
-    'EXTENDED_PROPERTIES' :        0x80,
+    'BROADCAST' :                   0x01,
+    'READ' :                        0x02,
+    'WRITE_WITHOUT_RESPONSE' :      0x04,
+    'WRITE' :                       0x08,
+    'NOTIFY':                       0x10,
+    'INDICATE' :                    0x20,
+    'AUTHENTICATED_SIGNED_WRITE' :  0x40,
+    'EXTENDED_PROPERTIES' :         0x80,
     # custom BTstack extension
-    'DYNAMIC':                    0x100,
-    'LONG_UUID':                  0x200,
+    'DYNAMIC':                     0x100,
+    'LONG_UUID':                   0x200,
+    'AUTHENTICATION_REQUIRED':     0x400,
+    'AUTHORIZATION_REQUIRED':      0x800,
+    'ENCRYPTION_KEY_SIZE_7':      0x6000,
+    'ENCRYPTION_KEY_SIZE_8':      0x7000,
+    'ENCRYPTION_KEY_SIZE_9':      0x8000,
+    'ENCRYPTION_KEY_SIZE_10':     0x9000,
+    'ENCRYPTION_KEY_SIZE_11':     0xa000,
+    'ENCRYPTION_KEY_SIZE_12':     0xb000,
+    'ENCRYPTION_KEY_SIZE_13':     0xc000,
+    'ENCRYPTION_KEY_SIZE_14':     0xd000,
+    'ENCRYPTION_KEY_SIZE_15':     0xe000,
+    'ENCRYPTION_KEY_SIZE_16':     0xf000,
+    # only used by gatt compiler
+    'CLIENT_CONFIGURATION':      0x10000,
 }
+
+services = dict()
+current_service_uuid = list()
+current_service_start_handle = 0
 
 handle = 1
 total_size = 0
+
+def keyForUUID(uuid):
+    keyUUID = ""
+    for i in uuid:
+        keyUUID += "%02x" % i
+    return keyUUID
+ 
 
 def twoByteLEFor(value):
     return [ (value & 0xff), (value >> 8)]
@@ -95,7 +120,7 @@ def write_8(fout, value):
     fout.write( "0x%02x, " % (value & 0xff))
 
 def write_16(fout, value):
-    fout.write('0x%02x, 0x%02x, ' % (value & 0xff, value >> 8))
+    fout.write('0x%02x, 0x%02x, ' % (value & 0xff, (value >> 8) & 0xff))
 
 def write_uuid(uuid):
     for byte in uuid:
@@ -120,9 +145,18 @@ def is_string(text):
         return False
     return True
 
-def parsePrimaryService(fout, parts):
+def parseService(fout, parts, service_type):
     global handle
     global total_size
+    global current_service_uuid
+    global current_service_start_handle
+    global services
+
+    keyUUID = keyForUUID(current_service_uuid)
+    if keyUUID:
+        fout.write("\n")
+        # print "append service %s = [%d, %d]\n" % (keyUUID, current_service_start_handle, handle-1)
+        services[keyUUID] = [current_service_start_handle, handle-1]
 
     property = property_flags['READ'];
     
@@ -131,22 +165,68 @@ def parsePrimaryService(fout, parts):
 
     uuid = parseUUID(parts[1])
     uuid_size = len(uuid)
-
+    
     size = 2 + 2 + 2 + uuid_size + 2
+
+    if service_type == 0x2802:
+        size += 4
 
     if uuid_size == 16:
         property = property | property_flags['LONG_UUID'];
-    
+
     write_indent(fout)
     write_16(fout, size)
     write_16(fout, property)
     write_16(fout, handle)
-    write_16(fout, 0x2800)
+    write_16(fout, service_type)
     write_uuid(uuid)
     fout.write("\n")
+
+    current_service_uuid = uuid
+    current_service_start_handle = handle
+    handle = handle + 1
+    total_size = total_size + size
+
+def parsePrimaryService(fout, parts):
+    parseService(fout, parts, 0x2800)
+
+def parseSecondaryService(fout, parts):
+    parseService(fout, parts, 0x2801)
+
+def parseIncludeService(fout, parts):
+    global handle
+    global total_size
+    
+    property = property_flags['READ'];
+    
+    write_indent(fout)
+    fout.write('// 0x%04x %s\n' % (handle, '-'.join(parts)))
+
+    uuid = parseUUID(parts[1])
+    uuid_size = len(uuid)
+    # print "Include Service ", keyForUUID(uuid)
+
+    size = 2 + 2 + 2 + uuid_size + 2 + 4
+
+    if uuid_size == 16:
+        property = property | property_flags['LONG_UUID'];
+
+    keyUUID = keyForUUID(uuid)
+
+    write_indent(fout)
+    write_16(fout, size)
+    write_16(fout, property)
+    write_16(fout, handle)
+    write_16(fout, 0x2802)
+    write_16(fout, services[keyUUID][0])
+    write_16(fout, services[keyUUID][1])
+    write_uuid(uuid)
+    fout.write("\n")
+
     handle = handle + 1
     total_size = total_size + size
     
+
 def parseCharacteristic(fout, parts):
     global handle
     global total_size
@@ -197,6 +277,21 @@ def parseCharacteristic(fout, parts):
     fout.write("\n")
     handle = handle + 1
 
+    if (properties & property_flags['CLIENT_CONFIGURATION']) == 0:
+        return
+
+    size = 2 + 2 + 2 + 2 + 2
+    write_indent(fout)
+    fout.write('// 0x%04x CLIENT_CHARACTERISTIC_CONFIGURATION\n' % (handle))
+    write_indent(fout)
+    write_16(fout, size)
+    write_16(fout, property_flags['READ'] | property_flags['WRITE'] | property_flags['DYNAMIC'])
+    write_16(fout, handle)
+    write_16(fout, 0x2902)
+    write_16(fout, 0)
+    fout.write("\n")
+    handle = handle + 1
+
 def parse(fname_in, fin, fname_out, fout):
     global handle
     global total_size
@@ -220,6 +315,14 @@ def parse(fname_in, fin, fname_out, fout):
         
         if parts[0] == 'PRIMARY_SERVICE':
             parsePrimaryService(fout, parts)
+            continue
+
+        if parts[0] == 'SECONDARY_SERVICE':
+            parseSecondaryService(fout, parts)
+            continue
+
+        if parts[0] == 'INCLUDE_SERVICE':
+            parseIncludeService(fout, parts)
             continue
 
         if parts[0] == 'CHARACTERISTIC':

@@ -11,11 +11,22 @@
 
 #define MNS_CHANNEL 17
 
-static void mns_callback(int code, const uint8_t* lparam, uint16_t rparam);
+extern void mas_getmessage(char* id);
+
+static void mns_callback(int code, uint8_t* lparam, uint16_t rparam);
 static void mns_send(void *data, uint16_t length);
 
 static service_record_item_t mns_service_record;
-static uint8_t  mns_service_buffer[100];
+static const uint8_t  mns_service_buffer[]=
+{
+  0x36, 0x00, 0x4D, 0x09, 0x00, 0x00, 0x0A, 0x00, 0x01, 0x00, 0x04, 0x09, 0x00,
+  0x01, 0x36, 0x00, 0x03, 0x19, 0x11, 0x33, 0x09, 0x00, 0x04, 0x36, 0x00, 0x14, 
+  0x36, 0x00, 0x03, 0x19, 0x01, 0x00, 0x36, 0x00, 0x05, 0x19, 0x00, 0x03, 0x08, 
+  0x11, 0x36, 0x00, 0x03, 0x19, 0x00, 0x08, 0x09, 0x00, 0x09, 0x36, 0x00, 0x09, 
+  0x36, 0x00, 0x06, 0x19, 0x11, 0x34, 0x09, 0x01, 0x00, 0x09, 0x01, 0x00, 0x25, 
+  0x0E, 0x4D, 0x41, 0x50, 0x20, 0x4D, 0x4E, 0x53, 0x2D, 0x4B, 0x72, 0x65, 0x79, 
+  0x6F, 0x73,
+};
 static uint16_t rfcomm_channel_id;
 static struct obex_state mns_obex_state;
 static const struct obex mns_obex = 
@@ -25,7 +36,7 @@ static const struct obex mns_obex =
 static uint16_t mns_response_size;
 static void*    mns_response_buffer;
 
-enum {STATE_0} state;
+static enum {STATE_0} state;
 
 static const uint8_t MNS_TARGET[16] =
 {
@@ -107,6 +118,7 @@ static void mns_try_respond(uint16_t rfcomm_channel_id){
     }
     else
     {
+      log_info("MNS Sent %d byte: ", size);
       hexdump(mns_response_buffer, size);
     }
 }
@@ -119,14 +131,15 @@ static void mns_send(void *data, uint16_t length)
   mns_try_respond(rfcomm_channel_id);  
 }
 
-static void mns_callback(int code, const uint8_t* header, uint16_t length)
+static uint8_t buf[20];
+static void mns_callback(int code, uint8_t* header, uint16_t length)
 {
-  printf("Callback with code %d\n", code);
-  uint8_t buf[20];
+  log_info("MNS Callback with code %d\n", code);
+  uint8_t *ptr, *handler = NULL;
 
   switch(code)
   {
-    case OBEX_CB_CONNECT:
+    case OBEX_OP_CONNECT:
     // client try to make a connection
     // validate the target
     while(header != NULL && length > 0)
@@ -139,16 +152,16 @@ static void mns_callback(int code, const uint8_t* header, uint16_t length)
             memcmp((uint8_t*)header + 3, MNS_TARGET, 16) == 0)
           {
             // send response
-              printf("connection successful\n");
+              log_info("connection successful\n");
               uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xA0, buf);
               ptr = obex_header_add_uint32(ptr, OBEX_HEADER_CONNID, 0x123456);
-              obex_send(&mns_obex, buf, ptr - buf);
+              obex_send_response(&mns_obex, buf, ptr - buf);
           }
           else
           {
-              printf("connection failed\n");
-              uint8_t *ptr = obex_create_connect_request(&mns_obex, 404, buf);
-              obex_send(&mns_obex, buf, ptr - buf);
+              log_info("connection failed\n");
+              uint8_t *ptr = obex_create_connect_request(&mns_obex, 0xC4, buf);
+              obex_send_response(&mns_obex, buf, ptr - buf);
           }
           return;
         }
@@ -157,29 +170,11 @@ static void mns_callback(int code, const uint8_t* header, uint16_t length)
       header = obex_header_get_next(header, &length);
     }
 
-    obex_create_request(&mns_obex, 500, buf);
-    obex_send(&mns_obex, buf, 0);
-
+    ptr = obex_create_connect_request(&mns_obex, 0xD0, buf);
+    obex_send_response(&mns_obex, buf, ptr - buf);
     break;
-  case OBEX_CB_PUT:
-    while(header != NULL && length > 0)
-    {
-      switch(*header)
-      {
-        case OBEX_HEADER_BODY:
-        {
-          uint16_t length = READ_NET_16((uint8_t*)header, 1);
-          hexdump((uint8_t*)header + 3, length);
-          obex_create_request(&mns_obex, 0x20, buf);
-          obex_send(&mns_obex, buf, 0);
-          break;
-        }
-      }
-
-      header = obex_header_get_next(header, &length);
-    }
-    break;
-  case OBEX_CB_PUT | OBEX_CBFLAG_FINAL:
+  case OBEX_OP_PUT:
+  case OBEX_OP_PUT | OBEX_OP_FINAL:
     while(header != NULL && length > 0)
     {
       switch(*header)
@@ -187,14 +182,64 @@ static void mns_callback(int code, const uint8_t* header, uint16_t length)
         case OBEX_HEADER_BODY:
         case OBEX_HEADER_ENDBODY:
         {
-          uint16_t length = READ_NET_16((uint8_t*)header, 1);
-          hexdump((uint8_t*)header + 3, length);
-          obex_create_request(&mns_obex, 0xA0, buf);
-          obex_send(&mns_obex, buf, 0);
+          // compose a request to MAS connection
+          uint16_t len = READ_NET_16((uint8_t*)header, 1);
+          // mark the end
+          //hexdump(header, len);
+          header[len+1] = '\0';
+          log_info("BODY %s: ", header + 3);
+          char *start;
+          if (!((start = strstr(header + 3, "handle"))
+            && (start = strchr(start, '='))
+            && (start = strchr(start, '"'))))
+          {
+            log_info("fail to find start\n");
+            break;
+          }
+          start++;
+
+          char* end = strchr(start, '"');
+          if (end != NULL)
+          {
+            *end = 0;
+            handler = start;
+            mas_getmessage(handler);
+          }
+          else
+            log_info("fail to find end\n");
+          break;
+        }
+
+        case OBEX_HEADER_APPPARMS:
+        case OBEX_HEADER_TYPE:
+        {
+          uint16_t len = READ_NET_16((uint8_t*)header, 1);
+          log_info("type %x: ", *header);
+          hexdump((uint8_t*)header, len);
+          break;
+        }
+        case OBEX_HEADER_CONNID:
+        {
+          log_info("connid ");
+          hexdump((uint8_t*)header + 1, 4);   
           break;
         }
       }
       header = obex_header_get_next(header, &length);
+    }
+
+    if (handler)
+    {
+      ptr = obex_create_request(&mns_obex, 0xA0, buf);
+      obex_send_response(&mns_obex, buf, ptr - buf);
+    }
+    else
+    {
+      if (code & OBEX_OP_FINAL)
+        ptr = obex_create_request(&mns_obex, 0xD0, buf);
+      else      
+        ptr = obex_create_request(&mns_obex, 0x90, buf);
+      obex_send_response(&mns_obex, buf, ptr - buf);   
     }
     break;
   }
@@ -205,8 +250,22 @@ static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
   switch(packet_type)
   {
   case RFCOMM_DATA_PACKET:
+    log_info("MNS received %d bytes: ", size);
     hexdump(packet, size);
     obex_handle(&mns_obex, packet, size);
+    rfcomm_grant_credits(rfcomm_channel_id, 1); // get the next packet
+    break;
+  case DAEMON_EVENT_PACKET:
+    switch(packet[0])    
+    {
+      case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+      case DAEMON_EVENT_HCI_PACKET_SENT:
+      case RFCOMM_EVENT_CREDITS:
+        {
+          mns_try_respond(rfcomm_channel_id);
+          break;
+        }
+    }
     break;
   case HCI_EVENT_PACKET:
     {
@@ -245,6 +304,8 @@ static void mns_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *p
           }
           break;
         }
+      case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+      case DAEMON_EVENT_HCI_PACKET_SENT:
       case RFCOMM_EVENT_CREDITS:
         {
           mns_try_respond(rfcomm_channel_id);
@@ -267,10 +328,10 @@ int mns_init()
 {
   memset(&mns_service_record, 0, sizeof(mns_service_record));
   mns_service_record.service_record = (uint8_t*)&mns_service_buffer[0];
-#if 1
+#if 0
   sdp_create_map_service( (uint8_t*)&mns_service_buffer[0], MNS_CHANNEL, "MAP MNS-Kreyos");
   log_info("MNS service buffer size: %u\n", de_get_len(mns_service_record.service_record));
-  //hexdump((void*)mns_service_buffer, de_get_len(mns_service_record.service_record));
+  hexdump((void*)mns_service_buffer, de_get_len(mns_service_record.service_record));
   //de_dump_data_element(mns_service_record.service_record);
 #endif
   sdp_register_service_internal(NULL, &mns_service_record);
@@ -279,6 +340,3 @@ int mns_init()
   rfcomm_register_service_internal(NULL, mns_packet_handler, MNS_CHANNEL, 0xffff);
   return 0;
 }
-
-
-

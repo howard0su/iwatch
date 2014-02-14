@@ -55,7 +55,7 @@ flash_setup(void)
 {
   /* disable all interrupts to protect CPU
      during programming from system crash */
-  dint();
+  __disable_interrupt();
 
   /* Clear interrupt flag1. */
   SFRIFG1 = 0;
@@ -77,7 +77,7 @@ flash_done(void)
 {
   /* Enable interrupts. */
   SFRIE1 = sfrie;
-  eint();
+  __enable_interrupt();
   watchdog_start();
 }
 /*---------------------------------------------------------------------------*/

@@ -26,21 +26,24 @@ static const uint8_t   spp_service_buffer[100] = {
 #define SPP_CHANNEL 1
 uint16_t spp_channel_id = 0;
 
-static char spp_buffer[1024];
+//static char spp_buffer[1024];
 static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
-  uint16_t rfcomm_id;
+    UNUSED_VAR(channel);
+  uint16_t rfcomm_id = 0;
 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
+      set_btstack_type(BTSTACK_TYPE_RFCOMM);
     hexdump(packet, size);
     if (handle_stvl_transport(packet, size) > 0)
     {
         handle_stlv_packet(get_stlv_transport_buffer());
         reset_stlv_transport_buffer();
     }
+    rfcomm_grant_credits(spp_channel_id, 1); // get the next packet
     return;
   }
 
@@ -103,7 +106,9 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
 }
 
 
+/*
 static void sdp_create_spp_service(uint8_t *service, int service_id, const char *name){
+
 
         uint8_t* attribute;
         de_create_sequence(service);
@@ -174,7 +179,7 @@ static void sdp_create_spp_service(uint8_t *service, int service_id, const char 
         de_add_number(service,  DE_UINT, DE_SIZE_16, 0x0100);
         de_add_data(service,  DE_STRING, strlen(name), (uint8_t *) name);
 }
-
+*/
 
 void spp_init()
 {

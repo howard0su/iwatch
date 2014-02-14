@@ -111,6 +111,9 @@ extern "C" {
 #define HCI_EVENT_IO_CAPABILITY_REQUEST                    0x31
 #define HCI_EVENT_IO_CAPABILITY_RESPONSE                   0x32
 #define HCI_EVENT_USER_CONFIRMATION_REQUEST                0x33
+#define HCI_EVENT_USER_PASSKEY_REQUEST                     0x34
+#define HCI_EVENT_REMOTE_OOB_DATA_REQUEST                  0x35
+#define HCI_EVENT_SIMPLE_PAIRING_COMPLETE                  0x36
 #define HCI_EVENT_LE_META                                  0x3E
 #define HCI_EVENT_VENDOR_SPECIFIC				           0xFF
 
@@ -195,6 +198,30 @@ extern "C" {
 // data: event(8), len(8), status(8), service_record_handle(32)
 #define SDP_SERVICE_REGISTERED                             0x90
 
+// data: event(8), gatt subevent(8), address_type(8), address(6x8), rssi(8), len(8), data(len*8)
+#define GATT_ADVERTISEMENT                                 0xA0
+
+#define GATT_CONNECTION_COMPLETE                           0xA1
+#define GATT_SERVICE_QUERY_RESULT                          0xA2
+#define GATT_SERVICE_QUERY_COMPLETE                        0xA3
+#define GATT_CHARACTERISTIC_QUERY_RESULT                   0xA4
+#define GATT_CHARACTERISTIC_QUERY_COMPLETE                 0xA5
+
+// data: event(8), len(8), status (8), hci_handle (16), attribute_handle (16)
+#define ATT_HANDLE_VALUE_INDICATION_COMPLETE               0xAF
+
+// data: event(8), address_type(8), address (48), [number(32)]
+#define SM_JUST_WORKS_REQUEST                              0xb0
+#define SM_JUST_WORKS_CANCEL                               0xb1 
+#define SM_PASSKEY_DISPLAY_NUMBER                          0xb2
+#define SM_PASSKEY_DISPLAY_CANCEL                          0xb3
+#define SM_PASSKEY_INPUT_NUMBER                            0xb4
+#define SM_PASSKEY_INPUT_CANCEL                            0xb5
+#define SM_IDENTITY_RESOLVING_STARTED                      0xb6
+#define SM_IDENTITY_RESOLVING_FAILED                       0xb7
+#define SM_IDENTITY_RESOLVING_SUCCEEDED                    0xb8
+#define SM_AUTHORIZATION_REQUEST                           0xb9
+#define SM_AUTHORIZATION_RESULT                            0xba
 
 // last error code in 4.0 is 0x3F - we start with 0x50 for BTstack errors
 
@@ -230,10 +257,23 @@ extern "C" {
 
 #define SDP_HANDLE_ALREADY_REGISTERED                      0x80
 
+#define ATT_HANDLE_VALUE_INDICATION_IN_PORGRESS            0x90 
+#define ATT_HANDLE_VALUE_INDICATION_TIMEOUT                0x91
+
 /**
  * Default INQ Mode
  */
 #define HCI_INQUIRY_LAP 0x9E8B33L  // 0x9E8B33: General/Unlimited Inquiry Access Code (GIAC)
+
+/**
+ * SSP IO Capabilities - if capability is set, BTstack answers IO Capability Requests
+ */
+#define SSP_IO_CAPABILITY_DISPLAY_ONLY   0
+#define SSP_IO_CAPABILITY_DISPLAY_YES_NO 1
+#define SSP_IO_CAPABILITY_KEYBOARD_ONLY  2
+#define SSP_IO_CAPABILITY_NO_INPUT_NO_OUTPUT 3
+#define SSP_IO_CAPABILITY_UNKNOWN 0xff
+
 /**
  *  Hardware state of Bluetooth controller
  */
@@ -283,6 +323,8 @@ extern const hci_cmd_t hci_delete_stored_link_key;
 extern const hci_cmd_t hci_disconnect;
 extern const hci_cmd_t hci_host_buffer_size;
 extern const hci_cmd_t hci_inquiry;
+extern const hci_cmd_t hci_io_capability_request_reply;
+extern const hci_cmd_t hci_io_capability_request_negative_reply;
 extern const hci_cmd_t hci_inquiry_cancel;
 extern const hci_cmd_t hci_link_key_request_negative_reply;
 extern const hci_cmd_t hci_link_key_request_reply;
@@ -299,16 +341,25 @@ extern const hci_cmd_t hci_read_num_broadcast_retransmissions;
 extern const hci_cmd_t hci_reject_connection_request;
 extern const hci_cmd_t hci_remote_name_request;
 extern const hci_cmd_t hci_remote_name_request_cancel;
+extern const hci_cmd_t hci_read_remote_supported_features;
 extern const hci_cmd_t hci_accept_synchronous_connection;
 extern const hci_cmd_t hci_reset;
+extern const hci_cmd_t hci_set_event_filter;
+extern const hci_cmd_t hci_read_default_link_policy_settings;
+extern const hci_cmd_t hci_write_default_link_policy_settings;
 extern const hci_cmd_t hci_role_discovery;
 extern const hci_cmd_t hci_set_event_mask;
 extern const hci_cmd_t hci_set_connection_encryption;
 extern const hci_cmd_t hci_sniff_mode;
+extern const hci_cmd_t hci_exit_sniff_mode;
 extern const hci_cmd_t hci_switch_role_command;
+extern const hci_cmd_t hci_switch_role_command;
+extern const hci_cmd_t hci_user_confirmation_request_negative_reply;
+extern const hci_cmd_t hci_user_confirmation_request_reply;
+extern const hci_cmd_t hci_user_passkey_request_negative_reply;
+extern const hci_cmd_t hci_user_passkey_request_reply;
 extern const hci_cmd_t hci_write_authentication_enable;
 extern const hci_cmd_t hci_write_class_of_device;
-extern const hci_cmd_t hci_write_voice_setting;
 extern const hci_cmd_t hci_write_extended_inquiry_response;
 extern const hci_cmd_t hci_write_inquiry_mode;
 extern const hci_cmd_t hci_write_le_host_supported;
@@ -319,9 +370,6 @@ extern const hci_cmd_t hci_write_num_broadcast_retransmissions;
 extern const hci_cmd_t hci_write_page_timeout;
 extern const hci_cmd_t hci_write_scan_enable;
 extern const hci_cmd_t hci_write_simple_pairing_mode;
-extern const hci_cmd_t hci_io_capability_request_reply;
-extern const hci_cmd_t hci_user_confirmation_request_reply;
-extern const hci_cmd_t hci_user_confirmation_request_negative_reply;
 
 
 extern const hci_cmd_t hci_le_add_device_to_whitelist;
@@ -355,10 +403,14 @@ extern const hci_cmd_t hci_le_start_encryption;
 extern const hci_cmd_t hci_le_test_end;
 extern const hci_cmd_t hci_le_transmitter_test;
 
+extern const hci_cmd_t hci_vs_write_bd_addr;
 extern const hci_cmd_t hci_vs_write_codec_config;
 extern const hci_cmd_t hci_vs_write_codec_config_enhanced;
 extern const hci_cmd_t hci_vs_le_enable;
 extern const hci_cmd_t hci_vs_write_sco_config;
+extern const hci_cmd_t hci_vs_set_pcm_loopback_enable;
+
+extern const hci_cmd_t hci_enable_device_under_test_mode;
 
 extern const hci_cmd_t l2cap_accept_connection;
 extern const hci_cmd_t l2cap_create_channel;

@@ -242,13 +242,25 @@ Template_DriverPixelDraw(void *pvDisplayData, int x, int y,
 //
 //*****************************************************************************
 static void
-Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
-                                           int lY, int lX0, int lCount,
-                                           int lBPP,
-                                           const uint8_t *pucData,
-                                           const unsigned int *pucPalette)
+Template_DriverPixelDrawMultiple(void *pvDisplayData, long lX, long lY,
+                                 long lX0, long lCount, long lBPP,
+                                 const unsigned char *pucData,
+                                 const unsigned char *pucPalette)
 {
-	unsigned int ulByte;
+    unsigned char *pucPtr;
+    unsigned long ulByte;
+
+    //
+    // Check the arguments.
+    //
+    ASSERT(pucData);
+    ASSERT(pucPalette);
+
+    pucPtr = &(lines[lY].pixels[lX/8]);
+    //
+    // Determine the bit position of the starting pixel.
+    //
+    lX = lX & 7;
 
     //
     // Determine how to interpret the pixel data based on the number of bits
@@ -256,11 +268,15 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
     //
     switch(lBPP)
     {
-        // The pixel data is in 1 bit per pixel format
+        //
+        // The pixel data is in 1 bit per pixel format.
+        //
         case 1:
         {
-            // Loop while there are more pixels to draw
-            while(lCount > 0)
+            //
+            // Loop while there are more pixels to draw.
+            //
+            while(lCount)
             {
                 // Get the next byte of image data
                 ulByte = *pucData++;
@@ -269,8 +285,15 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
                 for(; (lX0 < 8) && lCount; lX0++, lCount--)
                 {
                     // Draw this pixel in the appropriate color
-					Template_DriverPixelDraw(pvDisplayData, lX++, lY,
-											((unsigned int *)pucPalette)[(ulByte >> (7 - lX0)) & 1]);
+                   *pucPtr = ((*pucPtr & ~(1 << lX)) |
+                               ((((unsigned long *)pucPalette)[(ulByte >>
+                                                                (7 - lX0)) &
+                                                               1]) << lX));
+                    if(lX++ == 8)
+                    {
+                        lX = 0;
+                        pucPtr++;
+                    }
                 }
 
                 // Start at the beginning of the next byte of image data
@@ -280,34 +303,13 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
 
             break;
         }
-
-		// The pixel data is in 2 bit per pixel format
-        case 2:
-        {
-            // Loop while there are more pixels to draw
-            while(lCount > 0)
-            {
-                // Get the next byte of image data
-                ulByte = *pucData++;
-
-                // Loop through the pixels in this byte of image data
-                for(; (lX0 < 4) && lCount; lX0++, lCount--)
-                {
-                    // Draw this pixel in the appropriate color
-					Template_DriverPixelDraw(pvDisplayData, lX++, lY,
-											((unsigned int *)pucPalette)[(ulByte >> (6 - (lX0 << 1))) & 3]);
-                }
-
-                // Start at the beginning of the next byte of image data
-                lX0 = 0;
-            }
-            // The image data has been drawn
-
-            break;
-		}
-        // The pixel data is in 4 bit per pixel format
+#if 0
+        //
+        // The pixel data is in 4 bit per pixel format.
+        //
         case 4:
         {
+            //
             // Loop while there are more pixels to draw.  "Duff's device" is
             // used to jump into the middle of the loop if the first nibble of
             // the pixel data should not be used.  Duff's device makes use of
@@ -315,61 +317,116 @@ Template_DriverPixelDrawMultiple(void *pvDisplayData, int lX,
             // sub-block of a switch statement.  See
             // http://en.wikipedia.org/wiki/Duff's_device for detailed
             // information about Duff's device.
+            //
             switch(lX0 & 1)
             {
                 case 0:
-
                     while(lCount)
                     {
+                        //
                         // Get the upper nibble of the next byte of pixel data
-                        // and extract the corresponding entry from the palette
-                        ulByte = (*pucData >> 4);
-                        ulByte = (*(unsigned int *)(pucPalette + ulByte));
-                        // Write to LCD screen
-                        Template_DriverPixelDraw(pvDisplayData, lX++, lY, ulByte);
+                        // and extract the corresponding entry from the
+                        // palette.
+                        //
+                        ulByte = (*pucData >> 4) * 3;
+                        ulByte = (*(unsigned long *)(pucPalette + ulByte) &
+                                  0x00ffffff);
 
-                        // Decrement the count of pixels to draw
+                        //
+                        // Translate this palette entry and write it to the
+                        // screen.
+                        //
+                        *pucPtr = ((*pucPtr & ~(1 << lX)) |
+                                   (DPYCOLORTRANSLATE(ulByte) << lX));
+                        if(lX-- == 0)
+                        {
+                            lX = 7;
+                            pucPtr++;
+                        }
+
+                        //
+                        // Decrement the count of pixels to draw.
+                        //
                         lCount--;
 
-                        // See if there is another pixel to draw
+                        //
+                        // See if there is another pixel to draw.
+                        //
                         if(lCount)
                         {
                 case 1:
+                            //
                             // Get the lower nibble of the next byte of pixel
                             // data and extract the corresponding entry from
-                            // the palette
-                            ulByte = (*pucData++ & 15);
-                            ulByte = (*(unsigned int *)(pucPalette + ulByte));
-                            // Write to LCD screen
-                            Template_DriverPixelDraw(pvDisplayData, lX++, lY, ulByte);
+                            // the palette.
+                            //
+                            ulByte = (*pucData++ & 15) * 3;
+                            ulByte = (*(unsigned long *)(pucPalette + ulByte) &
+                                      0x00ffffff);
 
-                            // Decrement the count of pixels to draw
+                            //
+                            // Translate this palette entry and write it to the
+                            // screen.
+                            //
+                            *pucPtr = ((*pucPtr & ~(1 << lX)) |
+                                       (DPYCOLORTRANSLATE(ulByte) << lX));
+                            if(lX-- == 0)
+                            {
+                                lX = 7;
+                                pucPtr++;
+                            }
+
+                            //
+                            // Decrement the count of pixels to draw.
+                            //
                             lCount--;
                         }
                     }
             }
-            // The image data has been drawn.
 
+            //
+            // The image data has been drawn.
+            //
             break;
         }
 
-        // The pixel data is in 8 bit per pixel format
+        //
+        // The pixel data is in 8 bit per pixel format.
+        //
         case 8:
         {
-            // Loop while there are more pixels to draw
+            //
+            // Loop while there are more pixels to draw.
+            //
             while(lCount--)
             {
+                //
                 // Get the next byte of pixel data and extract the
-                // corresponding entry from the palette
-                ulByte = *pucData++;
-                ulByte = (*(unsigned int *)(pucPalette + ulByte));
-                // Write to LCD screen
-                Template_DriverPixelDraw(pvDisplayData, lX++, lY, ulByte);
+                // corresponding entry from the palette.
+                //
+                ulByte = *pucData++ * 3;
+                ulByte = *(unsigned long *)(pucPalette + ulByte) & 0x00ffffff;
+
+                //
+                // Translate this palette entry and write it to the screen.
+                //
+                *pucPtr = ((*pucPtr & ~(1 << lX)) |
+                           (DPYCOLORTRANSLATE(ulByte) << lX));
+                if(lX-- == 0)
+                {
+                    lX = 7;
+                    pucPtr++;
+                }
             }
-            // The image data has been drawn
+
+            //
+            // The image data has been drawn.
+            //
             break;
         }
+#endif
     }
+    halLcdRefresh(lY, lY);
 }
 
 //*****************************************************************************
@@ -463,14 +520,37 @@ Template_DriverLineDrawH(void *pvDisplayData, int lX1, int lX2,
 //
 //*****************************************************************************
 static void
-Template_DriverLineDrawV(void *pvDisplayData, int lX, int lY1,
-                                   int lY2, unsigned int ulValue)
+Template_DriverLineDrawV(void *pvDisplayData, long lX, long lY1, long lY2,
+                         unsigned long ulValue)
 {
-  do
-  {
-    Template_DriverPixelDraw(pvDisplayData, lX, lY1, ulValue);
-  }
-  while(lY1++ < lY2);
+    unsigned char *pucData;
+    uint8_t lXMask;
+
+    //
+    // Determine how much to shift to get to the bit that contains this pixel.
+    //
+    lXMask = lX & 7;
+
+    //
+    // Shift the pixel value up to the correct bit position, and create a mask
+    // to preserve the value of the remaining pixels.
+    //
+    ulValue <<= lXMask;
+    lXMask = ~(1 << lXMask);
+
+    //
+    // Loop over the rows of the line.
+    //
+    for(; lY1 <= lY2; lY1++)
+    {
+        //
+        // Draw this pixel of the line.
+        //
+        pucData = &(lines[lY1].pixels[lX/8]);
+        *pucData = (*pucData & lXMask) | ulValue;
+    }
+
+    halLcdRefresh(lY1, lY2); 
 }
 
 //*****************************************************************************
@@ -649,7 +729,7 @@ void screenshot()
     uint8_t buf[LCD_X_SIZE/8];
     for(int j = 0; j < LCD_X_SIZE/8; j++)
     {
-     buf[j] = flip(lines[i].pixels[j]);
+     buf[j] = ~(flip(lines[i].pixels[j]));
     }
     fwrite(buf, LCD_X_SIZE/8, 1, fp);
   }

@@ -36,7 +36,7 @@
 #include "antdefines.h"
 #include "serial.h"
 #include "cbsc_rx.h"
-
+#include "data.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,13 +54,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // STATIC ANT Configuration Block
 /////////////////////////////////////////////////////////////////////////////
-
-//// Page data fields
-static CBSCPage0_Data stCBSCPage0Data;
-static CBSCPage0_Data stCBSCPastPage0Data;
-static UCHAR ucAntChannel;
-static USHORT usDeviceNumber;
-static UCHAR ucTransType;
 
 BOOL HandleResponseEvents(UCHAR* pucBuffer_);
 BOOL HandleDataMessages(UCHAR* pucBuffer_, ANTPLUS_EVENT_RETURN* pstEventStruct_);

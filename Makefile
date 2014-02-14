@@ -1,7 +1,7 @@
 ifeq ($(MSPPATH),)
 MSPPATH = /home/junsu/mspgccx/bin
 endif
-CC      = gcc
+CC      = clang 
 OBJCOPY = objcopy
 SIZE    = size
 NM	= nm
@@ -10,7 +10,7 @@ ECHO	= echo
 
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
-WARNING_FLAGS = -W -Wall
+#WARNING_FLAGS = -W -Wall
 CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections
 LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS)
@@ -21,7 +21,7 @@ CFLAGS = $(CFLAGS0)
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives HAVE_BLE=1
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -61,6 +61,7 @@ GRLIB0 = \
 	image.c \
 	line.c \
 	rectangle.c \
+	triagle.c \
 	string.c
 
 GRLIB_FONTS = \
@@ -90,31 +91,38 @@ WATCH = \
     watch/analog-watch.c \
     watch/configtime.c \
     watch/countdown.c \
+    watch/controller.c \
     watch/controls.c \
     watch/digit-watch.c \
     watch/stopwatch.c \
     watch/names.c \
     watch/menu.c \
-    watch/gesture.c \
+    gesture/gesture.c \
     watch/cordic.c \
     watch/calendar.c \
     watch/stopwatch.c \
     watch/sportswatch.c \
+    watch/sportwait.c \
     watch/sportselect.c \
+    watch/sportsdata.c \
     watch/phone.c \
     watch/notification.c \
     watch/worldclock.c \
     watch/host.c \
-    watch/watch.c \
     watch/today.c \
     watch/test.c \
     watch/status.c \
     watch/test.c \
+    watch/siri.c \
+    watch/filesys_proc.c \
+    watch/recordoperation.c \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
+	btstack/src/hci_cmds.c \
+	platform/iwatch/btstack/ble_handler.c \
 	platform/iwatch/btstack/stlv.c \
 	platform/iwatch/btstack/stlv_client.c \
 	platform/iwatch/btstack/stlv_server.c \
@@ -132,8 +140,7 @@ SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/stlvTest.c \
  unittest/gestureTest.c \
  unittest/TestUtility/stlv_test_stub.c \
- unittest/hfpTest.c
-
+ unittest/hfpTest.c 
 
 OBJDIR = objs.native
 OBJS0 = $(SRCS:.c=.o)

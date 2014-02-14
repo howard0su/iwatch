@@ -39,7 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define XMEM_SIZE 256 * 32 * 1024
+#define XMEM_SIZE 16 * 1024 * 1024
 
 static unsigned char xmem[XMEM_SIZE];
 /*---------------------------------------------------------------------------*/
@@ -92,3 +92,13 @@ xmem_init(void)
 
 }
 /*---------------------------------------------------------------------------*/
+
+void SPI_FLASH_BufferRead(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
+{
+  memcpy(pBuffer, &xmem[ReadAddr], NumByteToRead);
+}
+
+void *xmem_test()
+{
+  return xmem;
+}

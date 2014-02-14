@@ -34,7 +34,8 @@
 #include "dev/watchdog.h"
 #include "dev/leds.h"
 #include "net/uip.h"
-
+#include <stddef.h>
+#include <stdint.h>
 
 /*---------------------------------------------------------------------------*/
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
@@ -315,44 +316,76 @@ init_ports(void)
 #ifdef P6SEL
   P6SEL = 0;
 #endif
-
+#ifdef P7SEL
+  P7SEL = 0;
+#endif
+#ifdef P8SEL
+  P8SEL = 0;
+#endif
+#ifdef P9SEL
+  P9SEL = 0;
+#endif
+#ifdef P10SEL
+  P10SEL = 0;
+#endif
+#ifdef P11SEL
+  P11SEL = 0;
+#endif  
+  
   /* All available inputs */
 #ifdef P1DIR
-  P1DIR = 0;
+  P1DIR = P1DIR_V;
   P1OUT = 0;
 #endif
 #ifdef P2DIR
-  P2DIR = 0;
+  P2DIR = P2DIR_V;
   P2OUT = 0;
 #endif
+  
 #ifdef P3DIR
-  P3DIR = 0;
+  P3DIR = P3DIR_V;
   P3OUT = 0;
 #endif
+  
 #ifdef P4DIR
-  P4DIR = 0;
+  P4DIR = P4DIR_V;
   P4OUT = 0;
 #endif
 
 #ifdef P5DIR
-  P5DIR = 0;
+  P5DIR = P5DIR_V;
   P5OUT = 0;
 #endif
 
 #ifdef P6DIR
-  P6DIR = 0;
+  P6DIR = P6DIR_V;
   P6OUT = 0;
 #endif
 
 #ifdef P7DIR
-  P7DIR = 0;
+  P7DIR = P7DIR_V;
   P7OUT = 0;
   P7SEL |= BIT0 | BIT1;     /* Configure for ext clock function on these pins */
 #endif
 
 #ifdef P8DIR
-  P8DIR = 0;
+  P8DIR = P8DIR_V;
   P8OUT = 0;
+#endif
+  
+#ifdef P9DIR
+  P9DIR = P9DIR_V;
+  P9OUT = 0;
+#endif
+
+#ifdef P10DIR
+  P10DIR = P10DIR_V;
+  P10OUT = 0;
+#endif
+  
+#ifdef P11DIR
+  P11DIR = P11DIR_V;
+  P11OUT = 0;
 #endif
 
   P1IE = 0;
@@ -392,11 +425,12 @@ static void StartCrystalOscillator(void)
    }
 }
 
-const unsigned char VCORE_Level = PMMCOREV_1;
-const unsigned int DCO_Multiplier = 488;
+const unsigned char VCORE_Level = PMMCOREV_0;
+const unsigned int DCO_Multiplier = 244; // 12Mhz
 
 #if 0
-  {PMMCOREV_0, 244},  /* cf8MHZ_t.                          */
+   {PMMCOREV_0, 244},  /* cf8MHZ_t.                          */
+   {PMMCOREV_0, 366},  /* cf12MHZ_t.                          */
    {PMMCOREV_1, 488},  /* cf16MHZ_t.                         */
    {PMMCOREV_2, 610},  /* cf20MHZ_t.                         */
    {PMMCOREV_3, 762}   /* cf25MHZ_t.                         */
@@ -535,7 +569,7 @@ static void SetSystemClock()
 void
 msp430_cpu_init(void)
 {
-  dint();
+  __disable_interrupt();
   watchdog_init();
   init_ports();
 
@@ -544,7 +578,7 @@ msp430_cpu_init(void)
   StartCrystalOscillator();
   SetSystemClock();
 
-  eint();
+  __enable_interrupt();
 #ifndef __IAR_SYSTEMS_ICC__
   if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
     cur_break++;
@@ -621,10 +655,12 @@ splx_(int sr)
 #endif
 }
 
-__no_init uint8_t SysRstIv;
+
 #ifdef __IAR_SYSTEMS_ICC__
+__no_init uint8_t SysRstIv;
 int __low_level_init(void)
 #else
+uint8_t SysRstIv __attribute__ ((section (".noinit")));
 int _system_pre_init(void)
 #endif
 {

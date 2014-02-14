@@ -36,6 +36,7 @@
 #include "antdefines.h"
 #include "hrm_rx.h"
 #include "antplus.h"
+#include "data.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,16 +65,6 @@ typedef enum
    STATE_STD_PAGE = 1,                                   // No extended messages to process
    STATE_EXT_PAGE = 2                                    // Extended messages to process
 } StatePage;
-
-static HRMPage0_Data stPage0Data;
-static HRMPage1_Data stPage1Data;
-static HRMPage2_Data stPage2Data;
-static HRMPage3_Data stPage3Data;
-static HRMPage4_Data stPage4Data;
-
-static UCHAR ucAntChannel;
-static USHORT usDeviceNumber;
-static UCHAR ucTransType;
 
 static StatePage eThePageState;
 

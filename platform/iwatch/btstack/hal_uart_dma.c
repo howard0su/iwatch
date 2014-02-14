@@ -23,15 +23,17 @@
 #include "isr_compat.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "bluetooth.h"
 
 #include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 
-PROCESS(uart_process, "UART Driver");
+#include "power.h"
 
 // rx state
 static uint16_t  bytes_to_read = 0;
 static uint8_t * rx_buffer_ptr = 0;
+static uint8_t   triggered;
 
 static uint8_t   rx_temp_buffer;
 static uint8_t   rx_temp_size = 0;
@@ -59,6 +61,7 @@ void hal_uart_dma_init(void)
   // set BT CTS
   BT_CTS_SEL &= ~BT_CTS_BIT;  // = 0 - I/O
   BT_CTS_DIR &= ~BT_CTS_BIT;  // = 0 - Input
+  BT_CTS_IES &= ~BT_CTS_BIT;  // IRQ on 0->1 transition
 
   UCA0CTL1 |= UCSWRST;              //Reset State
 
@@ -72,10 +75,10 @@ void hal_uart_dma_init(void)
   UCA0CTL1 |= UCSSEL_2;
 
   UCA0CTL1 &= ~UCSWRST;             // continue
-
-  process_start(&uart_process, NULL);
   hal_uart_dma_set_baud(115200);
   UCA0IE |= UCRXIE ;  // enable RX interrupts
+
+  power_pin(MODULE_BT);
 }
 
 /**
@@ -101,16 +104,15 @@ int hal_uart_dma_set_baud(uint32_t baud){
   switch (baud){
 
   case 4000000:
-    UCA0BR0 = 4;
+    UCA0BR0 = 2;
     UCA0BR1 = 0;
-    UCA0MCTL= UCBRS_0;  // + 0.000
+    UCA0MCTL= 0 << 1;  // + 0.000
     break;
 
-
   case 115200:
-    UCA0BR0 = 138;  // from family user guide
+    UCA0BR0 = 69;  // from family user guide
     UCA0BR1 = 0;
-    UCA0MCTL= UCBRS_7;  // + 0.875
+    UCA0MCTL= 4 << 1;
     break;
 
   default:
@@ -121,41 +123,6 @@ int hal_uart_dma_set_baud(uint32_t baud){
   UCA0CTL1 &= ~UCSWRST;             // continue
 
   return result;
-}
-
-#define TXDONE 0x01
-#define RXDONE 0x02
-#define CTSUP  0x03
-
-volatile uint8_t flags = 0; 
-
-PROCESS_THREAD(uart_process, ev, data)
-{
-  int txDone;
-  int rxDone;
-  int ctsDone;
-  PROCESS_BEGIN();
-
-  while(1)
-  {
-    PROCESS_WAIT_EVENT();
-  __disable_interrupt();
-  txDone = (flags & TXDONE) != 0;
-  rxDone = (flags & RXDONE) != 0;
-  ctsDone = (flags & CTSUP) != 0;
-  flags = 0;
-  __enable_interrupt();
-
-  if (txDone && tx_done_handler)
-    (*tx_done_handler)();
-
-  if (rxDone && rx_done_handler)
-    (*rx_done_handler)();
-
-  if (ctsDone && cts_irq_handler)
-    (*cts_irq_handler)();
-  }
-  PROCESS_END();
 }
 
 void hal_uart_dma_set_block_received( void (*the_block_handler)(void)){
@@ -169,14 +136,14 @@ void hal_uart_dma_set_block_sent( void (*the_block_handler)(void)){
 void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
   if (the_irq_handler){
     BT_CTS_IFG  &=  ~BT_CTS_BIT;     // no IRQ pending
-    BT_CTS_IES &= ~BT_CTS_BIT;  // IRQ on 0->1 transition
     BT_CTS_IE  |=  BT_CTS_BIT;  // enable IRQ for P1.3
-    cts_irq_handler = the_irq_handler;
-    return;
+  }
+  else
+  {
+    BT_CTS_IE &= ~BT_CTS_BIT;
   }
 
-  BT_CTS_IE &= ~BT_CTS_BIT;
-  cts_irq_handler = NULL;
+  cts_irq_handler = the_irq_handler;
 }
 
 /**********************************************************************/
@@ -204,10 +171,16 @@ void hal_uart_dma_shutdown(void) {
 
 int dma_channel_1()
 {
-  flags |= TXDONE;
-  process_poll(&uart_process);
+  if (tx_done_handler)
+    (*tx_done_handler)();
 
-  return 1;
+  if (triggered)
+  {
+    triggered = 0;
+    return 1;
+  }
+  else
+    return 0;
 }
 
 void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
@@ -259,6 +232,23 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
 void hal_uart_dma_set_sleep(uint8_t sleep)
 {
+  if (sleep)
+  {
+    // wait for last byte sent out
+    while(UCA0STAT & UCBUSY);
+    UCA0IE &= ~(UCRXIE | UCTXIE);
+    UCA0CTL1 |= UCSWRST;                          //Reset State
+
+    power_unpin(MODULE_BT);
+  }
+  else
+  {
+    UCA0IE |= UCRXIE | UCTXIE;
+    UCA0CTL1 &= ~UCSWRST;                          //Reset State
+    power_pin(MODULE_BT);
+  }
+  
+  triggered = 1;
 }
 
 // block-wise "DMA" RX/TX UART driver
@@ -288,12 +278,14 @@ ISR(USCI_A0, usbRxTxISR)
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
     UCA0IE &= ~UCRXIE;
 
-    flags |= RXDONE;
-    process_poll(&uart_process);
-
-    // force exit low power mode
-    LPM4_EXIT;
-
+    if (rx_done_handler)
+      (*rx_done_handler)();
+    
+    if (triggered)
+    {
+      triggered = 0;
+      LPM4_EXIT;
+    }
     break;
 
   default:
@@ -306,8 +298,20 @@ ISR(USCI_A0, usbRxTxISR)
 // CTS ISR
 int port1_pin3()
 {
-  flags |= CTSUP;
-  process_poll(&uart_process);
+  if (cts_irq_handler)
+    (*cts_irq_handler)();
 
-  return 1;
+  if (triggered)
+  {
+    triggered = 0;
+    return 1;
+  }
+  else  
+    return 0;
+}
+
+void embedded_trigger(void)
+{
+  process_poll(&bluetooth_process);
+  triggered = 1;
 }

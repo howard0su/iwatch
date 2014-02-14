@@ -31,24 +31,22 @@
  * @(#)$Id: watchdog.c,v 1.12 2010/11/12 15:54:41 nifi Exp $
  */
 
-#include "contiki-conf.h"
+#include "contiki.h"
 #include "dev/watchdog.h"
 #include "isr_compat.h"
 #include <stdio.h>
+#include "button.h"
+#include "grlib/grlib.h"
+#include "sys/process.h"
 
 static int counter = 0;
 
-#define PRINT_STACK_ON_REBOOT 0
+#define PRINT_STACK_ON_REBOOT 2
 
-/*---------------------------------------------------------------------------*/
-ISR(WDT, watchdog_interrupt)
+static void printstack(uint16_t *ptr)
 {
-#if PRINT_STACK_ON_REBOOT
-  uint16_t dummy;
-  static uint16_t *ptr;
-  static int i;
+  int i;
 
-  ptr = &dummy;
   printf("Watchdog reset");
   printf("\nStack at 0x%x:\n", ptr);
 
@@ -60,8 +58,51 @@ ISR(WDT, watchdog_interrupt)
     }
   }
   putchar('\n');
-#endif /* PRINT_STACK_ON_REBOOT */
+}
 
+extern tContext context;
+extern const tRectangle fullscreen_clip;
+
+static void displaystack(uint16_t *ptr)
+{
+  char buf[200] = "";
+  
+  for(int i = 0; i < 16; ++i)
+  {
+    char buf0[10];
+    sprintf(buf0, "%04x ", ptr[i]);
+    strcat(buf, buf0);
+  }
+  
+  GrContextClipRegionSet(&context, &fullscreen_clip);
+  GrContextForegroundSet(&context, ClrBlack);
+  GrRectFill(&context, &fullscreen_clip);
+
+  GrContextForegroundSet(&context, ClrWhite);
+  GrContextFontSet(&context, (tFont*)&g_sFontNova12b);
+  GrStringDrawCentered(&context, "Crash Info", -1, 30, 8, 0);
+  GrStringDrawWrap(&context, buf, 2, 16, 120, 13);
+  
+  GrStringDraw(&context, PROCESS_CURRENT()->name, -1, 2, 100, 0);
+  //GrFlush(&context);
+  flushlcdsync();
+  
+  while(!(button_snapshot() & (1 << BUTTON_UP)));
+}
+
+/*---------------------------------------------------------------------------*/
+ISR(WDT, watchdog_interrupt)
+{
+  uint16_t dummy;
+
+  motor_on(0);
+#if PRINT_STACK_ON_REBOOT == 1
+  printstack(&dummy);
+#endif
+#if PRINT_STACK_ON_REBOOT == 2
+  displaystack(&dummy);
+#endif /* PRINT_STACK_ON_REBOOT */
+  rtc_save();
   watchdog_reboot();
 }
 /*---------------------------------------------------------------------------*/

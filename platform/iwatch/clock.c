@@ -76,7 +76,7 @@ ISR(TIMER1_A1, timera1)
 #error Change CLOCK_CONF_SECOND in contiki-conf.h.
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
-        P4OUT ^= BIT3; // flip LCD COM switch
+        LCDEXTCOMMOUT ^= LCDEXTCOMMPIN; // flip LCD COM switch
         ++seconds;
         energest_flush();
       }
@@ -136,7 +136,7 @@ clock_fine(void)
 void
 clock_init(void)
 {
-  dint();
+  __disable_interrupt();
 
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
@@ -165,9 +165,15 @@ clock_init(void)
   count = 0;
 
   /* Enable interrupts. */
-  eint();
+  __enable_interrupt();
 
 }
+
+void clock_shutdown(void)
+{
+  TA1CTL = MC0;
+}
+
 /*---------------------------------------------------------------------------*/
 /**
  * Delay the CPU for a multiple of 2.83 us.

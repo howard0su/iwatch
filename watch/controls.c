@@ -29,8 +29,8 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
 
-      tRectangle rect = {startx + i * width_all, y, startx + i * width_all + width_digit, y + height};
-      GrRectFill(pContext, &rect);
+      tRectangle rect = {startx + i * width_all + 2, y, startx + i * width_all + width_digit + 1, y + height};
+      GrRectFillRound(pContext, &rect, 3);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
@@ -53,20 +53,45 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
 
 void window_progress(tContext *pContext, long lY, uint8_t step)
 {
-  tRectangle rect = {20, lY, 125, lY + 16};
+  tRectangle rect = {18, lY, 127, lY + 8};
   GrContextForegroundSet(pContext, ClrWhite);
-  GrRectFill(pContext, &rect);
+  GrRectFillRound(pContext, &rect, 3);
   GrContextForegroundSet(pContext, ClrBlack);
 
   if (step < 100)
   {
-    rect.sXMin = 22;
-    rect.sYMin = lY + 2;
-    rect.sYMax = lY + 14;
-    rect.sXMax = 22 + step;
+    rect.sXMin += 4;
+    rect.sYMin += 2;
+    rect.sYMax -= 2;
+    rect.sXMax = rect.sXMin + step;
     GrRectFill(pContext, &rect);
   }
 }
+
+void window_volume(tContext *pContext, long lX, long lY, int total, int current)
+{
+  for (int i = 0; i <= total; i++)
+  {
+    tRectangle rect = {lX + i * 10, lY - 3 - i * 3, lX + 7 + i * 10, lY};
+    if (i <= current)
+    {
+      // solid
+      GrRectFill(pContext, &rect);
+    }
+    else
+    {
+      GrRectDraw(pContext, &rect);
+    }
+  }
+}
+
+static const tRectangle button_rect[] = 
+{
+ {11, 145, 68, 161},
+ {11, 28, 68, 44},
+ {77, 28, 131, 44},
+ {77, 145, 131, 161},
+};
 
 /*
 * Draw the button text for the keys
@@ -74,56 +99,38 @@ void window_progress(tContext *pContext, long lY, uint8_t step)
 */
 void window_button(tContext *pContext, uint8_t key, const char* text)
 {
-#define SPACE 2
-  uint8_t width, height;
-  int x, y;
-
   GrContextFontSet(pContext, &g_sFontRed13);
-  if (!text)
-  {
-    width = 100;
-  }
-  else
-  {
-    width = GrStringWidthGet(pContext, text, -1);
-  }
-
-  height = GrStringHeightGet(pContext);
-
-  if (key == KEY_UP || key == KEY_DOWN)
-  {
-    x = LCD_X_SIZE - width - SPACE;
-  }
-  else
-  {
-    x = SPACE;
-  }
-
-  if (key == KEY_ENTER || key == KEY_DOWN)
-  {
-    y = 135;
-  }
-  else
-  {
-    y = 30;
-  }
 
   // draw black box
-  const tRectangle rect = {x - SPACE, y - SPACE, x + width + SPACE, y + height + SPACE};
-
   if (text)
   {
+    const tRectangle *rect = &button_rect[key];
     GrContextForegroundSet(pContext, ClrWhite);
-    GrRectFillRound(pContext, &rect, 2);
+    GrRectFill(pContext, rect);
+
+    // draw triagle
+    for(int i = 0; i <= (rect->sYMax - rect->sYMin) /2 ; i++)
+    {
+      if (rect->sXMin < 20)
+      {
+        GrLineDrawH(pContext, rect->sXMin - i, rect->sXMin, rect->sYMin + i);
+        GrLineDrawH(pContext, rect->sXMin - i, rect->sXMin, rect->sYMax - i);
+      }
+      else
+      {
+        GrLineDrawH(pContext, rect->sXMax, rect->sXMax + i, rect->sYMin + i);
+        GrLineDrawH(pContext, rect->sXMax, rect->sXMax + i, rect->sYMax - i);
+      }
+    }
+
     GrContextForegroundSet(pContext, ClrBlack);
-    GrStringDraw(pContext, text, -1, x, y + 1, 0);
+    GrStringDrawCentered(pContext, text, -1, (rect->sXMin + rect->sXMax) /2, (rect->sYMin + rect->sYMax) /2, 0);
   }
   else
   {
     GrContextForegroundSet(pContext, ClrBlack);
-    GrRectFillRound(pContext, &rect, 2);
+    GrRectFill(pContext, &button_rect[key]);
   }
 
   GrContextForegroundSet(pContext, ClrWhite);
-#undef SPACE
 }

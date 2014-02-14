@@ -14,7 +14,7 @@ static void OnDraw(tContext *pContext)
   // clear screen
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
-  GrRectFill(pContext, &client_clip);
+  GrRectFill(pContext, &fullscreen_clip);
 
   // draw table title
   GrContextForegroundSet(pContext, ClrWhite);
@@ -83,13 +83,13 @@ static void OnDraw(tContext *pContext)
   if (month == 1)
     sprintf(buf, "%s %d", month_shortname[11], year - 1);
   else
-    sprintf(buf, "%s %d", month_shortname[month - 1], year);
+    sprintf(buf, "%s %d", month_shortname[month - 2], year);
   window_button(pContext, KEY_ENTER, buf);
 
   if (month == 12)
     sprintf(buf, "%s %d", month_shortname[0], year + 1);
   else
-    sprintf(buf, "%s %d", month_shortname[month+1], year);
+    sprintf(buf, "%s %d", month_shortname[month], year);
   window_button(pContext, KEY_DOWN, buf);
 }
 
@@ -102,6 +102,7 @@ uint8_t calendar_process(uint8_t ev, uint16_t lparam, void* rparam)
     now_month = month;
     now_year = year;
     now_day = day;
+    return 0x80;
   }
   else if (ev == EVENT_KEY_PRESSED)
   {

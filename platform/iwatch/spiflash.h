@@ -1,5 +1,6 @@
 #ifndef _SPIFLASH_H
 #define _SPIFLASH_H
+#include <stdint.h>
 
 #define SPI_FLASH_PageSize      256                                  //页大小
 #define SPI_FLASH_PerWritePageSize      256                          //每页大小
@@ -73,6 +74,7 @@ void SPI_FLASH_BufferWrite(uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByt
 * 功能：SPIFLASH多个数据函数，外部调用
 *********************************************************************************************/
 void SPI_FLASH_BufferRead(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
+void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
 /******************************************************************************************
 *函数名：SPI_FLASH_ReadID()
 * 参数：void
@@ -101,13 +103,6 @@ void SPI_FLASH_StartReadSequence(uint32_t ReadAddr);
 * 功能：SPIFLASH读一个字节函数，外部调用
 *********************************************************************************************/
 uint8_t SPI_FLASH_ReadByte(void);
-/******************************************************************************************
-*函数名：SPI_FLASH_SendByte()
-* 参数：uint8_t byte        写入的数据
-* 返回值：uint8_t 8位数据
-* 功能：SPIFLASH读写一个字节函数，外部调用
-*********************************************************************************************/
-uint8_t SPI_FLASH_SendByte(uint8_t byte);
 /******************************************************************************************
 *函数名：SPI_FLASH_SendHalfWord()
 * 参数：uint16_t HalfWord        写入的16位数据

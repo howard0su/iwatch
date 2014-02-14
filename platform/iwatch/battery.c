@@ -3,18 +3,8 @@
 #include "isr_compat.h"
 #include <stdio.h>
 
-#define BATINDIR P6DIR
-#define BATINSEL P6SEL
-#define BATININ  P6IN
-#define BATINPIN BIT7
-#define BATLEVEL BIT4
-
-#define BATOUTDIR P7DIR
-#define BATOUTREN P7REN
-#define BATOUTOUT P7OUT
-#define BATOUTPIN BIT5
-
 static uint8_t level;
+uint8_t uartattached = 1;
 
 static void setoutputfloat()
 {
@@ -62,8 +52,12 @@ BATTERY_STATE battery_state(void)
   setoutputfloat();
   __delay_cycles(10);
   if (BATININ & BATINPIN) // if it is high
+  {
+    uartattached = 0;
     return BATTERY_DISCHARGING;
+  }
 
+  uartattached = 1;
   setoutputhigh();
   __delay_cycles(10);
   int instate = (BATININ & BATINPIN) == 1; // if it is high
@@ -75,12 +69,27 @@ BATTERY_STATE battery_state(void)
     return BATTERY_CHARGING;
 }
 
+// map battery level to 0-15 scale
+const uint8_t curve[] = 
+{
+  183, 185, 187, 189, 190, 191, 192, 193, 194, 195, 198, 200, 204, 207, 209, 212
+};
+
+/* return battery level from 0 - 15 */
 uint8_t battery_level(void)
 {
 //  printf("battery level : %d\n", level);
   if (!(ADC12CTL1 & ADC12BUSY))
     ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
-  return level;
+
+  uint8_t ret;
+  for(ret = 1; ret < sizeof(curve); ret++)
+  {
+    if (level < curve[ret])
+      return ret - 1;
+  }
+
+  return 15;
 }
 
 ISR(ADC12, _ADC12_ISR)

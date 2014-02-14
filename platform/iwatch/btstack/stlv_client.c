@@ -150,3 +150,72 @@ void end_send_file(int handle)
     }
 }
 
+void send_sports_data(uint8_t id, uint8_t flag, uint32_t data[], uint8_t size)
+{
+    stlv_packet p = create_packet();
+    if (p == 0)
+        return;
+
+    element_handle h = append_element(p, NULL, "A", 1);
+
+    element_handle elm_id = append_element(p, h, "i", 1);
+    element_append_char(p, elm_id, id);
+
+    element_handle elm_flag = append_element(p, h, "f", 1);
+    element_append_char(p, elm_flag, flag);
+
+    element_handle elm_data = append_element(p, h, "d", 1);
+    element_append_data(p, elm_data, (uint8_t*)data, size * sizeof(data[0]));
+
+    send_packet(p, NULL, 0);
+}
+
+void send_sports_grid(uint8_t* data, uint8_t size)
+{
+    stlv_packet p = create_packet();
+    if (p == 0)
+        return;
+    element_handle h = append_element(p, NULL, "R", 1);
+    element_append_data(p, h, data, size * sizeof(uint8_t));
+    send_packet(p, NULL, 0);
+}
+
+void send_alarm_conf(alarm_conf_t* conf)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "I", 1);
+    element_append_data(p, h, (uint8_t*)conf, sizeof(alarm_conf_t));
+    send_packet(p, NULL, 0);
+}
+
+void send_device_id(char* device_id)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "S", 1);
+    element_append_string(p, h, device_id);
+    send_packet(p, NULL, 0);
+}
+
+void send_file_list(char* files)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "L", 1);
+    element_append_string(p, h, files);
+    send_packet(p, NULL, 0);
+}
+
+void launch_google_now()
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "*", 1);
+    element_append_char(p, h, '*');
+    send_packet(p, NULL, 0);
+}

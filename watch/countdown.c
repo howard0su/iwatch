@@ -14,8 +14,11 @@
 
 #include "contiki.h"
 #include "window.h"
-#include "math.h"
 #include "grlib/grlib.h"
+#include "cordic.h"
+#include "backlight.h"
+
+#include "memory.h"
 
 static enum _state{
   STATE_CONFIG_HOUR,
@@ -23,12 +26,61 @@ static enum _state{
   STATE_CONFIG_SECOND,
 
   STATE_CONFIG_READY, // the order above is assumed in the logic, don't change
-
+  STATE_CONFIG_PAUSE,
+  STATE_CONFIG_DONE,
   STATE_RUNNING
-}state;
+};
 
-static uint8_t times[3];
-static uint32_t totaltime, lefttime;
+#define state d.countdown.state
+#define times d.countdown.times
+#define totaltime d.countdown.totaltime
+#define lefttime d.countdown.lefttime
+
+#define CENTER_X 75
+#define CENTER_Y 95
+
+#define INNER_R 16
+#define OUTER_R 32
+
+static const tRectangle progress_range = 
+{
+  CENTER_X - OUTER_R, CENTER_Y - OUTER_R,
+  CENTER_X + OUTER_R, CENTER_Y + OUTER_R,
+};
+
+static void OnDrawProgress(tContext *pContext)
+{
+  uint16_t range = 360 - lefttime * 360 / totaltime;
+  uint8_t ix, iy, ex, ey;
+  uint8_t ixp, iyp, exp, eyp;
+
+  int sin_val, cos_val;
+
+  for(int angle = 0; angle < range; angle += 8)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+
+    ixp = CENTER_X + ((16 * (sin_val >> 8)) >> 7);
+    iyp = CENTER_Y - ((16 * (cos_val >> 8)) >> 7);
+
+    exp = CENTER_X + ((29 * (sin_val >> 8)) >> 7);
+    eyp = CENTER_Y - ((29 * (cos_val >> 8)) >> 7);
+
+    if (angle + 8 > range)
+      angle = range;
+    else
+      angle += 8;
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    ix = CENTER_X + ((16 * (sin_val >> 8)) >> 7);
+    iy = CENTER_Y - ((16 * (cos_val >> 8)) >> 7);
+
+    ex = CENTER_X + ((29 * (sin_val >> 8)) >> 7);
+    ey = CENTER_Y - ((29 * (cos_val >> 8)) >> 7);
+
+    GrTriagleFill(pContext, ixp, iyp, exp, eyp, ix, iy);
+    GrTriagleFill(pContext, ix, iy, ex, ey, exp, eyp);
+  }
+}
 
 static void OnDraw(tContext *pContext)
 {
@@ -39,8 +91,7 @@ static void OnDraw(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  window_drawtime(pContext, 65, times, 1 << state);
-
+  GrContextForegroundSet(pContext, ClrWhite);
   // draw the button text
   switch(state)
   {
@@ -48,31 +99,58 @@ static void OnDraw(tContext *pContext)
   case STATE_CONFIG_MINUTE:
   case STATE_CONFIG_HOUR:
     {
-      window_button(pContext, KEY_UP, "UP");
-      window_button(pContext, KEY_DOWN, "DOWN");
+      for(int i = 0; i < 10; i++)
+      {
+        GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+        GrLineDrawH(pContext, 130 - i, 130 + i,  153 - i);
+      }
+
+      window_drawtime(pContext, 65, times, 1 << state);
       window_button(pContext, KEY_ENTER, "OK");
       break;
     }
   case STATE_CONFIG_READY:
     {
-      window_button(pContext, KEY_UP, NULL);
+      window_drawtime(pContext, 27, times, 1 << state);
+
       window_button(pContext, KEY_DOWN, "RESET");
       window_button(pContext, KEY_ENTER, "START");
 
+      break;
+    }
+  case STATE_CONFIG_PAUSE:
+    {
+      window_drawtime(pContext, 27, times, 1 << state);
+
+      window_button(pContext, KEY_DOWN, "RESET");
+      window_button(pContext, KEY_ENTER, "Continue");
+
       // display progress bar
       if (totaltime != lefttime)
-        window_progress(pContext, 100, 100 - (uint8_t)(lefttime * 100 / totaltime));
+        OnDrawProgress(pContext);
 
       break;
     }
+  case STATE_CONFIG_DONE:
+    {
+      window_drawtime(pContext, 27, times, 1 << state);
+
+      window_button(pContext, KEY_DOWN, "RESET");
+
+      // display progress bar
+      if (totaltime != lefttime)
+        OnDrawProgress(pContext);
+
+      break;      
+    }
   case STATE_RUNNING:
     {
-      window_button(pContext, KEY_UP, NULL);
+      window_drawtime(pContext, 27, times, 1 << state);
       window_button(pContext, KEY_DOWN, "PAUSE");
       window_button(pContext, KEY_ENTER, "STOP");
 
       // display progress bar
-      window_progress(pContext, 100, 100 - (uint8_t)(lefttime * 100 / totaltime));
+      OnDrawProgress(pContext);
 
       break;
     }
@@ -112,7 +190,12 @@ static int process_event(uint8_t ev, uint16_t data)
         break;
       case KEY_ENTER:
         if (state == STATE_CONFIG_HOUR)
-          state = STATE_CONFIG_READY;
+        {
+          if (times[0] != 0  || times[1] != 0  || times[2] != 0)
+            state = STATE_CONFIG_READY;
+          else
+            state = STATE_CONFIG_SECOND;
+        }
         else
           state--;
         break;
@@ -121,6 +204,22 @@ static int process_event(uint8_t ev, uint16_t data)
 
       return 1;
     }
+    case STATE_CONFIG_DONE:
+    {
+
+      if (ev != EVENT_KEY_PRESSED)
+        return 0;
+
+      if ((uint8_t)data == KEY_DOWN)
+      {
+        state = STATE_CONFIG_SECOND;
+        times[0] = times[1] = times[2] = 0;
+      }
+      window_invalid(NULL);
+
+      return 1;
+    }
+  case STATE_CONFIG_PAUSE:
   case STATE_CONFIG_READY:
     {
       if (ev != EVENT_KEY_PRESSED)
@@ -133,8 +232,11 @@ static int process_event(uint8_t ev, uint16_t data)
       }
       else if (data == KEY_ENTER)
       {
-        lefttime = totaltime = times[STATE_CONFIG_SECOND] + times[STATE_CONFIG_MINUTE] * 60
+        if (state == STATE_CONFIG_READY)
+        {
+          lefttime = totaltime = times[STATE_CONFIG_SECOND] + times[STATE_CONFIG_MINUTE] * 60
               + times[STATE_CONFIG_HOUR] * 3600;
+        }
         // setup timer every second
         window_timer(CLOCK_SECOND);
 
@@ -152,7 +254,7 @@ static int process_event(uint8_t ev, uint16_t data)
         {
           // pause
           window_timer(0);
-          state = STATE_CONFIG_READY;
+          state = STATE_CONFIG_PAUSE;
         }
         else if (data == KEY_ENTER)
         {
@@ -170,7 +272,9 @@ static int process_event(uint8_t ev, uint16_t data)
         times[STATE_CONFIG_HOUR] = (lefttime/3600) % 60;
         if (lefttime == 0)
         {
-          state = STATE_CONFIG_READY;
+          // trigger notification
+          motor_on(100, CLOCK_SECOND * 2);
+          state = STATE_CONFIG_DONE;
         }
         else
         {

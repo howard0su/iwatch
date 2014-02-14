@@ -1,11 +1,16 @@
 
 #include "CuTest.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+
 #include "TestUtility/stlv_test_stub.h"
 #include "stlv.h"
 #include "stlv_client.h"
 #include "stlv_server.h"
 #include "stlv_transport.h"
+#include "stlv_handler.h"
 
 #ifndef NULL
 #   define NULL 0
@@ -13,13 +18,15 @@
 
 #define TEST_FILE_NAME "testfile"
 
-static void trySendOut()
+static int trySendOut()
 {
+    int counter = 0;
     int prev_count = 0;
     do {
        prev_count = get_send_pack_stub_count();
        tryToSend();
     } while (prev_count != get_send_pack_stub_count());
+    return counter;
 }
 
 static void TestSendEcho(CuTest* tc)
@@ -84,7 +91,7 @@ static void TestSendFile(CuTest* tc)
     printf("TestSendFile\n");
     init_send_pack_stub();
 
-    for (int i = 0; i < sizeof(file_buf); ++i)
+    for (int i = 0; i < (int)sizeof(file_buf); ++i)
         file_buf[i] = file_index;
 
     int fd = begin_send_file(TEST_FILE_NAME);
@@ -114,7 +121,7 @@ static void send_file_callback(int para)
 
     file_index++;
     printf("callback index=%d\n", file_index);
-    for (int i = 0; i < sizeof(file_buf); ++i)
+    for (int i = 0; i < (int) sizeof(file_buf); ++i)
         file_buf[i] = file_index;
 
     send_file_data(para, file_buf, sizeof(file_buf), send_file_callback, para);
@@ -236,6 +243,7 @@ uint8_t file_end_data[] = {
 
 static void TestRecvFile(CuTest* tc)
 {
+    UNUSED_VAR(tc);
     cfs_coffee_format();
     init_send_pack_stub();
 
@@ -248,6 +256,7 @@ static void TestRecvFile(CuTest* tc)
 
 static void TestListFiles(CuTest* tc)
 {
+    UNUSED_VAR(tc);
     handle_list_file();
     trySendOut();
 }
@@ -266,17 +275,55 @@ static void TestGetFile(CuTest* tc)
 
 static void TestRemoveFiles(CuTest* tc)
 {
+    UNUSED_VAR(tc);
     handle_remove_file(TEST_FILE_NAME);
+}
+
+static void TestSportsGrid(CuTest* tc)
+{
+    UNUSED_VAR(tc);
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+    handle_get_sports_grid();
+}
+
+static void TestAlarmConf(CuTest* tc)
+{
+    UNUSED_VAR(tc);
+
+    alarm_conf_t alarmConf;
+
+    alarmConf.id           = 1;
+    alarmConf.mode         = ALARM_MODE_MONTHLY;
+    alarmConf.day_of_month = 10;
+    alarmConf.day_of_week  = 20;
+    alarmConf.hour         = 12;
+    alarmConf.minute       = 56;
+    send_alarm_conf(&alarmConf);
+
+    trySendOut();
+}
+
+static void TestNotification(CuTest* tc)
+{
+    UNUSED_VAR(tc);
+
 }
 
 CuSuite* StlvProtocalGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("STLV Test");
     SUITE_ADD_TEST(suite, TestSendEcho);
     SUITE_ADD_TEST(suite, TestRecvEcho);
     SUITE_ADD_TEST(suite, TestSendFile);
     SUITE_ADD_TEST(suite, TestRecvFile);
     SUITE_ADD_TEST(suite, TestGetFile);
+    SUITE_ADD_TEST(suite, TestSportsGrid);
+    SUITE_ADD_TEST(suite, TestAlarmConf);
+    SUITE_ADD_TEST(suite, TestNotification);
+
     return suite;
 }
 

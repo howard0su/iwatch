@@ -96,6 +96,7 @@ extern "C" {
 #define OGF_LINK_POLICY           0x02
 #define OGF_CONTROLLER_BASEBAND   0x03
 #define OGF_INFORMATIONAL_PARAMETERS 0x04
+#define OGF_TEST                    0x06
 #define OGF_LE_CONTROLLER 0x08
 #define OGF_BTSTACK 0x3d
 #define OGF_VENDOR  0x3f
@@ -194,7 +195,15 @@ typedef enum {
     RECV_LINK_KEY_NOTIFICATION     = 0x10,
     RECV_PIN_CODE_REQUEST          = 0x20,
     SENT_PIN_CODE_REPLY            = 0x40, 
-    SENT_PIN_CODE_NEGATIVE_REPLY   = 0x80 
+    SENT_PIN_CODE_NEGATIVE_REPLY   = 0x80,
+
+    // SSP
+    RECV_IO_CAPABILITIES_REQUEST   = 0x0100,
+    SEND_IO_CAPABILITIES_REPLY     = 0x0200,
+    RECV_USER_CONFIRM_REQUEST      = 0x0400,
+    SEND_USER_CONFIRM_REPLY        = 0x0800,
+    RECV_USER_PASSKEY_REQUEST      = 0x1000,
+    SEND_USER_PASSKEY_REPLY        = 0x2000,
 } hci_authentication_flags_t;
 
 typedef enum {
@@ -212,6 +221,17 @@ typedef enum {
     BLUETOOTH_ACTIVE
 } BLUETOOTH_STATE;
 
+typedef enum {
+    ACTIVE=0, 
+    HOLD=1, 
+    SNIFF=2,
+    PARK=3,
+    MODE_VALUES= 0x03,
+    ENTER_SNIFF = 0x40,
+    EXIT_SNIFF = 0x80
+} BLUETOOTH_CONNECTION_MODE;
+
+
 typedef struct {
     // linked list - assert: first field
     linked_item_t    item;
@@ -219,7 +239,7 @@ typedef struct {
     // remote side
     bd_addr_t address;
 
-	// connection type: 0-sco, 1->acl
+	// connection type: 0-sco, 1->acl, 3->le
 	uint8_t type;
 	
     // module handle
@@ -227,7 +247,14 @@ typedef struct {
 
     // state
     CONNECTION_STATE state;
-    
+
+    // connection mode
+    BLUETOOTH_CONNECTION_MODE mode;
+
+    // sniff timeout
+    // if it is -1, then don't go to sniff mode
+    uint16_t sniff_timeout;
+        
     // errands
     hci_authentication_flags_t authentication_flags;
 
@@ -258,7 +285,16 @@ typedef struct {
     // transport component with configuration
     hci_transport_t  * hci_transport;
     void             * config;
-    
+
+    // bsic configuration
+    const char             * local_name;
+    uint32_t           class_of_device;
+    bd_addr_t          local_bd_addr;
+    uint8_t            ssp_enable;
+    uint8_t            ssp_io_capability;
+    uint8_t            ssp_authentication_requirement;
+    uint8_t            ssp_auto_accept;
+
     // hardware power controller
     bt_control_t     * control;
     
@@ -273,6 +309,11 @@ typedef struct {
     // uint8_t  total_num_cmd_packets;
     uint8_t  total_num_acl_packets;
     uint16_t acl_data_packet_length;
+    uint8_t  total_num_le_packets;
+    uint16_t le_data_packet_length;
+
+    /* local supported features */
+    uint8_t local_supported_features[8];
 
     // usable packet types given acl_data_packet_length and HCI_ACL_BUFFER_SIZE
     uint16_t packet_types;
@@ -297,7 +338,9 @@ typedef struct {
     // buffer for single connection decline
     uint8_t   decline_reason;
     bd_addr_t decline_addr;
-    
+
+    uint8_t   adv_addr_type;
+    bd_addr_t adv_address;
 } hci_stack_t;
 
 // create and send hci command packets based on a template and a list of parameters
@@ -330,15 +373,19 @@ int hci_send_acl_packet(uint8_t *packet, int size);
 
 // non-blocking UART driver needs
 int hci_can_send_packet_now(uint8_t packet_type);
-    
+
+#define ISBLEHANDLE(handle) (handle > 1024)
+
 hci_connection_t * connection_for_handle(hci_con_handle_t con_handle);
 uint8_t  hci_number_outgoing_packets(hci_con_handle_t handle);
-uint8_t  hci_number_free_acl_slots(void);
+uint8_t  hci_number_free_acl_slots(int isble); // 0-> BR, 1 -> ble
 int      hci_authentication_active_for_handle(hci_con_handle_t handle);
 void     hci_drop_link_key_for_bd_addr(bd_addr_t *addr);
 uint16_t hci_max_acl_data_packet_length(void);
 uint16_t hci_usable_acl_packet_types(void);
 uint8_t* hci_get_outgoing_acl_packet_buffer(void);
+void     hci_set_sniff_timeout(hci_con_handle_t handle, uint16_t timeout);
+void     hci_exit_sniff(hci_con_handle_t handle);
 
 // 
 void hci_emit_state(void);
@@ -351,6 +398,21 @@ void hci_emit_btstack_version(void);
 void hci_emit_system_bluetooth_enabled(uint8_t enabled);
 void hci_emit_remote_name_cached(bd_addr_t *addr, device_name_t *name);
 void hci_emit_discoverable_enabled(uint8_t enabled);
+
+
+// enable will enable SSP during init
+void hci_ssp_set_enable(int enable);
+void hci_set_class_of_device(uint32_t value);
+// if set, BTstack will respond to io capability request using authentication requirement
+void hci_ssp_set_io_capability(int ssp_io_capability);
+void hci_ssp_set_authentication_requirement(int authentication_requirement);
+
+// if set, BTstack will confirm a numberic comparion and enter '000000' if requested
+void hci_ssp_set_auto_accept(int auto_accept);
+
+void hci_set_local_name(const char* name);
+
+bd_addr_t * hci_local_bd_addr(void);
 
 #if defined __cplusplus
 }

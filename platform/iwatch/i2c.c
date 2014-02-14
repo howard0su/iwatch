@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static uint8_t *rxdata;
-static uint8_t rxlen;
+static uint16_t rxlen;
 static const uint8_t *payload;
 static uint8_t payloadlen;
 static const uint8_t *txdata;
@@ -21,7 +21,7 @@ void I2C_Init()
 
   UCB1CTL0 = UCMODE_3 + UCMST + UCSYNC; // master, I2c mode, LSB
   UCB1CTL1 = UCSSEL__SMCLK + UCSWRST; // SMCLK for now
-  UCB1BR0 = 160; // 8MHZ / 80 = 100Khz
+  UCB1BR0 = 20; // 8MHZ / 80 = 100Khz
   UCB1BR1 = 0;
 
   // give clk signal to all slaves and wait SDA go back to high
@@ -41,10 +41,15 @@ void I2C_Init()
   P5SEL |= BIT4;
 
   UCB1CTL1 &= ~UCSWRST;
-  printf("Done\n");
+  printf("\n$$OK I2C\n");
 }
 
-int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
+void I2C_shutdown()
+{
+  UCB1CTL1 |= UCSWRST;
+}
+
+int I2C_readbytes(unsigned char reg, unsigned char *data, uint16_t len)
 {
   txdata = &reg;
   txlen = 1;
@@ -53,12 +58,12 @@ int I2C_readbytes(unsigned char reg, unsigned char *data, uint8_t len)
   rxlen = len;
 
   state = STATE_RUNNING;
-  UCB1IE |= UCTXIE + UCRXIE;                         // Enable TX interrupt
+  UCB1IE |= UCTXIE + UCRXIE + UCNACKIE;              // Enable TX interrupt
 
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND/8);
 
   UCB1IE &= ~(UCTXIE + UCRXIE);
 
@@ -76,12 +81,12 @@ int I2C_writebytes(unsigned char reg, const unsigned char *data, uint8_t len)
   rxlen = 0;
 
   state = STATE_RUNNING;
-  UCB1IE |= UCTXIE;                         // Enable TX interrupt
+  UCB1IE |= UCTXIE | UCNACKIE;                         // Enable TX interrupt
 
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND/8);
 
   UCB1IE &= ~UCTXIE;
 
@@ -99,34 +104,31 @@ int I2C_write(unsigned char reg, unsigned char data)
   rxlen = 0;
 
   state = STATE_RUNNING;
-  UCB1IE |= UCTXIE;                         // Enable TX interrupt
+  UCB1IE |= UCTXIE | UCNACKIE;                         // Enable TX interrupt
 
   while (UCB1CTL1 & UCTXSTP);             // Ensure stop condition got sent
   UCB1CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
-  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(state != STATE_RUNNING, RTIMER_SECOND/8);
 
   UCB1IE &= ~UCTXIE;
 
   return state != STATE_DONE;
 }
 
-void  I2C_addr(unsigned char address, uint8_t msb)
+void  I2C_addr(unsigned char address)
 {
   if (UCB1I2CSA == address)
     return;
 
   UCB1CTL1 |= UCSWRST;
   UCB1I2CSA = address;
-  if (msb)
-    UCB1CTL0 |= UCMSB;
-  else
-    UCB1CTL0 &= ~UCMSB;
   UCB1CTL1 &= ~UCSWRST;
 }
 
 void I2C_done()
 {
+  while(UCB1STAT & UCBUSY);
 }
 
 ISR(USCI_B1, USCI_B1_ISR)
@@ -136,7 +138,9 @@ ISR(USCI_B1, USCI_B1_ISR)
   {
   case  0: break;                           // Vector  0: No interrupts
   case  2: break;                           // Vector  2: ALIFG
-  case  4: break;                           // Vector  4: NACKIFG
+  case  4: 
+    LPM4_EXIT;
+    break;                           // Vector  4: NACKIFG
   case  6:    		                    // Vector  6: STTIFG
     {
       break;
@@ -159,7 +163,7 @@ ISR(USCI_B1, USCI_B1_ISR)
       {
         UCB1IFG &= ~UCRXIFG;
         state = STATE_DONE;
-        __bic_SR_register_on_exit(LPM4_bits); // Exit LPM0
+        LPM4_EXIT;
       }
 
       // read data to release SCL
@@ -187,7 +191,7 @@ ISR(USCI_B1, USCI_B1_ISR)
       {
         UCB1CTL1 |= UCTXSTP;                  // I2C stop condition
         state = STATE_DONE;
-        __bic_SR_register_on_exit(LPM4_bits); // Exit LPM0
+        LPM4_EXIT;
       }
       else
       {

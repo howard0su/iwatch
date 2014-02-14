@@ -3,11 +3,37 @@
 #include "isr_compat.h"
 #include "rtc.h"
 #include "window.h"
+#include "btstack/include/btstack/utils.h"
 
 PROCESS(rtc_process, "RTC Driver");
 PROCESS_NAME(system_process);
 
-static struct datetime now;
+#ifndef __IAR_SYSTEMS_ICC__
+#define __no_init __attribute__ ((section (".noinit")))
+#endif
+
+__no_init static struct datetime now;
+__no_init static uint16_t checksum;
+static uint8_t source;
+
+static uint16_t getChecksum()
+{
+  CRCINIRES = 0xFFFF;
+  CRCDIRB_L = now.year >> 8;
+  CRCDIRB_L = now.year & 0xff;
+  CRCDIRB_L = now.month;
+  CRCDIRB_L = now.day;
+  CRCDIRB_L = now.hour;
+  CRCDIRB_L = now.minute;
+  CRCDIRB_L = now.second;
+
+  CRCDIRB_L = now.ahour;
+  CRCDIRB_L = now.aminute;
+  CRCDIRB_L = now.aday;
+  CRCDIRB_L = now.adow;
+
+  return CRCINIRES;
+}
 
 void rtc_init()
 {
@@ -16,14 +42,29 @@ void rtc_init()
   // RTC enable, HEX mode, RTC hold
   // enable RTC time event interrupt
 
-  RTCYEAR = 2013;                         // Year = 0x2010
-  RTCMON = 1;                             // Month = 0x04 = April
-  RTCDAY = 1;                            // Day = 0x05 = 5th
-  RTCDOW = rtc_getweekday(13, 5, 1);
-  RTCHOUR = 22;                           // Hour = 0x10
-  RTCMIN = 10;                            // Minute = 0x32
-  RTCSEC = 0;                            // Seconds = 0x45
+  if (getChecksum() != checksum)
+  {
+    // caculate the checksum
+    RTCYEAR = 2013;                         // Year = 0x2010
+    RTCMON = 1;                             // Month = 0x04 = April
+    RTCDAY = 1;                            // Day = 0x05 = 5th
+    RTCDOW = rtc_getweekday(13, 5, 1);
+    RTCHOUR = 22;                           // Hour = 0x10
+    RTCMIN = 10;                            // Minute = 0x32
+    RTCSEC = 0;                            // Seconds = 0x45
+  }
+  else
+  {
+    RTCYEAR = now.year;
+    RTCMON = now.month;
+    RTCDAY = now.day;
+    RTCDOW = rtc_getweekday(now.year - 2000, now.month, now.day);
+    RTCHOUR = now.hour;
+    RTCMIN = now.minute;
+    RTCSEC = now.second;
 
+    rtc_setalarm(now.aday, now.adow, now.ahour, now.aminute);
+  }
   //  RTCADOWDAY = 0x2;                         // RTC Day of week alarm = 0x2
   //  RTCADAY = 0x20;                           // RTC Day Alarm = 0x20
   //  RTCAHOUR = 0x10;                          // RTC Hour Alarm
@@ -40,7 +81,16 @@ PROCESS_THREAD(rtc_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    process_post(ui_process, EVENT_TIME_CHANGED, &now);
+    if (source == 0)
+    {
+      checksum = getChecksum();
+      process_post(ui_process, EVENT_TIME_CHANGED, &now);
+    }
+    else
+    {
+      // notification of alarm
+      window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, 0);
+    }
   }
   PROCESS_END();
 }
@@ -54,6 +104,15 @@ uint8_t rtc_getweekday(uint16_t year, uint8_t month, uint8_t day)
   }
 
   return 1 + (( day + 2*month + 3*(month+1)/5 + year + year/4 ) %7);
+}
+
+void rtc_save()
+{
+  BUSYWAIT_UNTIL((RTCCTL01&RTCRDY), CLOCK_SECOND/8);
+  now.minute = RTCMIN;
+  now.second = RTCSEC;
+  
+  checksum = getChecksum();  
 }
 
 void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
@@ -102,9 +161,44 @@ uint8_t rtc_getmaxday(uint16_t year, uint8_t month)
   }
 }
 
-void rtc_setalarm()
+void rtc_setalarm(uint8_t aday, uint8_t adow, uint8_t ahour, uint8_t aminute)
 {
+  int enable = 0;
+  RTCCTL0 &= ~RTCAIE;
+  RTCCTL0 &= ~RTCAIFG;
 
+  if (adow & 0x80) 
+  {
+    RTCADOW = adow;
+    now.adow = adow;
+    enable = 1;
+  }
+
+  if (aday & 0x80)
+  {
+   RTCADAY = aday;
+   now.aday = aday;
+   enable =1;
+  }
+
+  if (aminute & 0x80)
+  {
+    RTCAMIN = aminute;
+    now.aminute = aminute;
+    enable = 1;
+  }
+  
+  if (ahour & 0x80)
+  {
+    RTCAHOUR = ahour;
+    now.ahour = ahour;
+    enable = 1;
+  }
+
+  if (enable)
+  {
+    RTCCTL0 |= RTCAIE;
+  }
 }
 
 void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
@@ -124,6 +218,95 @@ void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday
   if (month) *month = RTCMON;
   if (day) *day = RTCDAY;
   if (weekday) *weekday = RTCDOW;
+}
+
+static const uint8_t month_day_map[] = {
+    31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+};
+uint32_t calc_timestamp(uint8_t year, uint8_t month, uint8_t day, uint8_t hh, uint8_t mm, uint8_t ss)
+{
+    uint8_t leap_years = year / 4 + 1;
+    if (year % 4 == 0 && month < 2)
+        leap_years -= 1;
+
+    uint32_t days = year * 365 + leap_years;
+    for (uint8_t i = 0; i < month - 1; ++i)
+        days += month_day_map[i];
+    days += day;
+    return ((days * 24 + hh) * 60 + mm) * 60 + ss;
+
+}
+
+void parse_timestamp(uint32_t time, uint8_t* year, uint8_t* month, uint8_t* day, uint8_t* hh, uint8_t* mm, uint8_t* ss)
+{
+    uint32_t temp = 0;
+
+    *ss = time % 60;
+    temp = time / 60;
+
+    *mm = temp % 60;
+    temp = temp / 60;
+
+    *hh = temp % 24;
+    temp = temp / 24;
+
+    uint16_t total_day = temp;
+    uint8_t tyear = 0;
+    while(1)
+    {
+        if (tyear % 4 == 0)
+        {
+            if (total_day >= 366)
+                total_day -= 366;
+            else
+                break;
+        }
+        else
+        {
+            if (total_day >= 365)
+                total_day -= 365;
+            else
+                break;
+        }
+        tyear++;
+    }
+
+    uint8_t i = 0;
+    for (; i < count_elem(month_day_map); ++i)
+    {
+        if (tyear % 4 == 0 && i == 1)
+        {
+            if (total_day < month_day_map[i] + 1)
+                break;
+            total_day -= month_day_map[i] + 1;
+        }
+        else
+        {
+            if (total_day < month_day_map[i])
+                break;
+            total_day -= month_day_map[i];
+        }
+    }
+
+    *year  = tyear;
+    *month = i + 1;
+    *day   = total_day;
+
+}
+
+uint32_t rtc_readtime32()
+{
+    uint16_t year  = 0;
+    uint8_t  month = 0;
+    uint8_t  day   = 0;
+    uint8_t  wday  = 0;
+    rtc_readdate(&year, &month, &day, &wday);
+
+    uint8_t  hour  = 0;
+    uint8_t  min   = 0;
+    uint8_t  sec   = 0;
+    rtc_readtime(&hour, &min, &sec);
+    return calc_timestamp(year - 2000, month, day, hour, min, sec);
 }
 
 void rtc_enablechange(uint8_t changes)
@@ -165,6 +348,7 @@ ISR(RTC, RTC_ISR)
     break;
   case RTC_RTCRDYIFG:                     // RTCRDYIFG
     {
+      source = 0;
       now.hour   = RTCHOUR;
       now.minute = RTCMIN;
       now.second = RTCSEC;
@@ -177,6 +361,7 @@ ISR(RTC, RTC_ISR)
     }
   case RTC_RTCTEVIFG:                     // RTCEVIFG
     {
+      source = 0;
       now.hour   = RTCHOUR;
       now.minute = RTCMIN;
       now.second = RTCSEC;
@@ -188,10 +373,16 @@ ISR(RTC, RTC_ISR)
       break;
     }
   case RTC_RTCAIFG:                       // RTCAIFG
-    break;
+    {
+      source = 1;
+      process_poll(&rtc_process);
+      LPM4_EXIT;
+      break;
+    }
   case RTC_RT0PSIFG:                      // RT0PSIFG
     break;
   case RTC_RT1PSIFG:                      // RT1PSIFG
+    source = 0;
     process_poll(&rtc_process);
     LPM4_EXIT;
     break;

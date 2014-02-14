@@ -2,12 +2,15 @@
 #include "stlv_handler.h"
 
 #include <stdio.h>
+#include <string.h>
+
 #include "stlv.h"
 #include "contiki.h"
 #include "window.h"
 #include "rtc.h"
 #include "cfs/cfs.h"
 #include "stlv_client.h"
+#include "btstack/include/btstack/utils.h"
 
 void handle_echo(uint8_t* data, int data_len)
 {
@@ -16,8 +19,41 @@ void handle_echo(uint8_t* data, int data_len)
 
 void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
 {
-    rtc_setdate(2000 + year, month, day);
+    rtc_setdate(2000 + year, month + 1, day);
     rtc_settime(hour, minute, second);
+
+    //for test
+    //struct cfs_dir dir;
+    //int ret = cfs_opendir(&dir, "");
+    //if (ret == -1)
+    //{
+    //    printf("cfs_opendir() failed: %d\n", ret);
+    //    return;
+    //}
+
+    //while (ret != -1)
+    //{
+    //    struct cfs_dirent dirent;
+    //    ret = cfs_readdir(&dir, &dirent);
+    //    if (ret != -1)
+    //    {
+    //        printf("file:%s, %d\n", dirent.name, dirent.size);
+    //    }
+    //}
+
+    //cfs_closedir(&dir);
+}
+
+static uint8_t _phone_info[2] = {0};
+void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
+{
+    _phone_info[0] = phone_type;
+    _phone_info[1] = phone_ver;
+}
+
+uint8_t get_phone_type()
+{
+    return _phone_info[0];
 }
 
 #define ICON_FACEBOOK 's'
@@ -38,6 +74,19 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
     case ELEMENT_TYPE_MESSAGE_TW:
         icon = ICON_TWITTER;
         break;
+
+    case ELEMENT_TYPE_MESSAGE_WEATHER:
+    case ELEMENT_TYPE_MESSAGE_BATTERY:
+    case ELEMENT_TYPE_MESSAGE_CALL:
+    case ELEMENT_TYPE_MESSAGE_REMINDER:
+        //TODO: impelment all these
+        icon = ICON_MSG;
+        break;
+    case ELEMENT_TYPE_MESSAGE_RANGE:
+        //TODO: this is special: phone out of range is merely an option
+        //in message, if the value is "off" turn off the alarm
+        //in message, if the value is "on" turn on the alarm
+        break;
     default:
         return;
         break;
@@ -49,6 +98,7 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 
 int handle_file_begin(char* name)
 {
+    printf("handle_file_begin(%s)\n", name);
     int fd = cfs_open(name, CFS_WRITE);
     if (fd == -1)
     {
@@ -60,6 +110,7 @@ int handle_file_begin(char* name)
 
 int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
+    printf("handle_file_end(%x, data, %d)\n", fd, size);
     if (fd != -1)
     {
         return cfs_write(fd, data, size);
@@ -70,25 +121,95 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
 
 void handle_file_end(int fd)
 {
+    printf("handle_file_end(%x)\n", fd);
     cfs_close(fd);
-}
-
-//TODO: sujun implement this heart beat and get file
-void handle_sports_heartbeat(uint8_t seconds_to_next)
-{
 }
 
 void handle_get_file(char* name)
 {
+    printf("handle_get_file(%s)\n", name);
     transfer_file(name);
 }
 
-void handle_list_file()
+static char* filter_filename_by_prefix(char* prefix, char* filename)
 {
+    char* pp = prefix;
+    char* pf = filename;
+    while (*pp != '\0' && *pf != '\0')
+    {
+        if (*pp != *pf)
+        {
+            return 0;
+        }
+        ++pp;
+        ++pf;
+    }
+    if (*pf != '\0')
+        return pf;
+    else
+        return 0;
+}
+
+//TODO: help verify
+void handle_list_file(char* prefix)
+{
+    printf("handle_list_file(%s)\n", prefix);
+
+    char buf[200] = "";
+    uint8_t buf_size = 0;
+    struct cfs_dir dir;
+    int ret = cfs_opendir(&dir, "");
+    if (ret == -1)
+    {
+        printf("cfs_opendir() failed: %d\n", ret);
+        return;
+    }
+
+    while (ret != -1)
+    {
+        struct cfs_dirent dirent;
+        ret = cfs_readdir(&dir, &dirent);
+        if (ret != -1)
+        {
+            printf("file:%s, %d\n", dirent.name, dirent.size);
+
+            char* short_name = filter_filename_by_prefix(prefix, dirent.name);
+            uint8_t len = strlen(short_name) + 1;
+            if (buf_size + len >= sizeof(buf) - 1)
+                break;
+            strcat(buf, short_name);
+            strcat(buf, ";");
+            buf_size += len;
+        }
+    }
+
+    cfs_closedir(&dir);
+
+    send_file_list(buf);
+
 }
 
 void handle_remove_file(char* name)
 {
+    printf("handle_remove_file(%s)\n", name);
+    cfs_remove(name);
+}
+
+void handle_get_device_id()
+{
+    //TODO: return device id
+    printf("handle_get_device_id()\n");
+}
+
+void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance)
+{
+    printf("handle_gps_info(%d, %d, %d)\n", spd, alt, distance);
+    uint32_t lspd = (spd == 0xffff ? 0xffffffff : spd);
+    uint32_t lalt = (alt == 0xffff ? 0xffffffff : alt);
+
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_SPEED,    (void*)lspd);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_ALT,      (void*)lalt);
+    window_postmessage(EVENT_SPORT_DATA, SPORTS_DISTANCE, (void*)distance);
 }
 
 #define MAX_FILE_NAME_SIZE 32 + 1
@@ -157,5 +278,123 @@ int transfer_file(char* filename)
     return 0;
 }
 
+void handle_get_sports_data(uint16_t *data, uint8_t numofdata)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "A", 1);
 
+    element_append_data(p, h, (uint8_t*)&data, sizeof(uint16_t) * numofdata);
+    send_packet(p, 0, 0);
+}
+
+void handle_get_sports_grid()
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "R", 1);
+    ui_config* config = window_readconfig();
+    element_append_data(p, h, (uint8_t*)&config->sports_grid_data, sizeof(config->sports_grid_data));
+    printf("send_sports_grid(%d)\n", sizeof(config->sports_grid_data));
+    send_packet(p, 0, 0);
+}
+
+void handle_alarm(alarm_conf_t* para)
+{
+    printf("set alarm:\n");
+    printf("  id           = %d\n", para->id);
+    printf("  mode         = %d\n", para->mode);
+    printf("  day_of_month = %d\n", para->day_of_month);
+    printf("  day_of_week  = %d\n", para->day_of_week);
+    printf("  hour         = %d\n", para->hour);
+    printf("  minute       = %d\n", para->minute);
+
+    switch(para->mode)
+    {
+        case ALARM_MODE_DISABLE:
+        case ALARM_MODE_NO_EXIST:
+            rtc_setalarm(0, 0, 0, 0);
+            break;
+        case ALARM_MODE_MONTHLY:
+            rtc_setalarm(para->day_of_month | 0x80, 0, para->hour | 0x80, para->minute | 0x80);
+            break;
+        case ALARM_MODE_HOURLY:
+            rtc_setalarm(0, 0, 0, para->minute | 0x80);
+            break;
+        case ALARM_MODE_DAILY:
+            rtc_setalarm(0, 0, para->hour | 0x80, para->minute | 0x80);
+            break;
+        case ALARM_MODE_WEEKLY:
+            rtc_setalarm(0, para->day_of_week | 0x80, para->hour | 0x80, para->minute | 0x80);
+            break;
+        case ALARM_MODE_ONCE:
+            // no way
+            break;
+    }
+}
+
+void handle_gesture_control(uint8_t flag, uint8_t action_map[])
+{
+    ui_config* online_config = window_readconfig();
+    if (online_config != NULL)
+    {
+        online_config->gesture_flag = flag;
+        for (uint8_t i = 0; i < 4; ++i)
+            online_config->gesture_map[i] = action_map[i];
+        window_writeconfig();
+        window_loadconfig();
+    }
+}
+
+void handle_set_watch_config(ui_config* new_config)
+{
+    //TODO: help check this
+
+
+
+
+    ui_config* config = window_readconfig();
+    if (config != NULL)
+    {
+        memcpy(config, new_config, sizeof(ui_config));
+
+        //adjust values: big endian to little endian
+        uint8_t* p = (uint8_t*)new_config;
+        config->signature     = READ_NET_32(p, 0);
+        config->goal_steps    = READ_NET_16(p, 4);
+        config->goal_distance = READ_NET_16(p, 6);
+        config->goal_calories = READ_NET_16(p, 8);
+        config->lap_length    = READ_NET_16(p, 10);
+
+        if (config->weight < 20) config->weight = 20;
+        if (config->height < 60) config->height = 60;
+
+        printf("set_watch_config:\n");
+        printf("  signature     = %x\n", config->signature);
+        printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
+        printf("  analog_clock  = %d\n", config->analog_clock);  // num : which lock face
+        printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
+        printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+        printf("  sports_grids  = %d, %d, %d, %d, %d\n",
+                config->sports_grid_data[0],
+                config->sports_grid_data[1],
+                config->sports_grid_data[2],
+                config->sports_grid_data[3],
+                config->sports_grid_data[4]);
+        printf("  is_ukuint     = %02x\n", config->is_ukuint);
+        printf("  goal_steps    = %d\n", config->goal_steps);
+        printf("  goal_distance = %d\n", config->goal_distance);
+        printf("  goal_calories = %d\n", config->goal_calories);
+        printf("  weight        = %d\n", config->weight); // in kg
+        printf("  height        = %d\n", config->height); // in cm
+        printf("  circumference = %d\n", config->circumference);
+        printf("  lap_len       = %d\n", config->lap_length);
+
+
+        window_writeconfig();
+        window_loadconfig();
+    }
+}
 

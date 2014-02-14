@@ -101,11 +101,16 @@ void protocol_start(uint8_t start)
 
 int putchar(int data)
 {
+#if 0
     int x = splhigh();
     Log_Buf[LogWrite++] = data;
     if (LogWrite >= sizeof(Log_Buf)) LogWrite = 0;
     //if (LogRead == LogWrite) LogRead = LogWrite;
     splx(x);
+#else
+    uart_sendByte(data);
+#endif
+    
     return data;
 }
 

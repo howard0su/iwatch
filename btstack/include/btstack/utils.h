@@ -69,6 +69,10 @@ typedef uint8_t link_key_t[LINK_KEY_LEN];
 #define DEVICE_NAME_LEN 32
 typedef uint8_t device_name_t[DEVICE_NAME_LEN+1];
 
+/**
+ * @brief 128 bit key used with AES128 in Security Manager
+ */
+typedef uint8_t sm_key_t[16];
 
 // helper for BT little endian format
 #define READ_BT_16( buffer, pos) ( ((uint16_t) buffer[pos]) | (((uint16_t)buffer[pos+1]) << 8))
@@ -120,6 +124,9 @@ uint8_t crc8_calc(uint8_t *data, uint16_t len);
 
 #define BD_ADDR_CMP(a,b) memcmp(a,b, BD_ADDR_LEN)
 #define BD_ADDR_COPY(dest,src) memcpy(dest,src,BD_ADDR_LEN)
+
+#define htons(x) __swap_bytes(x)
+#define count_elem(arr) (sizeof(arr)/sizeof(arr[0]))
 
 #if defined __cplusplus
 }

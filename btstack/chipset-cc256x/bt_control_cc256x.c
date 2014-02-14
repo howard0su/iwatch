@@ -78,6 +78,12 @@ static int bt_control_cc256x_on(void *config){
 	return 0;
 }
 
+static void bt_control_cc256x_hw_error(void)
+{
+    printf("hardware error\n");
+    return;
+}
+
 // UART Baud Rate control from: http://e2e.ti.com/support/low_power_rf/f/660/p/134850/484763.aspx
 static int cc256x_baudrate_cmd(void * config, uint32_t baudrate, uint8_t *hci_cmd_buffer){
     hci_cmd_buffer[0] = 0x36;
@@ -145,11 +151,10 @@ static void update_set_power_vector(uint8_t *hci_cmd_buffer){
     }
 }
 
-extern uint8_t system_txpower(uint8_t i);
 static void update_set_class2_single_power(uint8_t * hci_cmd_buffer){
     int i = 0;
     for (i=0;i<3;i++){
-        hci_cmd_buffer[3+i] = system_txpower(i);
+        hci_cmd_buffer[3+i] = get_highest_level_for_given_power(get_max_power_for_modulation_type(i), 4);
     }
 }
 
@@ -167,7 +172,7 @@ static void bt_control_cc256x_update_command(uint8_t *hci_cmd_buffer){
     uint16_t opcode = hci_cmd_buffer[0] | (hci_cmd_buffer[1] << 8);
 
     switch (opcode){
-        case 0xFD87:
+    case 0xFD87:
             update_set_class2_single_power(hci_cmd_buffer);
             break;
         case 0xFD82:
@@ -220,7 +225,8 @@ static int bt_control_cc256x_next_cmd(void *config, uint8_t *hci_cmd_buffer){
 static const bt_control_t bt_control_cc256x = {
 	.on = bt_control_cc256x_on,
     .next_cmd = bt_control_cc256x_next_cmd,
-    .baudrate_cmd = cc256x_baudrate_cmd
+    .baudrate_cmd = cc256x_baudrate_cmd,
+    .hw_error = bt_control_cc256x_hw_error
 };
 
 static const hci_uart_config_t hci_uart_config_cc256x = {

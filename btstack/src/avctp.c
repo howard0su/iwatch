@@ -58,7 +58,7 @@ static void     avctp_packet_handler(uint8_t packet_type, uint16_t channel,
 #define MAX_PAYLOAD_SIZE 64
 #define MAX_RESPONSE_SIZE 256
 static uint8_t avctp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_PAYLOAD_SIZE];
-static uint8_t avctp_resp_buf[AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + MAX_RESPONSE_SIZE];
+static uint8_t *avctp_resp_buf;
 static uint16_t resp_size;
 static uint8_t id = 0;
 static uint8_t need_send_release = 0;
@@ -68,6 +68,7 @@ static uint16_t current_pid;
 void avctp_init()
 {
   packet_handler = NULL;
+  avctp_resp_buf = NULL;
   l2cap_cid = 0;
   l2cap_register_service_internal(NULL, avctp_packet_handler, PSM_AVCTP, 0xffff);
 }
@@ -118,7 +119,7 @@ void avctp_register_pid(uint16_t pid, void (*handler)(uint8_t code, uint8_t *pac
   current_pid = __swap_bytes(pid);
 }
 
-uint8_t avctp_connected()
+int avctp_connected()
 {
   return (l2cap_cid != 0);
 }
@@ -135,11 +136,9 @@ void avctp_disconnect()
 static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
   static uint16_t pid;
-
   switch (packet_type) {
   case L2CAP_DATA_PACKET:
     {
-      hexdump(packet, size);
       struct avctp_header *avctph = (struct avctp_header*)packet;
       struct avc_header *avch = (struct avc_header*)(avctph+1);
       uint8_t *buf;
@@ -149,15 +148,24 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         // single package
         pid = avctph->pid;
         buf = (uint8_t*)(avch+1);
+        size -= sizeof(struct avctp_header) + sizeof(struct avc_header);
       }
       else if (avctph->packet_type == AVCTP_PACKET_START)
       {
         // start package
         struct avctp_header_start *avctph2 = (struct avctp_header_start*)packet;
-        printf("pid=%x package#=%d\n", avctph2->pid, avctph2->num_package);
+        log_info("pid=%x package#=%d\n", avctph2->pid, avctph2->num_package);
         avch = (struct avc_header*)(avctph2 + 1);
         resp_size = size - sizeof(struct avctp_header_start) - sizeof(struct avc_header);
-        memcpy(avctp_resp_buf, (void*)(avch+1), resp_size);
+        if (avctp_resp_buf)
+        {
+          // safe guard
+          free(avctp_resp_buf);
+        }
+        
+        avctp_resp_buf = malloc(MAX_RESPONSE_SIZE);
+        if (avctp_resp_buf)
+          memcpy(avctp_resp_buf, (void*)(avch+1), resp_size);
         break;
       }
       else if (avctph->packet_type == AVCTP_PACKET_CONTINUE)
@@ -168,7 +176,8 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
           log_error("resp size is too small\n");
           return;
         }
-        memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
+        if (avctp_resp_buf)
+          memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
         resp_size += size - 1;
         break;
       }
@@ -181,16 +190,34 @@ static void avctp_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t 
         }
 
         // end packet
-        memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
-        resp_size += size - 1;
-        size = resp_size;
-        buf = (uint8_t*)&avctp_resp_buf;
-        resp_size = 0;
+        if (avctp_resp_buf)
+        {
+          memcpy(&avctp_resp_buf[resp_size], (void*)(packet+1), size - 1);
+          resp_size += size - 1;
+          size = resp_size;
+          buf = (uint8_t*)avctp_resp_buf;
+          resp_size = 0;
+        }
+        else
+        {
+          break;
+        }
       }
-
+      
       if (current_pid == pid)
+      {
         (*packet_handler)(avch->code, buf, size);
-
+      }
+      else
+      {
+        log_error("unknow pid %dn", pid);
+      }
+      
+      if (avctph->packet_type == AVCTP_PACKET_END)
+      {
+        if (avctp_resp_buf)
+          free(avctp_resp_buf);
+      }
       break;
     }
   case HCI_EVENT_PACKET:
@@ -264,6 +291,11 @@ int avctp_send_passthrough(uint8_t op)
 
   need_send_release = 1;
 
+  if (avctp_response_size != 0)
+  {
+    log_error("avctp override unsent data\n");
+  }
+
   avctp_response_size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + 2;
   avctp_response_buffer = avctp_buf;
 
@@ -301,6 +333,11 @@ static int avctp_send(uint8_t transaction, uint8_t cr,
 
   memcpy(pdu, operands, operand_count);
 
+  if (avctp_response_size != 0)
+  {
+    log_error("avctp override unsent data\n");
+  }
+  
   avctp_response_size = AVCTP_HEADER_LENGTH + AVC_HEADER_LENGTH + operand_count;
   avctp_response_buffer = avctp_buf;
 

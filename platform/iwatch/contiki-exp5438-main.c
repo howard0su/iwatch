@@ -37,11 +37,9 @@
 #include "dev/flash.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-#include "dev/uart1.h"
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
-#include "sys/autostart.h"
 #include "sys/profile.h"
 #include "sys/ctimer.h"
 
@@ -52,6 +50,9 @@
 #include "btstack/bluetooth.h"
 #include "backlight.h"
 #include "window.h"
+
+#include "ant/ant.h"
+#include "ant/antinterface.h"
 
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
@@ -68,7 +69,9 @@ extern void I2C_Init();
 extern void rtc_init();
 extern void battery_init();
 
-uint8_t SMCLK_NEED = 0;
+static uint8_t msp430_dco_required = 0;
+
+uint8_t shutdown_mode = 0;
 
 /*--------------------------------------------------------------------------*/
 int
@@ -85,6 +88,8 @@ main(int argc, char **argv)
   /* xmem_init(); */
 
   PRINTF("iWatch 0.10 build at " __TIME__ " " __DATE__ "\n");
+  UCSCTL8 &= ~BIT2;
+  
   /*
   * Hardware initialization done!
   */
@@ -107,6 +112,7 @@ main(int argc, char **argv)
   button_init();
   rtc_init();
   SPI_FLASH_Init();
+  CFSFontWrapperLoad();
 
   system_init(); // check system status and do factor reset if needed
 
@@ -118,20 +124,24 @@ main(int argc, char **argv)
 
   mpu6050_init();
 
+  motor_on(200, CLOCK_SECOND / 2);
+  
 //  if (!bluetooth_paired())
   {
     bluetooth_discoverable(1);
   }
 
-  protocol_init();
-  protocol_start(1);
+  ant_init(MODE_HRM);
+
+//  protocol_init();
+//  protocol_start(1);
   
-  autostart_start(autostart_processes);
+  process_start(&system_process, NULL);
 
   /*
   * This is the scheduler loop.
   */
-  SMCLK_NEED = 0;
+  msp430_dco_required = 0;
 
   watchdog_start();
 
@@ -162,20 +172,25 @@ main(int argc, char **argv)
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
 
-      if (SMCLK_NEED)
+      if (shutdown_mode)
       {
-        __bis_SR_register(GIE | CPUOFF);
+        system_shutdown(); // never return
+      }
+      
+      if (msp430_dco_required)
+      {
+        __low_power_mode_0();
       }
       else
       {
-        __bis_SR_register(GIE | CPUOFF | SCG0 | SCG1);
+        __low_power_mode_3();
       }
 
       /* We get the current processing time for interrupts that was
          done during the LPM and store it for next time around.  */
-      dint();
+      __disable_interrupt();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
-      eint();
+      __enable_interrupt();
       watchdog_start();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
@@ -183,3 +198,21 @@ main(int argc, char **argv)
   }
 }
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/* add/remove_lpm_req - for requiring a specific LPM mode. currently Contiki */
+/* jumps to LPM3 to save power, but DMA will not work if DCO is not clocked  */
+/* so some modules might need to enter their LPM requirements                */
+/* NOTE: currently only works with LPM1 (e.g. DCO) requirements.             */
+/*---------------------------------------------------------------------------*/
+void
+power_pin(uint8_t module)
+{
+    msp430_dco_required |= module;
+}
+
+void
+power_unpin(uint8_t module)
+{
+    msp430_dco_required &= ~module;
+}

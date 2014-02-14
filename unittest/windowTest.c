@@ -111,8 +111,18 @@ static struct _event test_events[] = {
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-   // 
+   // countdown watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_UP, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, PROCESS_EVENT_TIMER, 0, 0},
+   {1, PROCESS_EVENT_TIMER, 0, 0},
+   {1, PROCESS_EVENT_TIMER, 0, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
@@ -120,9 +130,39 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
+    // sport watch
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
+   {1, EVENT_TIME_CHANGED, (void*)0, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   
+   // date config
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},  
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},   
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+  // timeconfig
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
@@ -227,6 +267,7 @@ static void run_window_events(windowproc window, struct _event *events)
   }
 }
 
+extern const tRectangle status_clip;
 static void test_window(windowproc window, void* data)
 {
  struct _event my_events[] = {
@@ -237,7 +278,8 @@ static void test_window(windowproc window, void* data)
   };
 
   run_window_events(window, my_events);
-
+  GrContextClipRegionSet(&context, &status_clip);
+  status_process(EVENT_WINDOW_PAINT, 0, &context);
 }
 
 static void test_window_stopwatch(windowproc window, void* data)
@@ -254,6 +296,34 @@ static void test_window_stopwatch(windowproc window, void* data)
   GrFlush(&context);
 
   window(EVENT_WINDOW_CLOSING, 0, 0);
+}
+
+void TestStatus(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, PROCESS_EVENT_TIMER, NULL, 0},
+    {1, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };
+
+  run_window_events(&status_process, test_events);
+}
+
+void TestHistory(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };
 }
 
 void TestSportWatch(CuTest* tc)
@@ -367,6 +437,7 @@ void TestTestLcd(CuTest* tc)
   run_window_events(&test_lcd, test_events);
 }
 
+static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
 
 static void* font;
 static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
@@ -393,6 +464,8 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrStringDraw(pContext, L"中文测试", -1, 0, 55, 0);
                   GrStringDraw(pContext, L"中国语テスト", -1, 0, 75, 0);
                   GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
+                  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
+                  GrStringDraw(pContext, chinesetext, -1, 0, 105, 0);
                   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);                  
 
                   break;
@@ -402,6 +475,7 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
         return 1;
 }
 
+extern void *xmem_test();
 void TestWideFont(CuTest* tc)
 {
     struct _event _events[] = {
@@ -411,7 +485,31 @@ void TestWideFont(CuTest* tc)
   };
 
   FILE* fp = fopen("fontunicod16pt.bin", "rb");
-  int fd = cfs_open("fontunicode", CFS_WRITE);
+  
+  fread(xmem_test(), 1, 2 * 1024 * 1024, fp); // max 2M
+  fclose(fp);
+  
+  CFSFontWrapperLoad("fontunicode");
+  run_window_events(testfont, _events);
+}
+
+
+void TestControl(CuTest* tc)
+{
+    GrContextClipRegionSet(&context, &client_clip);
+    GrContextForegroundSet(&context, ClrBlack);
+    GrRectFill(&context, &client_clip);
+
+    GrContextForegroundSet(&context, ClrWhite);
+    window_volume(&context, 20, 100, 8, 4);
+    GrFlush(&context);    
+}
+
+void TestScriptEngine(CuTest *tc)
+{
+    // COPY A SCRIPT FILE FOR SCRIPT TESTING
+  FILE* fp = fopen("script1.amx", "rb");
+  int fd = cfs_open("/script1.amx", CFS_WRITE);
 
   if (fp != NULL && fd != -1)
   {
@@ -422,31 +520,24 @@ void TestWideFont(CuTest* tc)
     length = fread(buf, 1, 1024, fp);
     while(length > 0)
     {
-      int wl = cfs_write(fd, buf, length);
-      if (wl != length)
-      {
-        CuFail(tc, "Failed to write the font file into spi flash because falsh is too small");
-      }
+      cfs_write(fd, buf, length);
       length = fread(buf, 1, 1024, fp);
     }
     fclose(fp);
     cfs_close(fd);
   }
 
-  CFSFontWrapperLoad("fontunicode");
-  run_window_events(testfont, _events);
+  test_window(&script_process, "/script1.amx");
+  test_window(&script_process, "/notexist.amx");
 }
-
 
 void TestWindows(CuTest *tc)
 { 
   //load_script("script1.amx", rom);
   //test_window(&script_process, rom);
-  test_window(&script_process, "/script1.amx");
-  test_window(&script_process, "/notexist.amx");
 
-  for(int i = 0; fonts[i]; i++)
-    test_window(&testfont, (void*)fonts[i]);
+  //for(int i = 0; fonts[i]; i++)
+  //  test_window(&testfont, (void*)fonts[i]);
   test_window(&worldclock_process, NULL);
 
   test_window(&today_process, NULL);
@@ -454,8 +545,6 @@ void TestWindows(CuTest *tc)
   test_window(&sporttype_process, NULL);
 
   test_window(&calendar_process, NULL);
-
-  test_window(&today_process, NULL);
 
   test_window(&countdown_process, NULL);
 
@@ -478,8 +567,6 @@ void TestWindows(CuTest *tc)
       test_window(&digitclock_process, (void*)i);
     }
 
-  window_notify("Facebook", "From: Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
-  //window_close();
 
   printf("test finished!\n");
 }
@@ -512,15 +599,70 @@ void TestPhoneScreen(CuTest* tc)
   run_window_events(phone_process, test_events);
 }
 
+
+void TestTriagle(CuTest* tc)
+{
+  GrContextForegroundSet(&context, ClrBlack);
+  GrRectFill(&context, &client_clip);
+
+  GrContextForegroundSet(&context, ClrWhite);
+
+  GrTriagleFill(&context, 82, 68, 79, 80, 80, 80);
+
+  GrTriagleFill(&context, 110, 70, 70, 100, 130, 140);
+  GrTriagleFill(&context, 10, 10, 30, 10, 40, 40);
+ 
+  GrFlush(&context);
+}
+
+void handle_message(uint8_t msg_type, char* ident, char* message);
+const uint8_t chinesedata[] = {
+  'o', 'k', 'a', 'y', '.',
+0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
+0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA,
+0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
+0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA
+};
+void TestNotification(CuTest *tc)
+{
+  handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  handle_message('S', "+8615618273349", "testing 123");
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_notify("Facebook", "Tom Paker\nOur schedule is crazy next a few days unfortunately.", NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_notify("Facebook", "Tom Paker\nOurscheduleiscrazynextafewdaysunfortunately.", NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_notify("SMS", chinesedata, NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+}
+
 CuSuite* WindowGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew();
+	CuSuite* suite = CuSuiteNew("Window Test");
  
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
   window_init();
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
+  SUITE_ADD_TEST(suite, TestScriptEngine);
+  SUITE_ADD_TEST(suite, TestTriagle);
   SUITE_ADD_TEST(suite, TestWideFont);
 
   SUITE_ADD_TEST(suite, TestSportWatch);
@@ -529,7 +671,8 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestLcd);
   SUITE_ADD_TEST(suite, TestTestAnt);
   SUITE_ADD_TEST(suite, TestPhoneScreen);
-
+  SUITE_ADD_TEST(suite, TestNotification);
+  SUITE_ADD_TEST(suite, TestControl);
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);

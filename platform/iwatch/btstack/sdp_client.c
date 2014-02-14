@@ -136,7 +136,7 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 
   if (packet_type == L2CAP_DATA_PACKET){
     log_info("SDP Respone %d \n", READ_NET_16(packet, 5));
-    de_dump_data_element(&packet[7]);
+    //de_dump_data_element(&packet[7]);
 
     //check if valid answer returns
     if (READ_NET_16(packet, 5) > 2)

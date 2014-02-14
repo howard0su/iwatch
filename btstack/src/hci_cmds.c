@@ -234,11 +234,15 @@ const hci_cmd_t hci_remote_name_request_cancel = {
 OPCODE(OGF_LINK_CONTROL, 0x1A), "B"
 // BD_ADDR
 };
+const hci_cmd_t hci_read_remote_supported_features = {
+OPCODE(OGF_LINK_CONTROL, 0x1B), "H"
+// Handle
+};
 const hci_cmd_t hci_accept_synchronous_connection = {
 OPCODE(OGF_LINK_CONTROL, 0x29), "B442212"
 };
 const hci_cmd_t hci_io_capability_request_reply = {
-OPCODE(OGF_LINK_CONTROL, 0x2B), "B111"
+OPCODE(OGF_LINK_CONTROL, 0x2b), "B111"
 //BD_ADDR, IO_Capability, OOB_Data_Present, Authentication_Requirements
 };
 const hci_cmd_t hci_user_confirmation_request_reply = {
@@ -249,12 +253,32 @@ const hci_cmd_t hci_user_confirmation_request_negative_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x2d), "B"
 //BD_ADDR
 };
+const hci_cmd_t hci_user_passkey_request_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x2e), "B4"
+// BD_ADDR, Numeric value (passkey) entered by user (decimal 000000 - 999999).
+};
+const hci_cmd_t hci_user_passkey_request_negative_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x2f), "B"
+// BD_ADDR
+};
+const hci_cmd_t hci_remote_oob_data_request_negative_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x33), "B"
+// BD_ADDR
+};
+const hci_cmd_t hci_io_capability_request_negative_reply = {
+OPCODE(OGF_LINK_CONTROL, 0x34), "B1"
+// BD_ADDR, Reason - Part D, Error codes
+};
 /**
  *  Link Policy Commands
  */
 const hci_cmd_t hci_sniff_mode = {
 OPCODE(OGF_LINK_POLICY, 0x03), "H2222"
 // handle, Sniff_Max_Interval, Sniff_Min_Interval, Sniff_Attempt, Sniff_Timeout:
+};
+const hci_cmd_t hci_exit_sniff_mode = {
+OPCODE(OGF_LINK_POLICY, 0x04), "H"
+// handle
 };
 const hci_cmd_t hci_qos_setup = {
 OPCODE(OGF_LINK_POLICY, 0x07), "H114444"
@@ -277,6 +301,10 @@ const hci_cmd_t hci_write_link_policy_settings = {
 OPCODE(OGF_LINK_POLICY, 0x0d), "H2"
 // handle, settings
 };
+const hci_cmd_t hci_sniff_subrating = {
+OPCODE(OGF_LINK_POLICY, 0x11), "H222"
+// handle, Maximum_Latency, Minimum_Remote_Timeout, Minimum_Local_Timeout
+};
 
 /**
  *  Controller & Baseband Commands
@@ -288,6 +316,19 @@ OPCODE(OGF_CONTROLLER_BASEBAND, 0x01), "44"
 const hci_cmd_t hci_reset = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x03), ""
 // no params
+};
+const hci_cmd_t hci_set_event_filter = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x05), "111"
+// filterType, conditionType, condition
+};
+
+const hci_cmd_t hci_read_default_link_policy_settings = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x0E), ""
+// no params
+};
+const hci_cmd_t hci_write_default_link_policy_settings = {
+OPCODE(OGF_CONTROLLER_BASEBAND, 0x0F), "2"
+// default_link_policy_settings
 };
 const hci_cmd_t hci_delete_stored_link_key = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x12), "B1"
@@ -571,6 +612,13 @@ const hci_cmd_t hci_le_test_end = {
 };
 #endif
 
+
+// test commands
+const hci_cmd_t hci_enable_device_under_test_mode = {
+    OPCODE(OGF_TEST, 0x03), ""
+};
+
+
 // BTstack commands
 const hci_cmd_t btstack_get_state = {
 OPCODE(OGF_BTSTACK, BTSTACK_GET_STATE), ""
@@ -695,6 +743,10 @@ extern const hci_cmd_t rfcomm_register_service_with_initial_credits;
  * TI vendor specific code
  * http://processors.wiki.ti.com/index.php/CC256x_VS_HCI_Commands
  */
+const hci_cmd_t hci_vs_write_bd_addr = {
+  OPCODE(OGF_VENDOR, 0xFC06), "B"
+};
+
 const hci_cmd_t hci_vs_write_codec_config = {
   OPCODE(OGF_VENDOR, 0xFD06), "214211122122112212211"
 };
@@ -709,4 +761,8 @@ OPCODE(OGF_VENDOR, 0xFD5B), "11"
 
 const hci_cmd_t hci_vs_write_sco_config = {
 OPCODE(OGF_VENDOR, 0xFE10), "1121"
+};
+
+const hci_cmd_t hci_vs_set_pcm_loopback_enable = {
+OPCODE(OGF_VENDOR, 0xFE28), "1"
 };

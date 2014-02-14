@@ -1,16 +1,19 @@
 #ifndef _OBEX_H_
 #define _OBEX_H_
-#include <wchar.h>
+#include <stdint.h>
 
-#define OBEX_OP_CONNECT 	0x00
-#define OBEX_OP_DISCONNECT 	0x01
+#define OBEX_OP_FINAL		0x80
+#define OBEX_OP_CONNECT 	(0x00 | OBEX_OP_FINAL)
+#define OBEX_OP_DISCONNECT 	(0x01 | OBEX_OP_FINAL)
 #define OBEX_OP_PUT			0x02
 #define OBEX_OP_GET			0x03
-#define OBEX_OP_FINAL		0x80
+
 
 #define OBEX_OP_LAST_FLAG   0x80
 
-#define OBEX_RESPCODE_OK	200
+#define OBEX_RESPCODE_CONNECTED 0xFF // hack: let's use a special value
+#define OBEX_RESPCODE_CONTINUE	0x10
+#define OBEX_RESPCODE_OK				0x20
 
 struct obex_state
 {
@@ -20,19 +23,10 @@ struct obex_state
 	uint8_t buffer[255];
 };
 
-#define OBEX_CB_CONNECT 1
-#define OBEX_CB_CONNECT_RESP 2
-#define OBEX_CB_DISCONNECT 3
-#define OBEX_CB_PUT 5
-#define OBEX_CB_GET 6
-#define OBEX_CB_RESPONSE  7
-#define OBEX_CBFLAG_FINAL 0x80
-
-
 struct obex
 {
 	struct obex_state *state;
-	void (*state_callback)(int code, const uint8_t* headers, uint16_t length);
+	void (*state_callback)(int code, uint8_t* headers, uint16_t length);
 	void (*send)(void* data, uint16_t length);
 };
 
@@ -71,12 +65,13 @@ void obex_handle(const struct obex* state, const uint8_t* packet, uint16_t lengt
 void obex_connect_request(const struct obex* obex, const uint8_t *target, uint8_t target_length);
 uint8_t* obex_create_request(const struct obex* obex, int opcode, uint8_t* buf);
 uint8_t* obex_create_connect_request(const struct obex* obex, int opcode, uint8_t* buf);
-void obex_send(const struct obex* obex, uint8_t* buf, uint16_t length);
+void obex_send_request(const struct obex* obex, uint8_t* buf, uint16_t length);
+void obex_send_response(const struct obex* obex, uint8_t* buf, uint16_t length);
 
-uint8_t* obex_header_add_text(uint8_t *buf, int code, const wchar_t* text);
+uint8_t* obex_header_add_text(uint8_t *buf, int code, const uint16_t* text, int length);
 uint8_t* obex_header_add_bytes(uint8_t *buf, int code, const uint8_t *data, int length);
 uint8_t *obex_header_add_byte(uint8_t *buf, int code, uint8_t data);
 uint8_t *obex_header_add_uint32(uint8_t *buf, int code, uint32_t data);
-const uint8_t *obex_header_get_next(const uint8_t *prev, /* in,out*/ uint16_t *length_left);
+uint8_t *obex_header_get_next(uint8_t *prev, /* in,out*/ uint16_t *length_left);
 
 #endif

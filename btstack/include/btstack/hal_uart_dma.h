@@ -43,6 +43,7 @@
 #include <stdint.h>
 
 void hal_uart_dma_init(void);
+void hal_uart_dma_shutdown(void);
 void hal_uart_dma_set_block_received( void (*block_handler)(void));
 void hal_uart_dma_set_block_sent( void (*block_handler)(void));
 void hal_uart_dma_set_csr_irq_handler( void (*csr_irq_handler)(void));

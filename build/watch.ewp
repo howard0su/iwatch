@@ -105,7 +105,7 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>500</state>
+          <state>1000</state>
         </option>
         <option>
           <name>GHeapSize2</name>
@@ -1058,20 +1058,20 @@
         <option>
           <name>Input variant</name>
           <version>1</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>Input description</name>
-          <state>No specifier n, no float or long long.</state>
+          <state>Automatic choice of formatter.</state>
         </option>
         <option>
           <name>Output variant</name>
           <version>1</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>Output description</name>
-          <state>No specifier a or A.</state>
+          <state>Automatic choice of formatter.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
@@ -1096,11 +1096,11 @@
         </option>
         <option>
           <name>GStackSize2</name>
-          <state>900</state>
+          <state>2048</state>
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>0</state>
+          <state>3800</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1108,7 +1108,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>0</state>
+          <state>3800</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>
@@ -1155,13 +1155,7 @@
         <debug>0</debug>
         <option>
           <name>CCDefines</name>
-          <state>AUTOSTART_ENABLE=1</state>
-          <state>HAVE_BLE=1</state>
-          <state>HAVE_ALLOCA_H=0</state>
-          <state>AMX_ANSIONLY=1</state>
-          <state>BYTE_ORDER=LITTLE_ENDIAN</state>
-          <state>PAWN_CELL_SIZE=16</state>
-          <state>AMX_NATIVETABLE=window_natives</state>
+          <state></state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1177,15 +1171,15 @@
         </option>
         <option>
           <name>CCListCFile</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListCMnemonics</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListCMessages</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCListAssFile</name>
@@ -1226,7 +1220,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>00000</state>
+          <state>11111</state>
         </option>
         <option>
           <name>CCObjUseModuleName</name>
@@ -1341,7 +1335,7 @@
         </option>
         <option>
           <name>ReduceStack</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>Save20bit</name>
@@ -1353,7 +1347,7 @@
         </option>
         <option>
           <name>CCOptLevel</name>
-          <state>1</state>
+          <state>3</state>
         </option>
         <option>
           <name>CCOptStrategy</name>
@@ -1362,7 +1356,7 @@
         </option>
         <option>
           <name>CCOptLevelSlave</name>
-          <state>1</state>
+          <state>3</state>
         </option>
         <option>
           <name>CInput</name>
@@ -1714,11 +1708,11 @@
         </option>
         <option>
           <name>XclOverride</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\lnk430F5438A.xcl</state>
+          <state>$PROJ_DIR$\iwatch-lnk430F5438A.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1818,7 +1812,7 @@
         </option>
         <option>
           <name>IoEmulation</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XcRTLibraryFile</name>
@@ -1872,7 +1866,7 @@
         </option>
         <option>
           <name>BufferedTermOutput</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>XExtraOptionsCheck</name>
@@ -1998,6 +1992,9 @@
       <name>$PROJ_DIR$\..\ant\cbsc_rx.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\ant\data.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\ant\hrm_rx.c</name>
     </file>
     <file>
@@ -2037,7 +2034,10 @@
       <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\gesture.c</name>
+      <name>$PROJ_DIR$\..\watch\filesys_proc.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\gesture\gesture.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\host.c</name>
@@ -2055,13 +2055,25 @@
       <name>$PROJ_DIR$\..\watch\phone.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\watch\recordoperation.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\siri.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\sportsdata.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\sportselect.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\sportswatch.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\watch\sportwait.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\status.c</name>
@@ -2086,9 +2098,6 @@
       <name>$PROJ_DIR$\..\watch\upgrade.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\watch.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
     </file>
     <file>
@@ -2102,17 +2111,38 @@
       <file>
         <name>$PROJ_DIR$\..\btstack\ble\att.c</name>
       </file>
-    </group>
-    <group>
-      <name>cc2564</name>
       <file>
-        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.10.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\att_server.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\central_device_db_dummy.c</name>
         <excluded>
           <configuration>Retail</configuration>
         </excluded>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.5.c</name>
+        <name>$PROJ_DIR$\..\btstack\ble\central_device_db_memory.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\l2cap_le.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\sm.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\ble\sm_minimal.c</name>
+        <excluded>
+          <configuration>Retail</configuration>
+        </excluded>
+      </file>
+    </group>
+    <group>
+      <name>cc2564</name>
+      <file>
+        <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bluetooth_init_cc2564_2.10.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\btstack\chipset-cc256x\bt_control_cc256x.c</name>
@@ -2181,6 +2211,12 @@
         <name>$PROJ_DIR$\..\btstack\src\utils.c</name>
       </file>
     </group>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_handler.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\btstack\ble_peripheral.c</name>
+    </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\btstack\bluetooth.c</name>
     </file>
@@ -2355,6 +2391,9 @@
         <name>$PROJ_DIR$\..\grlib\fonts\fontred13.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\grlib\fonts\fontunicode.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\grlib\fonts\logoimg.c</name>
       </file>
     </group>
@@ -2388,17 +2427,38 @@
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\Template_Driver.h</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\grlib\triagle.c</name>
+    </file>
   </group>
   <group>
     <name>mpl</name>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu.c</name>
+      <excluded>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\inv_mpu_dmp_motion_driver.c</name>
+      <excluded>
+        <configuration>Retail</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\mpl\mpu6050.c</name>
+    </file>
+  </group>
+  <group>
+    <name>pedometer</name>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\pedometer.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\pedometer.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\pedometer_dist.c</name>
     </file>
   </group>
   <group>
@@ -2410,7 +2470,10 @@
       <name>$PROJ_DIR$\..\platform\iwatch\battery.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\button-sensor.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\board.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\platform\iwatch\button.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\clock.c</name>
@@ -2435,13 +2498,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\printf.c</name>
-      <excluded>
-        <configuration>Debug</configuration>
-        <configuration>Retail</configuration>
-      </excluded>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\platform\iwatch\protocol.c</name>
+      <name>$PROJ_DIR$\..\platform\iwatch\progam.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\platform\iwatch\rtc.c</name>

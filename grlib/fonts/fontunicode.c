@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
+#include "spiflash.h"
 #include "../grlib.h"
-#include "cfs/cfs.h"
 
 //*****************************************************************************
 //
@@ -18,20 +18,13 @@
 // save space.
 //
 //*****************************************************************************
-#define MAX_GLYPH_SIZE 256
+#define MAX_GLYPH_SIZE 128
 
-//file api wrapper
-#if 1
+#define SPI_OFFSET 0
+
 typedef int FILEHANDLE;
-#else
-#include <stdio.h>
-typedef FILE* FILEHANDLE;
-#define cfs_open(n, m) fopen(n, "rb")
-#define cfs_close(h) fclose(h)
-#define cfs_seek(h, offset, p) fseek(h, offset, p)
-#define cfs_read(h, buffer, n) fread(buffer, 1, n, h)
-#define cfs_write(h, buffer, n) fwrite(buffer, 1, n, h)
-#endif
+#define BufferRead(pBuffer, ReadAddr, NumByteToRead) \
+    SPI_FLASH_BufferRead_Raw(pBuffer, ReadAddr, NumByteToRead)
 
 //*****************************************************************************
 //
@@ -239,26 +232,13 @@ static tBoolean
 CFSWrapperFontBlockHeaderGet(FILEHANDLE pFile, tFontBlock *pBlock,
                              unsigned long ulIndex)
 {
-    int ulRead;
-
-    //
-    // Set the file pointer to the position of the block header we want.
-    //
-    cfs_seek(pFile, sizeof(tFontWide) +
-                      (sizeof(tFontBlock) * ulIndex), CFS_SEEK_SET);
-    //
-    // Now read the block header.
-    //
-    ulRead = cfs_read(pFile, pBlock, sizeof(tFontBlock));
-    if(ulRead == sizeof(tFontBlock))
-    {
-        return(true);
-    }
-
+    BufferRead((uint8_t*)pBlock,  
+                         sizeof(tFontWide) + (sizeof(tFontBlock) * ulIndex),
+                         sizeof(tFontBlock));
     //
     // If we get here, we experienced an error so return a bad return code.
     //
-    return(false);
+    return(true);
 }
 
 //*****************************************************************************
@@ -349,7 +329,7 @@ CFSWrapperFontGlyphDataGet(unsigned char *pucFontId,
 {
     tFontFile *pFont;
     unsigned long ulLoop, ulGlyphOffset, ulTableOffset;
-    int ulRead;
+
     tFontBlock sBlock;
     tFontBlock *pBlock;
     tBoolean bRetcode;
@@ -427,29 +407,16 @@ CFSWrapperFontGlyphDataGet(unsigned char *pucFontId,
             ulTableOffset = pBlock->ulGlyphTableOffset +
                             ((ulCodepoint - pBlock->ulStartCodepoint) *
                             sizeof(unsigned long));
-
-            //
-            // Move the file pointer to the offset position.
-            //
-            int fresult = cfs_seek(pFont->sFile, ulTableOffset, CFS_SEEK_SET);
-
-            if(fresult == -1)
-            {
-                return(0);
-            }
-
-            //
-            // Read the glyph data offset.
-            //
-            ulRead = cfs_read(pFont->sFile, &ulGlyphOffset,
-                             sizeof(unsigned long));
+            
+            BufferRead((uint8_t*)&ulGlyphOffset, 
+                                 ulTableOffset,
+                                 sizeof(unsigned long));
 
             //
             // Return if there was an error or if the offset is 0 (which
             // indicates that the character is not included in the font.
             //
-            if(ulRead != sizeof(unsigned long) ||
-                !ulGlyphOffset)
+            if(!ulGlyphOffset)
             {
                 return(0);
             }
@@ -460,36 +427,15 @@ CFSWrapperFontGlyphDataGet(unsigned char *pucFontId,
             // block not the start of the file (so we add the table offset
             // here).
             //
-            fresult = cfs_seek(pFont->sFile, (pBlock->ulGlyphTableOffset +
-                              ulGlyphOffset), CFS_SEEK_SET);
-
-            if(fresult == -1)
-            {
-                return(0);
-            }
-
-            //
-            // Read the first byte of the glyph data to find out how long it
-            // is.
-            //
-            ulRead = cfs_read(pFont->sFile, pFont->pucGlyphStore,
-                             1);
-
-            if(!ulRead)
-            {
-                return(0);
-            }
-
+            BufferRead(pFont->pucGlyphStore,
+                                 pBlock->ulGlyphTableOffset + ulGlyphOffset,
+                                 1);
             //
             // Now read the glyph data.
             //
-            ulRead = cfs_read(pFont->sFile, pFont->pucGlyphStore + 1,
-                             pFont->pucGlyphStore[0] - 1);
-
-            if (ulRead != (pFont->pucGlyphStore[0] - 1))
-            {
-                return(0);
-            }
+            BufferRead(pFont->pucGlyphStore + 1, 
+                                 pBlock->ulGlyphTableOffset + ulGlyphOffset + 1,
+                                 pFont->pucGlyphStore[0] - 1);
 
             //
             // If we get here, things are good. Return a pointer to the glyph
@@ -545,11 +491,8 @@ CFSFontWrapperInit(void)
 //
 //*****************************************************************************
 unsigned char *
-CFSFontWrapperLoad(char *pcFilename)
+CFSFontWrapperLoad()
 {
-    printf("Attempting to load font %s from CFS file system.\n",
-               pcFilename);
-
     //
     // Make sure a font is not already open.
     //
@@ -564,26 +507,13 @@ CFSFontWrapperLoad(char *pcFilename)
     }
 
     //
-    // Try to open the file whose name we've been given.
-    //
-    g_sFontFile.sFile = cfs_open(pcFilename, CFS_READ);
-    if(g_sFontFile.sFile == -1)
-    {
-        //
-        // We can't open the file.  Either the file doesn't exist or there is
-        // no SDCard installed.  Regardless, return an error.
-        //
-        printf("Error f_open.\n");
-        return(0);
-    }
-
-    //
     // We opened the file successfully.  Does it seem to contain a valid
     // font?  Read the header and see.
     //
-    int ulRead = cfs_read(g_sFontFile.sFile, &g_sFontFile.sFontHeader,
-                     sizeof(tFontWide));
-    if(ulRead == sizeof(tFontWide))
+    BufferRead((uint8_t*)&g_sFontFile.sFontHeader,
+                         0,
+                         sizeof(tFontWide));
+    
     {
         //
         // We read the font header.  Is the format correct? We only support
@@ -597,7 +527,6 @@ CFSFontWrapperLoad(char *pcFilename)
             //
             printf("Unrecognized font format. Failing "
                        "CFSFontWrapperLoad.\n");
-            cfs_close(g_sFontFile.sFile);
             return(0);
         }
 
@@ -609,32 +538,15 @@ CFSFontWrapperLoad(char *pcFilename)
                     MAX_FONT_BLOCKS * sizeof(tFontBlock) :
                     g_sFontFile.sFontHeader.usNumBlocks * sizeof(tFontBlock);
 
-        ulRead = cfs_read(g_sFontFile.sFile, &g_sFontFile.pBlocks, ulToRead);
-        if(ulRead == ulToRead)
+        BufferRead((uint8_t*)&g_sFontFile.pBlocks,  sizeof(tFontWide), ulToRead);
         {
             //
             // All is well.  Tell the caller the font was opened successfully.
             //
-            printf("Font %s opened successfully.\n", pcFilename);
+            printf("\n$$OK FONT\n");
             g_sFontFile.bInUse = true;
             return((unsigned char *)&g_sFontFile);
         }
-        else
-        {
-            printf("Error reading block headers. Read %d, exp %d bytes.\n",
-                      ulRead, ulToRead);
-            cfs_close(g_sFontFile.sFile);
-            return(0);
-        }
-    }
-    else
-    {
-        //
-        // We received an error while reading the file header so fail the call.
-        //
-        printf("Error reading font header.\n");
-        cfs_close(g_sFontFile.sFile);
-        return(0);
     }
 }
 
@@ -676,7 +588,6 @@ void CFSFontWrapperUnload(unsigned char *pucFontId)
     // Close the font file.
     //
     printf("Unloading font... \n");
-    cfs_close(pFont->sFile);
 
     //
     // Clean up our instance data.

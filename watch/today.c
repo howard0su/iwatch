@@ -1,32 +1,35 @@
 #include "contiki.h"
 
 #include "window.h"
-#include "mpu.h"
+#include "pedometer/pedometer.h"
 #include <stdio.h>
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
+#include "memory.h"
 
-static unsigned long steps, time, cal;
 static enum {
-  STEPS,
-  TIME,
-  CALORIES,
-}state = STEPS;
+  WALK = 0,
+  SPORT = 1
+};
 
+#define state d.today.state
+
+
+#define LINEMARGIN 25
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
 {
   if (icon)
     {
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-      GrStringDraw(pContext, &icon, 1, 8, 30 + n * 35, 0);
+      GrStringDraw(pContext, &icon, 1, 8, 30 + n * LINEMARGIN, 0);
     }
 
   // draw text
   GrContextFontSet(pContext, &g_sFontNova13);
-  GrStringDrawWrap(pContext, text, 30, 30 + n * 35, LCD_X_SIZE / 2, 16);
+  GrStringDraw(pContext, text, -1, 30, 30 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
-  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * 35, 0);
+  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * LINEMARGIN, 0);
 }
 
 static void onDraw(tContext *pContext)
@@ -38,19 +41,53 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextFontSet(pContext, &g_sFontNova38);
 
-  sprintf(buf, "%d", steps);
-  drawItem(pContext, 0, 'l', "Steps Taken", buf);
+  if (state == WALK)
+  {
+    sprintf(buf, "%d", ped_get_steps());
+    drawItem(pContext, 0, 'y', "Steps Taken", buf);
 
-  sprintf(buf, "%d", time);
-  drawItem(pContext, 1, 0, "Walk Time", buf);
+    sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
+    drawItem(pContext, 1, 'z', "Walk Time", buf);
 
-  sprintf(buf, "%d", cal);
-  drawItem(pContext, 2, 0, "Caloris", buf);
+    sprintf(buf, "%dkcal", ped_get_calorie());
+    drawItem(pContext, 2, 'z'+1, "Calorie", buf);
 
-  sprintf(buf, "%d mi", 12);
-  drawItem(pContext, 3, 0, "Distance", buf);
+    sprintf(buf, "%dm", ped_get_distance());
+    drawItem(pContext, 3, 'z'+2, "Distance", buf);
 
-  // draw progress
+    // draw progress
+
+    uint16_t goal = window_readconfig()->goal_steps;
+    uint32_t steps = ped_get_steps();
+
+    window_progress(pContext, 28 + 4 * LINEMARGIN, steps * 100 / goal);
+    sprintf(buf, "%d%% of goal of %d", (uint16_t)(steps * 100 / goal), goal);
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 144, 0);
+  }
+  #if 0
+  else
+  {
+    sprintf(buf, "%d", ped_get_steps());
+    drawItem(pContext, 0, 'y', "Steps Taken", buf);
+
+    sprintf(buf, "%d", ped_get_time());
+    drawItem(pContext, 1, 'z', "Walk Time", buf);
+
+    sprintf(buf, "%d", ped_get_calorie());
+    drawItem(pContext, 2, 'z'+1, "Caloris", buf);
+
+    sprintf(buf, "%d m", ped_get_distance());
+    drawItem(pContext, 3, 'z'+2, "Distance", buf);    
+  }
+  GrContextForegroundSet(pContext, ClrWhite);
+  for(int i = 0; i < 6; i++)
+  {
+    GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+
+    GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
+  }
+#endif
 }
 
 uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -58,27 +95,24 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
-    steps = mpu_getsteps();
-    time = mpu_getsteptime();
-    cal = 130;
+    state = WALK;
+    // fallthrough
+  case PROCESS_EVENT_TIMER:
+    window_timer(CLOCK_SECOND * 5);
+    window_invalid(NULL);
     break;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;
+#if 0
   case EVENT_KEY_PRESSED:
-    if (lparam == KEY_DOWN)
+    if (lparam == KEY_DOWN || lparam == KEY_UP)
     {
-      state++;
-      if (state > CALORIES)
-        state = STEPS;
-    }
-    else if (lparam == KEY_UP)
-    {
-      if (state != 0)
-        state--;
+      state = 1 - state;
     }
     window_invalid(NULL);
     break;
+#endif
   default:
     return 0;
   }

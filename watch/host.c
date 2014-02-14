@@ -1,6 +1,7 @@
 #include "contiki.h"
 #include "pawnscript/amx.h"
 #include "window.h"
+#include "memory.h"
 
 #include <cfs/cfs.h>
 
@@ -17,11 +18,12 @@
 #define hexdump(...)
 #endif
 
-static AMX amx;
+static AMX *amx;
 static int idxOnCreate, idxOnPaint, idxOnClose, idxOnClock;
-static uint16_t mem[800];
+static enum {RUNNING, ERROR, DONE};
 
-static enum {RUNNING, ERROR, DONE} state;
+#define state d.host.state
+static char* mem;
 
 static const char * AMXAPI aux_StrError(int errnum)
 {
@@ -62,19 +64,26 @@ static const char * AMXAPI aux_StrError(int errnum)
 }
 
 
-static int init_engine(void* mem)
+static int init_engine(void* _mem)
 {
-  int error = amx_Init(&amx, mem);
+    /* initialize the abstract machine */
+  amx = malloc(sizeof(AMX));
+  if (!amx)
+    return AMX_ERR_MEMORY;
+
+  memset(amx, 0, sizeof(AMX));
+
+  int error = amx_Init(amx, _mem);
   if (error != AMX_ERR_NONE)
   {
     PRINTF("Error Init: %s\n", aux_StrError(error));
     return -1;
   }
  
-  amx_FindPublic(&amx, "@oncreate", &idxOnCreate);
-  amx_FindPublic(&amx, "@onpaint", &idxOnPaint);
-  amx_FindPublic(&amx, "@onclose", &idxOnClose);
-  amx_FindPublic(&amx, "@onclock", &idxOnClock);
+  amx_FindPublic(amx, "@oncreate", &idxOnCreate);
+  amx_FindPublic(amx, "@onpaint", &idxOnPaint);
+  amx_FindPublic(amx, "@onclose", &idxOnClose);
+  amx_FindPublic(amx, "@onclock", &idxOnClock);
 
   return 0;
 }
@@ -82,9 +91,7 @@ static int init_engine(void* mem)
 static int init_script(void *rom)
 {
   uint16_t length;
-  /* initialize the abstract machine */
-  memset(&amx, 0, sizeof amx);
- 
+
   // rom is not always aligned
   length = *((uint8_t*)rom + 1);
   length *= 256;
@@ -102,6 +109,9 @@ static int init_script(void *rom)
 static int load_script(const char* filename)
 {
   AMX_HEADER hdr;
+
+  mem = NULL;
+  amx = NULL;
   // try to load file from spi flash
   int fd = cfs_open(filename, CFS_READ);
   if (fd == -1)
@@ -114,7 +124,8 @@ static int load_script(const char* filename)
     return AMX_ERR_FORMAT;
   } /* if */
 
-  if (hdr.stp > sizeof(mem) * sizeof(mem[0]))
+  mem = malloc(hdr.stp);
+  if (!mem)
   {
     // no enough memory
     return AMX_ERR_MEMORY;
@@ -128,6 +139,15 @@ static int load_script(const char* filename)
   cfs_close(fd);
 
   return init_engine(mem);
+}
+
+static void unload_script()
+{
+  if (mem)
+    free(mem);
+
+  if (amx)
+    free(amx);
 }
 
 uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
@@ -160,7 +180,7 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
       if (idxOnCreate != INT_MAX)
       {
         PRINTF("try to run oncreate\n");
-        error = amx_Exec(&amx, &ret, idxOnCreate);
+        error = amx_Exec(amx, &ret, idxOnCreate);
         if (error != AMX_ERR_NONE)
         {
           PRINTF("Error Exec: %s\n", aux_StrError(error));
@@ -188,8 +208,8 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
       if (idxOnPaint != INT_MAX)
       {
         PRINTF("try to run onpaint\n");
-        amx_Push(&amx, (cell)rparam);
-        error = amx_Exec(&amx, &ret, idxOnPaint);
+        amx_Push(amx, (cell)rparam);
+        error = amx_Exec(amx, &ret, idxOnPaint);
         if (error != AMX_ERR_NONE)
         {
           PRINTF("Error Exec: %s\n", aux_StrError(error));
@@ -204,7 +224,7 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
     if (idxOnClock != INT_MAX)
     {
       PRINTF("try to run onclock\n");
-      error = amx_Exec(&amx, &ret, idxOnClock);
+      error = amx_Exec(amx, &ret, idxOnClock);
       if (error != AMX_ERR_NONE)
       {
         PRINTF("Error Exec: %s\n", aux_StrError(error));
@@ -216,15 +236,11 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
     break;
     case EVENT_WINDOW_CLOSING:
     {
-      if (state == ERROR)
-      {
-        return 1;
-      }
-      else
-      if (idxOnClose != INT_MAX)
+      if ((state != ERROR)
+        && (idxOnClose != INT_MAX))
       {
         PRINTF("try to run onclose\n");
-        error = amx_Exec(&amx, &ret, idxOnClose);
+        error = amx_Exec(amx, &ret, idxOnClose);
         if (error != AMX_ERR_NONE)
         {
           PRINTF("Error Exec: %s\n", aux_StrError(error));
@@ -233,6 +249,8 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
           window_invalid(NULL);
         }
       }
+
+      unload_script();
       break;
     }
     default:

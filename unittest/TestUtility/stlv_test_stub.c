@@ -2,6 +2,7 @@
 #include "stlv_test_stub.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
 
 static send_pack_stub_t * _send_pack_stub = 0;
