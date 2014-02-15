@@ -27,7 +27,7 @@ const char * const month_shortname[] = {
 };
 
 const char* const week_shortname[] = {
-  "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
+  "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"
 };
 
 

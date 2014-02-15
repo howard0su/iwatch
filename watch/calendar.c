@@ -19,7 +19,7 @@ static void OnDraw(tContext *pContext)
   // draw table title
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
-  const tRectangle rect = {0, 28, 255, 42};
+  const tRectangle rect = {0, 27, 255, 41};
   GrRectFill(pContext, &rect);
 
   // draw the title bar
@@ -32,9 +32,9 @@ static void OnDraw(tContext *pContext)
   GrContextFontSet(pContext, &g_sFontBaby12);
   for(int i = 0; i < 7; i++)
   {
-    GrStringDrawCentered( pContext, week_shortname[i], 3, i * 20 + 10, 35, 0);
+    GrStringDrawCentered( pContext, week_shortname[i], -1, i * 20 + 11, 35, 0);
     // draw line in title bar
-    // GrLineDrawV(pContext, i * 20, 40, 42);
+    GrLineDrawV(pContext, i * 20, 28, 42);
   }
 
   GrContextFontSet(pContext, &g_sFontNova16);
@@ -58,7 +58,7 @@ static void OnDraw(tContext *pContext)
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
-    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 10, y - 2, 0);
+    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 11, y - 2, 0);
     if (today)
     {
       const tRectangle rect2 = {weekday * 20 + 16, y - 5, weekday * 20 + 17, y - 4};
@@ -69,7 +69,7 @@ static void OnDraw(tContext *pContext)
     }
 
     if (weekday != 6)
-      GrLineDrawV(pContext, (weekday + 1 ) * 20, 40, y + 7);
+      GrLineDrawV(pContext, (weekday + 1 ) * 20, 42, y + 7);
 
     weekday++;
     if (weekday == 7)
