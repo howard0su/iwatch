@@ -29,7 +29,7 @@ static void OnDraw(tContext *pContext)
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontBaby12);
   for(int i = 0; i < 7; i++)
   {
     GrStringDrawCentered( pContext, week_shortname[i], 3, i * 20 + 10, 35, 0);
@@ -58,7 +58,7 @@ static void OnDraw(tContext *pContext)
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
-    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 10, y, 0);
+    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 10, y - 2, 0);
     if (today)
     {
       const tRectangle rect2 = {weekday * 20 + 16, y - 5, weekday * 20 + 17, y - 4};
@@ -77,7 +77,7 @@ static void OnDraw(tContext *pContext)
       GrLineDrawH(pContext, 0, LCD_X_SIZE, y + 8);
 
       weekday = 0;
-      y += 17;
+      y += 20;
     }
   }
 
