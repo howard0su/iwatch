@@ -714,26 +714,81 @@ static uint8_t flip( uint8_t n )
 }
 
 #include <stdio.h>
+
+#pragma pack(1)
+struct BITMAPFILEHEADER
+{
+    uint8_t header[2];
+    uint32_t filesize;
+    uint32_t reserved;
+    uint32_t offset;
+};
+
+struct BITMAPINFOHEADER
+{
+    uint32_t headersize;
+    uint32_t width;
+    uint32_t height;
+    uint16_t planes;
+    uint16_t bpp;
+    uint32_t compress;
+    uint32_t datasize;
+    uint32_t hres, vres;
+    uint32_t colors;
+    uint32_t important;
+};
+
 void screenshot()
 {
   static int id;
   FILE* fp;
-  watchdog_stop();
-  char name[30];
-  sprintf(name, "unittest/screen/image%03d.pbm", id++);
-  fp = fopen(name, "wb");
-  fprintf(fp, "P4\n%d %d\n", LCD_X_SIZE, LCD_Y_SIZE);
 
-  for(int i = 0; i < LCD_Y_SIZE; i++)
+  char name[30];
+  sprintf(name, "unittest/screen/image%03d.bmp", id++);
+  fp = fopen(name, "wb");
+
+  // write the BMP header
+  struct BITMAPFILEHEADER fh;
+  struct BITMAPINFOHEADER ih;
+
+  bzero(&fh, sizeof(fh));
+  bzero(&ih, sizeof(ih));
+
+  int sizeofline = ((LCD_X_SIZE / 8) + 3) & (~3);
+  fh.header[0] = 'B'; fh.header[1] = 'M';
+  fh.filesize = sizeof(fh) + sizeof(ih) + 4 * 2 + LCD_Y_SIZE * sizeofline;
+  fh.reserved = 0;
+  fh.offset = sizeof(fh) + sizeof(ih) + 4 * 2;
+
+  ih.headersize = sizeof(ih);
+  ih.width = LCD_X_SIZE;
+  ih.height = LCD_Y_SIZE;
+  ih.planes = 1;
+  ih.bpp = 1;
+  ih.compress = 0;
+  ih.datasize = sizeofline * LCD_Y_SIZE;
+  ih.colors = 2;
+
+  fwrite(&fh, sizeof(fh), 1, fp);
+  fwrite(&ih, sizeof(ih), 1, fp);
+
+  // write pallete
+  char color[4];
+  bzero(&color, sizeof(color));
+  fwrite(color, sizeof(color), 1, fp);
+  color[0] = color[1] = color[2] = 0xff;
+  fwrite(color, sizeof(color), 1, fp);  
+
+  // write real data, align with 4bytes
+  for(int i = LCD_Y_SIZE - 1; i >= 0; i--)
   {
-    uint8_t buf[LCD_X_SIZE/8];
+    uint8_t buf[LCD_X_SIZE/8 + 4];
     for(int j = 0; j < LCD_X_SIZE/8; j++)
     {
-     buf[j] = ~(flip(lines[i].pixels[j]));
+     buf[j] = flip(lines[i].pixels[j]);
     }
-    fwrite(buf, LCD_X_SIZE/8, 1, fp);
+    fwrite(buf, sizeofline, 1, fp);
   }
 
   fclose(fp);
-  watchdog_start();
 }
