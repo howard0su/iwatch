@@ -104,23 +104,23 @@ void ped_step_detect_run()
     int steps = step_count - last_step_cnt;
     interval /= steps;
     // add workout time, must be half second, 
-    if (interval < SAMPLE_HZ * 2)
+    if (interval > SAMPLE_HZ)
     {
-      step_time += interval;
-      
-      // add the distance
-      ui_config* config = window_readconfig();
-
-      uint16_t dist =  calc_step_len(interval, config->height);
-
-      step_dist += dist;
-      step_cal += dist * config->weight * 5 / 4;
-      
-      last_step_cnt = step_count;
+      interval = SAMPLE_HZ;
     }
-    
-    interval = 0;
 
+    step_time += interval * steps;
+
+    // add the distance
+    ui_config* config = window_readconfig();
+
+    uint16_t dist =  calc_step_len(interval, config->height);
+
+    step_dist += dist;
+    step_cal += dist * config->weight * 5 / 4;
+    
+    last_step_cnt = step_count;
+    interval = 0;
   }
   else if (step_count < last_step_cnt)
   {
