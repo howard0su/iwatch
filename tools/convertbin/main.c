@@ -23,9 +23,9 @@ void hexdump(void* ptr, int length)
     printf("0x%02x,", *p);
     p++;
   }
+
+  printf("\n");
 }
-
-
 
 void crc(void* ptr, int length)
 {
@@ -36,7 +36,7 @@ void crc(void* ptr, int length)
     p++;
   }
 
-  hexdump(ptr, length);
+  //hexdump(ptr, length);
 }
 
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
   if (argc < 2)
   {
-    printf("Usage\nconvert a.txt a.bin");
+    printf("Usage\nconvert input.txt output.bin\n");
     return -1;
   }
 
@@ -66,9 +66,9 @@ int main(int argc, char* argv[])
   for(int i = 0; i < 20; i++)
   {
     struct datablock *d = &blocks[i];
-    if (d->currentAddr != -1)
+    if (d->currentAddr != -1 && d->currentAddr != 0x1800) // skip 1800
     {
-  //    printf("address: %x length=%d\n", d->currentAddr, d->size);
+      printf("address: 0x%x length=%d\n", d->currentAddr, d->size);
       fwrite(&d->currentAddr, 4, 1, fp);
       header.length+=4;
       crc(&d->currentAddr, 4);
@@ -89,6 +89,7 @@ int main(int argc, char* argv[])
   fwrite(&header, sizeof(header), 1, fp);
   fclose(fp);
 
+  hexdump(&header, sizeof(header));
   printf("%s is created.\n", argv[2]);
   printf("Length: %d\n", header.length);
   printf("CRC H is %d\nCRC L is %d\n", header.crch, header.crcl);
