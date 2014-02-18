@@ -2034,9 +2034,6 @@
       <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\filesys_proc.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\gesture\gesture.c</name>
     </file>
     <file>
