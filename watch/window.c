@@ -21,7 +21,6 @@ static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
 extern const unsigned char logoPixel[];
-extern void filesys_init();
 
 union _data d;
 
@@ -89,7 +88,6 @@ static uint8_t stackptr = 0;
 void window_init()
 {
   backlight_on(255, 5 * CLOCK_SECOND);
-  filesys_init();
 
   current_clip = client_clip;
   memlcd_DriverInit();

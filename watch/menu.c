@@ -74,7 +74,6 @@ static const struct MenuItem MainMenu[] =
   {'g', "Countdown Timer", &countdown_process},
   {'k', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
-  {'a', "History", &menu_process},
   {'l', "Setup", &menu_process},
   {0,   "About", &menu_process},
   {0, NULL, NULL}
@@ -368,10 +367,6 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = TestMenu;
       }
-      else if (strcmp(rparam, "History") == 0)
-      {
-        Items = HistoryActivity;
-      }
 
       getMenuLength();
 
@@ -447,30 +442,15 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else if (lparam == KEY_ENTER)
       {
-        if (Items == HistoryActivity)
-        {
-            window_open(&recordoperation_process, (void*)current);
-        }
-        else if (Items[current].handler)
+        if (Items[current].handler)
         {
           if (Items[current].handler == &menu_process)
           {
             if (current == 9)
             {
-              //s_record_pos = 0;
-              //SET_MENU_END(0, HistoryActivity);
-              //Items = HistoryActivity;
-              //process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
-
-              load_history_menu();
-              Items = HistoryActivity;
-
-            }
-            else if (current == 10)
-            {
               Items = SetupMenu;
             }
-            else if (current == 11)
+            else if (current == 10)
             {
               Items = AboutMenu;
             }
@@ -491,24 +471,16 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       if (Items == SetupMenu)
       {
         Items = MainMenu;
-        currentTop = 6;
-        current = 10;
+        currentTop = 5;
+        current = 9;
         getMenuLength();
         window_invalid(NULL);
       }
       else if (Items == AboutMenu)
       {
         Items = MainMenu;
-        currentTop = 7;
-        current = 11;
-        getMenuLength();
-        window_invalid(NULL);
-      }
-      else if (Items == HistoryActivity)
-      {
-        Items = MainMenu;
-        currentTop = 5;
-        current = 9;
+        currentTop = 6;
+        current = 10;
         getMenuLength();
         window_invalid(NULL);
       }
@@ -523,16 +495,6 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       break;
     }
-
-    //case EVENT_FILESYS_LIST_FILE:
-    //  if ((int)rparam != 0 && (int)rparam != -1)
-    //  {
-    //    loadHistoryRecord((char*)rparam);
-    //    process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
-    //  }
-    //  else
-    //    window_invalid(NULL);
-    //  break;
 
     default:
       return 0;
