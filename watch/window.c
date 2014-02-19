@@ -386,6 +386,8 @@ void window_loadconfig()
       window_writeconfig();      
     }
 
+    window_invalid(NULL);
+    status_invalid();
   }
 }
 
