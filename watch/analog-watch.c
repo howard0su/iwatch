@@ -296,10 +296,6 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       window_invalid(NULL);
     }
-    else if (lparam == KEY_ENTER)
-    {
-      window_open(&today_process, NULL);
-    }
   }
   else if (ev == EVENT_WINDOW_CLOSING)
   {
