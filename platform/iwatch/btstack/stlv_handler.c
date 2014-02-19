@@ -42,6 +42,8 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
     //}
 
     //cfs_closedir(&dir);
+    window_invalid(NULL);
+    status_invalid();
 }
 
 static uint8_t _phone_info[2] = {0};
