@@ -1,6 +1,5 @@
 #include "contiki.h"
 #include "sys/ctimer.h"
-#include "mpu.h"
 #include "grlib/grlib.h"
 #include "window.h"
 #include "Template_Driver.h"
