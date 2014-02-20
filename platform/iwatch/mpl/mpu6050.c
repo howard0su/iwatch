@@ -59,14 +59,6 @@ void delay_ms(unsigned long num_ms)
   BUSYWAIT_UNTIL(0, num_ms * RTIMER_SECOND / 1000);
 }
 
-static void tap_cb(unsigned char direction, unsigned char count)
-{
-  if (count == 1)
-    process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_TAP);
-  else
-    process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_DOUBLETAP);
-}
-
 int mpu6050_selftest()
 {
   long gyro[3], accel[3];
@@ -77,7 +69,7 @@ int mpu6050_selftest()
   {
     return -1;
   }
-  
+
   printf("accel bias: %d, %d, %d\n", accel[0], accel[1], accel[2]);
 
   return 0;
@@ -104,28 +96,28 @@ void mpu6050_init()
   {
     goto error;
   }
-  
+
   printf("mpu_set_sensors\n");
   if (mpu_set_sensors(INV_XYZ_ACCEL))
     goto error;
-  
+
   printf("mpu_set_accel_fsr\n");
   if (mpu_set_accel_fsr(4))
     goto error;
-  
+
 //  if (mpu_lp_accel_mode(40))
 //    goto error;
-  
-  printf("mpu_configure_fifo\n");  
+
+  printf("mpu_configure_fifo\n");
   if (mpu_configure_fifo(INV_XYZ_ACCEL))
     goto error;
-    
-  printf("mpu_set_sample_rate\n");  
+
+  printf("mpu_set_sample_rate\n");
   if (mpu_set_sample_rate(DEFAULT_MPU_HZ))
     goto error;
 
 
-  printf("mpu6050_selftest\n");  
+  printf("mpu6050_selftest\n");
 #else
   I2C_write(MPU6050_RA_PWR_MGMT_1, 0x80);
   delay_ms(100);
@@ -145,7 +137,7 @@ void mpu6050_init()
     printf("\n$$OK MPU6050\n");
     return;
   }
-  
+
   ped_reset();
 
 error:
@@ -174,7 +166,7 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
     unsigned char tmp[2];
     unsigned short fifo_count;
 
-    
+
     if (I2C_readbytes(MPU6050_RA_FIFO_COUNTH, tmp, 2))
         return -1;
     fifo_count = (tmp[0] << 8) | tmp[1];
@@ -191,19 +183,36 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
       *length = fifo_count;
     else
       *more = 1;
-    
+
     //printf("there is %d\n", fifo_count);
 
     if (I2C_readbytes(MPU6050_RA_FIFO_R_W, data, *length))
       return -1;
-    
+
     return 0;
 }
 
+static int CheckForShake(short *last, short *now, uint16_t threshold)
+{
+  uint16_t deltaX = last[0] > now[0] ? last[0] - now[0]:now[0] - last[0];
+  uint16_t deltaY = last[1] > now[1] ? last[1] - now[1]:now[1] - last[1];
+  uint16_t deltaZ = last[2] > now[2] ? last[2] - now[2]:now[2] - last[2];
+
+  return (deltaX > threshold && deltaY > threshold) ||
+                    (deltaX > threshold && deltaZ > threshold) ||
+                    (deltaY > threshold && deltaZ > threshold);
+}
+
+static int8_t _shakeCount;
+static int8_t _shaking;
+#define ShakeThreshold 180
 
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
   PROCESS_BEGIN();
+  _shakeCount = 0;
+  _shaking = 0;
+
   etimer_set(&timer, read_interval);
   process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
   while(1)
@@ -217,6 +226,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
         do
         {
           int accel[3];
+          unsigned short last[3];
           unsigned char data[1020];
           unsigned short length = sizeof(data);
           int result = read_fifo_all(&length, data, &more);
@@ -228,13 +238,37 @@ PROCESS_THREAD(mpu6050_process, ev, data)
               accel[0] = (((int)data[index + 0]) << 8) | data[index + 1];
               accel[1] = (((int)data[index + 2]) << 8) | data[index + 3];
               accel[2] = (((int)data[index + 4]) << 8) | data[index + 5];
-              
+
               if (read_interval == NORMAL_INTERVAL)
               {
                 accel[0] >>= 6;
                 accel[1] >>= 6;
                 accel[2] >>= 6;
-             
+
+                if (index > 0)
+                {
+                  if (!_shaking && CheckForShake(last, accel, ShakeThreshold) && _shakeCount >= 1)
+                  {
+                    //We are shaking
+                    _shaking = 1;
+                    _shakeCount = 0;
+                    process_post(ui_process, EVENT_KEY_PRESSED, (void*)KEY_TAP);
+                  }
+                  else if (CheckForShake(last, accel, ShakeThreshold))
+                  {
+                    _shakeCount++;
+                  }
+                  else if (!CheckForShake(last, accel, 50))
+                  {
+                    _shakeCount = 0;
+                    _shaking = 0;
+                  }
+
+                }
+                last[0] = accel[0];
+                last[1] = accel[1];
+                last[2] = accel[2];
+
                 if (ped_update_sample(accel) == 1)
                 {
                   ped_step_detect_run();
@@ -298,7 +332,7 @@ static void mpu_test()
 {
   static int init = 0;
   static uint16_t saved_cnt = -1;
-    
+
   if (!init)
   {
       memlcd_DriverInit();
@@ -309,18 +343,19 @@ static void mpu_test()
       GrRectFill(&context, &rect);
       GrContextForegroundSet(&context, ClrWhite);
   }
-  
+
   if (step_cnt == saved_cnt)
   {
     return;
   }
   saved_cnt = step_cnt;
-  
+
   GrContextFontSet(&context, &g_sFontNova28);
   char buf[32];
-  sprintf(buf, "steps: %d   ", step_cnt); 
+  sprintf(buf, "steps: %d   ", step_cnt);
   GrStringDrawCentered(&context, buf, -1, LCD_X_SIZE/2, LCD_Y_SIZE/2, 1);
 
   GrFlush(&context);
 }
 #endif
+
