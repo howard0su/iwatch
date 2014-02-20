@@ -96,9 +96,11 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 
 }
 
+static char s_file_name[32] = {0};
 int handle_file_begin(char* name)
 {
     printf("handle_file_begin(%s)\n", name);
+    strcpy(s_file_name, name);
     int fd = cfs_open(name, CFS_WRITE);
     if (fd == -1)
     {
@@ -110,7 +112,7 @@ int handle_file_begin(char* name)
 
 int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
-    printf("handle_file_end(%x, data, %d)\n", fd, size);
+    printf("handle_file_data(%x, %d)\n", fd, size);
     if (fd != -1)
     {
         return cfs_write(fd, data, size);
