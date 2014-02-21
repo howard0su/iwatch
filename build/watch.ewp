@@ -2457,6 +2457,9 @@
     <file>
       <name>$PROJ_DIR$\..\pedometer\pedometer_dist.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\sleepalgo.r43</name>
+    </file>
   </group>
   <group>
     <name>platform</name>

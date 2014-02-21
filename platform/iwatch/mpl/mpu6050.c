@@ -13,6 +13,7 @@
 //#include "inv_mpu_dmp_motion_driver.h"
 
 #include "pedometer/pedometer.h"
+#include "pedometer/sleepalgo.h"
 
 extern void ped_step_detect_run();
 extern void gesture_processdata(int16_t *input);
@@ -27,9 +28,11 @@ extern void gesture_processdata(int16_t *input);
 #define MPU_INT_BIT BIT6
 
 #define GESTURE_INTERVAL (CLOCK_SECOND >> 3)
-#define NORMAL_INTERVAL (CLOCK_SECOND)
+#define NORMAL_INTERVAL (CLOCK_SECOND / 2)
+#define SLEEP_INTERVAL (CLOCK_SECOND * 5)
 
 /* Starting sampling rate. */
+#define SLEEP_MPU_HZ  (10)
 #define DEFAULT_MPU_HZ  (50)
 #define GESTURE_MPU_HZ  (150)
 
@@ -206,6 +209,7 @@ static int CheckForShake(short *last, short *now, uint16_t threshold)
 static int8_t _shakeCount;
 static int8_t _shaking;
 #define ShakeThreshold 180
+static int8_t samplecount;
 
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
@@ -263,7 +267,6 @@ PROCESS_THREAD(mpu6050_process, ev, data)
                     _shakeCount = 0;
                     _shaking = 0;
                   }
-
                 }
                 last[0] = accel[0];
                 last[1] = accel[1];
@@ -272,6 +275,22 @@ PROCESS_THREAD(mpu6050_process, ev, data)
                 if (ped_update_sample(accel) == 1)
                 {
                   ped_step_detect_run();
+                }
+              }
+              if (read_interval == SLEEP_INTERVAL)
+              {
+                if (samplecount != 3)
+                  samplecount++;
+                else
+                {
+                  signed char data[3];
+                  samplecount = 0;
+                  data[0] = accel[0] >> 6;
+                  data[1] = accel[1] >> 6;
+                  data[2] = accel[2] >> 6;
+
+                  if (slp_sample_update(data) == 1)
+                    slp_status_cal();
                 }
               }
               else
@@ -304,20 +323,34 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   PROCESS_END();
 }
 
-void mpu_gesturemode(int d)
+/* d is mode
+   0: pedometer
+   1: Gensture
+   2: sleep track
+   */
+void mpu_switchmode(int d)
 {
   I2C_addr(MPU6050_ADDR);
-  if (d)
+  switch(d)
   {
+    case 0:
     I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_4G);
     I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/GESTURE_MPU_HZ - 1));
     read_interval = GESTURE_INTERVAL; // every 8/1 sec
-  }
-  else
-  {
+    break;
+
+    case 1:
     I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
     I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1));
     read_interval = NORMAL_INTERVAL;
+    break;
+
+    case 2:
+    samplecount = 0;
+    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
+    I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/SLEEP_MPU_HZ - 1));
+    read_interval = SLEEP_INTERVAL;
+    break;
   }
   I2C_done();
 
