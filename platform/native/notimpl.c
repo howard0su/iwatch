@@ -328,3 +328,8 @@ bd_addr_t* hfp_remote_addr() {return NULL;}
 int hci_send_cmd(const hci_cmd_t *cmd, ...) {}
 
 int hci_send_cmd_packet(uint8_t *packet, int size){}
+
+void WriteFirmware(void* data, uint32_t offset, int size)
+{
+
+}

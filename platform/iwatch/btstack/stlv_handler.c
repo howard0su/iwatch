@@ -98,15 +98,27 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 
 }
 
-static char s_file_name[32] = {0};
+static uint32_t offset;
+#define FIRMWARE_HD 784
+extern void WriteFirmware(void* data, uint32_t offset, int size);
+
 int handle_file_begin(char* name)
 {
+    int fd;
     printf("handle_file_begin(%s)\n", name);
-    strcpy(s_file_name, name);
-    int fd = cfs_open(name, CFS_WRITE);
-    if (fd == -1)
+
+    if (strcmp(name, "firmware") == 0)
     {
-        printf("Open file %s failed\n", name);
+        fd = FIRMWARE_HD;
+        offset = 0;
+    }
+    else
+    {
+        fd = cfs_open(name, CFS_WRITE);
+        if (fd == -1)
+        {
+            printf("Open file %s failed\n", name);
+        }
     }
 
     return fd;
@@ -119,6 +131,11 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
     {
         return cfs_write(fd, data, size);
     }
+    else if (fd == FIRMWARE_HD)
+    {
+        WriteFirmware(data, offset, size);
+        offset += size;
+    }
 
     return 0;
 }
@@ -126,7 +143,8 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
 void handle_file_end(int fd)
 {
     printf("handle_file_end(%x)\n", fd);
-    cfs_close(fd);
+    if (fd != -1)
+        cfs_close(fd);
 }
 
 void handle_get_file(char* name)

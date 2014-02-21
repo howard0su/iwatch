@@ -6,6 +6,7 @@
 #pragma segment="FLASHCODE"                 // Define flash segment code
 #pragma segment="RAMCODE"
 
+#define FIRMWARE_BASE (4UL * 1024 * 1024 - 256UL * 1024) // last 256KB in first 4 M
 
 static inline uint8_t SPI_FLASH_SendByte( uint8_t data )
 {
@@ -73,6 +74,11 @@ void copy_flash_to_RAM(void)
   memcpy(RAM_start_ptr,flash_start_ptr,function_size);
 }
 
+void WriteFirmware(void* data, uint32_t offset, int size)
+{
+  SPI_FLASH_BufferWrite(data, offset, size);
+}
+
 //------------------------------------------------------------------------------
 // This portion of the code is first stored in Flash and copied to RAM then
 // finally executes from RAM.
@@ -80,8 +86,6 @@ void copy_flash_to_RAM(void)
 #pragma location="FLASHCODE"
 void write_block_int()
 {
-  const uint32_t ReadAddr = 4UL * 1024 * 1024 - 256UL * 1024; // last 256KB position
-
   unsigned int i;
   char *pBuffer;
   WriteState state;
@@ -107,7 +111,7 @@ void write_block_int()
       case STATE_NEEDSIGNATURE:
       NumByteToRead = 10; // the size of file header, sync with main.c under convert tool src
       SPI_FLASH_CS_LOW();
-      SPI_FLASH_SendCommandAddress(W25X_ReadData, ReadAddr);
+      SPI_FLASH_SendCommandAddress(W25X_ReadData, FIRMWARE_BASE);
 
       break;
       case STATE_NEEDADDR:
@@ -124,7 +128,7 @@ void write_block_int()
     pBuffer = (char*)&buffer[0];;
     for(int i = 0; i < NumByteToRead; i++)
     {
-      *pBuffer = SPI_FLASH_SendByte(Dummy_Byte);
+      *pBuffer = ~SPI_FLASH_SendByte(Dummy_Byte);
       pBuffer++;
     }
 
