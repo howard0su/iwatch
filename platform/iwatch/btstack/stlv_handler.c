@@ -101,6 +101,7 @@ void handle_message(uint8_t msg_type, char* ident, char* message)
 static uint32_t offset;
 #define FIRMWARE_HD 784
 extern void WriteFirmware(void* data, uint32_t offset, int size);
+extern void EraseFirmware();
 
 int handle_file_begin(char* name)
 {
@@ -109,6 +110,7 @@ int handle_file_begin(char* name)
 
     if (strcmp(name, "firmware") == 0)
     {
+        EraseFirmware();
         fd = FIRMWARE_HD;
         offset = 0;
     }

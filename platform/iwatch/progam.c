@@ -76,7 +76,16 @@ void copy_flash_to_RAM(void)
 
 void WriteFirmware(void* data, uint32_t offset, int size)
 {
-  SPI_FLASH_BufferWrite(data, offset, size);
+  SPI_FLASH_BufferWrite(data, offset + FIRMWARE_BASE, size);
+}
+
+void EraseFirmware()
+{
+  int size = 32 * 1024;
+  for(int i = 0; i < 256*1024/SPI_FLASH_PageSize; i+=size)
+  {
+    SPI_FLASH_SectorErase(i + FIRMWARE_BASE, size);
+  }
 }
 
 //------------------------------------------------------------------------------

@@ -333,3 +333,8 @@ void WriteFirmware(void* data, uint32_t offset, int size)
 {
 
 }
+
+void EraseFirmware()
+{
+  
+}
