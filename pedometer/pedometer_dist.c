@@ -57,7 +57,7 @@ uint16_t calc_step_len(uint16_t interval, uint8_t height)
 {
     uint16_t dist;
 
-    if (interval > SAMPLE_HZ)
+    if (interval >= SAMPLE_HZ)
     {
       dist = height / 5;
     }
@@ -102,8 +102,12 @@ void ped_step_detect_run()
   if (step_count > last_step_cnt)
   {
     int steps = step_count - last_step_cnt;
+
+    //interval is the ticks(20ms = 1000ms/50hz) for every step
     interval /= steps;
+
     // add workout time, must be half second, 
+    // adjust interval: cannot be larger than 2 seconds (50hz * 2)
     if (interval > SAMPLE_HZ)
     {
       interval = SAMPLE_HZ;
@@ -113,12 +117,17 @@ void ped_step_detect_run()
 
     // add the distance
     ui_config* config = window_readconfig();
-
-    uint16_t dist =  calc_step_len(interval, config->height);
-
+    uint16_t step_len = calc_step_len(interval, config->height);
+    uint16_t dist = steps * step_len;
     step_dist += dist;
+
+    //calculate and accumulate calories
+    // cal/second = 1.25 * weight * speed / 1000 
+    // cal = 1.25 * weight * speed * time/ 1000
+    //     = 1.25 * weight * dist / time * time / 1000
+    //     = 1.25 * weight * dist / 1000
     step_cal += dist * config->weight * 5 / 4;
-    
+
     last_step_cnt = step_count;
     interval = 0;
   }
