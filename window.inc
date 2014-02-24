@@ -11,6 +11,12 @@ const clocktype: {
   TenMS = 4
 }
 
+const color:
+{
+  White = 0,
+  Black = 65535
+}
+
 const fonts: {
   FontNova12b = 0,
   FontNova13,
@@ -43,6 +49,9 @@ native window_invalid_rect(x, y, w, h) = -2
 native window_setfont(context: context, fonts: font) = -3
 native window_getwidth(context: context, string[]) = -4
 native window_drawtext(context: context, string[], x, y, style) = -5
+native window_drawtext_center(context, string[], x, y, style) = -10
+native window_filltriagle(context: context, xa, ya, xb, yb, xc, yc) = -11
+native window_setcolor(context: context, fg : color, bg : color) = -12
 //native window_drawrect(x, y, w, h)
 
 native strformat(dest[], size=sizeof dest, bool:pack=true, const format[], {Fixed,Float,_}:...) = -6;
