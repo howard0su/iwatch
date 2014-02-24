@@ -49,7 +49,11 @@ static void onDraw(tContext *pContext)
     sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
     drawItem(pContext, 1, 'z', "Walk Time", buf);
 
-    sprintf(buf, "%dkcal", ped_get_calorie());
+    uint16_t cals = ped_get_calorie();
+    if (cals < 1000)
+      sprintf(buf, "%d cal", cals);
+    else
+      sprintf(buf, "%d.%02d kcal", cals / 1000, (cals % 1000) / 10);
     drawItem(pContext, 2, 'z'+1, "Calorie", buf);
 
     sprintf(buf, "%dm", ped_get_distance());
