@@ -1,10 +1,13 @@
 #include <stdint.h>
 #include <msp430.h>
+#include <string.h>
 #include "spiflash.h"
 #include "board.h"
 
 #pragma segment="FLASHCODE"                 // Define flash segment code
 #pragma segment="RAMCODE"
+
+void FlashFirmware();
 
 #define FIRMWARE_BASE (4UL * 1024 * 1024 - 256UL * 1024) // last 256KB in first 4 M
 
@@ -48,15 +51,38 @@ typedef enum
 #define INTERRUPT_VECTOR_START 0xFFE0
 #define SIGNATURE 0xFACE0001
 
+#pragma pack(1)
+struct _header
+{
+  uint32_t signature;
+  uint32_t length;
+  uint8_t crch;
+  uint8_t crcl;
+};
 
-#pragma segment="FLASHCODE"                 // Define flash segment code
-#pragma segment="RAMCODE"
+int CheckUpgrade(void)
+{
+  struct _header h;
+  // check if the firmware is there
+  SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE, sizeof(h));
+
+  if (h.signature != SIGNATURE)
+    return 1;
+
+  SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE + h.length + sizeof(h), sizeof(h));
+
+  if (h.signature != SIGNATURE)
+    return 2;
+
+  // check CRC
+
+  return 0;
+}
 
 //------------------------------------------------------------------------------
 // Copy flash function to RAM.
 //------------------------------------------------------------------------------
-// TODO verify CRC
-void copy_flash_to_RAM(void)
+void Upgrade(void)
 {
   unsigned char *flash_start_ptr;           // Initialize pointers
   unsigned char *flash_end_ptr;
@@ -88,12 +114,15 @@ void EraseFirmware()
   }
 }
 
+#pragma segment="FLASHCODE"                 // Define flash segment code
+#pragma segment="RAMCODE"
+
 //------------------------------------------------------------------------------
 // This portion of the code is first stored in Flash and copied to RAM then
 // finally executes from RAM.
 //-------------------------------------------------------------------------------
 #pragma location="FLASHCODE"
-void write_block_int()
+void FlashFirmware()
 {
   unsigned int i;
   char *pBuffer;
