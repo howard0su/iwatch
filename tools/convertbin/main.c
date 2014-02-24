@@ -7,6 +7,7 @@
 /*
  * When update this structure, also update platform/iwatch/progam.c, check watch/upgrade.c
  */
+#pragma pack(1)
 struct _header
 {
   uint32_t signature;
@@ -83,6 +84,10 @@ int main(int argc, char* argv[])
 
   header.crch = ROM_getHighByte();
   header.crcl = ROM_getLowByte();
+
+  // write a copy of header to the end of file
+  fwrite(&header, sizeof(header), 1, fp);
+
   // seek to start
   fseek(fp, 0, SEEK_SET);
   
