@@ -2,42 +2,46 @@
 #include <stdint.h>
 #include "pedometer.h"
 #include "window.h"
+#include "system.h"
 #include <stdio.h>
 
 #define SAMPLE_HZ 50
 
-static uint16_t last_step_cnt = 0, step_count;
-static uint32_t step_time;
-static uint32_t step_cal;
-static uint32_t step_dist;
+static uint16_t last_step_cnt = 0;
 static uint16_t interval = 0;
 
 uint16_t ped_get_steps()
 {
-  return last_step_cnt;
+  return globaldata.step_count;
 }
 
 uint16_t ped_get_calorie()
 {
-  return (uint16_t)(step_cal / 100 / 1000);
+  return (uint16_t)(globaldata.step_cal / 100 / 1000);
 }
 
 uint16_t ped_get_time()
 {
-  return (uint16_t)(step_time / SAMPLE_HZ / 60);
+  return (uint16_t)(globaldata.step_time / SAMPLE_HZ / 60);
 }
 
 uint16_t ped_get_distance()
 {
-  return (uint16_t)(step_dist / 100);
+  return (uint16_t)(globaldata.step_dist / 100);
+}
+
+void ped_init()
+{
+  ped_step_detect_init();
 }
 
 void ped_reset()
 {
   last_step_cnt = 0;
-  step_time = 0;
-  step_cal = 0;
-  step_dist = 0;
+  globaldata.step_count = 0;
+  globaldata.step_time = 0;
+  globaldata.step_cal = 0;
+  globaldata.step_dist = 0;
   interval = 0;
   ped_step_detect_init();
 }
@@ -93,7 +97,7 @@ uint16_t calc_step_len(uint16_t interval, uint8_t height)
 
 void ped_step_detect_run()
 {
-  step_count = ped_step_detect();
+  uint16_t step_count = ped_step_detect();
   //printf("steps: %d, %d (%d)\n", step_count, last_step_cnt, interval);
   if (interval < 65500)
       interval += 26;
@@ -113,21 +117,22 @@ void ped_step_detect_run()
       interval = SAMPLE_HZ;
     }
 
-    step_time += interval * steps;
+    globaldata.step_time += interval * steps;
 
     // add the distance
     ui_config* config = window_readconfig();
     uint16_t step_len = calc_step_len(interval, config->height);
     uint16_t dist = steps * step_len;
-    step_dist += dist;
+    globaldata.step_dist += dist;
 
     //calculate and accumulate calories
     // cal/second = 1.25 * weight * speed / 1000 
     // cal = 1.25 * weight * speed * time/ 1000
     //     = 1.25 * weight * dist / time * time / 1000
     //     = 1.25 * weight * dist / 1000
-    step_cal += dist * config->weight * 5 / 4;
+    globaldata.step_cal += dist * config->weight * 5 / 4;
 
+    globaldata.step_count += steps;
     last_step_cnt = step_count;
     interval = 0;
   }

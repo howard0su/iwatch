@@ -342,7 +342,7 @@ void EraseFirmware()
 void Upgrade()
 {}
 
-void system_reboot()
+void system_reset()
 {}
 int CheckUpgrade()
 {

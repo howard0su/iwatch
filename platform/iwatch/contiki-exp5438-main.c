@@ -137,6 +137,8 @@ main(int argc, char **argv)
 
   ant_init(MODE_HRM);
 
+  system_restore();
+
 //  protocol_init();
 //  protocol_start(1);
   

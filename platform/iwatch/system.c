@@ -63,12 +63,43 @@ uint8_t system_testing()
   return data->system_testing;
 }
 
+
+#ifndef __IAR_SYSTEMS_ICC__
+#define __no_init __attribute__ ((section (".noinit")))
+#endif
+
+__no_init struct pesistent_data globaldata;
+
 void system_reset()
 {
   // backup rtc
   rtc_save();
-  
+
+  // caculate checksum
+  uint8_t *d = (uint8_t*)&globaldata;
+  d += sizeof(uint16_t);
+  CRCINIRES = 0xFFFF;
+  for(int i = 2; i < sizeof(globaldata); i++)
+    CRCDIRB_L = *d;
+
+  globaldata.checksum = CRCINIRES;
+
   watchdog_reboot();
+}
+
+void system_restore()
+{
+// caculate checksum
+  uint8_t *d = (uint8_t*)&globaldata;
+  d += sizeof(uint16_t);
+  CRCINIRES = 0xFFFF;
+  for(int i = 2; i < sizeof(globaldata); i++)
+    CRCDIRB_L = *d;
+
+  if (globaldata.checksum == CRCINIRES)
+    rtc_restore(); // rtc have to restore since it has hardware registers
+  else
+    ped_reset(); // ped have to reset since no local storage
 }
 
 void system_rebootToNormal()

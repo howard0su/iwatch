@@ -141,7 +141,7 @@ void mpu6050_init()
     return;
   }
 
-  ped_reset();
+  ped_init();
 
 error:
   printf("\n$$FAIL MPU6050\n");
