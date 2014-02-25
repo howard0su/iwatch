@@ -61,6 +61,7 @@ int putchar(int data)
     tempData = tempData << 1;
     //TZNCCTL_TX = OUTMOD0;
 
+    //int x = splhigh();
     while (bitCount != 0)
     {
         while (!(TA0CCTL0 & CCIFG)) ;
@@ -81,6 +82,7 @@ int putchar(int data)
         bitCount--;
     }
     while (!(TA0CCTL0 & CCIFG)) ;         // wait for timer
+    //splx(x);
 
     return data;
 }
