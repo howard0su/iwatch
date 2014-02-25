@@ -83,6 +83,7 @@ static uint32_t offset;
 #define FIRMWARE_HD 784
 extern void WriteFirmware(void* data, uint32_t offset, int size);
 extern void EraseFirmware();
+extern int CheckUpgrade(void);
 
 int handle_file_begin(char* name)
 {
@@ -110,23 +111,30 @@ int handle_file_begin(char* name)
 int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
     printf("handle_file_data(%x, %d)\n", fd, size);
-    if (fd != -1)
-    {
-        return cfs_write(fd, data, size);
-    }
-    else if (fd == FIRMWARE_HD)
+    if (fd == FIRMWARE_HD)
     {
         WriteFirmware(data, offset, size);
         offset += size;
     }
-
+    else if (fd != -1)
+    {
+        return cfs_write(fd, data, size);
+    }
+    
     return 0;
 }
 
 void handle_file_end(int fd)
 {
     printf("handle_file_end(%x)\n", fd);
-    if (fd != -1)
+    if (fd == FIRMWARE_HD)
+    {
+        if (!CheckUpgrade())
+        {
+            system_reboot();
+        }
+    }
+    else if (fd != -1)
         cfs_close(fd);
 }
 

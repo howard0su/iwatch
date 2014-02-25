@@ -338,3 +338,13 @@ void EraseFirmware()
 {
   
 }
+
+void Upgrade()
+{}
+
+void system_reboot()
+{}
+int CheckUpgrade()
+{
+  return 0;
+}

@@ -63,6 +63,10 @@
 #define PRINTF(...)
 #endif
 
+// Function prototypes
+extern int CheckUpgrade(void);
+extern void Upgrade(void);
+
 extern void mpu6050_init();
 extern void button_init();
 extern void I2C_Init();
@@ -142,6 +146,18 @@ main(int argc, char **argv)
   * This is the scheduler loop.
   */
   msp430_dco_required = 0;
+
+  /*
+    check firmware update
+    */
+  if (!CheckUpgrade())
+  {
+    printf("Start Upgrade\n");
+    Upgrade();
+    EraseFirmware();
+    watchdog_start();
+    while(1);
+  }
 
   watchdog_start();
 

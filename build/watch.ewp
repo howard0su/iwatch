@@ -2092,9 +2092,6 @@
       <name>$PROJ_DIR$\..\watch\today.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\upgrade.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
     </file>
     <file>

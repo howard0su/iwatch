@@ -47,7 +47,6 @@ static const struct MenuItem SetupMenu[] =
   {DATA_LIGHT, "Back Light", &configlight_process},
   {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
-  {NO_DATA, "Upgrade Firmware", &upgrade_process},
 //  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };

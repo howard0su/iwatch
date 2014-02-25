@@ -104,7 +104,6 @@ extern uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 extern uint8_t worldclock_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam);
-extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
