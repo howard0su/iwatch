@@ -156,7 +156,7 @@ main(int argc, char **argv)
     Upgrade();
     EraseFirmware();
     watchdog_start();
-    while(1);
+    system_reset();
   }
 
   watchdog_start();

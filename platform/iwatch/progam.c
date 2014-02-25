@@ -100,6 +100,8 @@ void Upgrade(void)
 
   // Copy flash function to RAM
   memcpy(RAM_start_ptr,flash_start_ptr,function_size);
+
+  FlashFirmware();
 }
 
 void WriteFirmware(void* data, uint32_t offset, int size)
@@ -243,6 +245,7 @@ void FlashFirmware()
         if (buffer[0] != SIGNATURE)
         {
           SPI_FLASH_CS_HIGH();
+          puts_("Signature error!\n");
           return; // indicate there is error, just return
         }
         // Erase Flash
@@ -252,6 +255,7 @@ void FlashFirmware()
         *(unsigned int *)write_ptr = 0;           // Dummy write to erase All Flash seg
         while(BUSY & FCTL3);                      // Check if Erase is done
 
+        puts_("Finish erase\n");
         state = STATE_NEEDADDR;
       }
       break;
