@@ -779,7 +779,12 @@ void screenshot()
 
   // write pallete
   char color[4];
+#if CC == GCC
+  memset(&color, 0, sizeof(color));
+#else
   bzero(&color, sizeof(color));
+#endif
+
   fwrite(color, sizeof(color), 1, fp);
   color[0] = color[1] = color[2] = 0xff;
   fwrite(color, sizeof(color), 1, fp);  

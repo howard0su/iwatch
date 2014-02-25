@@ -225,6 +225,7 @@ typedef struct _file_reader_t
     uint16_t read_cursor;
     uint16_t file_size;
     char     file_name[MAX_FILE_NAME_SIZE];
+    uint8_t  sent_bytes;
 }file_reader_t;
 
 static file_reader_t _f_reader;
@@ -235,6 +236,7 @@ static void init_file_reader(file_reader_t* reader)
     reader->read_cursor  = 0;
     reader->file_size    = 0;
     reader->file_name[0] = '\0';
+    reader->sent_bytes   = 0;
 }
 
 static void send_file_block(int para);
@@ -244,14 +246,17 @@ static void send_file_block(int para)
 {
     uint8_t buf[200];
     cfs_seek(_f_reader.read_fd, _f_reader.read_cursor, CFS_SEEK_SET);
-    uint16_t byte_read = cfs_read(_f_reader.read_fd, buf, sizeof(buf));
-    send_file_data(para, buf, byte_read, send_file_callback, para);
-    _f_reader.read_cursor += byte_read;
+    _f_reader.sent_bytes = cfs_read(_f_reader.read_fd, buf, sizeof(buf));
+    send_file_data(para, buf, _f_reader.sent_bytes, send_file_callback, para);
+    printf("send_file_block(%d), %d, %d\n", para, _f_reader.sent_bytes, _f_reader.read_cursor);
 
 }
 
 static void send_file_callback(int para)
 {
+    printf("send_file_callback(%d), %d/%d\n", para, _f_reader.read_cursor, _f_reader.file_size);
+    _f_reader.read_cursor += _f_reader.sent_bytes;
+    _f_reader.sent_bytes = 0;
     if (_f_reader.read_cursor >= _f_reader.file_size)
     {
         end_send_file(_f_reader.send_fd);

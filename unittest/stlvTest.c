@@ -266,7 +266,7 @@ static void TestGetFile(CuTest* tc)
     handle_get_file(TEST_FILE_NAME);
     trySendOut();
 
-    CuAssertIntEquals(tc, 25,  get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 26,  get_send_pack_stub_count());
     send_pack_stub_t* node = get_send_pack_stub();
     CuAssertIntEquals(tc, 41, node->len);
     CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
@@ -312,6 +312,16 @@ static void TestNotification(CuTest* tc)
 
 }
 
+static void TestGooglNow(CuTest* tc)
+{
+    UNUSED_VAR(tc);
+    for (int i = 0; i < 10; ++i)
+    {
+        launch_google_now();
+        trySendOut();
+    }
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew("STLV Test");
@@ -323,7 +333,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestSportsGrid);
     SUITE_ADD_TEST(suite, TestAlarmConf);
     SUITE_ADD_TEST(suite, TestNotification);
-
+    SUITE_ADD_TEST(suite, TestNotification);
     return suite;
 }
 
