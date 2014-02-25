@@ -20,19 +20,10 @@
 #include <stdio.h>
 
 // Function prototypes
-void copy_flash_to_RAM(void);
-void write_block_int(void);
+int CheckUpgrade(void);
+void Upgrade(void);
 
-static uint8_t enter_bsl()
-{
-  copy_flash_to_RAM();                      // Copy flash to RAM function
-
-  write_block_int();                        // This portion of code is executed
-
-  while(1);
-}
-
-static enum {W4CONFIRM, CONFIRMED} state = W4CONFIRM;
+static enum {NOFIRMWARE, W4CONFIRM, CONFIRMED, FAILED} state = W4CONFIRM;
 
 static void onDraw(tContext *pContext)
 {
@@ -42,12 +33,16 @@ static void onDraw(tContext *pContext)
 
 	GrContextFontSet(pContext, &g_sFontNova16);
 	if (state == W4CONFIRM)
-	  GrStringDrawWrap(pContext, "Plug watch to PC and press any key to continue", 0, 30, 150, 30);
-	else
+	  GrStringDrawWrap(pContext, "Press Enter key to continue", 0, 30, 150, 30);
+	else if (state == CONFIRMED)
 	{
-	   GrStringDraw(pContext, "Run the flash program.", -1, 0, 30, 0);
+	   GrStringDraw(pContext, "Upgrading", -1, 0, 30, 0);
 	   GrStringDraw(pContext, "DO NOT UNPLUG", -1, 0, 90, 0);
 	}
+  else if (state == FAILED)
+  {
+    GrStringDrawWrap(pContext, "Press Any key to continue", 0, 30, 150, 30);
+  }
 }
 
 uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -55,6 +50,12 @@ uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
   // enable 
   switch(ev)
   {
+  case EVENT_WINDOW_CREATED:
+    if (CheckUpgrade())
+      state = NOFIRMWARE;
+    else
+      state = W4CONFIRM;
+    break;
   case EVENT_WINDOW_PAINT:
   	onDraw((tContext*)rparam);
 
@@ -62,12 +63,29 @@ uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
   		window_timer(CLOCK_SECOND);
   	break;
   case EVENT_KEY_PRESSED:
-  	state = CONFIRMED;
-  	window_invalid(NULL);
-  	break;
+    switch(state)
+    {
+  	 case W4CONFIRM:
+        if (lparam == KEY_ENTER)
+        {
+          state = CONFIRMED;
+    	    window_invalid(NULL);
+        }
+       break;
+  	 case FAILED:
+     case NOFIRMWARE:
+        window_close();
+        break;
+    }
+    break;
   case PROCESS_EVENT_TIMER:
-  	enter_bsl();
-  	break;
+  	if (state == CONFIRMED)
+    {
+      Upgrade();
+  	  state = FAILED;
+      window_invalid(NULL);
+    }
+    break;
   default:
   	return 0;
   }

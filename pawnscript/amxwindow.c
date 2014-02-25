@@ -84,6 +84,38 @@ static cell AMX_NATIVE_CALL n_drawtext(AMX *amx, const cell *params)
   return 0;
 }
 
+// window_drawtext_center(context, string[], x, y, style)
+static cell AMX_NATIVE_CALL n_drawtextcentered(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  char *text;
+
+  amx_StrParam(amx, params[2], text);
+
+  GrStringDrawCentered(context, text, -1, params[3], params[4], params[5]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_setcolor(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  
+  GrContextForegroundSet(context, params[2]);
+  GrContextBackgroundSet(context, params[3]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_filltriagle(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  
+  GrTriagleFill(context, params[3], params[4], params[5], params[6], params[7], params[8]);
+
+  return 0;
+}
+
 static cell AMX_NATIVE_CALL n_gettime(AMX *amx, const cell *params)
 {
   cell *cptr;
@@ -145,5 +177,8 @@ AMX_NATIVE const window_natives[] =
   n_strformat,
   n_gettime,
   n_getdate,
-  n_enableclock
+  n_enableclock,
+  n_drawtextcentered,
+  n_filltriagle,
+  n_setcolor
 };
