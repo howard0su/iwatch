@@ -333,7 +333,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestSportsGrid);
     SUITE_ADD_TEST(suite, TestAlarmConf);
     SUITE_ADD_TEST(suite, TestNotification);
-    SUITE_ADD_TEST(suite, TestNotification);
+    SUITE_ADD_TEST(suite, TestGooglNow);
     return suite;
 }
 
