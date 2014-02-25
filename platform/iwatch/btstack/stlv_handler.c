@@ -84,6 +84,7 @@ static uint32_t offset;
 extern void WriteFirmware(void* data, uint32_t offset, int size);
 extern void EraseFirmware();
 extern int CheckUpgrade(void);
+extern void system_reset();
 
 int handle_file_begin(char* name)
 {
@@ -131,7 +132,7 @@ void handle_file_end(int fd)
     {
         if (!CheckUpgrade())
         {
-            system_reboot();
+            system_reset();
         }
     }
     else if (fd != -1)
