@@ -27,38 +27,30 @@ typedef struct _spp_sender
 }spp_sender;
 
 #define TASK_QUEUE_SIZE 10
-static spp_sender task_queue[TASK_QUEUE_SIZE] = {{0, 0, 0, 0, 0, 0, 0}, };
-static short task_queue_pos = 0;
+static spp_sender s_task = {0};
 static uint8_t _task_queue_inited = 0;
 
 int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
 {
     if (!_task_queue_inited)
     {
-        memset(&task_queue[0], 0, sizeof(task_queue));
+        memset(&s_task, 0, sizeof(s_task));
         _task_queue_inited = 1;
     }
 
-    short cursor = task_queue_pos + 1;
-    for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
+    spp_sender* task = &s_task;
+    printf("spp_register_task(%d), task.status=%d\n", size, task->status);
+    if (task->status == SPP_SENDER_NULL)
     {
-        if (cursor >= TASK_QUEUE_SIZE)
-            cursor = 0;
-
-        spp_sender* task = &task_queue[cursor];
-        if (task->status == SPP_SENDER_NULL)
-        {
-            task->buffer      = buf;
-            task->buffer_size = size;
-            task->sent_size   = 0;
-            task->unit_size   = 0;
-            task->callback    = callback;
-            task->para        = para;
-            task->status      = SPP_SENDER_READY;
-            tryToSend();
-            return 0;
-        }
-        cursor++;
+        task->buffer      = buf;
+        task->buffer_size = size;
+        task->sent_size   = 0;
+        task->unit_size   = 0;
+        task->callback    = callback;
+        task->para        = para;
+        task->status      = SPP_SENDER_READY;
+        tryToSend();
+        return 0;
     }
     return -1;
 }
@@ -82,49 +74,41 @@ void tryToSend(void)
 {
     if (!spp_channel_id) return;
 
-    for (int i = 0; i < TASK_QUEUE_SIZE; ++i)
+    spp_sender* task = &s_task;
+    //printf("try send STLV packet: status = %d\n", task->status);
+
+    if (task->status == SPP_SENDER_READY)
     {
-        if (task_queue_pos >= TASK_QUEUE_SIZE)
-            task_queue_pos = 0;
-
-        spp_sender* task = &task_queue[task_queue_pos];
-
-        if (task->status == SPP_SENDER_READY)
-        {
-            task->unit_size = build_transport_packet(task);
-            task->status = SPP_SENDER_SENDING;
-        }
-
-        if (task->status == SPP_SENDER_SENDING)
-        {
-            int err = send_internal(spp_channel_id,
-                task->buffer + task->sent_size - 1, task->unit_size + 1);
-            if (err != 0)
-                return;
-
-            task->sent_size += task->unit_size;
-            printf("tryToSend(%d,%d/%d)\n", task_queue_pos, task->sent_size, task->buffer_size);
-            printf("dump: %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
-                    task->buffer[0], task->buffer[1], task->buffer[2], task->buffer[3],
-                    task->buffer[4], task->buffer[5], task->buffer[6], task->buffer[7] );
-            if (task->sent_size >= task->buffer_size)
-            {
-                task->status = SPP_SENDER_NULL;
-                task_queue_pos++;
-                if (task->callback != NULL)
-                    task->callback(task->para);
-            }
-            else
-            {
-                task->status = SPP_SENDER_READY;
-                task->unit_size = 0;
-            }
-            return;
-        }
-
-        task_queue_pos++;
+        task->unit_size = build_transport_packet(task);
+        task->status = SPP_SENDER_SENDING;
     }
-    return;
+
+    if (task->status == SPP_SENDER_SENDING)
+    {
+        int err = send_internal(spp_channel_id,
+            task->buffer + task->sent_size - 1, task->unit_size + 1);
+        //printf("send_internal(%d, %d) = %d\n", task->sent_size, task->unit_size, err);
+        if (err != 0)
+            return;
+
+        task->sent_size += task->unit_size;
+        printf("tryToSend(%d/%d)\n", task->sent_size, task->buffer_size);
+        printf("dump: %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+                task->buffer[0], task->buffer[1], task->buffer[2], task->buffer[3],
+                task->buffer[4], task->buffer[5], task->buffer[6], task->buffer[7] );
+        if (task->sent_size >= task->buffer_size)
+        {
+            task->status = SPP_SENDER_NULL;
+            if (task->callback != NULL)
+                task->callback(task->para);
+        }
+        else
+        {
+            task->status = SPP_SENDER_READY;
+            task->unit_size = 0;
+        }
+
+    }
 
 }
 

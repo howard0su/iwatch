@@ -167,11 +167,8 @@ typedef struct _stlv_packet_builder
     uint8_t status;
 }stlv_packet_builder;
 
-#define BUILDER_COUNT (512 / sizeof(stlv_packet_builder))
-static stlv_packet_builder _packet[BUILDER_COUNT];
-static short _packet_reader = 0;
-static short _packet_writer = 0;
-
+static stlv_packet_builder _packet;
+static uint8_t _packet_used = 0;
 
 #define GET_PACKET_BUILDER(p)     ((stlv_packet_builder*)p)
 #define CAN_ADD_NEW_LAYER(bulder) (builder->stack_ptr < MAX_ELEMENT_NESTED_LAYER)
@@ -202,48 +199,35 @@ static void inc_parent_elements_length(stlv_packet p, int size)
 
 stlv_packet create_packet()
 {
-    printf("create_packet %d-%d/%d\n", _packet_reader, _packet_writer, BUILDER_COUNT);
-    if (_packet_reader <= _packet_writer)
-    {
-        if (_packet_writer + 1 >= (int)(_packet_reader + BUILDER_COUNT))
-            return NULL;
-    }
-    else
-    {
-        if (_packet_writer + 1 >= _packet_reader)
-            return NULL;
-    }
+    if (_packet_used)
+        return NULL;
 
-    _packet_writer++;
-    if (_packet_writer == BUILDER_COUNT)
-        _packet_writer = 0;
+    _packet_used = 1;
 
-    stlv_packet_builder* builder = &_packet[_packet_writer];
+    stlv_packet_builder* builder = &_packet;
     builder->packet_data[HEADFIELD_VERSION]     = 1;
     builder->packet_data[HEADFIELD_FLAG]        = 0x80;
     builder->packet_data[HEADFIELD_BODY_LENGTH] = 0;
     builder->packet_data[HEADFIELD_SEQUENCE]    = 0;
     builder->stack_ptr = 0;
-    builder->slot_id   = _packet_writer;
     builder->callback  = 0;
     builder->para      = 0;
     builder->status    = PACKET_STATUS_PREPARING;
 
-    return _packet[_packet_writer].packet_data;
+    return _packet.packet_data;
 }
 
 static void sent_complete(int para)
 {
     //handle callback
-    stlv_packet_builder* cur_builder = &_packet[para];
+    printf("send_complete()\n");
+    _packet_used = 0;
+    stlv_packet_builder* cur_builder = &_packet;
     if (cur_builder->callback != 0)
         cur_builder->callback(cur_builder->para);
 
     //try send next packet
-    _packet_reader++;
-    if (_packet_reader == BUILDER_COUNT)
-        _packet_reader = 0;
-    printf("send_complete para=%d, %d-%d/%d\n", para, _packet_reader, _packet_writer, BUILDER_COUNT);
+    //printf("send_complete para=%d, %d-%d/%d\n", para, _packet_reader, _packet_writer, BUILDER_COUNT);
     //if (_packet_reader == _packet_writer)
     //    return;
 

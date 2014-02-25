@@ -751,8 +751,13 @@ void screenshot()
   struct BITMAPFILEHEADER fh;
   struct BITMAPINFOHEADER ih;
 
+#if CC == GCC
+  memset(&fh, 0, sizeof(fh));
+  memset(&ih, 0, sizeof(ih));
+#else
   bzero(&fh, sizeof(fh));
   bzero(&ih, sizeof(ih));
+#endif
 
   int sizeofline = ((LCD_X_SIZE / 8) + 3) & (~3);
   fh.header[0] = 'B'; fh.header[1] = 'M';

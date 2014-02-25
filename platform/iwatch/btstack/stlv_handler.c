@@ -22,26 +22,6 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
     rtc_setdate(2000 + year, month + 1, day);
     rtc_settime(hour, minute, second);
 
-    //for test
-    //struct cfs_dir dir;
-    //int ret = cfs_opendir(&dir, "");
-    //if (ret == -1)
-    //{
-    //    printf("cfs_opendir() failed: %d\n", ret);
-    //    return;
-    //}
-
-    //while (ret != -1)
-    //{
-    //    struct cfs_dirent dirent;
-    //    ret = cfs_readdir(&dir, &dirent);
-    //    if (ret != -1)
-    //    {
-    //        printf("file:%s, %d\n", dirent.name, dirent.size);
-    //    }
-    //}
-
-    //cfs_closedir(&dir);
     window_invalid(NULL);
     status_invalid();
 }
@@ -49,6 +29,7 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
 static uint8_t _phone_info[2] = {0};
 void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
 {
+    printf("phone info: type=%x, ver=%x\n", phone_type, phone_ver);
     _phone_info[0] = phone_type;
     _phone_info[1] = phone_ver;
 }

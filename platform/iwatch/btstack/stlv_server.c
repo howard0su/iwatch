@@ -36,10 +36,13 @@ void handle_stlv_packet(unsigned char* packet)
 
         case ELEMENT_TYPE_CLOCK:
             {
+                int data_len = get_element_data_size(pack, handle, type_buf, type_len);
                 unsigned char* data = get_element_data_buffer(pack, handle, type_buf, type_len);
                 printf("clock: %d/%d/%d %d:%d:%d\n",
                     (int)data[0], (int)data[1], (int)data[2], (int)data[3], (int)data[4], (int)data[5]);
                 handle_clock(data[0], data[1], data[2], data[3], data[4], data[5]);
+                if (data_len >= 8)
+                    handle_phone_info(data[6], data[7]);
             }
             break;
 
