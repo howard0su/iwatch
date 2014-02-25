@@ -1,3 +1,5 @@
+#include "contiki.h"
+
 #include <stdint.h>
 #include <msp430.h>
 #include <string.h>
@@ -116,6 +118,66 @@ void EraseFirmware()
 
 #pragma segment="FLASHCODE"                 // Define flash segment code
 #pragma segment="RAMCODE"
+#pragma location="FLASHCODE"
+
+#define DCO_SPEED F_CPU
+
+#define BitTime_115200   (DCO_SPEED / 115200)
+#define BitTime_5_115200 (BitTime_115200 / 2)
+
+int putchar_(int data)
+{
+    int tempData;
+
+    int parity_mask = 0x200;
+    char bitCount = 0xB;                    // Load Bit counter, 8data + ST/SP +parity
+    int flag;
+    //while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
+
+    TA0CCR0 = TA0R;                       // Current state of TA counter
+    TA0CCR0 += BitTime_115200;
+    tempData = 0x200 + (int)data;           // Add mark stop bit to Data
+    tempData = tempData << 1;
+    //TZNCCTL_TX = OUTMOD0;
+
+    //int x = splhigh();
+    while (bitCount != 0)
+    {
+        while (!(TA0CCTL0 & CCIFG)) ;
+        TA0CCTL0 &= ~CCIFG;
+        TA0CCR0 += BitTime_115200;
+        if (tempData & 0x01)
+        {
+            tempData ^= parity_mask;
+            TA0CCTL0 &= ~OUTMOD2;         // TX '1'
+        }
+        else
+        {
+            TA0CCTL0 |=  OUTMOD2;             // TX '0'
+        }
+
+        parity_mask = parity_mask >> 1;
+        tempData = tempData >> 1;
+        bitCount--;
+    }
+    while (!(TA0CCTL0 & CCIFG)) ;         // wait for timer
+    //splx(x);
+
+    return data;
+}
+
+#pragma location="FLASHCODE"
+int puts_(const char* s)
+{
+  while(*s != '\0')
+  {
+    putchar_(*s);
+    s++;
+  }
+
+  return 0;
+}
+
 
 //------------------------------------------------------------------------------
 // This portion of the code is first stored in Flash and copied to RAM then
@@ -147,15 +209,18 @@ void FlashFirmware()
     switch(state)
     {
       case STATE_NEEDSIGNATURE:
+      puts_("check signature\n");
       NumByteToRead = 10; // the size of file header, sync with main.c under convert tool src
       SPI_FLASH_CS_LOW();
       SPI_FLASH_SendCommandAddress(W25X_ReadData, FIRMWARE_BASE);
 
       break;
       case STATE_NEEDADDR:
+      puts_("read address\n");
       NumByteToRead = 8; // one address and one 
       break;
       case STATE_WRITE:
+      putchar_('w');
       if (NumByteToWrite > 128)
         NumByteToRead = 128;
       else
@@ -170,6 +235,7 @@ void FlashFirmware()
       pBuffer++;
     }
 
+    putchar_('=');
     switch(state)
     {
       case STATE_NEEDSIGNATURE:
@@ -233,6 +299,8 @@ void FlashFirmware()
       break;
     }
   }
+
+  __enable_interrupt();                    // 5xx Workaround: Disable global
 
   // reboot
   WDTCTL = 0;
