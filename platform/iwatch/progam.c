@@ -94,6 +94,9 @@ void Upgrade(void)
   unsigned char *flash_end_ptr;
   unsigned char *RAM_start_ptr;
 
+  if (CheckUpgrade())
+    return;
+
   //Initialize flash and ram start and end address
   flash_start_ptr = (unsigned char *)__segment_begin("FLASHCODE");
   flash_end_ptr = (unsigned char *)__segment_end("FLASHCODE");

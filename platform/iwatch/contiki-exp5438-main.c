@@ -156,8 +156,7 @@ main(int argc, char **argv)
   {
     printf("Start Upgrade\n");
     Upgrade();
-    // never return
-    while(1);
+    // never return if sucessfully upgrade
   }
 
   watchdog_start();
