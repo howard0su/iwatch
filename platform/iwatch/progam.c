@@ -140,6 +140,7 @@ void EraseFirmware()
 #pragma segment="FLASHCODE"                 // Define flash segment code
 #pragma segment="RAMCODE"
 
+#if FLASHDEBUG
 #define DCO_SPEED F_CPU
 
 #define BitTime_115200   (DCO_SPEED / 115200)
@@ -188,35 +189,6 @@ int putchar_(int data)
 }
 
 #pragma location="RAMCODE"
-void BSL430_massErase()
-{
-    volatile char *Flash_ptr;                   // Flash pointer
-
-    while (FCTL3 & BUSY) ;
-    FCTL3 = FWKEY;
-    while (FCTL3 & BUSY) ;
-    Flash_ptr = (char *)INTERRUPT_VECTOR_START; // Initialize Flash pointer
-    FCTL1 = FWKEY + MERAS + ERASE;           // Set Mass Erase bit
-    *Flash_ptr = 0;                             // Dummy write to erase main flash
-    while (FCTL3 & BUSY) ;
-    FCTL3 = FWKEY + LOCK;                    // Set LOCK bit
-}
-
-#pragma location="RAMCODE"
-void BSL430_writeByte(uint32_t addr, char data)
-{
-    while (FCTL3 & BUSY) ;
-    __data20_write_char(addr, data);
-    while (FCTL3 & BUSY) ;
-    if (data != __data20_read_char(addr))
-    {
-       // putchar_('E');
-    }
-}
-
-
-
-#pragma location="RAMCODE"
 static void puth_(unsigned n)
 {
   n &= 15;
@@ -239,11 +211,46 @@ static void putx_(uint32_t n)
   }
   putchar_('\n');
 }
-
+#else
+#pragma location="RAMCODE"
+static void putx_(uint32_t n){}
+#pragma location="RAMCODE"
+static void puth_(unsigned n){}
+#pragma location="RAMCODE"
+int putchar_(int data){return 0;}
+#endif
 //------------------------------------------------------------------------------
 // This portion of the code is first stored in Flash and copied to RAM then
 // finally executes from RAM.
 //-------------------------------------------------------------------------------
+
+#pragma location="RAMCODE"
+void BSL430_massErase()
+{
+    volatile char *Flash_ptr;                   // Flash pointer
+
+    while (FCTL3 & BUSY) ;
+    FCTL3 = FWKEY;
+    while (FCTL3 & BUSY) ;
+    Flash_ptr = (char *)INTERRUPT_VECTOR_START; // Initialize Flash pointer
+    FCTL1 = FWKEY + MERAS + ERASE;           // Set Mass Erase bit
+    *Flash_ptr = 0;                             // Dummy write to erase main flash
+    while (FCTL3 & BUSY) ;
+    FCTL3 = FWKEY + LOCK;                    // Set LOCK bit
+}
+
+#pragma location="RAMCODE"
+void BSL430_writeByte(uint32_t addr, char data)
+{
+    while (FCTL3 & BUSY) ;
+    __data20_write_char(addr, data);
+    while (FCTL3 & BUSY) ;
+    if (data != __data20_read_char(addr))
+    {
+       putchar_('E');
+    }
+}
+
 #pragma location="RAMCODE"
 void FlashFirmware()
 {
@@ -251,8 +258,8 @@ void FlashFirmware()
   char *pBuffer;
   WriteState state;
 
-  unsigned int NumByteToRead;
-  unsigned int NumByteToWrite;
+  uint16_t NumByteToRead;
+  uint32_t NumByteToWrite;
 
   uint32_t write_ptr;
   uint32_t buffer[32]; // 32 * 4 = 128
@@ -311,7 +318,7 @@ void FlashFirmware()
       case STATE_NEEDADDR:
       {
         if (buffer[0] == 0 
-          || buffer[0] > 0xFFFFF) // hit the end
+          || buffer[0] == SIGNATURE) // hit the end
         {
           state = STATE_DONE;
           continue;
@@ -320,8 +327,8 @@ void FlashFirmware()
         // first uint32 is start address, second uint32 is length
         write_ptr = buffer[0];
         NumByteToWrite = buffer[1];
-        putx_(write_ptr);
-        putx_(NumByteToWrite);
+        //putx_(write_ptr);
+        //putx_(NumByteToWrite);
         state = STATE_WRITE;
       }
       break;

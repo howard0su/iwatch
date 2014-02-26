@@ -152,7 +152,7 @@ main(int argc, char **argv)
   /*
     check firmware update
     */
-  if (!CheckUpgrade())
+  if (CheckUpgrade() == 0)
   {
     printf("Start Upgrade\n");
     Upgrade();
