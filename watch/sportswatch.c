@@ -612,22 +612,6 @@ static uint8_t sports_type = 0;
 //running : time_offset, steps, cals, distance, alt, heartrate
 //biking  : time_offset, cads,  cals, distance, alt, heartrate*/
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
-static void save_activity_data()
-{
-    uint8_t mode = sports_type == SPORTS_DATA_FLAG_RUN ? DATA_MODE_RUNNING : DATA_MODE_BIKING;
-    uint32_t data[5] = {0};
-    if (mode == DATA_MODE_RUNNING)
-        data[0] = base_data[SPORTS_STEPS];
-    else
-        data[0] = base_data[SPORTS_CADENCE];
-
-    data[1] = MAX(base_data[SPORTS_CALS],      base_data[SPORTS_PED_CALORIES]);
-    data[2] = MAX(base_data[SPORTS_DISTANCE],  base_data[SPORTS_PED_DISTANCE]);
-    data[3] = base_data[SPORTS_ALT];
-    data[4] = base_data[SPORTS_HEARTRATE];
-
-    save_activity(mode, data, count_elem(data));
-}
 
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
@@ -718,8 +702,6 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       }
       rtc_enablechange(0);
       ant_shutdown();
-
-      save_activity_data();
 
       uint32_t dummy_stlv_data[4] = {0};
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, 4);

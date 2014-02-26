@@ -66,25 +66,6 @@ extern union _data
     int8_t delta_times[15][3]; // delta
   }stop;
 
-  struct
-  {
-      //char filenames[8][32];
-      char displaynames[8][20];
-      activity_raw_t rows[8];
-      struct MenuItem HistoryActivity[8];
-      uint8_t row_count;
-  }menu;
-
-  struct
-  {
-      uint8_t filebuf[200];
-      char* record_name;
-      int   fd_read;
-      int   fd_send;
-      activity_raw_t* row;
-  }recordoperation;
-
-
 }d;
 
 #endif
