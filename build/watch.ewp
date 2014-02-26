@@ -2052,9 +2052,6 @@
       <name>$PROJ_DIR$\..\watch\phone.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\recordoperation.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
     </file>
     <file>

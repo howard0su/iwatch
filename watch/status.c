@@ -181,16 +181,6 @@ static void check_battery()
   }
 }
 
-static void save_daily_data()
-{
-  // normal  : steps, cals, distance
-  uint32_t data[3] = {0};
-  data[0] = ped_get_steps();
-  data[1] = ped_get_calorie();
-  data[2] = ped_get_distance();
-  save_activity(DATA_MODE_NORMAL, data, count_elem(data));
-}
-
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   uint8_t old_status = status;
@@ -210,7 +200,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       rtc_readtime(&hour, &minute, &second);
       if (hour == 0 && minute == 0 && second <= 19)
       {
-        save_daily_data();
+        //save_daily_data();
         ped_reset();
         //save_data_start(DATA_MODE_NORMAL, timestamp);
       }
