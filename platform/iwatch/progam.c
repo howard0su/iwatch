@@ -5,6 +5,8 @@
 #include <string.h>
 #include "spiflash.h"
 #include "board.h"
+#include "backlight.h"
+#include <stdio.h>
 
 #pragma segment="FLASHCODE"                 // Define flash segment code
 #pragma segment="RAMCODE"
@@ -71,6 +73,8 @@ int CheckUpgrade(void)
   if (h.signature != SIGNATURE)
     return 1;
 
+  printf("Found firmware, length = %lu\n", h.length);
+
   SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE + h.length + sizeof(h), sizeof(h));
 
   if (h.signature != SIGNATURE)
@@ -99,7 +103,19 @@ void Upgrade(void)
   unsigned long function_size = (unsigned long)(flash_end_ptr) - (unsigned long)(flash_start_ptr);
 
   // Copy flash function to RAM
+  printf("Copy From %x to %x size=%x\n", flash_start_ptr, RAM_start_ptr, function_size);
   memcpy(RAM_start_ptr,flash_start_ptr,function_size);
+
+  motor_on(0, 0);
+  printf("Jump to %x\n", FlashFirmware);
+
+  // remove the flag of firmware
+  struct _header h;
+  int length;
+  SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE, sizeof(h));
+  length = h.length;
+  h.signature = 0;
+  SPI_FLASH_BufferWrite((void*)&h, FIRMWARE_BASE + length + sizeof(h), sizeof(h));
 
   FlashFirmware();
 }
@@ -111,8 +127,8 @@ void WriteFirmware(void* data, uint32_t offset, int size)
 
 void EraseFirmware()
 {
-  int size = 32 * 1024;
-  for(int i = 0; i < 256*1024/SPI_FLASH_PageSize; i+=size)
+  long size = 32UL * 1024;
+  for(long i = 0; i < 256UL *1024/SPI_FLASH_PageSize; i+=size)
   {
     SPI_FLASH_SectorErase(i + FIRMWARE_BASE, size);
   }
@@ -120,13 +136,13 @@ void EraseFirmware()
 
 #pragma segment="FLASHCODE"                 // Define flash segment code
 #pragma segment="RAMCODE"
-#pragma location="FLASHCODE"
 
 #define DCO_SPEED F_CPU
 
 #define BitTime_115200   (DCO_SPEED / 115200)
 #define BitTime_5_115200 (BitTime_115200 / 2)
 
+#pragma location="RAMCODE"
 int putchar_(int data)
 {
     int tempData;
@@ -168,24 +184,64 @@ int putchar_(int data)
     return data;
 }
 
-#pragma location="FLASHCODE"
-int puts_(const char* s)
+#pragma location="RAMCODE"
+void BSL430_massErase()
 {
-  while(*s != '\0')
-  {
-    putchar_(*s);
-    s++;
-  }
+    volatile char *Flash_ptr;                   // Flash pointer
 
-  return 0;
+    while (FCTL3 & BUSY) ;
+    FCTL3 = FWKEY;
+    while (FCTL3 & BUSY) ;
+    Flash_ptr = (char *)INTERRUPT_VECTOR_START; // Initialize Flash pointer
+    FCTL1 = FWKEY + MERAS + ERASE;           // Set Mass Erase bit
+    *Flash_ptr = 0;                             // Dummy write to erase main flash
+    while (FCTL3 & BUSY) ;
+    FCTL3 = FWKEY + LOCK;                    // Set LOCK bit
 }
 
+#pragma location="RAMCODE"
+void BSL430_writeByte(uint32_t addr, char data)
+{
+    while (FCTL3 & BUSY) ;
+    __data20_write_char(addr, data);
+    while (FCTL3 & BUSY) ;
+    if (data != __data20_read_char(addr))
+    {
+       // putchar_('E');
+    }
+}
+
+
+
+#pragma location="RAMCODE"
+static void puth_(unsigned n)
+{
+  n &= 15;
+
+  if (n >= 10)
+    putchar_('A' + n - 10);
+  else
+    putchar_('0' + n);
+}
+
+#pragma location="RAMCODE"
+static void putx_(uint32_t n)
+{
+  uint8_t * t = (uint8_t*)&n;
+  for (int i = 0; i < 4; i++)
+  {
+    uint8_t k = *t++;
+    puth_(k >> 4);
+    puth_(k);
+  }
+  putchar_('\n');
+}
 
 //------------------------------------------------------------------------------
 // This portion of the code is first stored in Flash and copied to RAM then
 // finally executes from RAM.
 //-------------------------------------------------------------------------------
-#pragma location="FLASHCODE"
+#pragma location="RAMCODE"
 void FlashFirmware()
 {
   unsigned int i;
@@ -195,11 +251,9 @@ void FlashFirmware()
   unsigned int NumByteToRead;
   unsigned int NumByteToWrite;
 
-  unsigned long * write_ptr;
-  uint32_t buffer[32];
+  uint32_t write_ptr;
+  uint32_t buffer[32]; // 32 * 4 = 128
   
-  write_ptr = (unsigned long *)INTERRUPT_VECTOR_START;     // Initialize write address
-
   __disable_interrupt();                    // 5xx Workaround: Disable global
                                             // interrupt while erasing. Re-Enable
                                             // GIE if needed
@@ -208,21 +262,19 @@ void FlashFirmware()
   // Start the loop
   while(state != STATE_DONE)
   {
+    putchar_('a' + state);
     switch(state)
     {
       case STATE_NEEDSIGNATURE:
-      puts_("check signature\n");
       NumByteToRead = 10; // the size of file header, sync with main.c under convert tool src
       SPI_FLASH_CS_LOW();
       SPI_FLASH_SendCommandAddress(W25X_ReadData, FIRMWARE_BASE);
 
       break;
       case STATE_NEEDADDR:
-      puts_("read address\n");
       NumByteToRead = 8; // one address and one 
       break;
       case STATE_WRITE:
-      putchar_('w');
       if (NumByteToWrite > 128)
         NumByteToRead = 128;
       else
@@ -237,7 +289,6 @@ void FlashFirmware()
       pBuffer++;
     }
 
-    putchar_('=');
     switch(state)
     {
       case STATE_NEEDSIGNATURE:
@@ -245,55 +296,46 @@ void FlashFirmware()
         if (buffer[0] != SIGNATURE)
         {
           SPI_FLASH_CS_HIGH();
-          puts_("Signature error!\n");
-          return; // indicate there is error, just return
+          state = STATE_DONE; // error
+          continue;
         }
-        // Erase Flash
-        while(BUSY & FCTL3);                      // Check if Flash being used
-        FCTL3 = FWKEY;                            // Clear Lock bit
-        FCTL1 = FWKEY+ERASE+MERAS;                // Set Erase bit
-        *(unsigned int *)write_ptr = 0;           // Dummy write to erase All Flash seg
-        while(BUSY & FCTL3);                      // Check if Erase is done
 
-        puts_("Finish erase\n");
+        // Erase Flash
+        BSL430_massErase();
         state = STATE_NEEDADDR;
       }
       break;
       case STATE_NEEDADDR:
       {
-        if (buffer[0] == 0)
+        if (buffer[0] == 0 
+          || buffer[0] > 0xFFFFF) // hit the end
         {
           state = STATE_DONE;
           continue;
         }
 
         // first uint32 is start address, second uint32 is length
-        write_ptr = (unsigned long *)buffer[0];
+        write_ptr = buffer[0];
         NumByteToWrite = buffer[1];
+        putx_(write_ptr);
+        putx_(NumByteToWrite);
         state = STATE_WRITE;
       }
       break;
       case STATE_WRITE:
       {
+        while(BUSY & FCTL3);                 // Test wait until ready for next byte
         // Write Flash
-        FCTL1 = FWKEY+BLKWRT+WRT;                 // Enable block write
-        for(i = 0; i < NumByteToRead /4 ; i++)
+        FCTL1 = FWKEY+WRT;                 // Enable block write
+        FCTL3 = FWKEY;                       // Set LOCK
+        char* src = (char*)&buffer[0];
+        for(i = 0; i < NumByteToRead; i++)
         {
-          *write_ptr++ = buffer[i];                 // Write long int to Flash
-
-          while(!(WAIT & FCTL3));                 // Test wait until ready for next byte
+          BSL430_writeByte(write_ptr++, *src++);
         }
-        char* ptr = (char*)write_ptr;
-        char* src = (char*)&buffer[i];
-        for(i = 0; i < NumByteToRead%4; i++)
-        {
-          *ptr++ = src[i];                 // Write long int to Flash
-
-          while(!(WAIT & FCTL3));                 // Test wait until ready for next byte
-        }
-        FCTL1 = FWKEY;                            // Clear WRT, BLKWRT
-        while(BUSY & FCTL3);                      // Check for write completion
+        FCTL1 = FWKEY;
         FCTL3 = FWKEY+LOCK;                       // Set LOCK
+        while(BUSY & FCTL3);                      // Check for write completion
 
         NumByteToWrite -= NumByteToRead;
 
@@ -303,8 +345,6 @@ void FlashFirmware()
       break;
     }
   }
-
-  __enable_interrupt();                    // 5xx Workaround: Disable global
 
   // reboot
   WDTCTL = 0;

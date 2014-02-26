@@ -1100,7 +1100,7 @@
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>3800</state>
+          <state>3600</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1108,7 +1108,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>3800</state>
+          <state>3600</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>

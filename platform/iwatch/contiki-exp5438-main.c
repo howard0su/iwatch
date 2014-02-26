@@ -124,7 +124,7 @@ main(int argc, char **argv)
 
   //codec_init();
   //ant_init();
-  bluetooth_init();
+  //bluetooth_init();
 
   mpu6050_init();
 
@@ -132,10 +132,10 @@ main(int argc, char **argv)
   
 //  if (!bluetooth_paired())
   {
-    bluetooth_discoverable(1);
+  //  bluetooth_discoverable(1);
   }
 
-  ant_init(MODE_HRM);
+  //ant_init(MODE_HRM);
 
   system_restore();
 
@@ -156,9 +156,8 @@ main(int argc, char **argv)
   {
     printf("Start Upgrade\n");
     Upgrade();
-    EraseFirmware();
-    watchdog_start();
-    system_reset();
+    // never return
+    while(1);
   }
 
   watchdog_start();
