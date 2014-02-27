@@ -27,9 +27,9 @@ typedef struct _data_file_t
  * data here stands for data collected within the time interval
  *  from last row to this one
  *  no Speed data here is due to avg speed can be calculated by distance / timeinterval
- * normal  : time_offset, steps, cals, distance
- * running : time_offset, steps, cals, distance, alt, heartrate
- * biking  : time_offset, cads,  cals, distance, alt, heartrate*/
+ * normal  : steps, cals, distance,
+ * running : steps, cals, distance, alt, heartrate
+ * biking  : cads,  cals, distance, alt, heartrate*/
 /*  Columns are defined as below
     SPORTS_TIME = 0,
     SPORTS_SPEED_MAX,
@@ -57,13 +57,13 @@ typedef struct _data_file_t
     SPORTS_TIME_LAST_PED,
 
     SPORTS_CALS,
-*/
 static const data_desc_t s_data_desc[] = {
     {"w", 3, {SPORTS_TIME, SPORTS_STEPS,   SPORTS_CALS, SPORTS_DISTANCE, SPORTS_INVALID},  },
     {"r", 4, {SPORTS_TIME, SPORTS_STEPS,   SPORTS_CALS, SPORTS_DISTANCE, SPORTS_HEARTRATE},},
     {"b", 4, {SPORTS_TIME, SPORTS_CADENCE, SPORTS_CALS, SPORTS_DISTANCE, SPORTS_HEARTRATE},},
 };
 
+*/
 typedef struct _data_head_t
 {
     uint8_t version;
@@ -104,7 +104,7 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
     return s_data_fd;
 }
 
-void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint32_t data[], uint8_t size)
+void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint32_t data[], uint8_t size)
 {
     if (s_data_fd != -1)
     {
@@ -115,6 +115,15 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint32_t data[], uint
             close_data_file();
             return;
         }
+
+        uint32_t meta_tag = build_data_schema(meta, size);
+        if (cfs_write(s_data_fd, &tag, sizeof(tag)) != sizeof(tag))
+        {
+            printf("write_data(%d, meta) failed\n", s_data_fd);
+            close_data_file();
+            return;
+        }
+
         if (cfs_write(s_data_fd, data, size * sizeof(uint32_t) != size * sizeof(uint32_t)))
         {
             printf("write_data(%d, data) failed\n", s_data_fd);
@@ -172,4 +181,28 @@ char* get_data_file()
 void remove_data_file(char* filename)
 {
     cfs_remove(filename);
+}
+
+uint32_t build_data_schema(uint8_t coltype[], uint8_t colcount)
+{
+    uint32_t ret = 0;
+    for (uint8_t i = 0; i < colcount; ++i)
+    {
+        uint8_t val = coltype[i] & 0x0f;
+        uint8_t shift = (8 - i) * 4;
+        ret |= (val << shift);
+    }
+    return ret;
+}
+
+
+static uint8_t s_cur_mode = DATA_MODE_NORMAL;
+uint8_t set_mode(uint8_t mode)
+{
+    s_cur_mode = mode;
+}
+
+uint8_t get_mode()
+{
+    return s_cur_mode;
 }

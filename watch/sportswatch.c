@@ -608,9 +608,8 @@ static uint8_t fileidx, sportnum;
 static int fileid;
 static uint16_t entrycount;
 static uint8_t sports_type = 0;
+static uint32_t s_sports_data[4] = {0};
 
-//running : time_offset, steps, cals, distance, alt, heartrate
-//biking  : time_offset, cads,  cals, distance, alt, heartrate*/
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
@@ -624,12 +623,14 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       {
           //running
           sports_type = SPORTS_DATA_FLAG_RUN;
+          set_mode(DATA_MODE_RUNNING);
         //ant_init(MODE_HRM);
       }
       else
       {
           //cycling
           sports_type = SPORTS_DATA_FLAG_BIKE;
+          set_mode(DATA_MODE_BIKING);
         //ant_init(MODE_CBSC);
       }
       rtc_enablechange(SECOND_CHANGE);
@@ -638,6 +639,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       for (int i = 0; i < (int)(sizeof(base_data)/sizeof(base_data[0])); i++)
         base_data[i] = 0;
       base_data[SPORTS_ALT_START] = 2000000; //set to height no possible on earth to indicate invalid data
+
+      memset(&s_sports_data, 0, sizeof(s_sports_data));
 
       fileid = -1;
       workout_time = 0;
@@ -681,7 +684,37 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         ble_send_sports_data(timestamp, &ble_data_buf[1], sportnum);
 
       }
+/*
+    {"w", 3, {SPORTS_TIME, SPORTS_STEPS,   SPORTS_CALS, SPORTS_DISTANCE, SPORTS_INVALID},  },
+    {"r", 4, {SPORTS_TIME, SPORTS_STEPS,   SPORTS_CALS, SPORTS_DISTANCE, SPORTS_HEARTRATE},},
+    {"b", 4, {SPORTS_TIME, SPORTS_CADENCE, SPORTS_CALS, SPORTS_DISTANCE, SPORTS_HEARTRATE},},
+*/
+    uint8_t hour, minute, second;
+    rtc_readtime(&hour, &minute, &second); 
+    if (second <= 10 &&
+        (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
+    {
+      if (get_mode() == DATA_MODE_RUNNING)
+      {
+        uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
 
+        uint32_t data[4] = {0};
+        data[0] = ped_get_steps() - s_sports_data[0];
+        data[1] = ped_get_calorie() - s_sports_data[1];
+        data[2] = ped_get_distance() - s_sports_data[2];
+        write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+      }
+      else if (get_mode() == DATA_MODE_BIKING)
+      {
+        uint8_t meta[] = {DATA_COL_CADN, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
+        uint32_t data[4] = {0};
+        data[0] = ped_get_steps() - s_sports_data[0];
+        data[1] = ped_get_calorie() - s_sports_data[1];
+        data[2] = ped_get_distance() - s_sports_data[2];
+        write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+      }
+
+      }
       break;
     }
   case EVENT_WINDOW_PAINT:
@@ -707,6 +740,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, 4);
 
       ble_stop_sync();
+      set_mode(DATA_MODE_NORMAL);
       break;
     }
   default:

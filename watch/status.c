@@ -181,6 +181,8 @@ static void check_battery()
   }
 }
 
+static uint32_t s_daily_data[3] = {0};
+
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
 {
   uint8_t old_status = status;
@@ -198,22 +200,33 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
     {
       uint8_t hour, minute, second;
       rtc_readtime(&hour, &minute, &second);
+
       if (hour == 0 && minute == 0 && second <= 19)
       {
-        //save_daily_data();
         ped_reset();
-        //save_data_start(DATA_MODE_NORMAL, timestamp);
+
+        memset(&s_daily_data, 0, sizeof(s_daily_data));
+
+        uint16_t year;
+        uint8_t month, day, weekday;
+        rtc_readdate(&year, &month, &day, &weekday);
+        create_data_file(year - 2000, month, day);
       }
-      //if (minute % 5 == 0 && second <= 10)
-      //{
-      //  uint32_t timestamp = rtc_readtime32();
-      //  printf("status:save data(%02d:%02d:%02d)\n", hour, minute, second);
-      //  uint32_t data[3] = {0};
-      //  data[0] = ped_get_steps();
-      //  data[1] = ped_get_calorie();
-      //  data[2] = ped_get_distance();
-      //  save_data(DATA_MODE_NORMAL, timestamp, data, sizeof(data));
-      //}
+      if (second <= 10 &&
+        (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
+      {
+        uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST};
+
+        uint32_t data[3] = {0};
+        data[0] = ped_get_steps() - s_daily_data[0];
+        data[1] = ped_get_calorie() - s_daily_data[1];
+        data[2] = ped_get_distance() - s_daily_data[2];
+        write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+
+        s_daily_data[0] += data[0];
+        s_daily_data[1] += data[1];
+        s_daily_data[2] += data[2];
+      }
     check_battery();
       //write_walkstatus();
     status ^= MID_STATUS;
