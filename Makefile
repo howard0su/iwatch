@@ -114,7 +114,6 @@ WATCH = \
     watch/status.c \
     watch/test.c \
     watch/siri.c \
-    watch/recordoperation.c \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \
