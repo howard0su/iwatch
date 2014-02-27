@@ -122,9 +122,9 @@ main(int argc, char **argv)
 
   I2C_Init();
 
-  //codec_init();
-  //ant_init();
-  //bluetooth_init();
+  codec_init();
+  ant_init();
+  bluetooth_init();
 
   mpu6050_init();
 
@@ -132,10 +132,10 @@ main(int argc, char **argv)
   
 //  if (!bluetooth_paired())
   {
-  //  bluetooth_discoverable(1);
+    bluetooth_discoverable(1);
   }
 
-  //ant_init(MODE_HRM);
+  ant_init(MODE_HRM);
 
   system_restore();
 
