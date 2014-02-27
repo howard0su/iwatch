@@ -122,8 +122,8 @@ main(int argc, char **argv)
 
   I2C_Init();
 
-  codec_init();
-  ant_init();
+  //codec_init();
+  //ant_init();
   bluetooth_init();
 
   mpu6050_init();
