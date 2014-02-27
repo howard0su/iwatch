@@ -152,13 +152,11 @@ main(int argc, char **argv)
   /*
     check firmware update
     */
-  if (!CheckUpgrade())
+  if (CheckUpgrade() == 0)
   {
     printf("Start Upgrade\n");
     Upgrade();
-    EraseFirmware();
-    watchdog_start();
-    system_reset();
+    // never return if sucessfully upgrade
   }
 
   watchdog_start();

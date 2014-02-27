@@ -292,6 +292,15 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         avctp_send_passthrough(BACKWARD_OP);
       }
+      else if (lparam == KEY_TAP)
+      {
+        uint8_t flag = window_readconfig()->gesture_flag;
+        if (flag & BIT0)
+        {
+          // gesture is enabled
+          gesture_init(0, flag & BIT1);
+        }
+      }
       break;
     }
   case EVENT_WINDOW_CLOSING:
