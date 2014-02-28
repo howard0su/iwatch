@@ -82,6 +82,7 @@ void handle_stlv_packet(unsigned char* packet)
             break;
 
         case ELEMENT_TYPE_ACTIVITY_DATA:
+            printf("Get Activity Data\n");
             handle_get_activity();
             break;
 

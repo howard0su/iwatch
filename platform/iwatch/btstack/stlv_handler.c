@@ -151,7 +151,11 @@ void handle_get_activity()
 {
     char* fn = get_data_file();
     if (fn == NULL)
+    {
+        printf("handle_get_activity() no valid data\n");
         return;
+    }
+    printf("handle_get_activity() return $s\n", fn);
 
     transfer_file(fn);
 }
