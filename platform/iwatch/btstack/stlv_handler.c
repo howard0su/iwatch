@@ -33,7 +33,7 @@ void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
     _phone_info[0] = phone_type;
     _phone_info[1] = phone_ver;
 
-    send_firmware_version("dummy");
+    send_firmware_version(FWVERSION);
 }
 
 uint8_t get_phone_type()

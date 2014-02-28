@@ -196,7 +196,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       strcpy(buf, "legal.kreyos.com");
       break;
       case DATA_VERSION:
-      strcpy(buf, "1.0.0.1");
+      strcpy(buf, FWVERSION);
       break;
       case DATA_LIGHT:
       sprintf(buf, "%d", window_readconfig()->light_level);
