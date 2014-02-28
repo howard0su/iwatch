@@ -72,6 +72,7 @@
 #define     SUB_TYPE_ACTIVITY_ID    'i'
 
 #define ELEMENT_TYPE_FW_VERSION     'V'
+#define ELEMENT_TYPE_ACTIVITY_DATA  'N'
 
 
 typedef unsigned char* element_handle;
