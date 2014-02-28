@@ -174,6 +174,15 @@ static void window_handle_event(uint8_t ev, void* data)
       status_process(ev, (uint16_t)data, NULL);
       ui_window(ev, (uint16_t)data, NULL);
     }
+    else if (ev == EVENT_FIRMWARE_UPGRADE)
+    {
+      if (window_current() != &upgrade_process)
+      {
+        window_open(&upgrade_process, NULL);
+      }
+
+      ui_window(ev, 0, (void*)data);
+    }
     else if (ev == EVENT_BT_CIEV)
     {
       uint16_t d = (uint16_t)data;

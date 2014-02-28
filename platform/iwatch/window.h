@@ -51,6 +51,7 @@ PROCESS_NAME(system_process);
 #define EVENT_FILESYS_LIST_FILE       0xa8 // parameters 0 - end, -1 - error, address - pointer to char*
 #define EVENT_STLV_DATA_SENT          0xa9
 
+#define EVENT_FIRMWARE_UPGRADE        0xaa // parameter is rparameter, offset
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 
@@ -111,6 +112,7 @@ extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {

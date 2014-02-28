@@ -97,7 +97,6 @@ void mpu6050_init() {}
 
 uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
-uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 
 void flash_setup(void) {}
 void flash_done(void) {}

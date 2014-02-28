@@ -96,6 +96,7 @@ int handle_file_begin(char* name)
         EraseFirmware();
         fd = FIRMWARE_HD;
         offset = 0;
+        process_post(ui_process, EVENT_FIRMWARE_UPGRADE, (void*)offset);
     }
     else
     {
@@ -116,6 +117,7 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
     {
         WriteFirmware(data, offset, size);
         offset += size;
+        process_post(ui_process, EVENT_FIRMWARE_UPGRADE, (void*)offset);
     }
     else if (fd != -1)
     {
@@ -130,10 +132,7 @@ void handle_file_end(int fd)
     printf("handle_file_end(%x)\n", fd);
     if (fd == FIRMWARE_HD)
     {
-        if (!CheckUpgrade())
-        {
-            system_reset();
-        }
+        process_post(ui_process, EVENT_FIRMWARE_UPGRADE, (void*)-1);
     }
     else if (fd != -1)
         cfs_close(fd);
