@@ -1,25 +1,15 @@
-ifeq ($(MSPPATH),)
-MSPPATH = /usr/local/bin/
-endif
-CC      = $(MSPPATH)/msp430-elf-gcc
-OBJCOPY = $(MSPPATH)/msp430-elf-objcopy
-SIZE    = $(MSPPATH)/msp430-elf-size
-NM		= $(MSPPATH)/msp430-elf-nm
-MAKETXT = tools/srec_cat
+IARPATH = "C:\Program Files\IAR Systems\Embedded Workbench 6.4 Evaluation\430"
+WINE    =
+CC      = $(IARPATH)/bin/icc430.exe
+LINK    = $(IARPATH)/bin/xlink.exe
 ECHO	= echo
 
-TARGET_CPU = msp430f5438a
-#WARNING_FLAGS = -W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wmissing-format-attribute -pedantic -Wno-long-long -Wno-variadic-macros -Wno-overlength-strings -Wold-style-definition -Wc++-compat
-CFLAGS  = -mmcu=$(TARGET_CPU) -g -std=gnu99 -O2 $(WARNING_FLAGS) \
-	-ffunction-sections -fdata-sections -mlarge
-LDFLAGS = -mmcu=$(TARGET_CPU) -g -std=gnu99 -O2 $(WARNING_FLAGS) -Wl,-gc-sections -mlarge
- 
-# Support LTO, todo later
-# -flto
-#LDFLAGS += -flto
-#CFLAGS += -flto
+CFLAGS  = --debug -D__MSP430F5438A__ -e --double=32 --dlib_config $(IARPATH)/LIB/DLIB/dl430xlfn.h  --core=430X --reduce_stack_usage --data_model=large -Oh --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --relaxed_fp --silent
+LDFLAGS = -z -xmsnio -I$(IARPATH)/LIB -f ./build/iwatch-lnk430F5438A.xcl -f $(IARPATH)/config/multiplier32_loc2.xcl -D_STACK_SIZE=800 -r $(IARPATH)/LIB/DLIB/dl430xlfn.r43 -D_DATA16_HEAP_SIZE=E10 -Omsp430_txt=$(OBJDIR)\watch.txt -s __program_start -D_DATA20_HEAP_SIZE=E10
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1
+LIBS = pedometer/sleepalgo.r43
+
+ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1 AMX_ANSIONLY=1 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 HAVE_ALLOCA_H=0 AMX_NATIVETABLE=window_natives
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -56,10 +46,12 @@ PLATFORM = \
 	platform/iwatch/i2c.c \
 	platform/iwatch/isr.c \
 	platform/iwatch/msp430.c \
+  platform/iwatch/contiki-exp5438-main.c \
 	platform/iwatch/rtc.c \
   platform/iwatch/spiflash.c \
   platform/iwatch/printf.c \
   platform/iwatch/system.c \
+  platform/iwatch/progam.c \
 	platform/iwatch/rtimer-arch.c \
 	platform/iwatch/uart1-putchar.c \
 	platform/iwatch/watchdog.c \
@@ -187,14 +179,12 @@ WATCH = \
     watch/upgrade.c \
     watch/test.c \
     watch/siri.c \
-    watch/filesys_proc.c \
-    watch/recordoperation.c \
     watch/window.c
 
 SERVICES= \
   gesture/gesture.c \
-  pedometer/pedometer.c
-
+  pedometer/pedometer.c \
+  pedometer/pedometer_dist.c
 
 OBJDIR = objs.msp430
 SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL) $(SERVICES)
@@ -209,57 +199,19 @@ $(OBJDIR)/%.o: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+	@$(WINE) $(CC) $< $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -o $@
 
-$(OBJDIR)/%.d: %.c
-	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
-	@test -d $(@D) || mkdir -pm 775 $(@D)
-	@-$(RM) $@
-	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -MM $< -MT $(patsubst %.d, %.o, $@)> $@
-
-
-# create .hex file from .elf
-%.hex: %.elf
-	@$(OBJCOPY) -O ihex $< $@
-	@$(SIZE) $<
-%.txt: %.hex
-	$(MAKETXT) -O $@ -TITXT $< -I
-	unix2dos $@
 
 # create firmware image from common objects and example source file
 
-all: $(DEPFILES) $(OBJS) iwatch.hex iwatch.txt
+all: $(OBJS) $(OBJDIR)/watch.txt
 
-# if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
-iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
-	@$(ECHO) "Linking $@ second pass"
-	@${CC} $^ ${LDFLAGS} -o $@
+$(OBJDIR)/watch.txt: ${OBJS}
+	@echo "Link $@"
+	$(WINE) ${LINK} $^ $(LIBS) ${LDFLAGS} -Omsp430_txt=$@ -l $(OBJDIR)/watch.map
 
-size: all
-	msp430-size *.elf
 
-flash: iwatch.hex
-	~/bin/mspdebug tilib 'prog iwatch.elf' run
-
-$(OBJDIR)/iwatch.elf: ${OBJS} $(OBJDIR)/main.o0
-	@echo "Link $@ first pass"
-	@${CC} $^ ${LDFLAGS} -o $@
-
-$(OBJDIR)/symbols.c: $(OBJDIR)/iwatch.elf
-	@echo "Generate symbol table"
-	@echo "#include \"loader/symbols-def.h\"" > $@
-	@echo "const struct symbols symbols[] = {" >> $@
-	@$(NM) $^ | awk '/([0-9a-f])+ [ABDRST] ([a-zA-Z][0-9A-Za-z_]+)$$/{print "{\"" $$3 "\",(void*)0x" $$1 "}," }' | sort -f -t ','>> $@
-	@echo "{0, 0}};" >> $@
-
-$(OBJDIR)/main.o0: platform/iwatch/contiki-exp5438-main.c
-	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
-
-ifneq ($(MAKECMDGOALS), clean)
--include $(DEPFILES)
-endif
 .SILENT:
 .PHONY:	clean
 clean:
-	rm -f $ *.elf *.hex
 	rm -Rf $(OBJDIR)/
