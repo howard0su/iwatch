@@ -10,6 +10,7 @@
 *.py
 *.pyc
 *.pbm
+*.o
 tags
 objs/
 objs.native/
@@ -19,5 +20,7 @@ build/Retail
 build/Settings
 build/watchCustomSfr.sfr
 build/*.txt
+objs.msp430/
+objs.native/
 *.sublime-project
 *.sublime-workspace

@@ -81,6 +81,10 @@ void handle_stlv_packet(unsigned char* packet)
             }
             break;
 
+        case ELEMENT_TYPE_ACTIVITY_DATA:
+            handle_get_activity();
+            break;
+
         case ELEMENT_TYPE_LIST_FILES:
             {
                 int data_len = get_element_data_size(pack, handle, type_buf, type_len);

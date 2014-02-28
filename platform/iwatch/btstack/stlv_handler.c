@@ -11,6 +11,7 @@
 #include "cfs/cfs.h"
 #include "stlv_client.h"
 #include "btstack/include/btstack/utils.h"
+#include "watch/sportsdata.h"
 
 void handle_echo(uint8_t* data, int data_len)
 {
@@ -144,6 +145,15 @@ void handle_get_file(char* name)
 {
     printf("handle_get_file(%s)\n", name);
     transfer_file(name);
+}
+
+void handle_get_activity()
+{
+    char* fn = get_data_file();
+    if (fn == NULL)
+        return;
+
+    transfer_file(fn);
 }
 
 static char* filter_filename_by_prefix(char* prefix, char* filename)
