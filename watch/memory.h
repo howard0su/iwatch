@@ -47,7 +47,6 @@ extern union _data
   struct
   {
     uint8_t state;
-    uint16_t memory[20];
   }host;
 
   struct
