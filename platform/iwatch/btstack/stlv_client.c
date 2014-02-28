@@ -219,3 +219,13 @@ void launch_google_now()
     element_append_char(p, h, '/');
     send_packet(p, NULL, 0);
 }
+
+void send_firmware_version(char* version)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "V", 1);
+    element_append_string(p, h, version);
+    send_packet(p, NULL, 0);
+}

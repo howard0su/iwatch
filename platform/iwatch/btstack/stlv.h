@@ -71,6 +71,8 @@
 #define     SUB_TYPE_ACTIVITY_CAL   'c'
 #define     SUB_TYPE_ACTIVITY_ID    'i'
 
+#define ELEMENT_TYPE_FW_VERSION     'V'
+
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;

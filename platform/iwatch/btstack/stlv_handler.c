@@ -32,6 +32,8 @@ void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
     printf("phone info: type=%x, ver=%x\n", phone_type, phone_ver);
     _phone_info[0] = phone_type;
     _phone_info[1] = phone_ver;
+
+    send_firmware_version("dummy");
 }
 
 uint8_t get_phone_type()
