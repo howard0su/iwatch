@@ -56,6 +56,7 @@ void send_alarm_conf(alarm_conf_t* data);
 //device id
 void send_device_id(char* device_id);
 void launch_google_now();
+void send_firmware_version(char* version);
 
 #endif
 
