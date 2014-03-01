@@ -17,6 +17,8 @@ AUTOSTART_PROCESSES(&system_process);
 #define WINDOW_FLAGS_REFRESH            1
 #define WINDOW_FLAGS_STATUSUPDATE       2
 
+#define STATUS_UPDATE_INTERVAL          (CLOCK_SECOND * 30)
+
 static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
@@ -149,14 +151,14 @@ static void window_handle_event(uint8_t ev, void* data)
       ui_window_flag |= WINDOW_FLAGS_REFRESH;
       status_process(EVENT_WINDOW_CREATED, 0, data);
 
-      etimer_set(&status_timer, CLOCK_SECOND * 10);
+      etimer_set(&status_timer, STATUS_UPDATE_INTERVAL);
     }
     else if (ev == PROCESS_EVENT_TIMER)
     {
       if (data == &status_timer)
       {
         status_process(ev, 0, data);
-        etimer_set(&status_timer, CLOCK_SECOND * 30);
+        etimer_set(&status_timer, STATUS_UPDATE_INTERVAL);
       }
       else
       {
@@ -379,8 +381,8 @@ void window_loadconfig()
   int fd = cfs_open(WINDOWCONFIG, CFS_READ);
   if (fd != -1)
   {
-    uint16_t signature;
-    cfs_read(fd, &signature, 2);
+    uint32_t signature;
+    cfs_read(fd, &signature, 4);
 
     if (signature == UI_CONFIG_SIGNATURE)
     {

@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "CuTest.h"
-
+#include <stdio.h>
 #include <string.h>
 #include "obex.h"
 static void mas_callback(int code, void* lparam, uint16_t rparam);
@@ -159,7 +159,7 @@ static void msg_getcontent(char *buf)
     int length;
     if (start == NULL)
       return;
-    state == STATE_GETCONTENTSTART;
+    state = STATE_GETCONTENTSTART;
 
     stop = strstr(start, "END:MSG");
     if (stop != NULL)

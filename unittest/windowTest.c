@@ -140,7 +140,6 @@ static struct _event test_events[] = {
    {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
    {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -148,8 +147,6 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    
    // date config
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},  
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -157,6 +154,7 @@ static struct _event test_events[] = {
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},   
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+
   // timeconfig
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
