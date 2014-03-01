@@ -37,7 +37,7 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
-      set_btstack_type(BTSTACK_TYPE_RFCOMM);
+    set_btstack_type(BTSTACK_TYPE_RFCOMM);
     hexdump(packet, size);
     if (handle_stvl_transport(packet, size) > 0)
     {

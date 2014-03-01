@@ -15,6 +15,8 @@ uint16_t spp_channel_id = 1;
 extern uint16_t spp_channel_id;
 #endif
 
+extern void spp_sniff(int onoff);
+
 typedef struct _spp_sender
 {
     uint8_t* buffer;
@@ -49,6 +51,11 @@ int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
         task->callback    = callback;
         task->para        = para;
         task->status      = SPP_SENDER_READY;
+        if (size > 40)
+        {
+            printf("sniff(0)\n");
+            spp_sniff(0);
+        }
         tryToSend();
         return 0;
     }
@@ -70,11 +77,13 @@ static uint8_t build_transport_packet(spp_sender* task)
     return send_size;
 }
 
+
 void tryToSend(void)
 {
     if (!spp_channel_id) return;
 
     spp_sender* task = &s_task;
+    printf("tryToSend() enter_1 %d\n", task->status);
     //printf("try send STLV packet: status = %d\n", task->status);
 
     if (task->status == SPP_SENDER_READY)
@@ -82,6 +91,7 @@ void tryToSend(void)
         task->unit_size = build_transport_packet(task);
         task->status = SPP_SENDER_SENDING;
     }
+    printf("tryToSend() enter_2 %d\n", task->status);
 
     if (task->status == SPP_SENDER_SENDING)
     {
@@ -89,7 +99,10 @@ void tryToSend(void)
             task->buffer + task->sent_size - 1, task->unit_size + 1);
         //printf("send_internal(%d, %d) = %d\n", task->sent_size, task->unit_size, err);
         if (err != 0)
+        {
+            printf("send_internal(%d, %d) = %d ok\n", task->sent_size, task->unit_size, err);
             return;
+        }
 
         task->sent_size += task->unit_size;
         printf("tryToSend(%d/%d)\n", task->sent_size, task->buffer_size);
@@ -104,6 +117,7 @@ void tryToSend(void)
         }
         else
         {
+            
             task->status = SPP_SENDER_READY;
             task->unit_size = 0;
         }
