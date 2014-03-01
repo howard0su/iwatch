@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "i2c.h"
 #include "power.h"
+#include "config.h"
+#include "debug.h"
 
 /*
  * Codec NAU1080 for BT
@@ -227,39 +229,39 @@ void codec_init()
     if (config[i] == 0xffff)
       continue;
 #if 0
-    printf("write to %x with 0x%x ", i, config[i]);
+    log_info("write to %x with 0x%x ", i, config[i]);
     uint32_t d = config[i];
     for(int i = 0; i <= 8; i++)
     {
       if (d & 0x01)
-        printf("BIT%d ", i);
+        log_info("BIT%d ", i);
       d = d >> 1;
     }
-    printf("\n");
+    log_info("\n");
 #endif
     if (codec_write(i, config[i]))
     {
       I2C_done();
-      printf("initialize codec failed %d\n", i);
+      log_info("initialize codec failed %d\n", i);
       return;
     }
   }
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
-  printf("$$OK CODEC\n");
+  log_info("$$OK CODEC\n");
 
 #if 0
   for(int i = 1; i <= 0x38; i++)
   {
     uint32_t d = codec_read(i);
-    printf("Codec reg: %x = 0x%lx ", i, d);
+    log_info("Codec reg: %x = 0x%lx ", i, d);
     for(int i = 0; i <= 8; i++)
     {
       if (d & 0x01)
-        printf("BIT%d ", i);
+        log_info("BIT%d ", i);
       d = d >> 1;
     }
-    printf("\n");
+    log_info("\n");
   }
 #endif
   I2C_done();

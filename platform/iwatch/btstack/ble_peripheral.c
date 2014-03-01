@@ -94,7 +94,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                 case BTSTACK_EVENT_STATE:
                     // bt stack activated, get started
                     if (packet[2] == HCI_STATE_WORKING) {
-                        printf("SM Init completed\n");
+                        log_info("SM Init completed\n");
                         hci_send_cmd(&hci_le_set_advertising_data, 7, adv_data);
                     }
                     break;
@@ -139,12 +139,12 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                 case SM_PASSKEY_DISPLAY_NUMBER: {
                     // display number
                     sm_event_t * event = (sm_event_t *) packet;
-                    printf("%06u\n", event->passkey);
+                    log_info("%06u\n", event->passkey);
                     break;
                 }
 
                 case SM_PASSKEY_DISPLAY_CANCEL: 
-                    printf("GAP Bonding: Display cancel\n");
+                    log_info("GAP Bonding: Display cancel\n");
                     break;
 
                 case SM_AUTHORIZATION_REQUEST: {
@@ -154,7 +154,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                     break;
                 }
                 case ATT_HANDLE_VALUE_INDICATION_COMPLETE:
-                    printf("ATT_HANDLE_VALUE_INDICATION_COMPLETE status %u\n", packet[2]);
+                    log_info("ATT_HANDLE_VALUE_INDICATION_COMPLETE status %u\n", packet[2]);
                     break;
 
                 default:

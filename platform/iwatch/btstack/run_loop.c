@@ -17,7 +17,7 @@
 
 PROCESS(bluetooth_process, "Bluetooth process");
 
-#include <stdio.h> /* For printf() */
+#include <stdio.h> /* For log_info() */
 #include <string.h>
 
 #include "bt_control_cc256x.h"

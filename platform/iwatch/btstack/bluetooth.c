@@ -173,11 +173,11 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_unregister_packet_handler(init_packet_handler);
         l2cap_register_packet_handler(packet_handler);
-        printf("\n$$OK BLUETOOTH\n");
+        log_info("\n$$OK BLUETOOTH\n");
 
         // as testing
         ant_shutdown();
-        printf("\n$$END\n");
+        log_info("\n$$END\n");
       }
       break;
     }
@@ -310,17 +310,17 @@ static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_filter)){
-        printf("set event filter done. ret=%x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        log_info("set event filter done. ret=%x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
         hci_send_cmd(&hci_write_scan_enable, 0x03);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
-        printf("scan enable finish. ret=%x \n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        log_info("scan enable finish. ret=%x \n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
         hci_send_cmd(&hci_enable_device_under_test_mode);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_enable_device_under_test_mode)){
-        printf("device is in DUT mode. ret = %x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        log_info("device is in DUT mode. ret = %x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
       }
     }
   }
@@ -361,17 +361,17 @@ static void contx_packet_handler (void * connection, uint8_t packet_type, uint16
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFD84)){
-        printf("HCI_VS_DRPb_Tester_Con_TX_Cmd done.\n");
+        log_info("HCI_VS_DRPb_Tester_Con_TX_Cmd done.\n");
         hci_send_cmd_packet((uint8_t*)HCI_VS_Write_Hardware_Register_Cmd, sizeof(HCI_VS_Write_Hardware_Register_Cmd));
         break;
       }
       else if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFF01)){
-        printf("HCI_VS_Write_Hardware_Register_Cmd done.\n");
+        log_info("HCI_VS_Write_Hardware_Register_Cmd done.\n");
         hci_send_cmd_packet((uint8_t*)HCI_VS_DRPb_Enable_RF_Calibration_Cmd, sizeof(HCI_VS_DRPb_Enable_RF_Calibration_Cmd));
         break;
       }
       else if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFD80)){
-        printf("HCI_VS_DRPb_Enable_RF_Calibration_Cmd done.\n");
+        log_info("HCI_VS_DRPb_Enable_RF_Calibration_Cmd done.\n");
         break;
       }
     }

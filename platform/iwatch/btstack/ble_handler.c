@@ -9,6 +9,8 @@
 #include "btstack/include/btstack/utils.h"
 #include "rtc.h"
 #include "stlv_handler.h"
+#include "config.h"
+#include "debug.h"
 
 static const ble_handle_t s_ble_handle_table[] = {
     /*     characteristic, name                          type                       size*/
@@ -52,9 +54,9 @@ static void att_read_world_clock(uint8_t id, char* buf, uint8_t buf_size)
         return;
 
     sprintf(buf, "%s[%d]", conf->worldclock_name[id], conf->worldclock_offset[id]);
-    printf("Read World clock:\n");
-    printf(buf);
-    printf("\n");
+    log_info("Read World clock:\n");
+    log_info(buf);
+    log_info("\n");
 }
 
 static void att_write_world_clock(uint8_t id, char* buf)
@@ -93,18 +95,18 @@ static void att_write_world_clock(uint8_t id, char* buf)
 
 uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
 {
-    printf("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
+    log_info("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
     const ble_handle_t* hble = get_ble_handle(handle);
     if (hble == NULL)
     {
-        printf("No correspondent handler\n");
+        log_info("No correspondent handler\n");
         return 0;
     }
 
     uint16_t actual_size = hble->size * get_type_unit_size(hble->type);
     if (buffer == 0 || buffer_size < actual_size)
     {
-        printf("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
+        log_info("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
         return actual_size;
     }
 
@@ -112,7 +114,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
     {
         case BLE_HANDLE_TEST_READ:
         case BLE_HANDLE_TEST_WRITE:
-            printf("BLE Test Characteristic\n");
+            log_info("BLE Test Characteristic\n");
             if (mode == ATT_HANDLE_MODE_READ)
                 buffer[0] = s_test;
             else
@@ -199,7 +201,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         case BLE_HANDLE_ALARM_0:
         case BLE_HANDLE_ALARM_1:
         case BLE_HANDLE_ALARM_2:
-            printf("Set Alarm()\n");
+            log_info("Set Alarm()\n");
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memset(buffer, 0, buffer_size); //no way read them back so far
