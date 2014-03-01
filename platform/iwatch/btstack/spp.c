@@ -62,7 +62,6 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
 
   if (packet_type == HCI_EVENT_PACKET)
   {
-    printf("HFP: event %d[%d]\n",  packet_type, packet[0]); 
     switch(packet[0])
     {
     case RFCOMM_EVENT_INCOMING_CONNECTION:

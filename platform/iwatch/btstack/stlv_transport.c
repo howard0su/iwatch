@@ -83,34 +83,25 @@ uint8_t tryToSend(void)
     s_sendFlag = 1;
 
     spp_sender* task = &s_task;
-    printf("tryToSend() enter_1 %d\n", task->status);
-    //printf("try send STLV packet: status = %d\n", task->status);
 
     if (task->status == SPP_SENDER_READY)
     {
         task->unit_size = build_transport_packet(task);
         task->status = SPP_SENDER_SENDING;
     }
-    printf("tryToSend() enter_2 %d\n", task->status);
 
     if (task->status == SPP_SENDER_SENDING)
     {
         int err = send_internal(spp_channel_id,
             task->buffer + task->sent_size - 1, task->unit_size + 1);
-        //printf("send_internal(%d, %d) = %d\n", task->sent_size, task->unit_size, err);
         if (err != 0)
         {
             printf("send_internal(%d, %d) = %d err\n", task->sent_size, task->unit_size, err);
             s_sendFlag = 0;
             return 0;
         }
-        printf("send_internal(%d, %d) = %d ok\n", task->sent_size, task->unit_size, err);
 
         task->sent_size += task->unit_size;
-        printf("tryToSend(%d/%d)\n", task->sent_size, task->buffer_size);
-        //printf("dump: %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
-                //task->buffer[0], task->buffer[1], task->buffer[2], task->buffer[3],
-                //task->buffer[4], task->buffer[5], task->buffer[6], task->buffer[7] );
         if (task->sent_size >= task->buffer_size)
         {
             task->status = SPP_SENDER_NULL;
