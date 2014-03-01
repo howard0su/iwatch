@@ -30,7 +30,7 @@ typedef struct _file_sender_t
     void (*callback)(int);
 }file_sender_t;
 
-#define FILE_SENDER_COUNT 8
+#define FILE_SENDER_COUNT 1
 static uint8_t s_file_senders_status = 0;
 static file_sender_t s_file_senders[FILE_SENDER_COUNT];
 

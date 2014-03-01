@@ -26,7 +26,7 @@ typedef struct _spp_sender
     int     para;
 }spp_sender;
 
-#define TASK_QUEUE_SIZE 10
+#define TASK_QUEUE_SIZE 1
 static spp_sender s_task = {0};
 static uint8_t _task_queue_inited = 0;
 

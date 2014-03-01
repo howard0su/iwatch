@@ -360,26 +360,6 @@ void TestSportWatch(CuTest* tc)
     {-1}
   };
 
-  for(int i = 0; i < 3; i++)
-  {
-    window_readconfig()->sports_grid = i;
-    run_window_events(&sportswatch_process, test_events);
-
-    int fd = cfs_open("/sports/000.bin", CFS_READ);
-    CuAssert(tc, "file sports/000.bin doesn't find", fd != -1);
-    uint16_t sig;
-    cfs_read(fd, &sig, sizeof(sig));
-    CuAssertIntEquals_Msg(tc, "sport file signautre doesn't match", 0x1517, sig);
-
-    int offset = cfs_seek(fd, 0, CFS_SEEK_END);
-    CuAssertIntEquals(tc, sizeof(uint16_t) +  // signature
-                          sizeof(uint8_t) +   // grid num
-                          (i + 3) * sizeof(uint8_t) +  // grid types
-                          (i + 3 + 1) * sizeof(uint16_t) * 2, // data, 2 copy
-                          offset);
-
-    cfs_close(fd);
-  }
 }
 
 void TestTestButton(CuTest* tc)
