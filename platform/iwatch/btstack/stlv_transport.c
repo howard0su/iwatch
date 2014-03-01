@@ -93,9 +93,9 @@ void tryToSend(void)
 
         task->sent_size += task->unit_size;
         printf("tryToSend(%d/%d)\n", task->sent_size, task->buffer_size);
-        printf("dump: %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
-                task->buffer[0], task->buffer[1], task->buffer[2], task->buffer[3],
-                task->buffer[4], task->buffer[5], task->buffer[6], task->buffer[7] );
+        //printf("dump: %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+                //task->buffer[0], task->buffer[1], task->buffer[2], task->buffer[3],
+                //task->buffer[4], task->buffer[5], task->buffer[6], task->buffer[7] );
         if (task->sent_size >= task->buffer_size)
         {
             task->status = SPP_SENDER_NULL;

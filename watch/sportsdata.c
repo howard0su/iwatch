@@ -9,6 +9,7 @@
 #include "rtc.h"
 
 static const uint32_t signature = 0xEFAB1CC3;
+#define MAX_DATA_FILE_COUNT  30
 
 typedef struct _data_desc_t
 {
@@ -72,6 +73,37 @@ typedef struct _data_head_t
     uint8_t day;
 }data_head_t;
 
+static uint8_t check_data_file(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
+{
+
+    if (name[0] == '/' &&
+        name[1] == 'D' &&
+        name[2] == 'A' &&
+        name[3] == 'T' &&
+        name[4] == 'A' &&
+        name[5] == '/')
+    {
+        if (name[8] != '-' || name[11] != '-')
+        {
+            cfs_remove(name);
+            return 0;
+        }
+
+        *year  = (name[6]  - '0') * 10 + (name[7]  - '0');
+        *month = (name[9]  - '0') * 10 + (name[10] - '0');
+        *day   = (name[12] - '0') * 10 + (name[13] - '0');
+        if (*year >= 100 || *month > 12 || *day > 31)
+        {
+            cfs_remove(name);
+            return 0;
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
 static void write_file_head(int fd, uint8_t year, uint8_t month, uint8_t day)
 {
     cfs_write(fd, &signature, sizeof(signature));
@@ -91,6 +123,20 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
 {
     char filename[32] = "";
     sprintf(filename, "/%s/%02d-%02d-%02d", s_data_dir, year, month, day);
+
+    uint8_t fyear, fmonth, fday;
+    if (!check_data_file(filename, &fyear, &fmonth, &fday))
+    {
+        return -1;
+    }
+
+    int fd = cfs_open(filename, CFS_READ);
+    if (fd != -1)
+    {
+        printf("Remove file\n");
+        cfs_remove(filename);
+    }
+
     s_data_fd = cfs_open(filename,  CFS_WRITE | CFS_APPEND);
     if (s_data_fd == -1)
     {
@@ -111,7 +157,7 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint3
         uint16_t year = 0;
         uint8_t month, day, weekday;
         rtc_readdate(&year, &month, &day, &weekday);
-        create_data_file(year, month, day);
+        create_data_file(year % 100, month, day);
     }
 
     if (s_data_fd != -1)
@@ -152,9 +198,56 @@ void close_data_file()
     }
 }
 
+
+void clear_data_file()
+{
+
+    struct cfs_dir dir;
+    int ret = cfs_opendir(&dir, "");
+    if (ret == -1)
+    {
+        printf("cfs_opendir() failed: %d\n", ret);
+    }
+
+    uint16_t min_data_hash = 0;
+    char min_data_file[32] = "";
+    uint8_t file_count = 0;
+    while (ret != -1)
+    {
+        struct cfs_dirent dirent;
+        ret = cfs_readdir(&dir, &dirent);
+        if (ret != -1)
+        {
+            uint8_t year, month, day;
+            if (!check_data_file(dirent.name, &year, &month, &day))
+                continue;
+
+            ++file_count;
+
+            uint16_t hash = year * 366 + month * 12 + day;
+            if (min_data_hash == 0)
+            {
+                min_data_hash = hash;
+                strcpy(dirent.name, min_data_file);
+            }
+            else if (min_data_hash > hash)
+            {
+                min_data_hash = hash;
+                strcpy(dirent.name, min_data_file);
+            }
+        }
+    }
+    cfs_closedir(&dir);
+
+    if (file_count > MAX_DATA_FILE_COUNT && min_data_hash != 0)
+    {
+        cfs_remove(min_data_file);
+    }
+
+}
+
 char* get_data_file()
 {
-    //for test
     struct cfs_dir dir;
     int ret = cfs_opendir(&dir, "");
     if (ret == -1)
@@ -169,14 +262,10 @@ char* get_data_file()
         ret = cfs_readdir(&dir, &dirent);
         if (ret != -1)
         {
-            if (dirent.name[0] == '/' &&
-                dirent.name[1] == 'D' &&
-                dirent.name[1] == 'A' &&
-                dirent.name[1] == 'T' &&
-                dirent.name[1] == 'A' &&
-                dirent.name[1] == '/')
+            uint8_t year, month, day;
+            if (check_data_file(dirent.name, &year, &month, &day))
             {
-                printf("file:%s, %d\n", dirent.name, dirent.size);
+                //printf("file:%s, %d\n", dirent.name, dirent.size);
                 cfs_closedir(&dir);
                 return dirent.name;
             }

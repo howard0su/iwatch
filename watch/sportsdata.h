@@ -29,6 +29,7 @@ void close_data_file();
 char* get_data_file();
 void remove_data_file(char* filename);
 uint32_t build_data_schema(uint8_t coltype[], uint8_t colcount);
+void clear_data_file();
 
 uint8_t set_mode(uint8_t mode);
 uint8_t get_mode();

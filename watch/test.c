@@ -10,6 +10,7 @@
 #include "bluetooth.h"
 #include "stlv_client.h"
 #include "stlv_handler.h"
+#include "sportsdata.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -786,5 +787,11 @@ uint8_t test_googlenow(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	if (get_phone_type() == PHONE_TYPE_ANDROID)
 		launch_google_now();
+	return 0;
 }
 
+uint8_t test_cleardata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	clear_data_file();
+	return 0;
+}
