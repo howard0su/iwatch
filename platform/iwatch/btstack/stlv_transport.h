@@ -16,7 +16,7 @@
 #define SPP_FLAG_BEGIN_END   (SPP_FLAG_BEGIN | SPP_FLAG_END)
 
 
-void tryToSend(void);
+uint8_t tryToSend(void);
 int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para);
 
 short handle_stvl_transport(uint8_t* packet, uint16_t size);
