@@ -10,16 +10,16 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
   
   GrContextFontSet(pContext, &g_sFontBaby16);
-  GrStringDrawCentered(pContext, "Upgrading Firmware", -1, 72, 80, 0);
+  GrStringDrawCentered(pContext, "Firmware Upgrade", -1, 72, 60, 0);
   if (progress == 100)
   	GrStringDrawCentered(pContext, "Done", -1, 72, 96, 0);
   else
   	GrStringDrawCentered(pContext, "Don't do any operation", -1, 72, 96, 0);
 
-  window_progress(pContext, 110, progress);
-
   if (progress == 100)
   	window_button(pContext, KEY_ENTER, "Reboot");
+  else
+	window_progress(pContext, 110, progress);
 }
 
 extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
