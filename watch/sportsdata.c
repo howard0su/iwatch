@@ -106,8 +106,17 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
 
 void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint32_t data[], uint8_t size)
 {
+    if (s_data_fd == -1)
+    {
+        uint16_t year = 0;
+        uint8_t month, day, weekday;
+        rtc_readdate(&year, &month, &day, &weekday);
+        create_data_file(year, month, day);
+    }
+
     if (s_data_fd != -1)
     {
+        printf("write_data_line(%d:%d, size = %d)\n", hh, mm, mode);
         uint32_t tag = mode << 24 | hh << 16 | mm << 8 | size;
         if (cfs_write(s_data_fd, &tag, sizeof(tag)) != sizeof(tag))
         {
@@ -131,6 +140,7 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint3
             return;
         }
     }
+
 }
 
 void close_data_file()
