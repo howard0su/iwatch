@@ -82,7 +82,7 @@ static void sdpc_trysend()
   }
   else
   {
-    printf("sdpc_trysend l2cap_send_internal error: %d\n", err);
+    log_info("sdpc_trysend l2cap_send_internal error: %d\n", err);
   }
 }
 

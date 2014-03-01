@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include "stlv.h"
+#include "config.h"
+#include "debug.h"
 
 void send_echo(uint8_t* data, uint8_t size)
 {
@@ -71,7 +73,7 @@ static void send_file_data_callback(int para)
 
 static void send_file_end(int para)
 {
-    printf("send end\n");
+    log_info("send end\n");
     stlv_packet p = create_packet();
     if (p == NULL)
         return;

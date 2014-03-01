@@ -185,7 +185,7 @@ int dma_channel_1()
 
 void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 
-  //printf("hal_uart_dma_send_block, size %u\n\r", len);
+  //log_info("hal_uart_dma_send_block, size %u\n\r", len);
 
   // UCA0 TXIFG trigger
   DMACTL0 |= DMA1TSEL_17;
@@ -201,7 +201,7 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 // int used to indicate a request for more new data
 void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
-  //printf("hal_uart_dma_receive_block, size %u temp_size: %u\n\r", len, rx_temp_size);
+  //log_info("hal_uart_dma_receive_block, size %u temp_size: %u\n\r", len, rx_temp_size);
 
   UCA0IE &= ~UCRXIE ;  // disable RX interrupts
   if (rx_temp_size)

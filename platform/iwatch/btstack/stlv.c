@@ -5,7 +5,8 @@
 
 #include "stlv_server.h"
 #include "stlv_transport.h"
-
+#include "config.h"
+#include "debug.h"
 
 static uint8_t s_btstack_type = BTSTACK_TYPE_UNKNOWN;
 void set_btstack_type(uint8_t type)
@@ -220,14 +221,14 @@ stlv_packet create_packet()
 static void sent_complete(int para)
 {
     //handle callback
-    printf("send_complete()\n");
+    log_info("send_complete()\n");
     _packet_used = 0;
     stlv_packet_builder* cur_builder = &_packet;
     if (cur_builder->callback != 0)
         cur_builder->callback(cur_builder->para);
 
     //try send next packet
-    //printf("send_complete para=%d, %d-%d/%d\n", para, _packet_reader, _packet_writer, BUILDER_COUNT);
+    //log_info("send_complete para=%d, %d-%d/%d\n", para, _packet_reader, _packet_writer, BUILDER_COUNT);
     //if (_packet_reader == _packet_writer)
     //    return;
 

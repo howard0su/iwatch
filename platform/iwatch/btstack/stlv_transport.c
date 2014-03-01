@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "stlv.h"
+#include "config.h"
+#include "debug.h"
 
 #ifdef UNITTEST
 #   define send_internal test_send_internal
@@ -41,7 +43,7 @@ int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
     }
 
     spp_sender* task = &s_task;
-    printf("spp_register_task(%d), task.status=%d\n", size, task->status);
+    log_info("spp_register_task(%d), task.status=%d\n", size, task->status);
     if (task->status == SPP_SENDER_NULL)
     {
         task->buffer      = buf;
@@ -96,7 +98,7 @@ uint8_t tryToSend(void)
             task->buffer + task->sent_size - 1, task->unit_size + 1);
         if (err != 0)
         {
-            printf("send_internal(%d, %d) = %d err\n", task->sent_size, task->unit_size, err);
+            log_info("send_internal(%d, %d) = %d err\n", task->sent_size, task->unit_size, err);
             s_sendFlag = 0;
             return 0;
         }
@@ -145,14 +147,14 @@ short get_stlv_transport_buffer_size()
 
 short handle_stvl_transport(unsigned char* packet, uint16_t size)
 {
-    printf("handle_stlv_transport:size = %d\n", size);
+    log_info("handle_stlv_transport:size = %d\n", size);
     if ((packet[0] & SPP_FLAG_BEGIN) != 0)
         _recv_packet_size = 0;
 
     if (_recv_packet_size + size - 1 > STLV_PACKET_MAX_SIZE)
     {
 
-        printf("handle_stlv_transport error: packet too large(%d)\n", _recv_packet_size);
+        log_info("handle_stlv_transport error: packet too large(%d)\n", _recv_packet_size);
         _recv_packet_size = 0;
         return -1;
     }

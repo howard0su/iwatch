@@ -12,6 +12,8 @@
 #include "stlv_client.h"
 #include "btstack/include/btstack/utils.h"
 #include "watch/sportsdata.h"
+#include "config.h"
+#include "debug.h"
 
 extern void spp_sniff(int onoff);
 
@@ -32,7 +34,7 @@ void handle_clock(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8
 static uint8_t _phone_info[2] = {0};
 void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
 {
-    printf("phone info: type=%x, ver=%x\n", phone_type, phone_ver);
+    log_info("phone info: type=%x, ver=%x\n", phone_type, phone_ver);
     _phone_info[0] = phone_type;
     _phone_info[1] = phone_ver;
 
@@ -95,7 +97,7 @@ extern void system_reset();
 int handle_file_begin(char* name)
 {
     int fd;
-    printf("handle_file_begin(%s)\n", name);
+    log_info("handle_file_begin(%s)\n", name);
 
     if (strcmp(name, "firmware") == 0)
     {
@@ -109,7 +111,7 @@ int handle_file_begin(char* name)
         fd = cfs_open(name, CFS_WRITE);
         if (fd == -1)
         {
-            printf("Open file %s failed\n", name);
+            log_info("Open file %s failed\n", name);
         }
     }
 
@@ -118,7 +120,7 @@ int handle_file_begin(char* name)
 
 int handle_file_data(int fd, uint8_t* data, uint8_t size)
 {
-    printf("handle_file_data(%x, %d)\n", fd, size);
+    log_info("handle_file_data(%x, %d)\n", fd, size);
     if (fd == FIRMWARE_HD)
     {
         WriteFirmware(data, offset, size);
@@ -135,7 +137,7 @@ int handle_file_data(int fd, uint8_t* data, uint8_t size)
 
 void handle_file_end(int fd)
 {
-    printf("handle_file_end(%x)\n", fd);
+    log_info("handle_file_end(%x)\n", fd);
     if (fd == FIRMWARE_HD)
     {
         process_post(ui_process, EVENT_FIRMWARE_UPGRADE, (void*)-1);
@@ -146,7 +148,7 @@ void handle_file_end(int fd)
 
 void handle_get_file(char* name)
 {
-    printf("handle_get_file(%s)\n", name);
+    log_info("handle_get_file(%s)\n", name);
     transfer_file(name);
 }
 
@@ -155,10 +157,10 @@ void handle_get_activity()
     char* fn = get_data_file();
     if (fn == NULL)
     {
-        printf("handle_get_activity() no valid data\n");
+        log_info("handle_get_activity() no valid data\n");
         return;
     }
-    printf("handle_get_activity() return $s\n", fn);
+    log_info("handle_get_activity() return $s\n", fn);
 
     transfer_file(fn);
 }
@@ -185,7 +187,7 @@ static char* filter_filename_by_prefix(char* prefix, char* filename)
 //TODO: help verify
 void handle_list_file(char* prefix)
 {
-    printf("handle_list_file(%s)\n", prefix);
+    log_info("handle_list_file(%s)\n", prefix);
 
     char buf[200] = "";
     uint8_t buf_size = 0;
@@ -193,7 +195,7 @@ void handle_list_file(char* prefix)
     int ret = cfs_opendir(&dir, "");
     if (ret == -1)
     {
-        printf("cfs_opendir() failed: %d\n", ret);
+        log_info("cfs_opendir() failed: %d\n", ret);
         return;
     }
 
@@ -203,7 +205,7 @@ void handle_list_file(char* prefix)
         ret = cfs_readdir(&dir, &dirent);
         if (ret != -1)
         {
-            printf("file:%s, %d\n", dirent.name, dirent.size);
+            log_info("file:%s, %d\n", dirent.name, dirent.size);
 
             char* short_name = filter_filename_by_prefix(prefix, dirent.name);
             uint8_t len = strlen(short_name) + 1;
@@ -223,19 +225,19 @@ void handle_list_file(char* prefix)
 
 void handle_remove_file(char* name)
 {
-    printf("handle_remove_file(%s)\n", name);
+    log_info("handle_remove_file(%s)\n", name);
     cfs_remove(name);
 }
 
 void handle_get_device_id()
 {
     //TODO: return device id
-    printf("handle_get_device_id()\n");
+    log_info("handle_get_device_id()\n");
 }
 
 void handle_gps_info(uint16_t spd, uint16_t alt, uint32_t distance)
 {
-    printf("handle_gps_info(%d, %d, %d)\n", spd, alt, distance);
+    log_info("handle_gps_info(%d, %d, %d)\n", spd, alt, distance);
     uint32_t lspd = (spd == 0xffff ? 0xffffffff : spd);
     uint32_t lalt = (alt == 0xffff ? 0xffffffff : alt);
 
@@ -275,13 +277,13 @@ static void send_file_block(int para)
     cfs_seek(_f_reader.read_fd, _f_reader.read_cursor, CFS_SEEK_SET);
     _f_reader.sent_bytes = cfs_read(_f_reader.read_fd, buf, sizeof(buf));
     send_file_data(para, buf, _f_reader.sent_bytes, send_file_callback, para);
-    printf("send_file_block(%d), %d, %d\n", para, _f_reader.sent_bytes, _f_reader.read_cursor);
+    log_info("send_file_block(%d), %d, %d\n", para, _f_reader.sent_bytes, _f_reader.read_cursor);
 
 }
 
 static void send_file_callback(int para)
 {
-    printf("send_file_callback(%d), %d/%d\n", para, _f_reader.read_cursor, _f_reader.file_size);
+    log_info("send_file_callback(%d), %d/%d\n", para, _f_reader.read_cursor, _f_reader.file_size);
     _f_reader.read_cursor += _f_reader.sent_bytes;
     _f_reader.sent_bytes = 0;
     if (_f_reader.read_cursor >= _f_reader.file_size)
@@ -334,19 +336,19 @@ void handle_get_sports_grid()
     element_handle h = append_element(p, NULL, "R", 1);
     ui_config* config = window_readconfig();
     element_append_data(p, h, (uint8_t*)&config->sports_grid_data, sizeof(config->sports_grid_data));
-    printf("send_sports_grid(%d)\n", sizeof(config->sports_grid_data));
+    log_info("send_sports_grid(%d)\n", sizeof(config->sports_grid_data));
     send_packet(p, 0, 0);
 }
 
 void handle_alarm(alarm_conf_t* para)
 {
-    printf("set alarm:\n");
-    printf("  id           = %d\n", para->id);
-    printf("  mode         = %d\n", para->mode);
-    printf("  day_of_month = %d\n", para->day_of_month);
-    printf("  day_of_week  = %d\n", para->day_of_week);
-    printf("  hour         = %d\n", para->hour);
-    printf("  minute       = %d\n", para->minute);
+    log_info("set alarm:\n");
+    log_info("  id           = %d\n", para->id);
+    log_info("  mode         = %d\n", para->mode);
+    log_info("  day_of_month = %d\n", para->day_of_month);
+    log_info("  day_of_week  = %d\n", para->day_of_week);
+    log_info("  hour         = %d\n", para->hour);
+    log_info("  minute       = %d\n", para->minute);
 
     switch(para->mode)
     {
@@ -408,26 +410,26 @@ void handle_set_watch_config(ui_config* new_config)
         if (config->weight < 20) config->weight = 20;
         if (config->height < 60) config->height = 60;
 
-        printf("set_watch_config:\n");
-        printf("  signature     = %x\n", config->signature);
-        printf("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
-        printf("  analog_clock  = %d\n", config->analog_clock);  // num : which lock face
-        printf("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
-        printf("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
-        printf("  sports_grids  = %d, %d, %d, %d, %d\n",
+        log_info("set_watch_config:\n");
+        log_info("  signature     = %x\n", config->signature);
+        log_info("  default_clock = %d\n", config->default_clock); // 0 - analog, 1 - digit
+        log_info("  analog_clock  = %d\n", config->analog_clock);  // num : which lock face
+        log_info("  digit_clock   = %d\n", config->digit_clock);   // num : which clock face
+        log_info("  sports_grid   = %d\n", config->sports_grid);   // 0 - 3 grid, 1 - 4 grid, 2 - 5 grid
+        log_info("  sports_grids  = %d, %d, %d, %d, %d\n",
                 config->sports_grid_data[0],
                 config->sports_grid_data[1],
                 config->sports_grid_data[2],
                 config->sports_grid_data[3],
                 config->sports_grid_data[4]);
-        printf("  is_ukuint     = %02x\n", config->is_ukuint);
-        printf("  goal_steps    = %d\n", config->goal_steps);
-        printf("  goal_distance = %d\n", config->goal_distance);
-        printf("  goal_calories = %d\n", config->goal_calories);
-        printf("  weight        = %d\n", config->weight); // in kg
-        printf("  height        = %d\n", config->height); // in cm
-        printf("  circumference = %d\n", config->circumference);
-        printf("  lap_len       = %d\n", config->lap_length);
+        log_info("  is_ukuint     = %02x\n", config->is_ukuint);
+        log_info("  goal_steps    = %d\n", config->goal_steps);
+        log_info("  goal_distance = %d\n", config->goal_distance);
+        log_info("  goal_calories = %d\n", config->goal_calories);
+        log_info("  weight        = %d\n", config->weight); // in kg
+        log_info("  height        = %d\n", config->height); // in cm
+        log_info("  circumference = %d\n", config->circumference);
+        log_info("  lap_len       = %d\n", config->lap_length);
 
 
         window_writeconfig();
