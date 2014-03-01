@@ -156,7 +156,7 @@ static void window_handle_event(uint8_t ev, void* data)
       if (data == &status_timer)
       {
         status_process(ev, 0, data);
-        etimer_set(&status_timer, CLOCK_SECOND * 10);
+        etimer_set(&status_timer, CLOCK_SECOND * 30);
       }
       else
       {

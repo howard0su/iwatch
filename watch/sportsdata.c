@@ -171,8 +171,9 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint3
 
     if (s_data_fd != -1)
     {
-        printf("write_data_line(%d:%d, size = %d)\n", hh, mm, mode);
-        uint32_t tag = mode << 24 | hh << 16 | mm << 8 | size;
+        printf("write_data_line(%02d:%02d, mode = %d)\n", hh, mm, mode);
+        uint8_t tag[] = {mode, hh, mm, size};
+        //uint32_t tag = mode << 24 | hh << 16 | mm << 8 | size;
         if (cfs_write(s_data_fd, &tag, sizeof(tag)) != sizeof(tag))
         {
             printf("write_data(%d, %x, %d, %d, %d) failed\n", s_data_fd, mode, hh, mm, size);

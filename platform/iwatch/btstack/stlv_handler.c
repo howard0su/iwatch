@@ -13,6 +13,8 @@
 #include "btstack/include/btstack/utils.h"
 #include "watch/sportsdata.h"
 
+extern void spp_sniff(int onoff);
+
 void handle_echo(uint8_t* data, int data_len)
 {
     send_echo(data, data_len);
@@ -35,6 +37,7 @@ void handle_phone_info(uint8_t phone_type, uint8_t phone_ver)
     _phone_info[1] = phone_ver;
 
     send_firmware_version(FWVERSION);
+    spp_sniff(1); //turn on sniff for power save
 }
 
 uint8_t get_phone_type()

@@ -182,6 +182,7 @@ static void check_battery()
 }
 
 static uint32_t s_daily_data[3] = {0};
+static uint8_t s_cur_min = 0;
 
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
 {
@@ -212,14 +213,16 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         rtc_readdate(&year, &month, &day, &weekday);
         create_data_file(year - 2000, month, day);
       }
-      if (second <= 10 &&
+
+      if (s_cur_min != minute &&
         (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
       {
+        s_cur_min = minute;
         uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST};
 
         uint32_t data[3] = {0};
-        data[0] = ped_get_steps() - s_daily_data[0];
-        data[1] = ped_get_calorie() - s_daily_data[1];
+        data[0] = ped_get_steps()    - s_daily_data[0];
+        data[1] = ped_get_calorie()  - s_daily_data[1];
         data[2] = ped_get_distance() - s_daily_data[2];
         write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
 
@@ -227,10 +230,11 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         s_daily_data[1] += data[1];
         s_daily_data[2] += data[2];
       }
-    check_battery();
-      //write_walkstatus();
-    status ^= MID_STATUS;
-    break;
+
+      if (minute % 5 == 0)
+        check_battery();
+      status ^= MID_STATUS;
+      break;
     }
   case EVENT_BT_STATUS:
     if (lparam == BT_CONNECTED)

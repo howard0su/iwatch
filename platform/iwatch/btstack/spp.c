@@ -48,8 +48,21 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
     return;
   }
 
+  if (packet_type == DAEMON_EVENT_PACKET)
+  {
+      switch (packet[0]){
+        case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+            tryToSend();
+            break;
+        default:
+            break;
+      }
+      return;
+  }
+
   if (packet_type == HCI_EVENT_PACKET)
   {
+    printf("HFP: event %d[%d]\n",  packet_type, packet[0]); 
     switch(packet[0])
     {
     case RFCOMM_EVENT_INCOMING_CONNECTION:
@@ -87,8 +100,8 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
         }
         break;
       }
-    case DAEMON_EVENT_HCI_PACKET_SENT:
     case RFCOMM_EVENT_CREDITS:
+    case DAEMON_EVENT_HCI_PACKET_SENT:
       {
         tryToSend();
         break;
