@@ -73,6 +73,15 @@ typedef struct _data_head_t
     uint8_t day;
 }data_head_t;
 
+static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
+{
+    uint16_t cyear;
+    uint8_t cmonth, cday, dweekday;
+    rtc_readdate(&cyear, &cmonth, &cday, &dweekday);
+
+    return cday == day && cmonth == month && cyear == year;
+}
+
 static uint8_t check_data_file(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
 {
 
@@ -263,7 +272,8 @@ char* get_data_file()
         if (ret != -1)
         {
             uint8_t year, month, day;
-            if (check_data_file(dirent.name, &year, &month, &day))
+            if (check_data_file(dirent.name, &year, &month, &day) &&
+                !is_today_file(year, month, day))
             {
                 //printf("file:%s, %d\n", dirent.name, dirent.size);
                 cfs_closedir(&dir);
