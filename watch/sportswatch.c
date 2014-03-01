@@ -130,12 +130,12 @@ static void drawGridTime(tContext *pContext)
   {
   case GRID_3:
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, "i", 1, 12, 20, 0);
+    GrStringDraw(pContext, "i", 1, 10, 15, 0);
     GrContextFontSet(pContext, &g_sFontNova13);
-    GrStringDraw(pContext, datapoints[0].name, -1, 30, 20, 0);
+    GrStringDraw(pContext, datapoints[0].name, -1, 28, 15, 0);
     GrContextFontSet(pContext, &g_sFontNova28b);
     sprintf(buf, "%02d:%02d:%02d", time[2], time[1], time[0]);
-    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 40, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 50, 0);
     break;
   case GRID_4:
   case GRID_5:

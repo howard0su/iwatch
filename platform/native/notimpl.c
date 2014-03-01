@@ -347,3 +347,6 @@ int CheckUpgrade()
 {
   return 0;
 }
+
+void spp_sniff(int onoff)
+{}

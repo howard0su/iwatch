@@ -261,12 +261,23 @@ void window_handle_event(uint8_t ev, void* data);
 
 static void run_window_events(windowproc window, struct _event *events)
 {
+  struct _event *ev = events;
+  int ret = window(ev->event, ev->lparam, ev->rparam);
+  
   //GrContextFontSet(&context, (const tFont*)NULL);
-  GrContextClipRegionSet(&context, &client_clip);
-
-  for(struct _event *ev = events; ev->delta != -1; ev++)
+  if (ret != 0x80)
   {
-    window(ev->event, ev->lparam, ev->rparam);  
+    status_process(EVENT_WINDOW_PAINT, 0, &context);
+
+    GrContextClipRegionSet(&context, &client_clip);
+  }
+  else
+    GrContextClipRegionSet(&context, &fullscreen_clip);
+
+  ev++;
+  for(; ev->delta != -1; ev++)
+  {
+    window(ev->event, ev->lparam, ev->rparam);
     if (ev->event == EVENT_WINDOW_PAINT)
     {
       GrFlush(&context);    
@@ -308,7 +319,6 @@ static void test_window_stopwatch(windowproc window, void* data)
 void TestStatus(CuTest* tc)
 {
   struct _event test_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL, 0},
     {1, EVENT_WINDOW_PAINT, &context, 0},
     {1, PROCESS_EVENT_TIMER, NULL, 0},
     {1, PROCESS_EVENT_TIMER, NULL, 0},
@@ -360,6 +370,12 @@ void TestSportWatch(CuTest* tc)
     {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
+  window_readconfig()->sports_grid = 0;
+  run_window_events(&sportswatch_process, test_events);
+  window_readconfig()->sports_grid = 1;
+  run_window_events(&sportswatch_process, test_events);
+  window_readconfig()->sports_grid = 2;
+  run_window_events(&sportswatch_process, test_events);
 
 }
 
