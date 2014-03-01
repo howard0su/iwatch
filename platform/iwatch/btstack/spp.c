@@ -25,6 +25,7 @@ static const uint8_t   spp_service_buffer[100] = {
 
 #define SPP_CHANNEL 1
 uint16_t spp_channel_id = 0;
+static uint16_t spp_connection_handle;
 
 //static char spp_buffer[1024];
 static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
@@ -79,6 +80,7 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
           spp_channel_id = 0;
         } else {
           spp_channel_id = READ_BT_16(packet, 12);
+          spp_connection_handle = READ_BT_16(packet, 9);
           uint16_t mtu = READ_BT_16(packet, 14);
           log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
           spp_write_ptr = spp_read_ptr = 0;
@@ -194,4 +196,17 @@ void spp_init()
   sdp_register_service_internal(NULL, &spp_service_record);
 
   rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
+}
+
+void spp_sniff(int onoff)
+{
+  if (onoff)
+  {
+    // sniff mode on
+    hci_set_sniff_timeout(spp_connection_handle, 3000);
+  }
+  else
+  {
+    hci_exit_sniff(spp_connection_handle);
+  }
 }
