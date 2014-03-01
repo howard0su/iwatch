@@ -6,8 +6,10 @@ ECHO	= echo
 
 FWVERSION = DEBUG
 
-CFLAGS  = --debug -D__MSP430F5438A__ -e --double=32 --dlib_config $(IARPATH)/LIB/DLIB/dl430xlfn.h  --core=430X --reduce_stack_usage --data_model=large -Oh --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --relaxed_fp --silent
-LDFLAGS = -z -xmsnio -I$(IARPATH)/LIB -f ./build/iwatch-lnk430F5438A.xcl -f $(IARPATH)/config/multiplier32_loc2.xcl -D_STACK_SIZE=800 -r $(IARPATH)/LIB/DLIB/dl430xlfn.r43 -D_DATA16_HEAP_SIZE=E10 -Omsp430_txt=$(OBJDIR)\watch.txt -s __program_start -D_DATA20_HEAP_SIZE=E10
+IGNORE_WARNINGS=Pa050
+
+CFLAGS  = --debug -D__MSP430F5438A__ -e --double=32 --dlib_config $(IARPATH)/LIB/DLIB/dl430xlfn.h  --core=430X --reduce_stack_usage --data_model=large -Ohs --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --relaxed_fp --silent --diag_suppress $(IGNORE_WARNINGS)
+LDFLAGS = -z -xmsnio -I$(IARPATH)/LIB -f ./build/iwatch-lnk430F5438A.xcl -f $(IARPATH)/config/multiplier32_loc2.xcl -D_STACK_SIZE=900 -r $(IARPATH)/LIB/DLIB/dl430xlfn.r43 -D_DATA16_HEAP_SIZE=F10 -Omsp430_txt=$(OBJDIR)\watch.txt -s __program_start -D_DATA20_HEAP_SIZE=E10
 
 LIBS = pedometer/sleepalgo.r43
 
@@ -148,6 +150,9 @@ BTSTACK1 = \
 
 BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1))
 
+AMX0 = amx.c amxwindow.c amxstring.c amxcons.c
+AMX = $(addprefix pawnscript/, $(AMX0))
+
 MPL0 = mpu6050.c
 MPL = $(addprefix platform/iwatch/mpl/, $(MPL0))
 
@@ -189,7 +194,7 @@ SERVICES= \
   pedometer/pedometer_dist.c
 
 OBJDIR = objs.msp430
-SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL) $(SERVICES)
+SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL) $(SERVICES) $(AMX)
 OBJS0 = $(SRCS:.c=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
 DEPFILES = $(OBJS:.o=.d)
