@@ -28,7 +28,8 @@ static void drawItem(tContext *pContext,
     ampm = "AM";
 
   GrContextForegroundSet(pContext, ClrWhite);
-  GrLineDrawH(pContext, 0, 144,  y);
+  if (y)
+    GrLineDrawH(pContext, 0, 144,  y);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontNova16);
   GrStringDraw(pContext, name, -1, 12, y + 10, 0);
