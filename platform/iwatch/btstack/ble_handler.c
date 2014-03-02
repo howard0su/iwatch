@@ -425,3 +425,13 @@ void ble_stop_sync()
     s_sports_desc_buffer[0] = 0;
 }
 
+static char s_file_desc[20] = "";
+static void ble_file_desc_handler()
+{
+
+}
+
+static void ble_file_data_handler()
+{
+
+}

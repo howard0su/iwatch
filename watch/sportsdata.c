@@ -215,7 +215,7 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
         return -1;
     }
 
-    int fd = cfs_open(filename, CFS_READ | CFS_WRITE | CFS_APPEND);
+    int fd = cfs_open(filename, CFS_READ | CFS_WRITE);
     if (fd != -1)
     {
         if (check_file_format(fd) != fd)
@@ -230,7 +230,7 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
         }
     }
 
-    s_data_fd = cfs_open(filename,  CFS_WRITE | CFS_APPEND);
+    s_data_fd = cfs_open(filename, CFS_READ | CFS_WRITE);
     if (s_data_fd == -1)
     {
         printf("create_data_file(%d, %d, %d) failed\n", year, month, day);
@@ -255,7 +255,7 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint3
 
     if (s_data_fd != -1)
     {
-        printf("write_data_line(%02d:%02d, mode = %d)\n", hh, mm, mode);
+        //printf("write_data_line(%02d:%02d, mode = %d)\n", hh, mm, mode);
         uint8_t tag[] = {mode, hh, mm, size};
         //uint32_t tag = mode << 24 | hh << 16 | mm << 8 | size;
         if (cfs_write(s_data_fd, &tag, sizeof(tag)) != sizeof(tag))
