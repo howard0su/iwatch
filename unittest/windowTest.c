@@ -438,6 +438,18 @@ void TestTestLcd(CuTest* tc)
   run_window_events(&test_lcd, test_events);
 }
 
+
+void TestSleep(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+  run_window_events(&test_sleep, test_events);
+}
+
 static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
 
 static void* font;
@@ -674,6 +686,8 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestPhoneScreen);
   SUITE_ADD_TEST(suite, TestNotification);
   SUITE_ADD_TEST(suite, TestControl);
+
+  SUITE_ADD_TEST(suite, TestSleep);
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);
