@@ -89,6 +89,7 @@ static const struct MenuItem TestMenu[] =
   {0, "MPU6050", &test_mpu6050},
   {0, "Bluetooth", &test_bluetooth},
   {0, "GoogleNow", &test_googlenow},
+  {0, "Sleep", &test_sleep},
   {0, "BT DUT", &test_dut},
   {0, "BLE", &test_ble},
   {0, "Codec", &test_codec},
