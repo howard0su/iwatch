@@ -292,11 +292,9 @@ PROCESS_THREAD(mpu6050_process, ev, data)
                 data[1] = accel[1] >> 8;
                 data[2] = accel[2] >> 8;
 
-                printf("slp_sample_update([%d,%d,%d])\n", data[0], data[1], data[2]);
                 if (slp_sample_update(data))
                 {
                   slp_status_cal();
-                  printf("slp_status_cal()\n");
                 }
               }
             }

@@ -10,19 +10,26 @@
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
 {
   if (icon)
-    {
-      GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-      GrStringDraw(pContext, &icon, 1, 8, 30 + n * LINEMARGIN, 0);
-    }
+  {
+    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
+    GrStringDraw(pContext, &icon, 1, 3, 30 + n * LINEMARGIN, 0);
+  }
 
   // draw text
   GrContextFontSet(pContext, &g_sFontNova13);
-  GrStringDraw(pContext, text, -1, 30, 30 + n * LINEMARGIN, 0);
+  GrStringDraw(pContext, text, -1, 20, 30 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
   GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * LINEMARGIN, 0);
 }
 
+static void formattime(char* buf, int minutes)
+{
+	uint16_t hours = minutes / 60;
+	minutes = minutes % 60;
+
+	sprintf(buf, "%d:%d", hours, minutes);
+}
 
 static uint8_t *ptr;
 #include "pedometer/sleepalgo.h"
@@ -55,29 +62,29 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  printf("samples: %d", available_minutes);
 //		  hexdump(ptr, available_minutes/4);
 		  
-		  sprintf(buf, "%d", getfallasleep_time());
+		  formattime(buf, getfallasleep_time());
 		  drawItem(pContext, 0, 0, "Time to Sleep", buf);
 
-		  sprintf(buf, "%d", getwake_time());
+		  formattime(buf, getwake_time());
 		  drawItem(pContext, 1, 0, "Awake Time", buf);
 
-		  sprintf(buf, "%d", getsleeping_time());
+		  formattime(buf, getsleeping_time());
 		  drawItem(pContext, 2, 0, "Sleep", buf);
 
-		  sprintf(buf, "%d", getsleeping_time()/2); //XXX
+		  formattime(buf, getsleeping_time()/2); //XXX
 		  drawItem(pContext, 3, 0, "Deep Sleep", buf);
 
 		  sprintf(buf, "%d", 3);
 		  drawItem(pContext, 4, 0, "Wake Times", buf);
 
 		  // draw diagram
-		  for(int i = 0; i < available_minutes; i+=4)
+		  for(int i = 0; i < (available_minutes + 3)/4; i+=4)
 		  {
-		  	uint8_t data = ptr[i];
-		  	for (int j = i; j < i + 4; j++)
+			uint8_t data = ptr[i];
+		  	for (int j = i; j < i + 4 && j < available_minutes; j++)
 		  	{
 		  		int length;
-		  		switch(data & 0x02)
+		  		switch(data & 0x03)
 		  		{
 		  			case 0:
 		  				length = 1;
@@ -88,6 +95,8 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  			case 2:
 		  				length = 15;
 		  				break;
+		  			default:
+		  				continue;
 		  		}
 
 		  		GrLineDrawV(pContext, j, LCD_Y_SIZE-length, LCD_Y_SIZE);
