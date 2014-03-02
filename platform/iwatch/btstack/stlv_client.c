@@ -121,6 +121,7 @@ int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int
 
     if (s->status == FILESENDER_S_BEGIN)
     {
+        printf("send_begin()\n");
         element_handle name_elm = append_element(p, file_elem, "n", 1);
         element_append_string(p, name_elm, s->name);
         s->status = FILESENDER_S_DATA;
