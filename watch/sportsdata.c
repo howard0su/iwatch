@@ -73,6 +73,84 @@ typedef struct _data_head_t
     uint8_t day;
 }data_head_t;
 
+static int check_file_format(int fd)
+{
+    uint32_t signature = 0;
+    data_head_t head;
+    uint8_t rowhead[8];
+    uint32_t rowdata[8];
+    int size = 0;
+
+    size = cfs_read(fd, &signature, sizeof(signature));
+    if (size != sizeof(signature))
+    {
+        printf("check_file_format() signature error: size = %d/%d\n", size, sizeof(signature));
+        cfs_close(fd);
+        return -1;
+    }
+
+    size = cfs_read(fd, &head, sizeof(head));
+    if (size != sizeof(head))
+    {
+        printf("check_file_format() head error\n");
+        cfs_close(fd);
+        return -1;
+    }
+
+    for(;;)
+    {
+        size = cfs_read(fd, &rowhead, sizeof(rowhead));
+        if (size == 0)
+            return fd; //read nothing means the file is well formatted
+
+        if (size == sizeof(rowhead))
+        {
+            if (rowhead[3] > 8)
+            {
+                printf("check_file_format() row head error\n");
+                cfs_close(fd);
+                return -1;
+            }
+
+            int data_size = rowhead[3] * sizeof(rowdata[0]);
+            size = cfs_read(fd, &rowdata, data_size);
+            if (size == data_size)
+                continue;
+
+            if (size < data_size)
+            {
+                //padding 0
+                uint32_t pad[8] = {0};
+                cfs_write(fd, pad, data_size - size);
+                return fd;
+            }
+            else
+            {
+                printf("check_file_format() row data read error\n");
+                cfs_close(fd);
+                return -1;
+            }
+
+        }
+
+        if (size < sizeof(rowhead))
+        {
+            uint8_t pad[8] = {0};
+            cfs_write(fd, pad, sizeof(rowhead) - size);
+            return fd;
+        }
+
+        if (size > sizeof(rowhead))
+        {
+            printf("check_file_format() row head read error\n");
+            cfs_close(fd);
+            return -1;
+        }
+    }
+
+    return fd;
+}
+
 static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
 {
     uint16_t cyear;
@@ -82,7 +160,7 @@ static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
     return cday == day && cmonth == month && cyear == year;
 }
 
-static uint8_t check_data_file(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
+static uint8_t check_file_name(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
 {
 
     if (name[0] == '/' &&
@@ -94,7 +172,6 @@ static uint8_t check_data_file(char* name, uint8_t* year, uint8_t* month, uint8_
     {
         if (name[8] != '-' || name[11] != '-')
         {
-            cfs_remove(name);
             return 0;
         }
 
@@ -103,7 +180,6 @@ static uint8_t check_data_file(char* name, uint8_t* year, uint8_t* month, uint8_
         *day   = (name[12] - '0') * 10 + (name[13] - '0');
         if (*year >= 100 || *month > 12 || *day > 31)
         {
-            cfs_remove(name);
             return 0;
         }
 
@@ -134,16 +210,24 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
     sprintf(filename, "/%s/%02d-%02d-%02d", s_data_dir, year, month, day);
 
     uint8_t fyear, fmonth, fday;
-    if (!check_data_file(filename, &fyear, &fmonth, &fday))
+    if (!check_file_name(filename, &fyear, &fmonth, &fday))
     {
         return -1;
     }
 
-    int fd = cfs_open(filename, CFS_READ);
+    int fd = cfs_open(filename, CFS_READ | CFS_WRITE | CFS_APPEND);
     if (fd != -1)
     {
-        printf("Remove file\n");
-        cfs_remove(filename);
+        if (check_file_format(fd) != fd)
+        {
+            printf("Remove file\n");
+            cfs_remove(filename);
+        }
+        else
+        {
+            s_data_fd = fd;
+            return fd;
+        }
     }
 
     s_data_fd = cfs_open(filename,  CFS_WRITE | CFS_APPEND);
@@ -229,21 +313,19 @@ void clear_data_file()
         if (ret != -1)
         {
             uint8_t year, month, day;
-            if (!check_data_file(dirent.name, &year, &month, &day))
+            if (!check_file_name(dirent.name, &year, &month, &day))
+            {
+                cfs_remove(dirent.name);
                 continue;
+            }
 
             ++file_count;
 
             uint16_t hash = year * 366 + month * 12 + day;
-            if (min_data_hash == 0)
+            if (min_data_hash == 0 || min_data_hash > hash)
             {
                 min_data_hash = hash;
-                strcpy(dirent.name, min_data_file);
-            }
-            else if (min_data_hash > hash)
-            {
-                min_data_hash = hash;
-                strcpy(dirent.name, min_data_file);
+                strcpy(min_data_file, dirent.name);
             }
         }
     }
@@ -273,10 +355,10 @@ char* get_data_file()
         if (ret != -1)
         {
             uint8_t year, month, day;
-            if (check_data_file(dirent.name, &year, &month, &day) &&
+            if (check_file_name(dirent.name, &year, &month, &day) &&
                 !is_today_file(year, month, day))
             {
-                //printf("file:%s, %d\n", dirent.name, dirent.size);
+                printf("get_data_file():%s, %d\n", dirent.name, dirent.size);
                 cfs_closedir(&dir);
                 return dirent.name;
             }
