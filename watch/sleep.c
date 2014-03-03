@@ -84,15 +84,15 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  	for (int j = i; j < i + 4 && j < available_minutes; j++)
 		  	{
 		  		int length;
-		  		switch(data & 0x03)
+		  		switch(data & 0xC0)
 		  		{
 		  			case 0:
 		  				length = 1;
 		  				break;
-		  			case 1:
+		  			case 0x40:
 		  				length = 6;
 		  				break;
-		  			case 2:
+		  			case 0x80:
 		  				length = 15;
 		  				break;
 		  			default:
@@ -100,7 +100,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  		}
 
 		  		GrLineDrawV(pContext, j, LCD_Y_SIZE-length, LCD_Y_SIZE);
-		  		data >>= 2;
+		  		data <<= 2;
 		  	}
 		  }
 
