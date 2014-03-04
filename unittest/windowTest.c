@@ -459,7 +459,8 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
         {
                 case EVENT_WINDOW_CREATED:
                 font = rparam;
-                break;
+                return 0x80;
+
                 case EVENT_WINDOW_PAINT:
                 {
                   tContext* pContext = (tContext*)rparam;
@@ -496,11 +497,6 @@ void TestWideFont(CuTest* tc)
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };
-
-  FILE* fp = fopen("fontunicod16pt.bin", "rb");
-  
-  fread(xmem_test(), 1, 2 * 1024 * 1024, fp); // max 2M
-  fclose(fp);
   
   CFSFontWrapperLoad("fontunicode");
   run_window_events(testfont, _events);
