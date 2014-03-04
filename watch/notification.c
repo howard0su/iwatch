@@ -37,6 +37,24 @@ static uint8_t notification_ids[4];
 
 static uint8_t lastid;
 
+static void onDrawAlarm(tContext *pContext)
+{
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
+  GrRectFill(pContext, &fullscreen_clip);
+
+  // draw table title
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextBackgroundSet(pContext, ClrWhite);
+  GrRectFillRound(pContext, &rect[4], 4);
+
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
+  GrStringDrawCentered(pContext, &message_icon, 1, LCD_X_SIZE/2, LCD_Y_SIZE, 0);
+}
+
 static void onDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrWhite);
@@ -111,17 +129,25 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   case EVENT_WINDOW_ACTIVE:
   {
+    if (message_buttons & NOTIFY_ALARM == NOTIFY_ALARM)
+    {
+      motor_on(50, 0);
+    }
     // read the first id from SPI flash
     break;
   }
   case EVENT_WINDOW_PAINT:
     {
-      onDraw((tContext*)rparam);
+      if (message_buttons & NOTIFY_ALARM == NOTIFY_ALARM)
+        onDrawAlarm((tContext*)rparam);
+      else
+        onDraw((tContext*)rparam);
       break;
     }
   case EVENT_WINDOW_CLOSING:
     state &= ~STATE_ACTIVE;
     process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)message_result);
+    motor_on(0, 0);
     break;
   case EVENT_KEY_PRESSED:
     if (lparam == KEY_ENTER)

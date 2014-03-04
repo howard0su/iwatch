@@ -52,7 +52,7 @@ PROCESS_THREAD(rtc_process, ev, data)
     else
     {
       // notification of alarm
-      window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, 0);
+      window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, ICON_LARGE_ALARM);
     }
   }
   PROCESS_END();
