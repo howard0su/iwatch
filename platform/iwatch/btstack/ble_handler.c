@@ -213,7 +213,19 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             break;
 
         case BLE_HANDLE_DEVICE_ID:
+            if (mode == ATT_HANDLE_MODE_READ)
+            {
+                memset(buffer, 0, buffer_size);
+            }
+            break;
+
         case BLE_HANDLE_FILE_DESC:
+            if (mode == ATT_HANDLE_MODE_READ)
+            {
+                memset(buffer, 0, buffer_size);
+            }
+            break;
+
         case BLE_HANDLE_FILE_DATA:
             if (mode == ATT_HANDLE_MODE_READ)
             {
@@ -413,3 +425,13 @@ void ble_stop_sync()
     s_sports_desc_buffer[0] = 0;
 }
 
+static char s_file_desc[20] = "";
+static void ble_file_desc_handler()
+{
+
+}
+
+static void ble_file_data_handler()
+{
+
+}

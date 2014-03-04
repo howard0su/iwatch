@@ -188,7 +188,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define AT_CHUP  "\r\nAT+CHUP\r\n"
 #define AT_ATA   "\r\nATA\r\n"
 #define AT_CMGS  "\r\nAT+CMGS=?\r\n"
-#define AT_XAPL  "\r\nAT+XAPL=8086-1234-0001,10\r\n"
+#define AT_XAPL  "\r\nAT+XAPL=8086-1234-0001,0\r\n"
 
 #define R_NONE 0
 #define R_OK   0

@@ -207,7 +207,7 @@ void spp_init()
 #endif
   sdp_register_service_internal(NULL, &spp_service_record);
 
-  rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
+  rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, SPP_PACKET_MTU);  // reserved channel, mtu=100
 }
 
 void spp_sniff(int onoff)

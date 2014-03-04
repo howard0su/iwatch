@@ -65,7 +65,7 @@ static uint8_t build_transport_packet(spp_sender* task)
     short send_size = left_size > SPP_PACKET_SIZE ? SPP_PACKET_SIZE : left_size;
 
     uint8_t* flag_ptr = task->buffer + task->sent_size - 1;
-    *flag_ptr = 0;
+    *flag_ptr = send_size << 2;
     if (send_size == left_size)
         *flag_ptr |= SPP_FLAG_END;
     if (task->sent_size == 0)
@@ -95,7 +95,7 @@ uint8_t tryToSend(void)
     if (task->status == SPP_SENDER_SENDING)
     {
         int err = send_internal(spp_channel_id,
-            task->buffer + task->sent_size - 1, task->unit_size + 1);
+            task->buffer + task->sent_size - 1, SPP_PACKET_MTU);
         if (err != 0)
         {
             log_info("send_internal(%d, %d) = %d err\n", task->sent_size, task->unit_size, err);

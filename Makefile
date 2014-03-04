@@ -111,10 +111,10 @@ WATCH = \
     watch/worldclock.c \
     watch/host.c \
     watch/today.c \
-    watch/test.c \
+    watch/siri.c \
     watch/status.c \
     watch/test.c \
-    watch/siri.c \
+    watch/sleep.c \
     watch/upgrade.c \
     watch/window.c
 
@@ -138,6 +138,7 @@ SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/obexTest.c \
  unittest/windowTest.c \
  unittest/stlvTest.c \
+ unittest/sleepmock.c \
  unittest/gestureTest.c \
  unittest/TestUtility/stlv_test_stub.c \
  unittest/hfpTest.c 

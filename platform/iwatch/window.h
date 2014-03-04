@@ -74,6 +74,7 @@ extern void window_volume(tContext *pContext, long lX, long lY, int total, int c
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1
 #define NOTIFY_ACCEPT_REJECT 2
+#define NOTIFY_ALARM  0x10
 
 #define NOTIFY_RESULT_OK 1
 #define NOTIFY_RESULT_YES 1
@@ -246,5 +247,9 @@ struct MenuItem
   const char *name;
   windowproc handler;
 };
+
+#define ICON_LARGE_RUN   'b'
+#define ICON_LARGE_CYCLE 'a'
+#define ICON_LARGE_ALARM 'c'
 
 #endif

@@ -9,7 +9,8 @@
 #define SPP_SENDER_SENDING  2
 #define SPP_SENDER_SENT     3
 
-#define SPP_PACKET_SIZE  40
+#define SPP_PACKET_MTU  64
+#define SPP_PACKET_SIZE SPP_PACKET_MTU - 1
 
 #define SPP_FLAG_BEGIN       0x01
 #define SPP_FLAG_END         0x02

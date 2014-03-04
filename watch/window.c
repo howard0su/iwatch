@@ -387,7 +387,7 @@ void window_loadconfig()
     if (signature == UI_CONFIG_SIGNATURE)
     {
       // valid config
-      cfs_read(fd, ((char*)&ui_config_data) + sizeof(uint16_t), sizeof(ui_config) - sizeof(uint16_t));
+      cfs_read(fd, ((char*)&ui_config_data) + sizeof(signature), sizeof(ui_config) - sizeof(signature));
       cfs_close(fd);
     }
     else

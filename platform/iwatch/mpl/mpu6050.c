@@ -209,7 +209,6 @@ static int CheckForShake(short *last, short *now, uint16_t threshold)
 static int8_t _shakeCount;
 static int8_t _shaking;
 #define ShakeThreshold 180
-static int8_t samplecount;
 
 PROCESS_THREAD(mpu6050_process, ev, data)
 {
@@ -277,25 +276,26 @@ PROCESS_THREAD(mpu6050_process, ev, data)
                   ped_step_detect_run();
                 }
               }
-              if (read_interval == SLEEP_INTERVAL)
-              {
-                if (samplecount != 3)
-                  samplecount++;
-                else
-                {
-                  signed char data[3];
-                  samplecount = 0;
-                  data[0] = accel[0] >> 6;
-                  data[1] = accel[1] >> 6;
-                  data[2] = accel[2] >> 6;
-
-                  if (slp_sample_update(data) == 1)
-                    slp_status_cal();
-                }
-              }
-              else
+              else if (read_interval == GESTURE_INTERVAL)
               {
                 gesture_processdata(accel);
+              }
+              else if (read_interval == SLEEP_INTERVAL)
+              {
+                static int count = 3;
+                count--;
+                if (count)
+                  continue;
+                count = 3;
+                signed char data[3];
+                data[0] = accel[0] >> 8;
+                data[1] = accel[1] >> 8;
+                data[2] = accel[2] >> 8;
+
+                if (slp_sample_update(data))
+                {
+                  slp_status_cal();
+                }
               }
             }
             continue;
@@ -333,24 +333,26 @@ void mpu_switchmode(int d)
   I2C_addr(MPU6050_ADDR);
   switch(d)
   {
-    case 0:
-    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_4G);
-    I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/GESTURE_MPU_HZ - 1));
-    read_interval = GESTURE_INTERVAL; // every 8/1 sec
-    break;
-
     case 1:
-    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
-    I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1));
-    read_interval = NORMAL_INTERVAL;
-    break;
-
+    {
+      I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_4G);
+      I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/GESTURE_MPU_HZ - 1));
+      read_interval = GESTURE_INTERVAL; // every 8/1 sec
+      break;
+    }
+    case 0:
+    {
+      I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
+      I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1));
+      read_interval = NORMAL_INTERVAL;
+      break;
+    }
     case 2:
-    samplecount = 0;
-    I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
-    I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/SLEEP_MPU_HZ - 1));
-    read_interval = SLEEP_INTERVAL;
-    break;
+    {
+      I2C_write(MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G);
+      I2C_write(MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/SLEEP_MPU_HZ - 1));
+      read_interval = SLEEP_INTERVAL;
+    }
   }
   I2C_done();
 

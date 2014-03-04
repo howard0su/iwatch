@@ -53,7 +53,7 @@ endif
 #
 # Set the executable extension based on the operating system.
 #
-ifeq ($(findstring Linux, ${os}), )
+ifneq ($(findstring Win, ${os}), )
 EXT:=.exe
 else
 EXT:=

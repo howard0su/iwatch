@@ -39,16 +39,12 @@ static void TestSendEcho(CuTest* tc)
     send_echo(data, sizeof(data));
     trySendOut();
 
-    CuAssertIntEquals(tc, 2,  get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 1,  get_send_pack_stub_count());
 
     send_pack_stub_t* node = get_send_pack_stub();
 
-    CuAssertIntEquals(tc, 41, node->len);
-    CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
-    node = get_next_send_pack_stub(node);
-
-    CuAssertIntEquals(tc, 7,  node->len);
-    CuAssertIntEquals(tc, 46, handle_stvl_transport(node->data, node->len));
+    CuAssertIntEquals(tc, 64, node->len);
+    CuAssertIntEquals(tc, 63,  handle_stvl_transport(node->data, node->len));
 
     reset_stlv_transport_buffer();
 }
@@ -68,16 +64,12 @@ static void TestRecvEcho(CuTest* tc)
     handle_stlv_packet(echo_data);
     trySendOut();
 
-    CuAssertIntEquals(tc, 2,  get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 1,  get_send_pack_stub_count());
 
     send_pack_stub_t* node = get_send_pack_stub();
 
-    CuAssertIntEquals(tc, 41, node->len);
-    CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
-    node = get_next_send_pack_stub(node);
-
-    CuAssertIntEquals(tc, 7,  node->len);
-    CuAssertIntEquals(tc, 46, handle_stvl_transport(node->data, node->len));
+    CuAssertIntEquals(tc, 64, node->len);
+    CuAssertIntEquals(tc, 63,  handle_stvl_transport(node->data, node->len));
 
     reset_stlv_transport_buffer();
 }
@@ -99,7 +91,7 @@ static void TestSendFile(CuTest* tc)
 
     trySendOut();
 
-    CuAssertIntEquals(tc, 25, get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 17, get_send_pack_stub_count());
 
     send_pack_stub_t* node = get_send_pack_stub();
 
@@ -266,9 +258,9 @@ static void TestGetFile(CuTest* tc)
     handle_get_file(TEST_FILE_NAME);
     trySendOut();
 
-    CuAssertIntEquals(tc, 26,  get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 18,  get_send_pack_stub_count());
     send_pack_stub_t* node = get_send_pack_stub();
-    CuAssertIntEquals(tc, 41, node->len);
+    CuAssertIntEquals(tc, 64, node->len);
     CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
     node = get_next_send_pack_stub(node);
 }
