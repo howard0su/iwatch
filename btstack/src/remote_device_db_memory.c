@@ -64,7 +64,7 @@ static void formatname(char* filename, bd_addr_t addr)
   sprintf(filename, "_%02x%02x%02x%02x%02x%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 }
 
-static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key) {
+static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key, link_key_type_t *type) {
   log_info("get link key for %s\n", bd_addr_to_str(*bd_addr));
 
   char filename[32];
@@ -95,7 +95,7 @@ static void delete_link_key(bd_addr_t *bd_addr){
 }
 
 
-static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key){
+static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key, link_key_type_t type){
   log_info("put link key for %s\n", bd_addr_to_str(*bd_addr));
   char filename[32];
   formatname(filename, *bd_addr);

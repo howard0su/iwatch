@@ -179,7 +179,7 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 }
 
 
-void sdpc_open(const bd_addr_t remote_addr)
+void sdpc_open(bd_addr_t remote_addr)
 {
   if (l2cap_cid != 0)
     return;

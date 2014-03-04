@@ -63,6 +63,18 @@ typedef uint8_t bd_addr_t[BD_ADDR_LEN];
 #define LINK_KEY_LEN 16
 typedef uint8_t link_key_t[LINK_KEY_LEN];
 
+typedef enum {
+        COMBINATION_KEY = 0,    // standard pairing
+        LOCAL_UNIT_KEY,                 // ?
+        REMOTE_UNIT_KEY,                // ?
+        DEBUG_COMBINATION_KEY,  // SSP with debug
+        UNAUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P192, // SSP Simple Pairing
+        AUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P192,       // SSP Passkey, Number confirm, OOB
+        CHANGED_COMBINATION_KEY,                                                         // Link key changed using Change Connection Lnk Key
+        UNAUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P256, // SSP Simpe Pairing
+        AUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P256,   // SSP Passkey, Number confirm, OOB
+} link_key_type_t;
+
 /**
  * @brief The device name type
  */

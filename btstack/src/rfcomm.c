@@ -1806,7 +1806,7 @@ void rfcomm_register_service2(void * connection, btstack_packet_handler_t packet
 
   // register with l2cap if not registered before, max MTU
   if (linked_list_empty(&rfcomm_services)){
-    l2cap_register_service_internal(NULL, rfcomm_packet_handler, PSM_RFCOMM, 0xffff);
+    l2cap_register_service_internal(NULL, rfcomm_packet_handler, PSM_RFCOMM, 0xffff, 0);
   }
 
   // fill in
