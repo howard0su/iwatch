@@ -215,6 +215,7 @@ static void btstack_setup(){
 
   // init RFCOMM
   rfcomm_init();
+  rfcomm_set_required_security_level(LEVEL_3);
 
   // set up BLE
   ble_init();

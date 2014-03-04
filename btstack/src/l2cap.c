@@ -133,7 +133,7 @@ void l2cap_unregister_packet_handler(void (*handler)(void * connection, uint8_t 
             packet_handlers[i] = NULL;
             return;
         }
-}
+    }
 
     log_error("didn't find handler");
     return;
