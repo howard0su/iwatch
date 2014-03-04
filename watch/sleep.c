@@ -28,7 +28,7 @@ static void formattime(char* buf, int minutes)
 	uint16_t hours = minutes / 60;
 	minutes = minutes % 60;
 
-	sprintf(buf, "%d:%d", hours, minutes);
+	sprintf(buf, "%d:%02d", hours, minutes);
 }
 
 static uint8_t *ptr;
