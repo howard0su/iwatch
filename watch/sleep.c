@@ -56,25 +56,22 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 
 		  GrContextForegroundSet(pContext, ClrWhite);
       	  unsigned int available_minutes, lost_minutes;
-      	  getslpdatainfo(&available_minutes, &lost_minutes);
+      	  slp_get_availabledatainfo(&available_minutes, &lost_minutes);
           GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
-		  char buf[20];
-		  printf("samples: %d", available_minutes);
-//		  hexdump(ptr, available_minutes/4);
-		  
-		  formattime(buf, getfallasleep_time());
+		  char buf[20];		  
+		  formattime(buf, slp_getfallasleep_time());
 		  drawItem(pContext, 0, 0, "Time to Sleep", buf);
 
-		  formattime(buf, getwake_time());
+		  formattime(buf, slp_get_classify_time(SLEEP_LEVEL0));
 		  drawItem(pContext, 1, 0, "Awake Time", buf);
 
-		  formattime(buf, getsleeping_time());
+		  formattime(buf, slp_get_classify_time(SLEEP_LEVEL1));
 		  drawItem(pContext, 2, 0, "Sleep", buf);
 
-		  formattime(buf, getsleeping_time()/2); //XXX
+		  formattime(buf, slp_get_classify_time(SLEEP_LEVEL2));
 		  drawItem(pContext, 3, 0, "Deep Sleep", buf);
 
-		  sprintf(buf, "%d", 3);
+		  sprintf(buf, "%d", slp_get_wakeup_times());
 		  drawItem(pContext, 4, 0, "Wake Times", buf);
 
 		  // draw diagram
@@ -123,7 +120,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
  		case EVENT_WINDOW_CLOSING:
 	 		printf("stop_slp_monitor()\n");
 	 		mpu_switchmode(0);
-	 		stop_slp_monitor();
+	 		slp_stop_monitor();
 	 		window_timer(0);
 	 		if (ptr)
 	 			free(ptr);
