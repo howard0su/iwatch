@@ -37,7 +37,6 @@
 #include "avrcp.h"
 
 #include "debug.h"
-#define DEVICENAME "Kreyos %02X%02X"
 
 #include "bluetooth.h"
 
@@ -156,16 +155,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
-        char buf[20];
-        uint8_t a, b;
-        bd_addr_t* addr = hci_local_bd_addr();
-        a = (*addr)[4];
-        b = (*addr)[5];
-        sprintf(buf, DEVICENAME, a, b);
-        hci_send_cmd(&hci_write_local_name, buf);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
         hci_send_cmd(&hci_write_default_link_policy_settings, 0x000F);
         break;
       }

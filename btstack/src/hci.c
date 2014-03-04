@@ -1542,9 +1542,7 @@ void hci_run(){
                     } else {
                         char hostname[30];
 #ifdef EMBEDDED
-                        // BTstack-11:22:33:44:55:66
-                        strcpy(hostname, "BTstack ");
-                        strcat(hostname, bd_addr_to_str(hci_stack->local_bd_addr));
+                        sprintf(hostname, "Kreyos %02X%02X", hci_stack->local_bd_addr[4], hci_stack->local_bd_addr[5]);
                         printf("---> Name %s\n", hostname);
 #else
                         // hostname for POSIX systems
