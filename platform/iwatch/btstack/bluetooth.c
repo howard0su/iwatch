@@ -32,7 +32,7 @@
 #include "rfcomm.h"
 #include "sdp.h"
 #include "hfp.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "avctp.h"
 #include "avrcp.h"
 

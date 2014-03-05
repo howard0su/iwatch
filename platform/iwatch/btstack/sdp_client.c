@@ -25,7 +25,6 @@
 #include "rfcomm.h"
 #include "sdp.h"
 #include "hfp.h"
-#include "config.h"
 #include "avctp.h"
 #include "avrcp.h"
 #include "debug.h"

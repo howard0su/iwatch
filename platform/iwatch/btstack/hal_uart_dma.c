@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include "contiki.h"
-#include "config.h"
+#include "btstack-config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

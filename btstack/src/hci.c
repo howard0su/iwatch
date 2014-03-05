@@ -36,7 +36,7 @@
  *
  */
 //#define ENABLE_LOG_INFO
-#include "config.h"
+#include "btstack-config.h"
 #include "btstack/utils.h"
 #include "gap.h"
 #include "hci.h"

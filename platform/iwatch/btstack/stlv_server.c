@@ -5,7 +5,7 @@
 #include "stlv.h"
 #include "stlv_handler.h"
 #include "btstack/include/btstack/utils.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 static void handle_file(stlv_packet pack, element_handle handle);

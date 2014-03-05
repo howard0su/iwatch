@@ -7,7 +7,7 @@
 #include "btstack/sdp_util.h"
 #include "btstack/hci_cmds.h"
 #include <string.h>
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 #include "window.h"

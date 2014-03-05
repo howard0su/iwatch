@@ -32,7 +32,6 @@
 #ifndef __HRM_RX__
 #define __HRM_RX__
 
-#include "config.h"
 #include "types.h"
 #include "antinterface.h"
 #include "antplus.h"                   

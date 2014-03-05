@@ -9,7 +9,7 @@
 #include "btstack/include/btstack/utils.h"
 #include "rtc.h"
 #include "stlv_handler.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 static const ble_handle_t s_ble_handle_table[] = {

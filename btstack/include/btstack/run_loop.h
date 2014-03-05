@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include "config.h"
+#include "btstack-config.h"
 
 #include <btstack/linked_list.h>
 

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include "stlv.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 void send_echo(uint8_t* data, uint8_t size)

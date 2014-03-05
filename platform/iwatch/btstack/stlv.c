@@ -5,7 +5,7 @@
 
 #include "stlv_server.h"
 #include "stlv_transport.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 static uint8_t s_btstack_type = BTSTACK_TYPE_UNKNOWN;

@@ -43,7 +43,7 @@
  * 
  */
 
-#include "config.h"
+#include "btstack-config.h"
 //#define ENABLE_LOG_INFO
 #include <stdio.h>
 #include <string.h>

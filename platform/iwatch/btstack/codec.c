@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "i2c.h"
 #include "power.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 /*

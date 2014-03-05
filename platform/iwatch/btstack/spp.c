@@ -6,7 +6,6 @@
 #include "btstack/sdp_util.h"
 
 #include <string.h>
-#include "config.h"
 #include "stlv.h"
 #include "stlv_server.h"
 #include "stlv_transport.h"

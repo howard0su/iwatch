@@ -12,7 +12,7 @@
 #include "stlv_client.h"
 #include "btstack/include/btstack/utils.h"
 #include "watch/sportsdata.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 extern void spp_sniff(int onoff);

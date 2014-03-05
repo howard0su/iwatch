@@ -1,5 +1,4 @@
 #include "types.h"
-#include "config.h"
 #include "antinterface.h"
 #include "antmessage.h"
 #include "antdefines.h"

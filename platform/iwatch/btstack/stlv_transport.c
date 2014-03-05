@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "stlv.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 #ifdef UNITTEST

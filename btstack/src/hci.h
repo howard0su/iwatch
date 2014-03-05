@@ -39,7 +39,7 @@
 #ifndef _HCI_H
 #define _HCI_H
 
-#include "config.h"
+#include "btstack-config.h"
 
 #include <btstack/hci_cmds.h>
 #include <btstack/utils.h>

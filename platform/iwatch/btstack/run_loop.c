@@ -32,7 +32,6 @@ PROCESS(bluetooth_process, "Bluetooth process");
 #include "remote_device_db.h"
 #include "rfcomm.h"
 #include "sdp.h"
-#include "config.h"
 
 static void callback(void *ptr)
 {

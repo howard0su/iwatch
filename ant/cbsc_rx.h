@@ -32,7 +32,6 @@
 #ifndef __CBSC_RX__
 #define __CBSC_RX__
 
-#include "config.h"
 #include "types.h"
 #include "antinterface.h" 
 #include "antplus.h"                  

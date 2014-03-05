@@ -45,7 +45,7 @@
  #include "contiki.h"
  #include "window.h"
 
-#include "config.h"
+#include "btstack-config.h"
 
 #include <btstack/run_loop.h>
 #include "debug.h"
