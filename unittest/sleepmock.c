@@ -46,7 +46,7 @@ void slp_status_cal(void)
  * @param:         none
  * @return:        none
  ***********************************************************************************/
-void stop_slp_monitor(void)
+void slp_stop_monitor(void)
 {}
 
 /*********************************************************************************//**
@@ -56,7 +56,7 @@ void stop_slp_monitor(void)
  * @param:			unsigned int available_minutes,unsigned int lost_minutes
  * @return:        none
  ***********************************************************************************/
-void getslpdatainfo(unsigned int* available_minutes,unsigned int* lost_minutes)
+void slp_get_availabledatainfo(unsigned int* available_minutes,unsigned int* lost_minutes)
 {
 	*available_minutes = 50;
 	*lost_minutes = 0;
@@ -67,7 +67,7 @@ void getslpdatainfo(unsigned int* available_minutes,unsigned int* lost_minutes)
  * @param:         none
  * @return:
  ***********************************************************************************/
-unsigned int getfallasleep_time(void)
+unsigned int slp_getfallasleep_time(void)
 {
 	return 30;
 }
@@ -78,9 +78,9 @@ unsigned int getfallasleep_time(void)
  * @param:         none
  * @return:
  ***********************************************************************************/
-unsigned int getwake_time(void)
+unsigned char slp_get_wakeup_times(void)
 {
-	return 100;
+	return 4;
 }
 
 /*********************************************************************************//**
@@ -89,7 +89,15 @@ unsigned int getwake_time(void)
  * @param:         none
  * @return:
  ***********************************************************************************/
-unsigned int getsleeping_time(void)
+unsigned int slp_get_classify_time(SLEEP_LEVEL_TYPE type)
 {
-	return 200;
+	switch(type)
+	{
+		case SLEEP_LEVEL0:
+			return 14;
+		case SLEEP_LEVEL1:
+			return 500;
+		case SLEEP_LEVEL2:
+			return 300;
+	}
 }

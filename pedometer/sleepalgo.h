@@ -10,8 +10,8 @@
 
 #ifndef SLEEPALGO_H_
 #define SLEEPALGO_H_
-
 #include "stdlib.h"
+
 typedef enum
 {
 	SLEEP_LEVEL0=0,  //awake
@@ -20,6 +20,10 @@ typedef enum
 }SLEEP_LEVEL_TYPE;
 
 
+extern signed char data_x,data_y,data_z;//test
+extern unsigned int sleep_state,delt_a;
+extern unsigned char disp_level;
+extern unsigned int delt_filtered;
 /*********************************************************************************//**
  * @function name: sleepalgo_init
  * @brief:         Initialize sleep monitor algorithm data structures
@@ -29,7 +33,7 @@ typedef enum
 void sleepalgo_init(unsigned char * pbuffer, unsigned char length);
 
 //reset data buffer
-void Resetdatabuffer(unsigned char * pbuffer);
+void slp_resetdatabuffer(unsigned char * pbuffer);
 
 /*********************************************************************************//**
  * @function name: slp_sample_update
@@ -41,7 +45,7 @@ unsigned char slp_sample_update(signed char * data_ptr);
 
 /*********************************************************************************//**
  * @function name: slp_status_cal
- * @brief:         calculate the sleep status if sampling buffer is filled。
+ * @brief:         calculate the sleep status if sampling buffer is filled
  * @param:         none
  * @return:        none
  ***********************************************************************************/
@@ -53,38 +57,39 @@ void slp_status_cal(void);
  * @param:         none
  * @return:        none
  ***********************************************************************************/
-void stop_slp_monitor(void);
+void slp_stop_monitor(void);
 
 /*********************************************************************************//**
- * @function name: getslpdatainfo
+ * @function name: slp_get_availabledatainfo
  * @brief:         Return the available minutes and lost minutes of sleep monitor.
  *
  * @param:			unsigned int available_minutes,unsigned int lost_minutes
  * @return:        none
  ***********************************************************************************/
-void getslpdatainfo(unsigned int* available_minutes,unsigned int* lost_minutes);
+void slp_get_availabledatainfo(unsigned int* available_minutes,unsigned int* lost_minutes);
 /*********************************************************************************//**
- * @function name: getfallasleep_time
- * @brief:         Return the time of fall asleep
+ * @function name: slp_get_classify_time
+ * @brief:
+ * @param:         sleep level
+ * @return:        return the duration of corresponding level
+ ***********************************************************************************/
+unsigned int slp_get_classify_time(SLEEP_LEVEL_TYPE value);
+
+/*********************************************************************************//**
+ * @function name: slp_get_wakeup_times
+ * @brief:
+ * @param:         none
+ * @return:        return the times of wakeup
+ ***********************************************************************************/
+unsigned char slp_get_wakeup_times(void);
+
+/*********************************************************************************//**
+ * @function name: slp_getfallasleep_time
+ * @brief:         Return the time of fallasleep.
  * @param:         none
  * @return:
  ***********************************************************************************/
-unsigned int getfallasleep_time(void);
+unsigned int slp_getfallasleep_time(void);
 
-/*********************************************************************************//**
- * @function name: getwake_time
- * @brief:         Return the time of awake
- * @param:         none
- * @return:
- ***********************************************************************************/
-unsigned int getwake_time(void);
-
-/*********************************************************************************//**
- * @function name: getsleeping_time
- * @brief:         Return the time of sleeping.
- * @param:         none
- * @return:
- ***********************************************************************************/
-unsigned int getsleeping_time(void);
-
+unsigned char slp_isbufferfull(void);
 #endif /* SLEEPALGO_H_ */
