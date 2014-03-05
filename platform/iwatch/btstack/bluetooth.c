@@ -93,35 +93,13 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       }
       break;
     }
-  case HCI_EVENT_PIN_CODE_REQUEST:
-    {
-      // inform about pin code request
-      log_info("Pin code request - using '0000'\n");
-      bt_flip_addr(event_addr, &packet[2]);
-      hci_send_cmd(&hci_pin_code_request_reply, &event_addr, 4, "0000");
-      break;
-    }
-  case HCI_EVENT_IO_CAPABILITY_REQUEST:
-    {
-      log_info("IO_CAPABILITY_REQUEST\n");
-      bt_flip_addr(event_addr, &packet[2]);
-      hci_send_cmd(&hci_io_capability_request_reply, &event_addr, 0x01, 0x00, 0x00);
-      break;
-    }
-  case HCI_EVENT_USER_CONFIRMATION_REQUEST:
-    {
-      bt_flip_addr(event_addr, &packet[2]);
-      uint32_t value = READ_BT_32(packet, 8);
-      log_info("USER_CONFIRMATION_REQUEST %lx\n", value);
-      hci_send_cmd(&hci_user_confirmation_request_reply, &event_addr);
-      break;
-    }
   case HCI_EVENT_LINK_KEY_NOTIFICATION:
     {
       // new device is paired
-      bt_flip_addr(event_addr, &packet[2]);
-      memcpy(&currentbd, event_addr, sizeof(currentbd));
+      //bt_flip_addr(event_addr, &packet[2]);
+      //memcpy(&currentbd, event_addr, sizeof(currentbd));
       //sdpc_open(event_addr);
+      // close bluetooth information page
       break;
     }
   }
@@ -204,7 +182,7 @@ static void btstack_setup(){
 
   // init RFCOMM
   rfcomm_init();
-  rfcomm_set_required_security_level(LEVEL_3);
+  rfcomm_set_required_security_level(LEVEL_1);
 
   // set up BLE
   ble_init();
