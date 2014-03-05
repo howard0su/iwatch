@@ -130,7 +130,7 @@ main(int argc, char **argv)
 
   motor_on(200, CLOCK_SECOND / 2);
   
-//  if (!bluetooth_paired())
+  if (!system_retail())
   {
     bluetooth_discoverable(1);
   }
