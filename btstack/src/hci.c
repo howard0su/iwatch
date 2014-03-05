@@ -56,7 +56,7 @@
 
 #include <btstack/hci_cmds.h>
 
-#define HCI_CONNECTION_TIMEOUT_MS 10000
+#define HCI_CONNECTION_TIMEOUT_MS 30000
 
 #define HCI_INTIALIZING_SUBSTATE_AFTER_SLEEP 11
 
@@ -131,10 +131,11 @@ static void hci_connection_timeout_handler(timer_source_t *timer){
         hci_run();
     }
 #endif
-    if (connection->sniff_timeout < HCI_CONNECTION_TIMEOUT_MS)
+    if (connection->sniff_timeout < HCI_CONNECTION_TIMEOUT_MS && connection->mode == ACTIVE)
         run_loop_set_timer(timer, connection->sniff_timeout);
     else
     run_loop_set_timer(timer, HCI_CONNECTION_TIMEOUT_MS);
+    
     run_loop_add_timer(timer);
 }
 
