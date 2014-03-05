@@ -32,11 +32,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <btstack/utils.h>
+
 #include "remote_device_db.h"
 #include "btstack_memory.h"
 #include "debug.h"
 
-#include <btstack/utils.h>
 #include <btstack/linked_list.h>
 
 #include "cfs/cfs.h"
@@ -45,6 +46,7 @@ struct element
 {
   link_key_t link_key;
   char device_name[DEVICE_NAME_LEN];
+  link_key_type_t link_type;
 };
 
 // Device info
@@ -78,9 +80,11 @@ static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key, link_key_type_
   if (len == sizeof(struct element))
   {
       memcpy(*link_key, entry.link_key, LINK_KEY_LEN);
+      if (type)
+        *type = entry.link_type;
       cfs_close(fd);
       return 1;
-    }
+  }
 
   cfs_close(fd);
   return 0;
@@ -110,6 +114,7 @@ static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key, link_key_type
   fd = cfs_open(filename, CFS_WRITE);
   
   memcpy(entry.link_key, *link_key, LINK_KEY_LEN);
+  entry.link_type = type;
   cfs_write(fd, &entry, sizeof(struct element));
 
   cfs_close(fd);
