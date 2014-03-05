@@ -25,6 +25,7 @@
 #include <btstack/run_loop.h>
 #include <btstack/sdp_util.h>
 
+#include "btstack-config.h"
 #include "hci.h"
 #include "l2cap.h"
 #include "btstack_memory.h"
@@ -32,7 +33,6 @@
 #include "rfcomm.h"
 #include "sdp.h"
 #include "hfp.h"
-#include "btstack-config.h"
 #include "avctp.h"
 #include "avrcp.h"
 
