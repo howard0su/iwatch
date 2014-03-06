@@ -30,7 +30,7 @@ extern void gesture_processdata(int16_t *input);
 #define MPU_INT_BIT BIT6
 
 #define GESTURE_INTERVAL (CLOCK_SECOND >> 3)
-#define NORMAL_INTERVAL (CLOCK_SECOND / 2)
+#define NORMAL_INTERVAL (CLOCK_SECOND * 2)
 #define SLEEP_INTERVAL (CLOCK_SECOND * 5)
 
 /* Starting sampling rate. */
@@ -38,6 +38,7 @@ extern void gesture_processdata(int16_t *input);
 #define DEFAULT_MPU_HZ  (50)
 #define GESTURE_MPU_HZ  (150)
 
+static uint8_t zeromotion; // 1 - hang on the changes.
 
 const static uint8_t init_data[] =
 {
@@ -48,9 +49,9 @@ const static uint8_t init_data[] =
   MPU6050_RA_FIFO_EN, 0x08, // enable fifo for accel x, y, z
   MPU6050_RA_USER_CTRL, 0x40, // enable fifo
 
-  MPU6050_RA_INT_ENABLE, BIT6, // enable motion detection interrupt
-  MPU6050_RA_MOT_THR, 20,
-  MPU6050_RA_MOT_DETECT_CTRL, BIT4,
+  MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_ZMOT_BIT, // enable zero motion detection interrupt
+  MPU6050_RA_ZRMOT_THR, 16,
+  MPU6050_RA_ZRMOT_DUR, 100,
 };
 
 
@@ -88,6 +89,8 @@ void mpu6050_init()
   MPU_INT_IFG &= ~MPU_INT_BIT;  // no IRQ pending
   MPU_INT_IES &= ~MPU_INT_BIT;  // IRQ on 0->1 transition
   MPU_INT_IE  |=  MPU_INT_BIT;  // enable IRQ for P1.6
+
+  zeromotion = 0;
 
   // initialize I2C bus
   I2C_addr(MPU6050_ADDR);
@@ -161,16 +164,14 @@ void mpu6050_shutdown(void)
 
 int port1_pin6()
 {
-  printf("motion deteceted");
-  //process_poll(&mpu6050_process);
-  return 0;
+  process_poll(&mpu6050_process);
+  return 1;
 }
 
 int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *more)
 {
     unsigned char tmp[2];
     unsigned short fifo_count;
-
 
     if (I2C_readbytes(MPU6050_RA_FIFO_COUNTH, tmp, 2))
         return -1;
@@ -224,14 +225,38 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   {
     PROCESS_WAIT_EVENT();
     // initialize I2C bus
-    if (ev == PROCESS_EVENT_POLL || ev == PROCESS_EVENT_TIMER)
+
+    if (ev == PROCESS_EVENT_POLL)
+    {
+      uint8_t tmp;
+      I2C_addr(MPU6050_ADDR);
+      I2C_readbytes(MPU6050_RA_INT_STATUS, &tmp, 1); // clear int status
+      zeromotion = 1 - zeromotion;
+      if (zeromotion)
+      {
+          //printf("start detectiong\n");
+          I2C_write(MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_RESET_BIT | MPU6050_USERCTRL_FIFO_EN_BIT);
+
+          etimer_set(&timer, read_interval);
+
+          I2C_done();
+          continue;
+      }
+      else
+      {
+       // printf("stop detection\n");
+      }
+      I2C_done();
+    }
+
+    if (ev == PROCESS_EVENT_TIMER || (ev == PROCESS_EVENT_POLL && zeromotion))
     {
         I2C_addr(MPU6050_ADDR);
         unsigned char more = 0;
         do
         {
-          int accel[3];
-          unsigned short last[3];
+          short accel[3];
+          short last[3];
           unsigned char data[1020];
           unsigned short length = sizeof(data);
           int result = read_fifo_all(&length, data, &more);
@@ -318,7 +343,9 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 
       }while(more);
       I2C_done();
-      etimer_set(&timer, read_interval);
+
+      if (!zeromotion)
+        etimer_set(&timer, read_interval);
     }
   }
 
