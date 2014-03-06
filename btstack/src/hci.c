@@ -626,6 +626,9 @@ static void event_handler(uint8_t *packet, int size){
             }
             break;
             
+        case HCI_EVENT_SYNCHRONOUS_CONNECTION_COMPLETE:
+            log_info("eSCO Connection air mode: %d\n", packet[18]);
+            // fall through
         case HCI_EVENT_CONNECTION_COMPLETE:
             // Connection management
             bt_flip_addr(addr, &packet[5]);
@@ -646,7 +649,7 @@ static void event_handler(uint8_t *packet, int size){
                     }
 
                     log_info("New connection: handle %u, %s\n", conn->con_handle, bd_addr_to_str(conn->address));
-                    
+                    hci_emit_connection_complete(conn, 0);
                     hci_emit_nr_connections_changed();
                 } else {
                     // notify client if dedicated bonding
@@ -1861,7 +1864,7 @@ void hci_emit_connection_complete(hci_connection_t *conn, uint8_t status){
     event[2] = status;
     bt_store_16(event, 3, conn->con_handle);
     bt_flip_addr(&event[5], conn->address);
-    event[11] = 1; // ACL connection
+    event[11] = conn->type; // ACL connection
     event[12] = 0; // encryption disabled
     hci_dump_packet( HCI_EVENT_PACKET, 0, event, sizeof(event));
     hci_stack->packet_handler(HCI_EVENT_PACKET, event, sizeof(event));
