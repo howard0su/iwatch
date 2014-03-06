@@ -6,6 +6,8 @@
 #include "sys/etimer.h"
 #include "dev/watchdog.h"
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "window.h"
 #include "mpu6050_def.h"
 
@@ -197,9 +199,9 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
 
 static int CheckForShake(short *last, short *now, uint16_t threshold)
 {
-  uint16_t deltaX = last[0] > now[0] ? last[0] - now[0]:now[0] - last[0];
-  uint16_t deltaY = last[1] > now[1] ? last[1] - now[1]:now[1] - last[1];
-  uint16_t deltaZ = last[2] > now[2] ? last[2] - now[2]:now[2] - last[2];
+  uint16_t deltaX = abs(last[0] - now[0]);
+  uint16_t deltaY = abs(last[1] - now[1]);
+  uint16_t deltaZ = abs(last[2] - now[2]);
 
   return (deltaX > threshold && deltaY > threshold) ||
                     (deltaX > threshold && deltaZ > threshold) ||
@@ -238,9 +240,9 @@ PROCESS_THREAD(mpu6050_process, ev, data)
           {
             for (int index = 0; index < length; index += 6)
             {
-              accel[0] = (((int)data[index + 0]) << 8) | data[index + 1];
-              accel[1] = (((int)data[index + 2]) << 8) | data[index + 3];
-              accel[2] = (((int)data[index + 4]) << 8) | data[index + 5];
+              accel[0] = __swap_bytes(*(int*)&data[index]);
+              accel[1] = __swap_bytes(*(int*)&data[index + 2]);
+              accel[2] = __swap_bytes(*(int*)&data[index + 4]);
 
               if (read_interval == NORMAL_INTERVAL)
               {
@@ -250,7 +252,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
 
                 if (index > 0)
                 {
-                  if (!_shaking && CheckForShake(last, accel, ShakeThreshold) && _shakeCount >= 1)
+                  if (!_shaking && _shakeCount >= 1 && CheckForShake(last, accel, ShakeThreshold))
                   {
                     //We are shaking
                     _shaking = 1;
