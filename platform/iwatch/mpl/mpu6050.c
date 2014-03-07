@@ -90,7 +90,7 @@ void mpu6050_init()
   MPU_INT_IES &= ~MPU_INT_BIT;  // IRQ on 0->1 transition
   MPU_INT_IE  |=  MPU_INT_BIT;  // enable IRQ for P1.6
 
-  zeromotion = 0;
+  zeromotion = 1;
 
   // initialize I2C bus
   I2C_addr(MPU6050_ADDR);
@@ -230,7 +230,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
     {
       uint8_t tmp;
       I2C_addr(MPU6050_ADDR);
-      I2C_readbytes(MPU6050_RA_INT_STATUS, &tmp, 1); // clear int status
+      //I2C_readbytes(MPU6050_RA_INT_STATUS, &tmp, 1); // clear int status
       zeromotion = 1 - zeromotion;
       if (zeromotion)
       {
