@@ -260,6 +260,8 @@ void window_handle_event(uint8_t ev, void* data);
 static void run_window_events(windowproc window, struct _event *events)
 {
   struct _event *ev = events;
+  PROCESS_CONTEXT_BEGIN(ui_process);
+  
   int ret = window(ev->event, ev->lparam, ev->rparam);
   
   //GrContextFontSet(&context, (const tFont*)NULL);
@@ -281,6 +283,8 @@ static void run_window_events(windowproc window, struct _event *events)
       GrFlush(&context);    
     }
   }
+
+  PROCESS_CONTEXT_END();
 }
 
 extern const tRectangle status_clip;
