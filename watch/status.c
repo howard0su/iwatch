@@ -181,6 +181,11 @@ static void check_battery()
   }
 }
 
+
+static uint8_t s_old_data_hour = 0;
+static uint8_t s_old_data_min  = 0;
+static uint8_t s_has_old_data  = 0;
+
 static uint32_t s_daily_data[3] = {0};
 static uint8_t s_cur_min = 0;
 
@@ -218,17 +223,36 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
       {
         s_cur_min = minute;
-        uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST};
 
         uint32_t data[3] = {0};
         data[0] = ped_get_steps()    - s_daily_data[0];
         data[1] = ped_get_calorie()  - s_daily_data[1];
         data[2] = ped_get_distance() - s_daily_data[2];
-        write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
 
-        s_daily_data[0] += data[0];
-        s_daily_data[1] += data[1];
-        s_daily_data[2] += data[2];
+        if (data[0] != 0 || data[1] != 0 || data[2] != 0)
+        {
+          uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST};
+          if (s_has_old_data)
+          {
+            //write last turn data
+            uint32_t old_data[3] = {0};
+            write_data_line(get_mode(), s_old_data_hour, s_old_data_min, meta, old_data, sizeof(old_data) / sizeof(old_data[0]));
+            s_has_old_data  = 0;
+          }
+
+          //write this turn data
+          write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+  
+          s_daily_data[0] += data[0];
+          s_daily_data[1] += data[1];
+          s_daily_data[2] += data[2];
+        }
+        else
+        {
+          s_old_data_hour = hour;
+          s_old_data_min  = minute;
+          s_has_old_data  = 1;
+        }
       }
 
       if (minute % 5 == 0)

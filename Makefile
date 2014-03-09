@@ -134,6 +134,7 @@ PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amx
 SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/CuTest.c \
  unittest/AllTests.c \
+ unittest/bleHandlerTest.c \
  unittest/cfsTest.c \
  unittest/obexTest.c \
  unittest/windowTest.c \
