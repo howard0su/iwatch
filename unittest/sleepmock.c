@@ -58,7 +58,7 @@ void slp_stop_monitor(void)
  ***********************************************************************************/
 void slp_get_availabledatainfo(unsigned int* available_minutes,unsigned int* lost_minutes)
 {
-	*available_minutes = 50;
+	*available_minutes = 140;
 	*lost_minutes = 0;
 }
 /*********************************************************************************//**

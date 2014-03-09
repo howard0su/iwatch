@@ -444,6 +444,12 @@ void TestSleep(CuTest* tc)
   struct _event test_events[] = {
     {1, EVENT_WINDOW_CREATED, NULL, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
     {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };  
