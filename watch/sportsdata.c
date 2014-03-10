@@ -355,8 +355,7 @@ char* get_data_file()
         if (ret != -1)
         {
             uint8_t year, month, day;
-            if (check_file_name(dirent.name, &year, &month, &day) &&
-                !is_today_file(year, month, day))
+            if (check_file_name(dirent.name, &year, &month, &day))
             {
                 printf("get_data_file():%s, %d\n", dirent.name, dirent.size);
                 cfs_closedir(&dir);
