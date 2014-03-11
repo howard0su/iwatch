@@ -10,6 +10,8 @@ uint8_t system_testing();
 uint8_t system_retail();
 void system_ready();
 void system_shutdown(int shipping);
+uint8_t system_locked();
+void system_unlock();
 
 extern struct pesistent_data
 {

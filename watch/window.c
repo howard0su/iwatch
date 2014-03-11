@@ -11,7 +11,7 @@
 #include "system.h"
 #include "memory.h"
 
-PROCESS(system_process, "System process");
+PROCESS(system_process, "UI process");
 AUTOSTART_PROCESSES(&system_process);
 
 #define WINDOW_FLAGS_REFRESH            1
@@ -106,7 +106,13 @@ void window_init()
   GrFlush(&context);
   stackptr = 0;
   //window_open(&menu_process, NULL);
-  ui_window = menu_process;
+  if (
+    system_testing())
+    ui_window = menu_process;
+  else if (system_locked())
+    ui_window = welcome_process;
+  else
+    ui_window = menu_process;
   printf("Done\n");
   return;
 }
@@ -145,7 +151,9 @@ static void window_handle_event(uint8_t ev, void* data)
       window_loadconfig();
 
       // continue create menu window
-      ui_window(EVENT_WINDOW_CREATED, 0, NULL);
+      if (ui_window(EVENT_WINDOW_CREATED, 0, NULL) == 0x80)
+        statusflag |= 1 << stackptr;
+      
       ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
 
       ui_window_flag |= WINDOW_FLAGS_REFRESH;
