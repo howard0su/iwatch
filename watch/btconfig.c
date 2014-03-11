@@ -39,6 +39,7 @@ void draw_screen(tContext *pContext)
     icon = ICON_LARGE_WAIT1;
     state = BT_W4PAIR2;
     str = "Wait Pairing";
+    window_button(pContext, KEY_UP, "OFF");
   }
   else if (state == BT_W4PAIR2)
   {
@@ -46,6 +47,7 @@ void draw_screen(tContext *pContext)
     state = BT_W4PAIR;
     offset = 15;
     str = "Wait Pairing";
+    window_button(pContext, KEY_UP, "OFF");
   }
   else if (state == BT_INITIALING)
   {
@@ -138,7 +140,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else if (lparam == KEY_UP)
       {
-        if (state == BT_ON)
+        if (state == BT_ON || state == BT_W4PAIR2 || state == BT_W4PAIR)
         {
           bluetooth_shutdown();
           state = BT_OFF;          
