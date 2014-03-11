@@ -128,7 +128,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_BT_CIEV:
     if ((lparam >> 8) == HFP_CIND_CALL)
     {
-      if (lparam & 0x0f == 1)
+      if ((lparam & 0x0f) == 1)
       {
         motor_on(100, CLOCK_SECOND/2);
       }
@@ -136,7 +136,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     else if ((lparam >> 8) == HFP_CIND_CALLSETUP)
     {
-      if (lparam & 0x0f == 0)
+      if ((lparam & 0x0f) == 0)
       {
         window_close();
       }

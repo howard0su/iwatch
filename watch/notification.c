@@ -129,7 +129,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   case EVENT_WINDOW_ACTIVE:
   {
-    if (message_buttons & NOTIFY_ALARM == NOTIFY_ALARM)
+    if ((message_buttons & NOTIFY_ALARM) == NOTIFY_ALARM)
     {
       motor_on(50, 0);
     }
@@ -138,7 +138,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   case EVENT_WINDOW_PAINT:
     {
-      if (message_buttons & NOTIFY_ALARM == NOTIFY_ALARM)
+      if ((message_buttons & NOTIFY_ALARM) == NOTIFY_ALARM)
         onDrawAlarm((tContext*)rparam);
       else
         onDraw((tContext*)rparam);
