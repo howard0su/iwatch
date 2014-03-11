@@ -283,14 +283,9 @@ void bluetooth_discoverable(uint8_t onoff)
   hci_discoverable_control(onoff);
 }
 
-uint8_t bluetooth_paired()
+uint8_t bluetooth_running()
 {
-  return 1;
-}
-
-bd_addr_t* bluetooth_paired_addr()
-{
-  return &currentbd;
+  return process_is_running(&bluetooth_process);
 }
 
 const char* bluetooth_address()

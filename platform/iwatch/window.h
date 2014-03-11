@@ -248,8 +248,12 @@ struct MenuItem
   windowproc handler;
 };
 
-#define ICON_LARGE_RUN   'b'
 #define ICON_LARGE_CYCLE 'a'
+#define ICON_LARGE_RUN   'b'
 #define ICON_LARGE_ALARM 'c'
+#define ICON_LARGE_BT    'd'
+#define ICON_LARGE_NOBT  'e'
+#define ICON_LARGE_WAIT1 'f'
+#define ICON_LARGE_WAIT2 'g'
 
 #endif
