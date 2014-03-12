@@ -210,3 +210,21 @@ void system_unlock()
   
   system_reset(); 
 }
+
+void system_resetfactory()
+{
+    const struct system_data *data = (struct system_data *)INFOD;
+  struct system_data new_data;
+  new_data = *data;
+  
+  new_data.system_lock = 1;
+  new_data.system_reset = 1;
+
+  // write the data
+  flash_setup();
+  flash_clear(INFOD);
+  flash_writepage(INFOD, (uint16_t*)&new_data, 128);
+  flash_done();
+
+  system_reset();
+}

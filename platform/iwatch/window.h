@@ -115,6 +115,8 @@ extern uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {
@@ -240,13 +242,6 @@ enum SPORTS_GRID
     GRID_LAPTIME_AVG,
 
     GRID_MAX,
-};
-
-struct MenuItem
-{
-  unsigned char icon;
-  const char *name;
-  windowproc handler;
 };
 
 #define ICON_LARGE_CYCLE 'a'

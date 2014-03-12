@@ -22,6 +22,7 @@
 #include <string.h>
 #include "memory.h"
 #include "sportsdata.h"
+#include "system.h"
 
 #include "test.h"
 
@@ -40,6 +41,13 @@
 #define DATA_VOL  0xF9
 #define NO_DATA   0xFF
 
+struct MenuItem
+{
+  unsigned char icon;
+  const char *name;
+  windowproc handler;
+};
+
 static const struct MenuItem SetupMenu[] =
 {
   {DATA_DATE, "Date", &configdate_process},
@@ -47,6 +55,8 @@ static const struct MenuItem SetupMenu[] =
   {DATA_LIGHT, "Back Light", &configlight_process},
   {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
+  {-1,   "Reset to Factory", &reset_process},
+  {-1,   "About", &about_process},
 //  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
@@ -73,8 +83,7 @@ static const struct MenuItem MainMenu[] =
   {'g', "Countdown Timer", &countdown_process},
   {'k', "Music Control", &control_process},
   {'h', "Sports Watch", &sporttype_process},
-  {'l', "Setup", &menu_process},
-  {0,   "About", &menu_process},
+  {'l', "Setttings", &menu_process},
   {0, NULL, NULL}
 };
 
@@ -278,6 +287,34 @@ static void getMenuLength()
     menuLength++;
 }
 
+uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  switch(ev)
+  {
+    case EVENT_WINDOW_PAINT:
+    {
+      tContext *pContext = (tContext*)rparam;
+      GrContextForegroundSet(pContext, ClrBlack);
+      GrRectFill(pContext, &client_clip);
+
+      int i = 0;
+      struct MenuItem const * item = AboutMenu;
+      while(item != NULL)
+      {
+        if (item->name == NULL)
+          break;
+
+        drawMenuItem(pContext, item, i, current == currentTop + i);
+        i++;
+        item++;
+      }
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   static struct etimer timer;
@@ -293,10 +330,6 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       else if (strcmp(rparam, "Watch Setup") == 0)
       {
         Items = SetupMenu;
-      }
-      else if (strcmp(rparam, "About") == 0)
-      {
-        Items = AboutMenu;
       }
       else if (strcmp(rparam, "Test") == 0)
       {
@@ -385,10 +418,6 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
             {
               Items = SetupMenu;
             }
-            else if (current == 10)
-            {
-              Items = AboutMenu;
-            }
             getMenuLength();
             current = currentTop = 0;
             window_invalid(NULL);
@@ -408,14 +437,6 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
         Items = MainMenu;
         currentTop = 5;
         current = 9;
-        getMenuLength();
-        window_invalid(NULL);
-      }
-      else if (Items == AboutMenu)
-      {
-        Items = MainMenu;
-        currentTop = 6;
-        current = 10;
         getMenuLength();
         window_invalid(NULL);
       }

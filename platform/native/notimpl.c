@@ -335,6 +335,7 @@ NOT_IMPL_VOID(Upgrade);
 NOT_IMPL_VOID(system_reset);
 NOT_IMPL(system_locked, uint8_t, 0);
 NOT_IMPL(system_retail, uint8_t, 1);
+NOT_IMPL_VOID(system_resetfactory);
 NOT_IMPL(CheckUpgrade, int, 0);
 
 NOT_IMPL_VOID(bluetooth_discoverable);

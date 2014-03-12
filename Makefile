@@ -112,6 +112,7 @@ WATCH = \
     watch/worldclock.c \
     watch/host.c \
     watch/today.c \
+    watch/reset.c \
     watch/siri.c \
     watch/status.c \
     watch/test.c \
