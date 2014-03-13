@@ -50,6 +50,7 @@
 #include "btstack/bluetooth.h"
 #include "backlight.h"
 #include "window.h"
+#include "system.h"
 
 #include "ant/ant.h"
 #include "ant/antinterface.h"
@@ -190,7 +191,8 @@ main(int argc, char **argv)
 
       if (shutdown_mode)
       {
-        system_shutdown(); // never return
+        system_shutdown(1); // never return
+        LPM4;
       }
       
       if (msp430_dco_required)

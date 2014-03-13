@@ -90,6 +90,7 @@ GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 WATCH = \
     watch/analog-watch.c \
+    watch/btconfig.c \
     watch/configtime.c \
     watch/countdown.c \
     watch/controller.c \
@@ -111,11 +112,13 @@ WATCH = \
     watch/worldclock.c \
     watch/host.c \
     watch/today.c \
+    watch/reset.c \
     watch/siri.c \
     watch/status.c \
     watch/test.c \
     watch/sleep.c \
     watch/upgrade.c \
+    watch/welcome.c \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \
@@ -134,6 +137,7 @@ PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amx
 SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/CuTest.c \
  unittest/AllTests.c \
+ unittest/bleHandlerTest.c \
  unittest/cfsTest.c \
  unittest/obexTest.c \
  unittest/windowTest.c \

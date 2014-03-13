@@ -6,6 +6,9 @@
 
 #include <stdio.h>
 
+static uint8_t *ptr;
+static uint16_t offset;
+
 #define LINEMARGIN 25
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
 {
@@ -31,8 +34,7 @@ static void formattime(char* buf, int minutes)
 	sprintf(buf, "%d:%02d", hours, minutes);
 }
 
-static uint8_t *ptr;
-#include "pedometer/sleepalgo.h"
+
 extern void mpu_switchmode(int d);
 uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -42,10 +44,14 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		ptr = (uint8_t*)malloc(128);
 		if (ptr)
 		{
+			*ptr = 0xff;
 			sleepalgo_init(ptr, 128);
 			mpu_switchmode(2);
 			window_timer(CLOCK_SECOND * 60);
 		}
+		break;
+		case EVENT_WINDOW_ACTIVE:
+		window_timer(CLOCK_SECOND * 60);
 		break;
 
 		case EVENT_WINDOW_PAINT:
@@ -75,7 +81,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  drawItem(pContext, 4, 0, "Wake Times", buf);
 
 		  // draw diagram
-		  for(int i = 0; i < (available_minutes + 3)/4; i+=4)
+		  for(int i = offset; i < ((available_minutes + 3) & 0xFC) && i < offset + LCD_X_SIZE; i+=4)
 		  {
 			uint8_t data = ptr[i];
 		  	for (int j = i; j < i + 4 && j < available_minutes; j++)
@@ -96,7 +102,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  				continue;
 		  		}
 
-		  		GrLineDrawV(pContext, j, LCD_Y_SIZE-length, LCD_Y_SIZE);
+		  		GrLineDrawV(pContext, j - offset, LCD_Y_SIZE-length, LCD_Y_SIZE);
 		  		data <<= 2;
 		  	}
 		  }
@@ -106,6 +112,22 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 
  		case EVENT_KEY_PRESSED:
  		{
+ 			if (lparam == KEY_UP)
+ 			{
+ 				if (offset > 24)
+ 					offset -= 24;
+ 				else
+ 					offset = 0;
+ 			}
+ 			else if (lparam == KEY_DOWN)
+ 			{
+ 				unsigned int available_minutes, lost_minutes;
+	      	  	slp_get_availabledatainfo(&available_minutes, &lost_minutes);
+
+ 				offset += 24;
+ 				if (offset + LCD_X_SIZE < available_minutes)
+ 					offset -= 24;
+ 			}
  			window_invalid(NULL);
  			break;
  		}

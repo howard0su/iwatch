@@ -10,7 +10,7 @@
 
 #ifndef SLEEPALGO_H_
 #define SLEEPALGO_H_
-#include "stdlib.h"
+//#include "stdlib.h"
 
 typedef enum
 {
@@ -20,10 +20,7 @@ typedef enum
 }SLEEP_LEVEL_TYPE;
 
 
-extern signed char data_x,data_y,data_z;//test
-extern unsigned int sleep_state,delt_a;
-extern unsigned char disp_level;
-extern unsigned int delt_filtered;
+
 /*********************************************************************************//**
  * @function name: sleepalgo_init
  * @brief:         Initialize sleep monitor algorithm data structures
@@ -45,7 +42,7 @@ unsigned char slp_sample_update(signed char * data_ptr);
 
 /*********************************************************************************//**
  * @function name: slp_status_cal
- * @brief:         calculate the sleep status if sampling buffer is filled
+ * @brief:         calculate the sleep status if sampling buffer is filled銆�
  * @param:         none
  * @return:        none
  ***********************************************************************************/
@@ -92,4 +89,13 @@ unsigned char slp_get_wakeup_times(void);
 unsigned int slp_getfallasleep_time(void);
 
 unsigned char slp_isbufferfull(void);
+
+/*********************************************************************************//**
+ * @function name: slp_skippedsamples
+ * @brief:         tell algo how many samples passed. Called when received interrupt
+                   from gsensor.(motion detected)
+ * @param:         none
+ * @return:
+ ***********************************************************************************/
+void slp_skippedsamples(unsigned int sample_num);
 #endif /* SLEEPALGO_H_ */

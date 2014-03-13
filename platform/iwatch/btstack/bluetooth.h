@@ -11,8 +11,7 @@
 extern void bluetooth_init();
 extern void bluetooth_shutdown();
 extern void bluetooth_discoverable(uint8_t onoff);
-extern uint8_t bluetooth_paired();
-extern bd_addr_t* bluetooth_paired_addr();
+extern uint8_t bluetooth_running();
 extern const char* bluetooth_address();
 
 extern void codec_setvolume(uint8_t level);
