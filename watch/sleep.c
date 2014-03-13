@@ -44,6 +44,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		ptr = (uint8_t*)malloc(128);
 		if (ptr)
 		{
+			*ptr = 0xff;
 			sleepalgo_init(ptr, 128);
 			mpu_switchmode(2);
 			window_timer(CLOCK_SECOND * 60);

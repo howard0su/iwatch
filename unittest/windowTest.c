@@ -13,6 +13,8 @@
 
 #include "watch/test.h"
 
+#include "bluetooth.h"
+
 static const tFont *fonts[] =
 {
  &g_sFontNova12b,
@@ -280,7 +282,7 @@ static void run_window_events(windowproc window, struct _event *events)
     window(ev->event, ev->lparam, ev->rparam);
     if (ev->event == EVENT_WINDOW_PAINT)
     {
-      GrFlush(&context);    
+      GrFlush(&context);
     }
   }
 
@@ -335,14 +337,26 @@ void TestStatus(CuTest* tc)
   run_window_events(&status_process, test_events);
 }
 
-void TestHistory(CuTest* tc)
+void TestWelcome(CuTest* tc)
 {
   struct _event test_events[] = {
     {1, EVENT_WINDOW_CREATED, NULL, 0},
     {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
+
+  run_window_events(&welcome_process, test_events);
 }
 
 void TestSportWatch(CuTest* tc)
@@ -458,6 +472,21 @@ void TestSleep(CuTest* tc)
     {-1}
   };  
   run_window_events(&test_sleep, test_events);
+}
+
+void TestBtConfig(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, PROCESS_EVENT_TIMER, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, EVENT_BT_STATUS, NULL, BT_CONNECTED},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+  run_window_events(&btconfig_process, test_events);
 }
 
 static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
@@ -692,6 +721,8 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestPhoneScreen);
   SUITE_ADD_TEST(suite, TestNotification);
   SUITE_ADD_TEST(suite, TestControl);
+  SUITE_ADD_TEST(suite, TestWelcome);
+  SUITE_ADD_TEST(suite, TestBtConfig);
 
   SUITE_ADD_TEST(suite, TestSleep);
 

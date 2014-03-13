@@ -11,6 +11,7 @@ struct system_data
   uint8_t system_debug; // 0 - retail system, 1 - debug system
   uint8_t system_reset; // 0 - don't reset, 1 - factory reset
   uint8_t system_testing; // 0 - normal, 1 - factory testing
+  uint8_t system_lock;
   uint8_t serial[6];
 };
 
@@ -20,7 +21,7 @@ __attribute__ ((section(".infod")))
 #pragma constseg = INFOD
 #endif
 static const struct system_data init_data = {
-  1, 0, 1,
+  1, 0, 1, 1,
   0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
 };
 #ifndef __GNUC__
@@ -186,4 +187,44 @@ void system_getserial(uint8_t *buf)
   const struct system_data *data = (struct system_data *)INFOD;
   //TODO
   memcpy(buf, data->serial, 6);
+}
+
+uint8_t system_locked()
+{
+  const struct system_data *data = (struct system_data *)INFOD;
+  return data->system_lock;
+}
+
+void system_unlock()
+{
+  const struct system_data *data = (struct system_data *)INFOD;
+  struct system_data new_data;
+  new_data = *data;
+  
+  new_data.system_lock = 0;
+  // write the data
+  flash_setup();
+  flash_clear(INFOD);
+  flash_writepage(INFOD, (uint16_t*)&new_data, 128);
+  flash_done();
+  
+  system_reset(); 
+}
+
+void system_resetfactory()
+{
+    const struct system_data *data = (struct system_data *)INFOD;
+  struct system_data new_data;
+  new_data = *data;
+  
+  new_data.system_lock = 1;
+  new_data.system_reset = 1;
+
+  // write the data
+  flash_setup();
+  flash_clear(INFOD);
+  flash_writepage(INFOD, (uint16_t*)&new_data, 128);
+  flash_done();
+
+  system_reset();
 }

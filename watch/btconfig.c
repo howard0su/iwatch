@@ -5,14 +5,14 @@
 
 #include "btstack/bluetooth.h"
 
-static enum {BT_ON, BT_OFF, BT_INITIALING} state;
+static enum {BT_ON, BT_OFF, BT_INITIALING, BT_W4PAIR, BT_W4PAIR2} state;
 PROCESS_NAME(bluetooth_process);
 
 void draw_screen(tContext *pContext)
 {
-    // initialize state
-  GrContextFontSet(pContext, &g_sFontNova16);
-
+  char icon;
+  int offset = 0;
+  const char* str;
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
@@ -23,29 +23,47 @@ void draw_screen(tContext *pContext)
   // display text
   if (state == BT_ON)
   {
-    GrStringDraw(pContext, "Bluetooth is on", -1, 10, 68, 0);
-    GrContextFontSet(pContext, &g_sFontNova16);
-    GrStringDraw(pContext, "device is discoverable now.", -1, 20, 90, 0);
-
-    window_button(pContext, KEY_DOWN, "OFF");
+    icon = ICON_LARGE_BT;
+    str = "Bluetooth Paired";
+    window_button(pContext, KEY_UP, "OFF");
+    window_button(pContext, KEY_DOWN, "Exit");
   }
   else if (state == BT_OFF)
   {
-    GrStringDraw(pContext, "Bluetooth is off", -1, 10, 68, 0);
+    icon = ICON_LARGE_NOBT;
     window_button(pContext, KEY_DOWN, "ON");
+    str = "Bluetooth OFF";
+  }
+  else if (state == BT_W4PAIR)
+  {
+    icon = ICON_LARGE_WAIT1;
+    state = BT_W4PAIR2;
+    str = "Wait Pairing";
+    window_button(pContext, KEY_UP, "OFF");
+  }
+  else if (state == BT_W4PAIR2)
+  {
+    icon = ICON_LARGE_WAIT2;
+    state = BT_W4PAIR;
+    offset = 15;
+    str = "Wait Pairing";
+    window_button(pContext, KEY_UP, "OFF");
+  }
+  else if (state == BT_INITIALING)
+  {
+    icon = ICON_LARGE_NOBT;
+    str = "Turn ON Bluetooth";
   }
   else
   {
-    GrStringDraw(pContext, "Bluetooth is initializing", -1, 10, 68, 0);
-    //todo: add init timeout
+    return;
   }
 
-  if (bluetooth_paired())
-  {
-    GrStringDraw(pContext, "Device is paired", -1, 10, 50, 0);
-  }
+  GrContextFontSet(pContext, (const tFont*)&g_sFontExIcon48);
+  GrStringDraw(pContext, &icon, 1, 50 + offset, 50, 0);
 
-  GrFlush(pContext);
+  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrStringDrawCentered(pContext, str, -1, LCD_X_SIZE/2, 105, 0);
 }
 
 uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -55,9 +73,9 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CREATED:
     {
       // check the btstack status
-      if (process_is_running(&bluetooth_process))
+      if (bluetooth_running())
       {
-        state = BT_ON;
+        state = BT_W4PAIR;
 
         // if btstack is on, make it discoverable
         bluetooth_discoverable(1);
@@ -69,6 +87,17 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
 
       return 1;
     }
+  case EVENT_WINDOW_ACTIVE:
+  {
+    window_timer(CLOCK_SECOND);
+    break;
+  }
+  case PROCESS_EVENT_TIMER:
+  {
+    window_timer(CLOCK_SECOND);
+    window_invalid(NULL);
+    break;
+  }
   case EVENT_WINDOW_PAINT:
     {
       draw_screen((tContext*)rparam);
@@ -79,11 +108,15 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
       if ((lparam == BT_INITIALIZED) && (state == BT_OFF || state == BT_INITIALING))
       {
         bluetooth_discoverable(1);
-        state = BT_ON;
+        state = BT_W4PAIR;
       }
       else if ((lparam == BT_SHUTDOWN) && state == BT_ON)
       {
         state = BT_OFF;
+      }
+      else if (lparam == BT_CONNECTED)
+      {
+        state = BT_ON;
       }
 
       window_invalid(NULL);
@@ -95,8 +128,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         if (state == BT_ON)
         {
-          bluetooth_shutdown();
-          state = BT_OFF;
+          window_close();
         }
         else if (state == BT_OFF)
         {
@@ -106,17 +138,23 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
         window_invalid(NULL);
         return 1;
       }
+      else if (lparam == KEY_UP)
+      {
+        if (state == BT_ON || state == BT_W4PAIR2 || state == BT_W4PAIR)
+        {
+          bluetooth_shutdown();
+          state = BT_OFF;          
+        }
+      }
       break;
     }
   case EVENT_WINDOW_CLOSING:
     {
       if (state == BT_ON)
       {
-        if (bluetooth_paired())
-        {
-          bluetooth_discoverable(0);
-        }
+        bluetooth_discoverable(0);
       }
+      window_timer(0);
       break;
     }
   }

@@ -184,9 +184,11 @@ WATCH = \
     watch/selftest.c \
     watch/btconfig.c \
     watch/upgrade.c \
+    watch/reset.c \
     watch/sleep.c \
     watch/test.c \
     watch/siri.c \
+    watch/welcome.c \
     watch/window.c
 
 SERVICES= \

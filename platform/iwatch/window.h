@@ -114,6 +114,9 @@ extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {
@@ -241,15 +244,12 @@ enum SPORTS_GRID
     GRID_MAX,
 };
 
-struct MenuItem
-{
-  unsigned char icon;
-  const char *name;
-  windowproc handler;
-};
-
-#define ICON_LARGE_RUN   'b'
 #define ICON_LARGE_CYCLE 'a'
+#define ICON_LARGE_RUN   'b'
 #define ICON_LARGE_ALARM 'c'
+#define ICON_LARGE_BT    'd'
+#define ICON_LARGE_NOBT  'e'
+#define ICON_LARGE_WAIT1 'f'
+#define ICON_LARGE_WAIT2 'g'
 
 #endif
