@@ -49,5 +49,7 @@ void handle_gesture_control(uint8_t flag, uint8_t action_map[]);
 void handle_set_watch_config(ui_config* conf);
 void handle_get_activity();
 
+void handle_unlock_watch();
+
 #endif
 

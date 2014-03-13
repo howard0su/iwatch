@@ -437,3 +437,7 @@ void handle_set_watch_config(ui_config* new_config)
     }
 }
 
+void handle_unlock_watch()
+{
+    //TODO:
+}

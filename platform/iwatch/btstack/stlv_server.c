@@ -185,6 +185,10 @@ void handle_stlv_packet(unsigned char* packet)
             }
             break;
 
+        case ELEMENT_TYPE_UNLOCK_WATCH:
+            handle_unlock_watch();
+            break;
+
         }
 
 
