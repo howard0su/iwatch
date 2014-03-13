@@ -39,6 +39,7 @@ extern void gesture_processdata(int16_t *input);
 #define GESTURE_MPU_HZ  (150)
 
 static uint8_t zeromotion; // 1 - hang on the changes.
+static unsigned long stop_seconds;
 
 const static uint8_t init_data[] =
 {
@@ -67,6 +68,7 @@ void delay_ms(unsigned long num_ms)
 
 int mpu6050_selftest()
 {
+ #if 0
   long gyro[3], accel[3];
   int r = 0;// mpu_run_self_test(gyro, accel);
   printf("self test result %x\n", r);
@@ -76,8 +78,8 @@ int mpu6050_selftest()
     return -1;
   }
 
-  printf("accel bias: %d, %d, %d\n", accel[0], accel[1], accel[2]);
-
+  printf("accel bias: %ld, %ld, %ld\n", accel[0], accel[1], accel[2]);
+#endif
   return 0;
 }
 
@@ -91,54 +93,21 @@ void mpu6050_init()
   MPU_INT_IE  |=  MPU_INT_BIT;  // enable IRQ for P1.6
 
   zeromotion = 0;
+  read_interval = NORMAL_INTERVAL;
 
   // initialize I2C bus
   I2C_addr(MPU6050_ADDR);
 
-#if 0
-  int result;
-
-  printf("Initialize MPU6050...");
-  result = mpu_init(NULL);
-  if (result == -1)
-  {
-    goto error;
-  }
-
-  printf("mpu_set_sensors\n");
-  if (mpu_set_sensors(INV_XYZ_ACCEL))
-    goto error;
-
-  printf("mpu_set_accel_fsr\n");
-  if (mpu_set_accel_fsr(4))
-    goto error;
-
-//  if (mpu_lp_accel_mode(40))
-//    goto error;
-
-  printf("mpu_configure_fifo\n");
-  if (mpu_configure_fifo(INV_XYZ_ACCEL))
-    goto error;
-
-  printf("mpu_set_sample_rate\n");
-  if (mpu_set_sample_rate(DEFAULT_MPU_HZ))
-    goto error;
-
-
-  printf("mpu6050_selftest\n");
-#else
   I2C_write(MPU6050_RA_PWR_MGMT_1, 0x80);
   delay_ms(100);
   for(int i = 0; i < sizeof(init_data); i+=2)
   {
     I2C_writebytes(init_data[i], &init_data[i+1], 1);
   }
-#endif
-
-  read_interval = NORMAL_INTERVAL;
   I2C_done();
-  printf("Done\n");
+
   process_start(&mpu6050_process, NULL);
+  printf("Done\n");
 
   //if (mpu6050_selftest() == 0)
   {
@@ -148,7 +117,6 @@ void mpu6050_init()
 
   ped_init();
 
-error:
   printf("\n$$FAIL MPU6050\n");
   process_post(ui_process, EVENT_MPU_STATUS, (void*)0);
   return;
@@ -164,6 +132,7 @@ void mpu6050_shutdown(void)
 
 int port1_pin6()
 {
+  zeromotion = 1 - zeromotion;
   process_poll(&mpu6050_process);
   return 1;
 }
@@ -218,6 +187,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   PROCESS_BEGIN();
   _shakeCount = 0;
   _shaking = 0;
+  stop_seconds = 0;
 
   etimer_set(&timer, read_interval);
   process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
@@ -230,19 +200,33 @@ PROCESS_THREAD(mpu6050_process, ev, data)
     {
       uint8_t tmp;
       I2C_addr(MPU6050_ADDR);
-      //I2C_readbytes(MPU6050_RA_INT_STATUS, &tmp, 1); // clear int status
-      zeromotion = 1 - zeromotion;
+      I2C_readbytes(MPU6050_RA_INT_STATUS, &tmp, 1); // clear int status
+      printf("flasg %x\n", tmp);
       if (!zeromotion)
       {
-          //printf("start detectiong\n");
+          printf("start detectiong\n");
+          if (read_interval == SLEEP_INTERVAL)
+          {
+            unsigned int samples;
+            unsigned long seconds;
+            seconds = clock_seconds();
+            samples = (seconds - stop_seconds) * 10 / 3;
+            printf("%d samples skiped\n", samples);
+            slp_skippedsamples(samples);
+          }
           I2C_write(MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_RESET_BIT | MPU6050_USERCTRL_FIFO_EN_BIT);
           etimer_set(&timer, read_interval);
       }
       else
       {
-        //printf("stop detection\n");
+        printf("stop detection\n");
         // disable FIFO
+        etimer_stop(&timer);
         I2C_write(MPU6050_RA_USER_CTRL, 0x0);
+        if (read_interval == SLEEP_INTERVAL)
+        {
+          stop_seconds = clock_seconds();
+        }
       }
       I2C_done();
     }
@@ -381,9 +365,9 @@ void mpu_switchmode(int d)
       read_interval = SLEEP_INTERVAL;
     }
   }
+  I2C_write(MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_RESET_BIT | MPU6050_USERCTRL_FIFO_EN_BIT);
   I2C_done();
-
-  process_poll(&mpu6050_process);
+  etimer_set(&timer, read_interval);
 }
 
 #if 0
