@@ -12,6 +12,8 @@
 #include "stlv_client.h"
 #include "btstack/include/btstack/utils.h"
 #include "watch/sportsdata.h"
+#include "system.h"
+
 #include "config.h"
 #include "debug.h"
 
@@ -439,5 +441,5 @@ void handle_set_watch_config(ui_config* new_config)
 
 void handle_unlock_watch()
 {
-    //TODO:
+    system_unlock();
 }
