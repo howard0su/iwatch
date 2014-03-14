@@ -207,7 +207,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       uint8_t hour, minute, second;
       rtc_readtime(&hour, &minute, &second);
 
-      if (hour == 0 && minute == 0 && second <= 19)
+      if (hour == 0 && minute == 0 && second <= 30)
       {
         ped_reset();
 
