@@ -160,15 +160,27 @@ static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
     return cday == day && cmonth == month && cyear == year;
 }
 
-static uint8_t check_file_name(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
+static uint8_t is_data_file(char* name)
 {
-
     if (name[0] == '/' &&
         name[1] == 'D' &&
         name[2] == 'A' &&
         name[3] == 'T' &&
         name[4] == 'A' &&
         name[5] == '/')
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+static uint8_t check_file_name(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
+{
+
+    if (is_data_file(name))
     {
         if (name[8] != '-' || name[11] != '-')
         {
@@ -333,6 +345,9 @@ void clear_data_file()
         ret = cfs_readdir(&dir, &dirent);
         if (ret != -1)
         {
+            if (!is_data_file(dirent.name))
+                continue;
+
             uint8_t year, month, day;
             if (!check_file_name(dirent.name, &year, &month, &day))
             {

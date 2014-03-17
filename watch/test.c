@@ -795,3 +795,21 @@ uint8_t test_cleardata(uint8_t ev, uint16_t lparam, void* rparam)
 	clear_data_file();
 	return 0;
 }
+
+uint8_t test_builddata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+
+    printf("test_builddata()\n");
+    uint8_t meta[] = {DATA_COL_STEP, DATA_COL_DIST, DATA_COL_HR};
+    uint32_t data[] = {1234, 5678, 9012};
+
+    create_data_file(12, 11, 28);
+    write_data_line(0x00, 1, 1, meta, data, 3);
+    write_data_line(0x00, 1, 2, meta, data, 3);
+    write_data_line(0x01, 1, 3, meta, data, 3);
+    write_data_line(0x02, 1, 4, meta, data, 3);
+    write_data_line(0x03, 1, 5, meta, data, 3);
+    close_data_file();
+
+    return 0;
+}
