@@ -103,8 +103,6 @@ static const struct MenuItem TestMenu[] =
   {0, "BLE", &test_ble},
   {0, "Codec", &test_codec},
   {0, "Self-test", &selftest_process},
-  {0, "ClearSportsData", &test_cleardata},
-  {0, "BuildSportsData", &test_builddata},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };

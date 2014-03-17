@@ -160,7 +160,7 @@ static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
     return cday == day && cmonth == month && cyear == year;
 }
 
-static uint8_t is_data_file(char* name)
+static uint8_t check_file_name(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
 {
 
     if (name[0] == '/' &&
@@ -169,19 +169,6 @@ static uint8_t is_data_file(char* name)
         name[3] == 'T' &&
         name[4] == 'A' &&
         name[5] == '/')
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-static uint8_t check_file_name(char* name, uint8_t* year, uint8_t* month, uint8_t* day)
-{
-
-    if (is_data_file(name))
     {
         if (name[8] != '-' || name[11] != '-')
         {
@@ -208,9 +195,9 @@ static void write_file_head(int fd, uint8_t year, uint8_t month, uint8_t day)
 
     data_head_t data_head;
     data_head.version = 1;
-    data_head.year    = year;
-    data_head.month   = month;
-    data_head.day     = day;
+    data_head.year    = 1;
+    data_head.month   = 1;
+    data_head.day     = 1;
     cfs_write(fd, &data_head, sizeof(data_head));
 }
 
@@ -265,8 +252,6 @@ uint8_t build_data_line(
 {
     uint8_t pos = 0;
 
-    //printf("build_data_line(%d, %x, %d, %d, %d)\n", s_data_fd, mode, hh, mm, size);
-
     //build tag
     buf[pos++] = mode;
     buf[pos++] = hh;
@@ -302,16 +287,16 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint3
     if (s_data_fd != -1)
     {
         uint8_t buf[4 + 4 + 4 * 8] = {0};
-        uint8_t buf_size = build_data_line(buf, sizeof(buf), mode, hh, mm, meta, data, size);
-        if (buf_size == 0)
+        uint8_t size = build_data_line(buf, sizeof(buf), mode, hh, mm, meta, data, size);
+        if (size == 0)
         {
             printf("build_data_line(%d, %x, %d, %d, %d) failed\n", s_data_fd, mode, hh, mm, size);
             return;
         }
 
-        if (cfs_write(s_data_fd, buf, buf_size) != buf_size)
+        if (cfs_write(s_data_fd, buf, size) != size)
         {
-            printf("write_data(%d, %x, %d, %d, %d) failed\n", s_data_fd, mode, hh, mm, buf_size);
+            printf("write_data(%d, %x, %d, %d, %d) failed\n", s_data_fd, mode, hh, mm, size);
             close_data_file();
             return;
         }
@@ -349,12 +334,8 @@ void clear_data_file()
         if (ret != -1)
         {
             uint8_t year, month, day;
-            if (!is_data_file(dirent.name))
-                continue;
-
             if (!check_file_name(dirent.name, &year, &month, &day))
             {
-                printf("remove data %s\n", dirent.name);
                 cfs_remove(dirent.name);
                 continue;
             }
