@@ -257,13 +257,19 @@ uint8_t build_data_line(
     buf[pos++] = hh;
     buf[pos++] = mm;
     buf[pos++] = size;
+    if (pos >= buf_size)
+        return 0;
 
     //build meta
     pos += build_data_schema(&buf[pos], meta, size);
+    if (pos >= buf_size)
+        return 0;
 
     //build data
     memcpy(&buf[pos], data, size * sizeof(data[0]));
     pos += size * sizeof(data[0]);
+    if (pos >= buf_size)
+        return 0;
 
     return pos;
 }
