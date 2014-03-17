@@ -221,6 +221,8 @@ uint16_t __swap_bytes(uint16_t d)
 }
 
 void codec_setvolume(int a) {}
+uint8_t codec_getinput() {return 16;}
+uint8_t codec_changeinput(int i){return 16;}
 
 char *bluetooth_address() {return "TH:IS:IS:AD:DR";}
 
