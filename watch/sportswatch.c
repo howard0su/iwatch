@@ -665,23 +665,35 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       if (upload_data_interval > 0 &&
           workout_time % upload_data_interval == 0)
       {
-        // send data to phone
-        uint32_t stlv_data[6] = {0};
-        uint32_t ble_data_buf[5] = {0};
-        for(int i = 0; i < sportnum; i++)
+        uint8_t cursor = 0, size = 0;
+        uint8_t data_buf[32] = {0};
+
+        ui_config* config = window_readconfig();
+        sportnum = config->sports_grid + 4;
+
+        //grid number
+        data_buf[cursor] = sportnum;
+        cursor++;
+
+        //grids
+        for (int i = 0; i < sportnum; ++i)
         {
-            stlv_data[i]    = grid_data[i];
-            ble_data_buf[i] = stlv_data[i];
+          data_buf[cursor] = config->sports_grid_data[i];
+          cursor++;
         }
 
+        //data
+        memcpy(&data_buf[cursor], grid_data, sportnum * sizeof(grid_data[0]));
+        cursor += (sportnum * sizeof(grid_data[0]));
+
         //STLV over RFCOMM
-        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, stlv_data, sportnum);
+        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, data_buf, cursor);
 
         //BLE
         ble_start_sync(1);
         uint32_t timestamp = rtc_readtime32();
         //if (sports_type == SPORTS_DATA_FLAG_RUN)
-        ble_send_sports_data(timestamp, &ble_data_buf[1], sportnum);
+        ble_send_sports_data(timestamp, &grid_data[1], sportnum);
 
       }
 /*
@@ -736,8 +748,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       rtc_enablechange(0);
       ant_shutdown();
 
-      uint32_t dummy_stlv_data[4] = {0};
-      send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, 4);
+      uint8_t dummy_stlv_data[4] = {0};
+      send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, sizeof(dummy_stlv_data));
 
       ble_stop_sync();
       set_mode(DATA_MODE_NORMAL);
