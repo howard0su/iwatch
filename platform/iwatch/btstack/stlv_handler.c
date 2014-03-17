@@ -13,6 +13,7 @@
 #include "btstack/include/btstack/utils.h"
 #include "watch/sportsdata.h"
 #include "btstack-config.h"
+#include "system.h"
 #include "debug.h"
 
 extern void spp_sniff(int onoff);
@@ -437,3 +438,7 @@ void handle_set_watch_config(ui_config* new_config)
     }
 }
 
+void handle_unlock_watch()
+{
+    system_unlock();
+}

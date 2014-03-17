@@ -243,6 +243,37 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
     return s_data_fd;
 }
 
+uint8_t build_data_line(
+    uint8_t* buf, uint8_t buf_size,
+    uint8_t mode, 
+    uint8_t hh, uint8_t mm, 
+    uint8_t meta[], uint32_t data[],
+    uint8_t size)
+{
+    uint8_t pos = 0;
+
+    //build tag
+    buf[pos++] = mode;
+    buf[pos++] = hh;
+    buf[pos++] = mm;
+    buf[pos++] = size;
+    if (pos >= buf_size)
+        return 0;
+
+    //build meta
+    pos += build_data_schema(&buf[pos], meta, size);
+    if (pos >= buf_size)
+        return 0;
+
+    //build data
+    memcpy(&buf[pos], data, size * sizeof(data[0]));
+    pos += size * sizeof(data[0]);
+    if (pos >= buf_size)
+        return 0;
+
+    return pos;
+}
+
 void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint32_t data[], uint8_t size)
 {
     if (s_data_fd == -1)
@@ -255,27 +286,17 @@ void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint3
 
     if (s_data_fd != -1)
     {
-        //printf("write_data_line(%02d:%02d, mode = %d)\n", hh, mm, mode);
-        uint8_t tag[] = {mode, hh, mm, size};
-        //uint32_t tag = mode << 24 | hh << 16 | mm << 8 | size;
-        if (cfs_write(s_data_fd, &tag, sizeof(tag)) != sizeof(tag))
+        uint8_t buf[4 + 4 + 4 * 8] = {0};
+        uint8_t size = build_data_line(buf, sizeof(buf), mode, hh, mm, meta, data, size);
+        if (size == 0)
+        {
+            printf("build_data_line(%d, %x, %d, %d, %d) failed\n", s_data_fd, mode, hh, mm, size);
+            return;
+        }
+
+        if (cfs_write(s_data_fd, buf, size) != size)
         {
             printf("write_data(%d, %x, %d, %d, %d) failed\n", s_data_fd, mode, hh, mm, size);
-            close_data_file();
-            return;
-        }
-
-        uint32_t meta_tag = build_data_schema(meta, size);
-        if (cfs_write(s_data_fd, &tag, sizeof(tag)) != sizeof(tag))
-        {
-            printf("write_data(%d, meta) failed\n", s_data_fd);
-            close_data_file();
-            return;
-        }
-
-        if (cfs_write(s_data_fd, data, size * sizeof(uint32_t) != size * sizeof(uint32_t)))
-        {
-            printf("write_data(%d, data) failed\n", s_data_fd);
             close_data_file();
             return;
         }
@@ -374,16 +395,23 @@ void remove_data_file(char* filename)
     cfs_remove(filename);
 }
 
-uint32_t build_data_schema(uint8_t coltype[], uint8_t colcount)
+uint8_t build_data_schema(uint8_t* buf, uint8_t coltype[], uint8_t colcount)
 {
-    uint32_t ret = 0;
+    uint8_t pos = 0;
     for (uint8_t i = 0; i < colcount; ++i)
     {
         uint8_t val = coltype[i] & 0x0f;
-        uint8_t shift = (8 - i) * 4;
-        ret |= (val << shift);
+        if ((i & 0x01) != 0)
+        {
+            buf[pos] = val << 4;
+        }
+        else
+        {
+            buf[pos] |= val;
+            ++pos;
+        }
     }
-    return ret;
+    return 4;
 }
 
 

@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "window.h"
-#include "bluetooth.h"
+#include "codec.h"
 #include <stdint.h>
 #include <stdio.h>
 #include "i2c.h"
@@ -182,6 +182,37 @@ void codec_setvolume(uint8_t level)
 uint8_t codec_getvolume()
 {
   return last_vol;
+}
+
+uint8_t codec_getinput()
+{
+ uint8_t level;
+ I2C_addr(CODEC_ADDRESS);
+ level = codec_read(REG_LEFT_INP_PGA_GAIN_CTRL);
+ I2C_done();
+
+ level = (level & 0x3f);
+ return level;
+}
+
+uint8_t codec_changeinput(int8_t diff)
+{
+  uint8_t level = codec_getinput();
+  if (diff > 0 && level < 0x3f)
+  {
+    level += diff;
+  }
+
+  if (diff < 0 && level > 0)
+  {
+    level += diff;
+  }
+
+ I2C_addr(CODEC_ADDRESS);
+ codec_write(REG_LEFT_INP_PGA_GAIN_CTRL, level);
+ I2C_done();
+
+ return level;
 }
 
 void codec_wakeup()
