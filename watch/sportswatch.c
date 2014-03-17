@@ -101,7 +101,7 @@ static const tRectangle *regions[] =
   region_3grid, region_4grid, region_5grid
 };
 
-static int upload_data_interval = 3;
+static const int upload_data_interval = 3;
 
 // Find which grid slot contains the specific data
 static int findDataGrid(uint8_t data)
