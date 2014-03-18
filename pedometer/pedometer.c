@@ -279,24 +279,22 @@
 *  
 ****************************************************/
 
-#include "msp430.h"
 #include "b_filter_coeff.h"
 #include "pedometer.h"
 
-void b_filter(signed int *, signed int *, unsigned short);
-void b2_filter(signed int *, signed int *, unsigned short);
+static void b_filter(signed int *, signed int *, unsigned short);
+static void b2_filter(signed int *, signed int *, unsigned short);
 void do_q15_mult(signed int, signed int *);
 
-unsigned char index = 0;
-signed int x[50], y[50], z[50]; 
-signed int g[38], g_tmp, g_prev;
-signed int vcnt_up=0,vcnt_dn=0;
-signed int x_temp[24], y_temp[24], z_temp[24], g_temp[12];
-unsigned short i=0,j, g_index=0;	
-unsigned short step_cnt=0,cnt_flg=1, cnt_trip=46;
-unsigned short cnt=0, prev_cnt=0, no_cnt_flg, disp_trip=0;
-unsigned short first_loop=1,up_flg=1,dn_flg=0;
-unsigned short length_g=14, reset_time=99,pos_flg=1,strt_trip=0;
+static signed int x[50], y[50], z[50];
+static signed int g[38], g_tmp, g_prev;
+static signed int vcnt_up=0,vcnt_dn=0;
+static signed int x_temp[24], y_temp[24], z_temp[24], g_temp[12];
+static unsigned short g_index=0;
+static unsigned short step_cnt=0,cnt_flg=1, cnt_trip=46;
+static unsigned short cnt=0, prev_cnt=0, no_cnt_flg, disp_trip=0;
+static unsigned short first_loop=1,up_flg=1,dn_flg=0;
+static unsigned short length_g=14, reset_time=99,pos_flg=1,strt_trip=0;
 
 const unsigned short firmware_version = 0x0100;
 
@@ -334,6 +332,7 @@ char ped_update_sample(short* p_data)
 **/
 void ped_step_detect_init(void)
 {
+  unsigned char index;
   for(index=0; index < 50; index++)
   {
     x[index] = 0;	
@@ -349,7 +348,6 @@ void ped_step_detect_init(void)
   cnt_flg=1;
   cnt_trip=46;
   disp_trip=0;
-  i=0;
   g_index=0;
   reset_time=99;
   length_g=14;
@@ -368,7 +366,7 @@ void ped_step_detect_init(void)
 **/
 unsigned short ped_step_detect(void)
 {
-  
+  unsigned short i, j;
   // do processing
   b_filter(&x[0], &x_temp[0], first_loop);	   
   b_filter(&y[0], &y_temp[0], first_loop);
@@ -513,13 +511,10 @@ unsigned short ped_step_detect(void)
 * @param[in] *t
 * @param[in] first_loop
 **/
-void b_filter(signed int *d, signed int *t, unsigned short first_loop)
+static void b_filter(signed int *d, signed int *t, unsigned short first_loop)
 {
   unsigned short i,j;
   signed int R=0;
-  
-  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
-  MPY32CTL0 = MPYFRAC;                      // Set fractional mode
   
   // initialize data
   if(first_loop==1)
@@ -543,14 +538,13 @@ void b_filter(signed int *d, signed int *t, unsigned short first_loop)
     R=0;
     for(i=0;i<25;i++)
     {
-      MPYS = FILTER_COEFF_b[i];                            // Load first operand
-      OP2 = d[j-i];                             // Load second operand
-      R += RESHI;
+      signed int result;
+      result = d[j - i];
+      do_q15_mult(FILTER_COEFF_b[i], &result); 
+      R += result;
     }  
     d[j-24]=R;         
   }
-  
-  MPY32CTL0 &= ~MPYFRAC;  	
 }
 
 /**
@@ -559,13 +553,10 @@ void b_filter(signed int *d, signed int *t, unsigned short first_loop)
 * @param[in] *t
 * @param[in] first_loop
 **/
-void b2_filter(signed int *d, signed int *t, unsigned short first_loop)
+static void b2_filter(signed int *d, signed int *t, unsigned short first_loop)
 {
   unsigned short i,j,nn=26;
   signed int R=0;
-  
-  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
-  MPY32CTL0 = MPYFRAC;                      // Set fractional mode
   
   // initialize data
   if(first_loop==1)
@@ -590,32 +581,11 @@ void b2_filter(signed int *d, signed int *t, unsigned short first_loop)
     R=0;
     for(i=0;i<13;i++)
     {
-      MPYS = 0x09D8;                            // Load first operand
-      OP2 = d[j-i];                             // Load second operand
-      R += RESHI;
+      signed int result;
+      result = d[j - i];
+      do_q15_mult(0x09D8, &result);
+      R += result;
     }  
     d[j-12]=R;         
   }
-  
-  MPY32CTL0 &= ~MPYFRAC;  	
 }
-
-
-/**
-* @brief <b>Description: Q15 multiplication</b>
-* @param[in] a
-* @param[in] *var
-**/
-void do_q15_mult(signed int a, signed int * var)
-{
-  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
-  
-  MPY32CTL0 = MPYFRAC;                      // Set fractional mode
-  MPYS = a;                            // Load first operand
-  OP2 = *(var);                             // Load second operand
-  *(var) = RESHI;                       // Q15 result
-  
-  MPY32CTL0 &= ~MPYFRAC;
-}
-
-

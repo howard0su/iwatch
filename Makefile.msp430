@@ -194,6 +194,7 @@ WATCH = \
 SERVICES= \
   gesture/gesture.c \
   pedometer/pedometer.c \
+  pedometer/pedometer_msp430.c \
   pedometer/pedometer_dist.c
 
 OBJDIR = objs.msp430
