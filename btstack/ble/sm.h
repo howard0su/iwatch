@@ -188,6 +188,12 @@ void sm_set_io_capabilities(io_capability_t io_capability);
  */
 void sm_set_request_security(int enable);
 
+/** 
+ * @brief Trigger Security Request
+ * @note Not used normally. Bonding is triggered by access to protected attributes in ATT Server
+ */
+void sm_send_security_request();
+
 /**
  * @brief Decline bonding triggered by event before
  * @param addr_type and address
@@ -251,9 +257,12 @@ void sm_authorization_decline(uint8_t addr_type, bd_addr_t address);
 void sm_authorization_grant(uint8_t addr_type, bd_addr_t address);
 
 // Support for signed writes, used by att_server.c
+// NOTE: message and result are in little endian to allows passing in ATT PDU without flipping them first
 int  sm_cmac_ready();
 void sm_cmac_start(sm_key_t k, uint16_t message_len, uint8_t * message, void (*done_handler)(uint8_t hash[8]));
 
+// Testing support only
+void sm_test_set_irk(sm_key_t irk);
 #if defined __cplusplus
 }
 #endif

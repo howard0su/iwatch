@@ -35,7 +35,7 @@
  */
  
 #include <stdio.h>
-#include <string.h>
+#include <strings.h>
 
 #include "debug.h"
 #include "hci.h"
@@ -68,13 +68,15 @@ static uint8_t  sm_pairing_failed_reason = 0;
 
 void sm_set_er(sm_key_t er){}
 void sm_set_ir(sm_key_t ir){}
+void sm_test_set_irk(sm_key_t irk){}
+
 void sm_register_oob_data_callback( int (*get_oob_data_callback)(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data)){}
 
 void sm_set_accepted_stk_generation_methods(uint8_t accepted_stk_generation_methods){}
 void sm_set_encryption_key_size_range(uint8_t min_size, uint8_t max_size){}
 void sm_set_authentication_requirements(uint8_t auth_req){}
 void sm_set_io_capabilities(io_capability_t io_capability){}
-void sm_set_request_security(int enable){}
+void sm_send_security_request(){}
 
 void sm_bonding_decline(uint8_t addr_type, bd_addr_t address){}
 void sm_just_works_confirm(uint8_t addr_type, bd_addr_t address){}

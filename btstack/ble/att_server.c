@@ -67,6 +67,7 @@ typedef enum {
     ATT_SERVER_IDLE,
     ATT_SERVER_REQUEST_RECEIVED,
     ATT_SERVER_W4_SIGNED_WRITE_VALIDATION,
+    ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED,
 } att_server_state_t;
 
 static att_connection_t att_connection;
@@ -87,7 +88,7 @@ static timer_source_t att_handle_value_indication_timer;
 static btstack_packet_handler_t att_client_packet_handler = NULL;
 
 
-static int att_handle_value_indication_notify_client(uint8_t status, uint16_t client_handle, uint16_t attribute_handle){
+static void att_handle_value_indication_notify_client(uint8_t status, uint16_t client_handle, uint16_t attribute_handle){
     uint8_t event[7];
     int pos = 0;
     event[pos++] = ATT_HANDLE_VALUE_INDICATION_COMPLETE;
@@ -102,7 +103,6 @@ static int att_handle_value_indication_notify_client(uint8_t status, uint16_t cl
 
 static void att_handle_value_indication_timeout(timer_source_t *ts){
     uint16_t att_handle = att_handle_value_indication_handle;
-    att_handle_value_indication_handle = 0;    
     att_handle_value_indication_notify_client(ATT_HANDLE_VALUE_INDICATION_TIMEOUT, att_request_handle, att_handle);
 }
 
@@ -148,20 +148,26 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     // -> avoid sending advertise enable a second time before command complete was received 
                     att_server_state = ATT_SERVER_IDLE;
                     att_request_handle = 0;
+                    att_handle_value_indication_handle = 0; // reset error state
+                    att_clear_transaction_queue();
                     break;
                     
                 case SM_IDENTITY_RESOLVING_STARTED:
+                    printf("SM_IDENTITY_RESOLVING_STARTED\n");
                     att_ir_lookup_active = 1;
                     break;
                 case SM_IDENTITY_RESOLVING_SUCCEEDED:
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
+                    printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
                     att_run();
                     break;
                 case SM_IDENTITY_RESOLVING_FAILED:
+                    printf("SM_IDENTITY_RESOLVING_FAILED\n");
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = -1;
                     att_run();
+                    printf("SM_IDENTITY_RESOLVING_FAILED--\n");
                     break;
 
                 case SM_AUTHORIZATION_RESULT: {
@@ -195,9 +201,7 @@ static void att_signed_write_handle_cmac_result(uint8_t hash[8]){
     // update sequence number
     uint32_t counter_packet = READ_BT_32(att_request_buffer, att_request_size-12);
     central_device_db_counter_set(att_ir_central_device_db_index, counter_packet+1);
-    // just treat signed write command as simple write command after validation
-    att_request_buffer[0] = ATT_WRITE_COMMAND;
-    att_server_state = ATT_SERVER_REQUEST_RECEIVED;
+    att_server_state = ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED;
     att_run();
 }
 
@@ -242,10 +246,14 @@ static void att_run(void){
                 sm_key_t csrk;
                 central_device_db_csrk(att_ir_central_device_db_index, csrk);
                 att_server_state = ATT_SERVER_W4_SIGNED_WRITE_VALIDATION;
+                printf("Orig Signature: ");
+                hexdump( &att_request_buffer[att_request_size-8], 8);
                 sm_cmac_start(csrk, att_request_size - 8, att_request_buffer, att_signed_write_handle_cmac_result);
                 return;
             } 
+            // NOTE: fall through for regular commands
 
+        case ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED:
             if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
 
             uint8_t  att_response_buffer[28];
@@ -323,9 +331,14 @@ int  att_server_can_send(){
 }
 
 int att_server_notify(uint16_t handle, uint8_t *value, uint16_t value_len){
-    uint8_t packet_buffer[32];
+    uint8_t *packet_buffer = malloc(att_connection.mtu);
+    if (packet_buffer == NULL)
+        return BTSTACK_MEMORY_ALLOC_FAILED;
     uint16_t size = att_prepare_handle_value_notification(&att_connection, handle, value, value_len, packet_buffer);
-	return l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+	int ret = l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+
+    free(packet_buffer);
+    return ret;
 }
 
 int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len){
@@ -338,8 +351,12 @@ int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len){
     run_loop_set_timer(&att_handle_value_indication_timer, ATT_TRANSACTION_TIMEOUT_MS);
     run_loop_add_timer(&att_handle_value_indication_timer);
 
-    uint8_t packet_buffer[32];
+    uint8_t *packet_buffer = malloc(att_connection.mtu);
+    if (packet_buffer == NULL)
+        return BTSTACK_MEMORY_ALLOC_FAILED;
     uint16_t size = att_prepare_handle_value_indication(&att_connection, handle, value, value_len, packet_buffer);
-	l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+    int ret = l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+
+    free(packet_buffer);
     return 0;
 }

@@ -174,6 +174,7 @@ static sm_key_t sm_persistent_ir;
 // derived from sm_persistent_ir
 static sm_key_t sm_persistent_dhk;
 static sm_key_t sm_persistent_irk;
+static uint8_t  sm_persistent_irk_ready = 0;    // used for testing
 
 // derived from sm_persistent_er
 // ..
@@ -248,6 +249,7 @@ static sm_key_t  sm_m_random;
 static sm_key_t  sm_m_confirm;
 
 static sm_key_t  sm_s_random;
+static uint8_t   sm_s_have_oob_data;
 static sm_key_t  sm_s_confirm;
 static uint8_t   sm_s_pres[7];
 
@@ -300,25 +302,6 @@ static const stk_generation_method_t stk_generation_method[5][5] = {
 
 static void sm_run();
 
-// Utils
-static inline void swapX(uint8_t *src, uint8_t *dst, int len){
-    int i;
-    for (i = 0; i < len; i++)
-        dst[len - 1 - i] = src[i];
-}
-static inline void swap24(uint8_t src[3], uint8_t dst[3]){
-    swapX(src, dst, 3);
-}
-static inline void swap56(uint8_t src[7], uint8_t dst[7]){
-    swapX(src, dst, 7);
-}
-static inline void swap64(uint8_t src[8], uint8_t dst[8]){
-    swapX(src, dst, 8);
-}
-static inline void swap128(uint8_t src[16], uint8_t dst[16]){
-    swapX(src, dst, 16);
-}
-
 static void print_hex16(const char * name, uint16_t value){
     printf("%-6s 0x%04x\n", name, value);
 }
@@ -366,6 +349,7 @@ static void sm_timeout_handler(timer_source_t * timer){
     sm_state_responding = SM_STATE_TIMEOUT;
 }
 static void sm_timeout_start(){
+    run_loop_remove_timer(&sm_timeout);
     run_loop_set_timer_handler(&sm_timeout, sm_timeout_handler);
     run_loop_set_timer(&sm_timeout, 30000); // 30 seconds sm timeout
     run_loop_add_timer(&sm_timeout);
@@ -385,13 +369,18 @@ static gap_random_address_type_t gap_random_adress_type;
 static timer_source_t gap_random_address_update_timer; 
 static uint32_t gap_random_adress_update_period;
 
+static void gap_random_address_trigger(){
+    if (rau_state != RAU_IDLE) return;
+    printf("gap_random_address_trigger\n");
+    rau_state = RAU_GET_RANDOM;
+    sm_run();
+}
+
 static void gap_random_address_update_handler(timer_source_t * timer){
     printf("GAP Random Address Update due\n");
     run_loop_set_timer(&gap_random_address_update_timer, gap_random_adress_update_period);
     run_loop_add_timer(&gap_random_address_update_timer);
-    if (rau_state != RAU_IDLE) return;
-    rau_state = RAU_GET_RANDOM;
-    sm_run();
+    gap_random_address_trigger();
 }
 
 static void gap_random_address_update_start(){
@@ -534,10 +523,18 @@ static void sm_tk_setup(){
     sm_stk_generation_method = JUST_WORKS;
     sm_reset_tk();
 
+    // query client for OOB data
+    if (sm_get_oob_data)
+        sm_s_have_oob_data = (*sm_get_oob_data)(sm_m_addr_type, &sm_m_address, sm_tk);
+    else
+        sm_get_oob_data = 0;
+
     // If both devices have out of band authentication data, then the Authentication
     // Requirements Flags shall be ignored when selecting the pairing method and the
     // Out of Band pairing method shall be used.
-    if (sm_m_have_oob_data && (*sm_get_oob_data)(sm_m_addr_type, &sm_m_address, sm_tk)){
+    if (sm_m_have_oob_data && sm_s_have_oob_data){
+        printf("SM: have OOB data");
+        print_key("OOB", sm_tk);
         sm_stk_generation_method = OOB;
         return;
     }
@@ -790,9 +787,7 @@ static void sm_run(void){
             return;
             }
         case RAU_SET_ADDRESS:
-            printf("New random address: ");
-            print_bd_addr(sm_random_address);
-            printf("\n");
+            printf("New random address: %s\n", bd_addr_to_str(sm_random_address));
             hci_send_cmd(&hci_le_set_random_address, sm_random_address);
             rau_state = RAU_IDLE;
             return;
@@ -808,9 +803,7 @@ static void sm_run(void){
             bd_addr_t addr;
             sm_key_t irk;
             central_device_db_info(sm_central_device_test, &addr_type, addr, irk);
-            printf("device type %u, addr: ", addr_type);
-            print_bd_addr(addr);
-            printf("\n");
+            printf("device type %u, addr: %s\n", addr_type, bd_addr_to_str(addr));
 
             if (sm_m_addr_type == addr_type && memcmp(addr, sm_m_address, 6) == 0){
                 printf("Central Device Lookup: found CSRK by { addr_type, address} \n");
@@ -877,7 +870,7 @@ static void sm_run(void){
             memcpy(buffer, sm_m_preq, 7);        
             buffer[0] = SM_CODE_PAIRING_RESPONSE;
             buffer[1] = sm_s_io_capabilities;
-            buffer[2] = sm_stk_generation_method == OOB ? 1 : 0;
+            buffer[2] = sm_s_have_oob_data;
             buffer[3] = sm_s_auth_req;
             buffer[4] = sm_max_encryption_key_size;
 
@@ -1261,7 +1254,7 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
 					// bt stack activated, get started
 					if (packet[2] == HCI_STATE_WORKING) {
                         printf("HCI Working!\n");
-                        dkg_state = DKG_CALC_IRK;
+                        dkg_state = sm_persistent_irk_ready ? DKG_CALC_DHK : DKG_CALC_IRK;
 
                         sm_run();
                         return; // don't notify app packet handler just yet
@@ -1271,6 +1264,9 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                 case HCI_EVENT_LE_META:
                     switch (packet[2]) {
                         case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
+
+                            if (packet[3]) return; // connection failed
+
                             // only single connection for peripheral
                             if (sm_response_handle){
                                 printf("Already connected, ignoring incoming connection\n");
@@ -1284,8 +1280,7 @@ static void sm_event_packet_handler (void * connection, uint8_t packet_type, uin
                             sm_reset_tk();
                             
                             hci_le_advertisement_address(&sm_s_addr_type, &sm_s_address);
-                            printf("Incoming connection, own address ");
-                            print_bd_addr(sm_s_address);
+                            printf("Incoming connection, own address %s\n", bd_addr_to_str(sm_s_address));
 
                             // reset security properties
                             sm_connection_encrypted = 0;
@@ -1643,8 +1638,22 @@ void sm_set_er(sm_key_t er){
 
 void sm_set_ir(sm_key_t ir){
     memcpy(sm_persistent_ir, ir, 16);
-    // sm_dhk(sm_persistent_ir, sm_persistent_dhk);
-    // sm_irk(sm_persistent_ir, sm_persistent_irk);
+}
+
+// Testing support only
+void sm_test_set_irk(sm_key_t irk){
+    memcpy(sm_persistent_irk, irk, 16);
+    sm_persistent_irk_ready = 1;
+}
+
+
+/** 
+ * @brief Trigger Security Request
+ * @note Not used normally. Bonding is triggered by access to protected attributes in ATT Server
+ */
+void sm_send_security_request(){
+    sm_state_responding = SM_STATE_SEND_SECURITY_REQUEST;
+    sm_run();
 }
 
 void sm_init(){
@@ -1762,6 +1771,7 @@ void gap_random_address_set_mode(gap_random_address_type_t random_address_type){
     gap_random_adress_type = random_address_type;
     if (random_address_type == GAP_RANDOM_ADDRESS_TYPE_OFF) return;
     gap_random_address_update_start();
+    gap_random_address_trigger();
 }
 
 void gap_random_address_set_update_period(int period_ms){

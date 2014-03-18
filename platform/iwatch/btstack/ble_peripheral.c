@@ -170,10 +170,17 @@ void ble_init(void){
 
     // setup SM: Display only
     sm_init();
-    sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY);
-    sm_set_authentication_requirements( SM_AUTHREQ_BONDING | SM_AUTHREQ_MITM_PROTECTION); 
-    sm_set_request_security(1);
-    //sm_set_encryption_key_size_range(7,15);
+    //sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY);
+    sm_set_authentication_requirements( SM_AUTHREQ_BONDING); 
+
+    //strcpy(gap_device_name, "BTstack");
+    sm_set_io_capabilities(IO_CAPABILITY_NO_INPUT_NO_OUTPUT);
+    //sm_io_capabilities =  "IO_CAPABILITY_NO_INPUT_NO_OUTPUT";
+    sm_set_authentication_requirements(0);
+    //sm_register_oob_data_callback(get_oob_data_callback);
+    //sm_set_encryption_key_size_range(sm_min_key_size, 16);
+    //sm_test_set_irk(test_irk);
+
 
     // setup ATT server
     att_server_init(profile_data, att_read_callback, att_write_callback);
