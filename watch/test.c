@@ -8,7 +8,6 @@
 #include "ant/antinterface.h"
 #include "btstack/src/hci.h"
 #include "bluetooth.h"
-#include "codec.h"
 #include "stlv_client.h"
 #include "stlv_handler.h"
 #include "sportsdata.h"
@@ -148,8 +147,6 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 		case EVENT_WINDOW_CREATED:
 		codec_wakeup();
 		hci_send_cmd(&hci_vs_set_pcm_loopback_enable, 1);
-		data = 0; // level
-		onoff = 0; // 0 - volume, 1 - input sesitity 2 - output boost
 		break;
 
 		case EVENT_WINDOW_PAINT:
@@ -159,25 +156,10 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-          GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
-          const char *str;
-          char buf[20];
-          switch(onoff)
-          {
-          	case 0:
-          		str = "Speaker is looping back to mic";
-          		sprintf(buf, "volume level:%d", codec_getvolume());
-          		break;
-          	case 1:
-          		str = "Input sensitity";
-          		int16_t k = codec_getinput();
-          		k = k - 16;
-          		k = k * 3;
-          		sprintf(buf, "Input: (%d/4)db", k);
-          		break;
-          }
- 		  GrStringDraw(pContext, str, -1, 0, 50, 0);
- 		  GrStringDraw(pContext, buf, -1, 0, 80, 0);
+      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+ 		  GrStringDraw(pContext, "Speaker is looping back to mic", -1, 0, 50, 0);
+
+  		window_volume(pContext, 30, 125, 8, codec_getvolume());
 
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
@@ -186,29 +168,20 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
  		}
  		case EVENT_KEY_PRESSED:
 		  switch(lparam)
-		    {
+		      {
 		      case KEY_UP:
 		        {
-		        	if (onoff == 0)
-		          		codec_changevolume(+1);
-		          	else if (onoff == 1)
-		          		codec_changeinput(+1);
-		         	break;
+		          codec_changevolume(+1);
+		          break;
 		        }
 		      case KEY_DOWN:
 		        {
-		        	if (onoff == 0)
-		          		codec_changevolume(-1);
-		          	else if (onoff == 1)
-		          		codec_changeinput(-1);
-		         	break;
+		          // decrease voice
+		          codec_changevolume(-1);
+		          break;
 		        }
-		       case KEY_ENTER:
-		       {
-		       	onoff = 1 - onoff;
-		       }
-			}
-			window_invalid(NULL);
+					}
+					window_invalid(NULL);
 			break;
 		case EVENT_EXIT_PRESSED:
 		hci_send_cmd(&hci_vs_set_pcm_loopback_enable, 1);
@@ -821,4 +794,22 @@ uint8_t test_cleardata(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	clear_data_file();
 	return 0;
+}
+
+uint8_t test_builddata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+
+    printf("test_builddata()\n");
+    uint8_t meta[] = {DATA_COL_STEP, DATA_COL_DIST, DATA_COL_HR};
+    uint32_t data[] = {1234, 5678, 9012};
+
+    create_data_file(12, 11, 28);
+    write_data_line(0x00, 1, 1, meta, data, 3);
+    write_data_line(0x00, 1, 2, meta, data, 3);
+    write_data_line(0x01, 1, 3, meta, data, 3);
+    write_data_line(0x02, 1, 4, meta, data, 3);
+    write_data_line(0x03, 1, 5, meta, data, 3);
+    close_data_file();
+
+    return 0;
 }
