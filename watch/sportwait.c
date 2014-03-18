@@ -43,8 +43,8 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
 
       //send out start workout data to watch
       {
-        uint32_t stlv_data[6] = {0};
-        uint32_t ble_data_buf[5] = {0};
+        uint8_t stlv_data[6] = {0};
+        uint8_t ble_data_buf[5] = {0};
 
         //STLV over RFCOMM
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_PRE, stlv_data, 5);
@@ -59,7 +59,7 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
     break;
   case EVENT_WINDOW_CLOSING:
     {
-      uint32_t dummy_stlv_data[4] = {0};
+      uint8_t dummy_stlv_data[4] = {0};
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, 4);
 
       ble_stop_sync();
