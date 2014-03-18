@@ -4,6 +4,7 @@
 #include "window.h"
 #include "pedometer/sleepalgo.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 
 static uint8_t *ptr;
