@@ -11,12 +11,25 @@
 #include "stlv_server.h"
 #include "stlv_transport.h"
 #include "stlv_handler.h"
+#include "watch/sportsdata.h"
 
 #ifndef NULL
 #   define NULL 0
 #endif
 
 #define TEST_FILE_NAME "testfile"
+
+static void dumpBuffer(uint8_t* buf, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        if (i > 0 && i % 16 == 0)
+            printf("\n");
+        printf("%02x ", buf[i]);
+    }
+    if (size > 0)
+        printf("\n");
+}
 
 static int trySendOut()
 {
@@ -314,6 +327,36 @@ static void TestGooglNow(CuTest* tc)
     }
 }
 
+static void TestSportsFile(CuTest* tc)
+{
+    cfs_coffee_format();
+    init_send_pack_stub(); 
+
+    uint8_t meta[] = {DATA_COL_STEP, DATA_COL_DIST, DATA_COL_HR};
+    uint32_t data[] = {1234, 5678, 9012};
+    create_data_file(12, 7, 9);
+    write_data_line(0x00, 1, 1, meta, data, 3);
+    write_data_line(0x00, 1, 2, meta, data, 3);
+    write_data_line(0x01, 1, 3, meta, data, 3);
+    write_data_line(0x02, 1, 4, meta, data, 3);
+    write_data_line(0x03, 1, 5, meta, data, 3);
+    close_data_file();
+
+    handle_get_activity();
+    trySendOut();
+
+    CuAssertIntEquals(tc, 4,  get_send_pack_stub_count());
+
+    send_pack_stub_t* node = get_send_pack_stub();
+    for (int i = 0; i < 4; ++i)
+    {
+        CuAssertIntEquals(tc, 64, node->len);
+        printf("packet %d\n", i);
+        dumpBuffer(node->data, node->len);
+        node = get_next_send_pack_stub(node);
+    }
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew("STLV Test");
@@ -326,6 +369,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestAlarmConf);
     SUITE_ADD_TEST(suite, TestNotification);
     SUITE_ADD_TEST(suite, TestGooglNow);
+    SUITE_ADD_TEST(suite, TestSportsFile);
     return suite;
 }
 
