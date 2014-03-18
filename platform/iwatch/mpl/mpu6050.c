@@ -11,8 +11,7 @@
 #include "window.h"
 #include "mpu6050_def.h"
 
-//#include "inv_mpu.h"
-//#include "inv_mpu_dmp_motion_driver.h"
+#define ZEROMOTION 0
 
 #include "pedometer/pedometer.h"
 #include "pedometer/sleepalgo.h"
@@ -38,8 +37,10 @@ extern void gesture_processdata(int16_t *input);
 #define DEFAULT_MPU_HZ  (50)
 #define GESTURE_MPU_HZ  (150)
 
+#if ZEROMOTION
 static uint8_t zeromotion; // 1 - hang on the changes.
 static unsigned long stop_seconds;
+#endif
 
 const static uint8_t init_data[] =
 {
@@ -50,9 +51,11 @@ const static uint8_t init_data[] =
   MPU6050_RA_FIFO_EN, 0x08, // enable fifo for accel x, y, z
   MPU6050_RA_USER_CTRL, 0x40, // enable fifo
 
+#if ZEROMOTION
   MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_ZMOT_BIT, // enable zero motion detection interrupt
   MPU6050_RA_ZRMOT_THR, 16,
   MPU6050_RA_ZRMOT_DUR, 100,
+#endif
 };
 
 
@@ -92,7 +95,10 @@ void mpu6050_init()
   MPU_INT_IES &= ~MPU_INT_BIT;  // IRQ on 0->1 transition
   MPU_INT_IE  |=  MPU_INT_BIT;  // enable IRQ for P1.6
 
+#if ZEROMOTION
   zeromotion = 0;
+  stop_seconds = 0;
+#endif
   read_interval = NORMAL_INTERVAL;
 
   // initialize I2C bus
@@ -132,8 +138,10 @@ void mpu6050_shutdown(void)
 
 int port1_pin6()
 {
+#if ZEROMOTION
   zeromotion = 1 - zeromotion;
   process_poll(&mpu6050_process);
+#endif
   return 1;
 }
 
@@ -187,7 +195,6 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   PROCESS_BEGIN();
   _shakeCount = 0;
   _shaking = 0;
-  stop_seconds = 0;
 
   etimer_set(&timer, read_interval);
   process_post(ui_process, EVENT_MPU_STATUS, (void*)BIT0);
@@ -195,7 +202,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
   {
     PROCESS_WAIT_EVENT();
     // initialize I2C bus
-
+#if ZEROMOTION
     if (ev == PROCESS_EVENT_POLL)
     {
       uint8_t tmp;
@@ -230,7 +237,7 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       }
       I2C_done();
     }
-
+#endif
     if (ev == PROCESS_EVENT_TIMER || (ev == PROCESS_EVENT_POLL))
     {
         I2C_addr(MPU6050_ADDR);
@@ -326,7 +333,9 @@ PROCESS_THREAD(mpu6050_process, ev, data)
       }while(more);
       I2C_done();
 
+#if ZEROMOTION
       if (!zeromotion)
+#endif
         etimer_set(&timer, read_interval);
     }
   }
