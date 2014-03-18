@@ -80,6 +80,10 @@ int CheckUpgrade(void)
   if (h.signature != SIGNATURE)
     return 2;
 
+  SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE + h.length + 2 * sizeof(h), sizeof(h));
+  if (h.signature == SIGNATURE)
+    return 3; // ignore flag
+
   // check CRC
 
   return 0;
@@ -116,9 +120,7 @@ void Upgrade(void)
   struct _header h;
   int length;
   SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE, sizeof(h));
-  length = h.length;
-  h.signature = 0;
-  SPI_FLASH_BufferWrite((void*)&h, FIRMWARE_BASE + length + sizeof(h), sizeof(h));
+  SPI_FLASH_BufferWrite((void*)&h, FIRMWARE_BASE + h.length + 2 * sizeof(h), sizeof(h));
 
   FlashFirmware();
 }
