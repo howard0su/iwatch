@@ -47,8 +47,8 @@ static bd_addr_t currentbd;
 static void hfp_run();
 
 static int hfp_try_respond(uint16_t rfcomm_channel_id){
-    if (!hfp_response_size) return 0;
-    if (!rfcomm_channel_id) return 0;
+    if (!hfp_response_size) return -1;
+    if (!rfcomm_channel_id) return -1;
 
     //hci_exit_sniff(rfcomm_connection_handle);
 
@@ -634,7 +634,7 @@ static void hfp_state_handler(int code, char* buf)
 
 static void hfp_run()
 {
-  printf("hfp_run %d\n", state);
+  log_debug("hfp_run %d\n", state);
   if (state != IDLE && state != READY_SEND)
   {
     hfp_try_respond(rfcomm_channel_id);
@@ -683,13 +683,26 @@ static void hfp_run()
         state = IDLE;
       }
   }
-  else if (!pending & PENDING_BRVAOFF)
+  else if (pending & PENDING_BRVAOFF)
   {
       hfp_response_buffer = AT_BVRAOFF;
       hfp_response_size = sizeof(AT_BVRAOFF);
-      if (hfp_try_respond(rfcomm_channel_id))
+      if (!hfp_try_respond(rfcomm_channel_id))
       {
         pending &= ~PENDING_BRVAOFF;
+        state = IDLE;
+      }
+  }
+  else if (pending & PENDING_BATTERY)
+  {
+      char buf[] = "\r\nAT+IPHONEACCEV=2,1,X,2,X\r\n";
+      hfp_response_buffer = buf;
+      hfp_response_size = sizeof(buf);
+      buf[21] = '0' + (battery_level & 0x0f);
+      buf[25] = '0' + ((battery_level & 0xf0)==0?0:1);
+      if (!hfp_try_respond(rfcomm_channel_id))
+      {
+        pending &= ~PENDING_BATTERY;
         state = IDLE;
       }
   }
