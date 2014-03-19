@@ -232,7 +232,7 @@ static void btstack_setup(){
 
   hfp_init();
 
-  mns_init();
+  //mns_init();
 }
 
 void bluetooth_init()
