@@ -882,7 +882,7 @@ bd_addr_t* hfp_remote_addr()
 // high 4 bit, 0 - 1, charge or not
 void hfp_battery(int level)
 {
-  if (battery_level != 0xff)
+  if (battery_level != 0xff && battery_level != level)
   {
     battery_level = level;
     pending |= PENDING_BATTERY;
