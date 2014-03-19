@@ -114,7 +114,7 @@ void FD_SET_BLOCKID(uint8_t* buf, uint16_t blockid)
 
 static void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
 {
-    
+    log_info("ble_write_file_desc() mode=%x\n", s_file_mode);
     if (FD_GET_COMMAND(buffer) == FD_REST)
     {
         init_ble_file_handler();
@@ -208,6 +208,7 @@ static void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
 
 static void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
 {
+    log_info("ble_read_file_desc() mode=%x\n", s_file_mode);
     switch (s_file_mode)
     {
         case FS_IDLE:
@@ -245,6 +246,7 @@ static void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
                 s_read_fd = cfs_open(filename, CFS_READ);
                 if (s_read_fd == -1)
                 {
+                    log_error("cfs_open(%s) failed when FS_READING\n", filename);
                     FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
                     s_file_mode = FS_IDLE;
                     break;
@@ -253,10 +255,11 @@ static void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
 
             if (s_block_id != blockid)
             {
-                uint16_t block_offset = s_block_id * sizeof(s_file_data);
+                uint16_t block_offset = blockid * sizeof(s_file_data);
                 cfs_offset_t seek_ret = cfs_seek(s_read_fd, block_offset, CFS_SEEK_SET);
                 if (seek_ret == -1)
                 {
+                    log_error("cfs_seek(%d, %d(=%d*%d)) failed when FS_READING\n", s_read_fd, block_offset, s_block_id, sizeof(s_file_data));
                     FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
                     s_file_mode = FS_IDLE;
                     break;
@@ -265,6 +268,7 @@ static void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
                 int read_byte = cfs_read(s_read_fd, s_file_data, sizeof(s_file_data));
                 if (read_byte == 0)
                 {
+                    log_error("cfs_read(%d) failed when FS_READING\n", s_read_fd);
                     FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
                     s_file_mode = FS_IDLE;
                     break;
@@ -399,7 +403,7 @@ static void att_write_world_clock(uint8_t id, char* buf)
 
 uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
 {
-    log_info("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
+    //log_info("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
     const ble_handle_t* hble = get_ble_handle(handle);
     if (hble == NULL)
     {
