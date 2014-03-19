@@ -36,6 +36,7 @@ static enum
   PENDING_CHUP= 0x04,
   PENDING_BRVAON = 0x08,
   PENDING_BRVAOFF = 0x10,
+  PENDING_BATTERY = 0x20,
 }pending;
 
 static uint16_t hfp_response_size;
@@ -44,6 +45,7 @@ static uint16_t rfcomm_channel_id = 0;
 static uint16_t rfcomm_connection_handle;
 static bd_addr_t currentbd;
 
+static uint8_t battery_level = 0xff;
 static void hfp_run();
 
 static int hfp_try_respond(uint16_t rfcomm_channel_id){
@@ -188,7 +190,7 @@ void hfp_open(const bd_addr_t *remote_addr, uint8_t port)
 #define AT_CHUP  "\r\nAT+CHUP\r\n"
 #define AT_ATA   "\r\nATA\r\n"
 #define AT_CMGS  "\r\nAT+CMGS=?\r\n"
-#define AT_XAPL  "\r\nAT+XAPL=8086-1234-0001,0\r\n"
+#define AT_XAPL  "\r\nAT+XAPL=8086-1234-0001,14\r\n"
 
 #define R_NONE 0
 #define R_OK   0
@@ -573,7 +575,7 @@ static void hfp_state_handler(int code, char* buf)
     hfp_response_size = sizeof(AT_CMER);
     state = WAIT_CMEROK;
     hfp_try_respond(rfcomm_channel_id);
-    sdpc_open(event_addr);
+    //sdpc_open(event_addr);
   }
   else if (state == WAIT_CMEROK && code == R_OK)
   {
@@ -587,10 +589,12 @@ static void hfp_state_handler(int code, char* buf)
     if (code == R_XAPL)
     {
       printf("Apple Phone\n");
+      battery_level = 0;
     }
     else
     {
       printf("Unknown Phone\n");
+      battery_level = 0xff;
     }
     hfp_response_buffer = AT_CLIP;
     hfp_response_size = sizeof(AT_CLIP);
@@ -872,4 +876,17 @@ uint8_t hfp_connected()
 bd_addr_t* hfp_remote_addr()
 {
   return &currentbd;
+}
+
+// low 4 bit, 0 - 9, battery level
+// high 4 bit, 0 - 1, charge or not
+void hfp_battery(int level)
+{
+  if (battery_level != 0xff)
+  {
+    battery_level = level;
+    pending |= PENDING_BATTERY;
+
+    hfp_run();
+  }
 }
