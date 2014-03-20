@@ -125,7 +125,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                         	att_client_addr_type = packet[7];
                             bt_flip_addr(att_client_address, &packet[8]);
                             // reset connection properties
-                            att_connection.mtu = 23;
+                            att_connection.mtu = 22;
                             att_connection.encryption_key_size = 0;
                             att_connection.authenticated = 0;
 		                	att_connection.authorized = 0;
