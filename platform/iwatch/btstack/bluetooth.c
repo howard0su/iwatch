@@ -45,7 +45,7 @@ extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
 static bd_addr_t currentbd;
-
+static uint8_t running = 0;
 static uint16_t handle_audio = 0;
 
 // Bluetooth logic
@@ -120,6 +120,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     // bt stack activated, get started - set local name
     if (packet[2] == HCI_STATE_WORKING) {
       log_info("Start initialize bluetooth chip!\n");
+      running = 1;
       hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
     }
     break;
@@ -244,16 +245,19 @@ void bluetooth_shutdown()
 
   // notify UI that we are shutdown
   process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
+
+  running = 0;
 }
 
 void bluetooth_discoverable(uint8_t onoff)
 {
   hci_discoverable_control(onoff);
+  ble_advertise(onoff);
 }
 
 uint8_t bluetooth_running()
 {
-  return process_is_running(&bluetooth_process);
+  return running;
 }
 
 const char* bluetooth_address()
