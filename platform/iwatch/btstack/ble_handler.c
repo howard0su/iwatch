@@ -114,8 +114,7 @@ void FD_SET_BLOCKID(uint8_t* buf, uint16_t blockid)
 
 static void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
 {
-    log_info("ble_write_file_desc() mode=%x, cmd=%c,%d,%d\n", 
-        s_file_mode, FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer));
+    
     if (FD_GET_COMMAND(buffer) == FD_REST)
     {
         init_ble_file_handler();
@@ -209,7 +208,7 @@ static void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
 
 static void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
 {
-    log_info("ble_read_file_desc() start: mode=%x\n", s_file_mode);
+    
     switch (s_file_mode)
     {
         case FS_IDLE:
@@ -301,8 +300,7 @@ static void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
     }
 
     memcpy(buffer, s_file_desc, buffer_size);
-    log_info("ble_read_file_desc() end: mode=%x, cmd=%c,%d,%d\n", 
-        s_file_mode, FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer));
+    
 }
 
 static void ble_read_file_data(uint8_t* buffer, uint8_t buffer_size)
@@ -406,18 +404,18 @@ static void att_write_world_clock(uint8_t id, char* buf)
 
 uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
 {
-    //log_info("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
+    log_info("att_handler(handle=%x, buflen=%d, mode=%d)\n", handle, buffer_size, mode);
     const ble_handle_t* hble = get_ble_handle(handle);
     if (hble == NULL)
     {
-        log_info("No correspondent handler\n");
+        log_error("No correspondent handler\n");
         return 0;
     }
 
     uint16_t actual_size = hble->size * get_type_unit_size(hble->type);
-    if (buffer == 0 || buffer_size < actual_size)
+    if (buffer == 0)
     {
-        log_info("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
+        log_error("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
         return actual_size;
     }
 
@@ -533,21 +531,29 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         case BLE_HANDLE_FILE_DESC:
             if (mode == ATT_HANDLE_MODE_READ)
             {
+                log_info("ble_read_file_desc() enter: mode=%x\n", s_file_mode);
                 ble_read_file_desc(buffer, buffer_size);
+                log_info("ble_read_file_desc() leave: mode=%x, cmd=%c,%d,%d\n", 
+                    s_file_mode, FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer));
             }
             else
             {
+                log_info("ble_write_file_desc() enter: mode=%x, cmd=%c,%d,%d\n", 
+                    s_file_mode, FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer));
                 ble_write_file_desc(buffer, buffer_size);
+                log_info("ble_write_file_desc() leave: mode=%x\n", s_file_mode);
             }
             break;
 
         case BLE_HANDLE_FILE_DATA:
             if (mode == ATT_HANDLE_MODE_READ)
             {
+                log_info("ble_read_file_data() \n");
                 ble_read_file_data(buffer, buffer_size);
             }
             else
             {
+                log_info("ble_write_file_data() \n");
                 ble_write_file_data(buffer, buffer_size);
             }
             break;
