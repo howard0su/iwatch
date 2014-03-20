@@ -105,6 +105,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   
+  rtimer_init();
   ctimer_init();
 
   energest_init();

@@ -138,7 +138,6 @@ void codec_suspend()
   NSPKEN[6]
   PSPKEN[5]
   */
-  SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
   power_unpin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS);
@@ -148,6 +147,8 @@ void codec_suspend()
 
   codec_write(REG_CLK_GEN_CTRL, 0x148);
   I2C_done();
+
+  SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
 }
 
 uint8_t codec_changevolume(int8_t diff)
