@@ -13,6 +13,7 @@
 #include <stdio.h>
 
 extern const tRectangle status_clip;
+extern void hfp_battery(int level);
 
 #define ICON_RUN        'h'
 #define ICON_ALARM      'i'
@@ -142,6 +143,7 @@ static void OnDraw(tContext* pContext)
 */
 static void check_battery()
 {
+  uint8_t report = 0;
   // update battery status
   uint8_t level = battery_level();
   uint8_t state = battery_state();
@@ -179,6 +181,15 @@ static void check_battery()
       status |= BATTERY_MORE_CHARGE;
     }
   }
+
+  report = level;
+  if (level > 11)
+    level = 9;
+  else if (level > 8)
+    level = 8;
+  if (state == BATTERY_CHARGING)
+    level |= 0x10;
+  hfp_battery(level);
 }
 
 
@@ -255,8 +266,9 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         }
       }
 
-      if (minute % 5 == 0)
-        check_battery();
+      //if (minute % 5 == 0)
+      check_battery();
+      
       status ^= MID_STATUS;
       break;
     }

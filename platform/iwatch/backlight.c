@@ -27,7 +27,14 @@ void backlight_shutdown()
 
 void light_stop(void *ptr)
 {
-  LIGHTCONTROL = OUTMOD_0;
+  if (LIGHTLEVEL > 2)
+  {
+    LIGHTLEVEL --;
+    clock_time_t length = (clock_time_t)ptr;
+    ctimer_set(&light_timer, length, light_stop, (void*)length);
+  }
+  else
+    LIGHTCONTROL = OUTMOD_0;
 }
 
 void backlight_on(uint8_t level, clock_time_t length)
@@ -43,7 +50,7 @@ void backlight_on(uint8_t level, clock_time_t length)
     LIGHTCONTROL = OUTMOD_7;
     LIGHTLEVEL = level * 2;
     if (length > 0)
-      ctimer_set(&light_timer, length, light_stop, NULL);
+      ctimer_set(&light_timer, length, light_stop, (void*)(CLOCK_SECOND/4));
   }
 }
 
