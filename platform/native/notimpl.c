@@ -345,3 +345,5 @@ NOT_IMPL(bluetooth_running, uint8_t, 1);
 
 NOT_IMPL_VOID(spp_sniff, int onoff);
 NOT_IMPL_VOID(system_unlock);
+
+void hfp_battery(uint8_t level) {}
