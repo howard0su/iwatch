@@ -383,7 +383,7 @@ static void ble_write_file_data(uint8_t* buffer, uint8_t buffer_size)
         if (sub_block_size > sizeof(s_file_data) - 1)
             sub_block_size = sizeof(s_file_data) - 1;
 
-        //handle_file_data(s_write_fd, &buffer[1], sub_block_size);
+        handle_file_data(s_write_fd, &buffer[1], sub_block_size);
 
         s_sub_block_offset += sub_block_size;
         s_sub_block++;
