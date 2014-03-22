@@ -1141,7 +1141,7 @@ uint16_t att_find_information_request(uint8_t *request, uint16_t start_handle, u
 }
 
 
-uint16_t att_find_by_type_value_request(uint8_t *request, uint16_t attribute_group_type, uint16_t peripheral_handle, uint16_t start_handle, uint16_t end_handle, uint8_t * value, uint16_t value_size){
+uint16_t att_find_by_type_value_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle, uint8_t * value, uint16_t value_size){
     request[0] = ATT_FIND_BY_TYPE_VALUE_REQUEST;
     bt_store_16(request, 1, start_handle);
     bt_store_16(request, 3, end_handle);
