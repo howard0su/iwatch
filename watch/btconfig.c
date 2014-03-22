@@ -150,10 +150,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
   case EVENT_WINDOW_CLOSING:
     {
-      if (state == BT_ON)
-      {
-        bluetooth_discoverable(0);
-      }
+      bluetooth_discoverable(0);
       window_timer(0);
       break;
     }

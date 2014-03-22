@@ -258,8 +258,26 @@ uint8_t hci_number_free_acl_slots(){
     linked_item_t *it;
     for (it = (linked_item_t *) hci_stack->connections; it ; it = it->next){
         hci_connection_t * connection = (hci_connection_t *) it;
+        if (connection->con_handle > 1024)
+            continue;
         if (free_slots < connection->num_acl_packets_sent) {
             log_error("hci_number_free_acl_slots: sum of outgoing packets > total acl packets!\n");
+            return 0;
+        }
+        free_slots -= connection->num_acl_packets_sent;
+    }
+    return free_slots;
+}
+
+uint8_t hci_number_free_le_slots(){
+    uint8_t free_slots = hci_stack->total_num_le_packets;
+    linked_item_t *it;
+    for (it = (linked_item_t *) hci_stack->connections; it ; it = it->next){
+        hci_connection_t * connection = (hci_connection_t *) it;
+        if (connection->con_handle < 1024)
+            continue;
+        if (free_slots < connection->num_acl_packets_sent) {
+            log_error("hci_number_free_le_slots: sum of outgoing packets > total le packets!\n");
             return 0;
         }
         free_slots -= connection->num_acl_packets_sent;
@@ -279,7 +297,7 @@ int hci_can_send_packet_now(uint8_t packet_type){
     // check regular Bluetooth flow control
     switch (packet_type) {
         case HCI_ACL_DATA_PACKET:
-            return hci_number_free_acl_slots();
+            return hci_number_free_acl_slots() + hci_number_free_le_slots();
         case HCI_COMMAND_DATA_PACKET:
             return hci_stack->num_cmd_packets;
         default:
@@ -290,20 +308,27 @@ int hci_can_send_packet_now(uint8_t packet_type){
 int hci_send_acl_packet(uint8_t *packet, int size){
 
     // check for free places on BT module
-    if (!hci_number_free_acl_slots()) return BTSTACK_ACL_BUFFERS_FULL;
     
     hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
+
+    if (con_handle < 1024)
+        if (!hci_number_free_acl_slots()) return BTSTACK_ACL_BUFFERS_FULL;
+    else
+        if (!hci_number_free_le_slots()) return BTSTACK_ACL_BUFFERS_FULL;
+
     hci_connection_t *connection = hci_connection_for_handle( con_handle);
     if (!connection) return 0;
     hci_connection_timestamp(connection);
     
     // count packet
     connection->num_acl_packets_sent++;
-    // log_info("hci_send_acl_packet - handle %u, sent %u\n", connection->con_handle, connection->num_acl_packets_sent);
 
     // send packet 
     int err = hci_stack->hci_transport->send_packet(HCI_ACL_DATA_PACKET, packet, size);
     
+    log_info("hci_send_acl_packet - handle %u, sent %u error: %u\n", connection->con_handle, connection->num_acl_packets_sent, err);
+    hci_dump_packet( HCI_ACL_DATA_PACKET, 0, packet, size);
+
     return err;
 }
 
@@ -316,6 +341,8 @@ static void acl_handler(uint8_t *packet, int size){
     hci_connection_t *conn      = hci_connection_for_handle(con_handle);
     uint8_t  acl_flags          = READ_ACL_FLAGS(packet);
     uint16_t acl_length         = READ_ACL_LENGTH(packet);
+
+    hci_dump_packet( HCI_ACL_DATA_PACKET, 1, packet, size);
 
     // ignore non-registered handle
     if (!conn){
@@ -522,6 +549,7 @@ static void event_handler(uint8_t *packet, int size){
     int i;
         
     // printf("HCI:EVENT:%02x\n", packet[0]);
+    hci_dump_packet( HCI_EVENT_PACKET, 1, packet, size);
     
     switch (packet[0]) {
                         
@@ -543,7 +571,7 @@ static void event_handler(uint8_t *packet, int size){
                     if (HCI_ACL_PAYLOAD_SIZE < hci_stack->acl_data_packet_length){
                         hci_stack->acl_data_packet_length = HCI_ACL_PAYLOAD_SIZE;
                     }
-                    log_info("hci_read_buffer_size: used size %u, count %u\n",
+                    printf("hci_read_buffer_size: used size %u, count %u\n",
                              hci_stack->acl_data_packet_length, hci_stack->total_num_acl_packets); 
                 }
             }
@@ -1719,6 +1747,7 @@ int hci_send_cmd_packet(uint8_t *packet, int size){
     hci_connection_t * conn;
     uint8_t link_type;
     // house-keeping
+    hci_dump_packet( HCI_COMMAND_DATA_PACKET, 0, packet, size);
     
     // create_connection?
     if (IS_COMMAND(packet, hci_create_connection)){
