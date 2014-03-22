@@ -1130,3 +1130,49 @@ int main(){
     return 0;
 }
 #endif
+
+
+uint16_t att_find_information_request(uint8_t *request, uint16_t start_handle, uint16_t end_handle){
+    request[0] = ATT_FIND_INFORMATION_REQUEST;
+    bt_store_16(request, 1, start_handle);
+    bt_store_16(request, 3, end_handle);
+    
+    return 5;
+}
+
+
+uint16_t att_find_by_type_value_request(uint8_t *request, uint16_t attribute_group_type, uint16_t peripheral_handle, uint16_t start_handle, uint16_t end_handle, uint8_t * value, uint16_t value_size){
+    request[0] = ATT_FIND_BY_TYPE_VALUE_REQUEST;
+    bt_store_16(request, 1, start_handle);
+    bt_store_16(request, 3, end_handle);
+    bt_store_16(request, 5, attribute_group_type);
+    
+    memcpy(&request[7], value, value_size);
+
+    return 7 + value_size;
+}
+
+uint16_t att_read_by_type_or_group_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle){
+    // printf("att_read_by_type_or_group_request : %02X, %02X - %02X \n", peripheral_handle, start_handle, end_handle);
+    request[0] = ATT_READ_BY_GROUP_TYPE_REQUEST;
+    bt_store_16(request, 1, start_handle);
+    bt_store_16(request, 3, end_handle);
+    bt_store_16(request, 5, attribute_group_type);
+   
+    return 7;
+}
+
+uint16_t att_read_request(uint8_t *request, uint16_t attribute_handle){
+    request[0] = ATT_READ_REQUEST;
+    bt_store_16(request, 1, attribute_handle);
+    
+    return 3;
+}
+
+uint16_t att_read_blob_request(uint8_t *request, uint16_t attribute_handle, uint16_t value_offset){
+    request[0] = ATT_READ_BLOB_REQUEST;
+    bt_store_16(request, 1, attribute_handle);
+    bt_store_16(request, 3, value_offset);
+    
+    return 5;
+}

@@ -76,6 +76,8 @@ int att_server_notify(uint16_t handle, uint8_t *value, uint16_t value_len);
  */
 int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len);
 
+void att_server_query_service(const uint8_t *uuid128);
+
 #if defined __cplusplus
 }
 #endif

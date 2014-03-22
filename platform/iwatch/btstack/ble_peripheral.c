@@ -91,6 +91,9 @@ static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * bu
     return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
 }
 
+static const uint8_t ancsuuid[] = {
+    0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
+};
 
 static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     switch (packet_type) {
@@ -106,7 +109,29 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                         gap_run();
                     }
                     break;
-                
+
+                    case HCI_EVENT_LE_META:
+                    switch (packet[2]) {
+                        case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
+                            todos = DISABLE_ADVERTISEMENTS;
+
+                            // request connection parameter update - test parameters
+                            l2cap_le_request_connection_parameter_update(READ_BT_16(packet, 4), 20, 1000, 100, 100);
+                            //att_server_query_service(ancsuuid);
+                            gap_run();
+                            break;
+
+                        default:
+                            break;
+                    }
+                    break;
+
+                    case HCI_EVENT_DISCONNECTION_COMPLETE:
+                        todos = ENABLE_ADVERTISEMENTS;
+                        gap_run();
+                        break;
+
+
                 case SM_PASSKEY_DISPLAY_NUMBER: {
                     // display number
                     sm_event_t * event = (sm_event_t *) packet;

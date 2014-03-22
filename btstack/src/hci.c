@@ -571,7 +571,7 @@ static void event_handler(uint8_t *packet, int size){
                     if (HCI_ACL_PAYLOAD_SIZE < hci_stack->acl_data_packet_length){
                         hci_stack->acl_data_packet_length = HCI_ACL_PAYLOAD_SIZE;
                     }
-                    log_info("hci_read_buffer_size: used size %u, count %u\n",
+                    printf("hci_read_buffer_size: used size %u, count %u\n",
                              hci_stack->acl_data_packet_length, hci_stack->total_num_acl_packets); 
                 }
             }
