@@ -79,6 +79,7 @@ int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len);
 void att_server_query_service(const uint8_t *uuid128);
 void att_server_read_gatt_service(uint16_t start_handle, uint16_t end_handle);
 void att_server_send_gatt_services_request();
+void att_server_subscribe(uint16_t handle);
 
 #if defined __cplusplus
 }

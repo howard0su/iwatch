@@ -39,8 +39,25 @@ typedef enum
 static const uint8_t ancsuuid[] = {
     0x79, 0x05, 0xF4, 0x31, 0xB5, 0xCE, 0x4E, 0x99, 0xA4, 0x0F, 0x4B, 0x1E, 0x12, 0x2D, 0x00, 0xD0
 };
-
+static const uint8_t notificationuuid[] = {
+    0x9F, 0xBF, 0x12, 0x0D, 0x63, 0x01, 0x42, 0xD9, 0x8C, 0x58, 0x25, 0xE6, 0x99, 0xA2, 0x1D, 0xBD
+};
+static const uint8_t controluuid[] = {
+    0x69, 0xD1, 0xD8, 0xF3, 0x45, 0xE1, 0x49, 0xA8, 0x98, 0x21, 0x9B, 0xBD, 0xFD, 0xAA, 0xD9, 0xD9
+};
+static const uint8_t datauuid[] = {
+    0x22, 0xEA, 0xC6, 0xE9, 0x24, 0xD6, 0x4B, 0xB5, 0xBE, 0x44, 0xB3, 0x6A, 0xCE, 0x7C, 0x7B, 0xFB
+};
+static const uint8_t* attribute_uuids[] =
+{
+    notificationuuid, controluuid, datauuid
+};
 static uint16_t start_group_handle, end_group_handle;
+
+#define NOTIFICATION 0
+#define CONTROLPOINT 1
+#define DATASOURCE   2
+static uint16_t attribute_handles[3];
 
 uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_t size){
     // printf(" report_gatt_services for %02X\n", peripheral->handle);
@@ -65,6 +82,8 @@ uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_
 
         if (memcmp(ancsuuid, uuid128, 16) == 0)
         {
+            for(int i = 0 ; i < 3; i++)
+                attribute_handles[i] = 0xffff;
             att_server_read_gatt_service(start_group_handle, end_group_handle);
             return 0xff;
         }
@@ -93,7 +112,44 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
 
         printUUID128(uuid128);
         printf("\nproperties: %x start_handle:%d value_handle: %d\n", properties, start_handle, value_handle);
+
+        for(int i = 0 ;i < 3; i++)
+        {
+            if (memcmp(uuid128, attribute_uuids[i], 16) == 0)
+            {
+                if (properties == 0x10)
+                    attribute_handles[i] = value_handle + 1;
+                else    
+                    attribute_handles[i] = value_handle;
+                break;
+            }
+        }
+
     }
 
-    return value_handle;
+    if (attribute_handles[0] != -1 && 
+        attribute_handles[1] != -1 &&
+        attribute_handles[2] != -1)
+    {
+        // subscribe event
+        printf("sub to %d\n", attribute_handles[0]);
+        att_server_subscribe(attribute_handles[0]);
+        return 0xffff;
+    }
+    else
+        return value_handle;
+}
+
+
+void     att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
+{
+    if (handle == attribute_handles[NOTIFICATION])
+    {
+        printf("id: %d flags:%d catery:%d count: %d UID:%ld\n",
+            data[0], data[1], data[2], data[3],
+            READ_BT_32(data, 4)
+            );
+
+        // based on catery to fetch infomation
+    }
 }

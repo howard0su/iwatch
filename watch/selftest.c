@@ -201,6 +201,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       
     }
+#if 0
     //	hfp_enable_voicerecog();
     else if (lparam == KEY_UP)
     {
@@ -216,7 +217,16 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       state = RECOGNIZE;
       matched = 0;
     }
-  
+  #endif
+    else if (lparam == KEY_UP)
+    {
+      static const uint8_t ancsuuid[] = {
+        0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
+      };
+      //printf("att_server_query_service\n");
+      //att_server_query_service(ancsuuid);
+      att_server_send_gatt_services_request();
+    }
     window_invalid(NULL);
     break;
   case EVENT_WINDOW_CLOSING:

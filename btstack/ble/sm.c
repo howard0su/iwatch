@@ -303,7 +303,7 @@ static const stk_generation_method_t stk_generation_method[5][5] = {
 static void sm_run();
 
 static void print_hex16(const char * name, uint16_t value){
-    printf("%-6s 0x%04x\n", name, value);
+    printf("%s 0x%04x\n", name, value);
 }
 
 // @returns 1 if all bytes are 0
@@ -627,6 +627,8 @@ int sm_cmac_ready(){
 }
 
 static void sm_cmac_handle_aes_engine_ready(){
+    if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
+
     switch (sm_cmac_state){
         case CMAC_CALC_SUBKEYS:
             {

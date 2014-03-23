@@ -22,5 +22,5 @@ typedef struct le_service_event{
 } le_service_event_t;
 
 uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_t size);
-
+void     att_client_notify(uint16_t handle, uint8_t *data, uint16_t length);
 #endif

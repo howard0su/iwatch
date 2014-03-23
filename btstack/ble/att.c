@@ -1179,6 +1179,21 @@ uint16_t att_read_request(uint8_t *request, uint16_t attribute_handle){
     return 3;
 }
 
+uint16_t att_write_request(uint8_t *request, uint16_t attribute_handle, uint8_t *data, uint8_t length){
+    request[0] = ATT_WRITE_REQUEST;
+    bt_store_16(request, 1, attribute_handle);
+    memcpy(&request[3], data, length);
+    return 3 + length;
+}
+
+
+uint16_t att_write_command(uint8_t *request, uint16_t attribute_handle, uint8_t *data, uint8_t length){
+    request[0] = ATT_WRITE_COMMAND;
+    bt_store_16(request, 1, attribute_handle);
+    memcpy(&request[3], data, length);
+    return 3 + length;
+}
+
 uint16_t att_read_blob_request(uint8_t *request, uint16_t attribute_handle, uint16_t value_offset){
     request[0] = ATT_READ_BLOB_REQUEST;
     bt_store_16(request, 1, attribute_handle);
