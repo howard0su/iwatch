@@ -1,3 +1,8 @@
+
+#include <stdio.h>
+#include <string.h>
+
+#include "status.h"
 #include "contiki.h"
 #include "sys/ctimer.h"
 #include "grlib/grlib.h"
@@ -10,10 +15,10 @@
 #include "sportsdata.h"
 #include "memory.h"
 
-#include <stdio.h>
 
 extern const tRectangle status_clip;
 extern void hfp_battery(int level);
+extern void ped_reset();
 
 #define ICON_RUN        'h'
 #define ICON_ALARM      'i'
@@ -44,6 +49,53 @@ extern void hfp_battery(int level);
 #define BATTERY_MORE_CHARGE 6
 
 static uint16_t status;
+
+static uint16_t s_watch_status = 0;
+uint16_t add_watch_status(uint16_t value)
+{
+  uint16_t invalue = get_watch_status() | value;
+  return set_watch_status(value);
+}
+
+uint16_t del_watch_status(uint16_t value)
+{
+  uint16_t invalue = get_watch_status() & (~value);
+  return set_watch_status(value);
+}
+
+uint16_t set_watch_status(uint16_t value)
+{
+  uint16_t oldvalue = s_watch_status;
+  s_watch_status = value;
+  return oldvalue;
+}
+
+uint16_t get_watch_status()
+{
+  return s_watch_status;
+}
+
+static uint16_t s_last_act_timehash = 0;
+
+static uint16_t get_time_hash(uint16_t hour, uint16_t min, uint16_t sec)
+{
+  return hour * 60 * 60 + min * 60 + sec;
+}
+
+void record_last_action()
+{
+  uint8_t hour, min, sec;
+  rtc_readtime(&hour, &min, &sec);
+  s_last_act_timehash = get_time_hash(hour, min, sec);
+}
+
+uint16_t check_idle_time()
+{
+  uint8_t hour, min, sec;
+  rtc_readtime(&hour, &min, &sec);
+  uint16_t now = get_time_hash(hour, min, sec);
+  return now - s_last_act_timehash;
+}
 
 void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
@@ -103,10 +155,9 @@ static void OnDraw(tContext* pContext)
     // draw activity
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
     GrStringDraw(pContext, &icon, 1, 48, 0, 0);
-    uint16_t steps;
-    // todo: fetch goal
+
     int part = window_readconfig()->goal_steps / 5;
-    steps = ped_get_steps();
+    uint16_t steps = ped_get_steps();
     for(int i = 1; i <= 5; i++)
     {
       tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
@@ -143,7 +194,7 @@ static void OnDraw(tContext* pContext)
 */
 static void check_battery()
 {
-  uint8_t report = 0;
+  //uint8_t report = 0;
   // update battery status
   uint8_t level = battery_level();
   uint8_t state = battery_state();
@@ -182,7 +233,7 @@ static void check_battery()
     }
   }
 
-  report = level;
+  //report = level;
   if (level > 11)
     level = 9;
   else if (level > 8)
@@ -192,13 +243,38 @@ static void check_battery()
   hfp_battery(level);
 }
 
-
-static uint8_t s_old_data_hour = 0;
-static uint8_t s_old_data_min  = 0;
-static uint8_t s_has_old_data  = 0;
-
 static uint32_t s_daily_data[3] = {0};
 static uint8_t s_cur_min = 0;
+
+static void on_midnigth(uint8_t event, uint16_t lparam, void* rparam)
+{
+  ped_reset();
+
+  memset(&s_daily_data, 0, sizeof(s_daily_data));
+
+  uint16_t year;
+  uint8_t month, day, weekday;
+  rtc_readdate(&year, &month, &day, &weekday);
+  create_data_file(year - 2000, month, day);
+}
+
+static void record_activity_data(uint8_t hour, uint8_t minute)
+{
+  uint32_t data[3] = {0};
+  data[0] = ped_get_steps()    - s_daily_data[0];
+  data[1] = ped_get_calorie()  - s_daily_data[1];
+  data[2] = ped_get_distance() - s_daily_data[2];
+
+  if (data[0] != 0 || data[1] != 0 || data[2] != 0)
+  {
+    uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST};
+    write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+
+    s_daily_data[0] += data[0];
+    s_daily_data[1] += data[1];
+    s_daily_data[2] += data[2];
+  }
+}
 
 uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
 {
@@ -220,55 +296,35 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
 
       if (hour == 0 && minute == 0 && second <= 30)
       {
-        ped_reset();
-
-        memset(&s_daily_data, 0, sizeof(s_daily_data));
-
-        uint16_t year;
-        uint8_t month, day, weekday;
-        rtc_readdate(&year, &month, &day, &weekday);
-        create_data_file(year - 2000, month, day);
+        on_midnigth(event, lparam, rparam);
       }
 
       if (s_cur_min != minute &&
         (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
       {
         s_cur_min = minute;
+        record_activity_data(hour, minute);
+      }
 
-        uint32_t data[3] = {0};
-        data[0] = ped_get_steps()    - s_daily_data[0];
-        data[1] = ped_get_calorie()  - s_daily_data[1];
-        data[2] = ped_get_distance() - s_daily_data[2];
-
-        if (data[0] != 0 || data[1] != 0 || data[2] != 0)
+      uint16_t ws_status = get_watch_status();
+      if (ws_status != WS_NORMAL)
+      {
+        if (check_idle_time() > 60)
         {
-          uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST};
-          if (s_has_old_data)
+          if (ws_status & WS_NOTIFY)
           {
-            //write last turn data
-            uint32_t old_data[3] = {0};
-            write_data_line(get_mode(), s_old_data_hour, s_old_data_min, meta, old_data, sizeof(old_data) / sizeof(old_data[0]));
-            s_has_old_data  = 0;
+            //TODO: close current front-end window
           }
-
-          //write this turn data
-          write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
-  
-          s_daily_data[0] += data[0];
-          s_daily_data[1] += data[1];
-          s_daily_data[2] += data[2];
-        }
-        else
-        {
-          s_old_data_hour = hour;
-          s_old_data_min  = minute;
-          s_has_old_data  = 1;
+          else if (ws_status & WS_SPORTS)
+          {
+            //TODO: open sports watch
+          }
         }
       }
 
       //if (minute % 5 == 0)
       check_battery();
-      
+
       status ^= MID_STATUS;
       break;
     }

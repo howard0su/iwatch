@@ -3,6 +3,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "backlight.h"
+#include "status.h"
 
 static const char* message_title;
 static const char* message;
@@ -33,9 +34,9 @@ static enum
 }state;
 
 static uint8_t skip = 0;
-static uint8_t notification_ids[4];
+//static uint8_t notification_ids[4];
 
-static uint8_t lastid;
+//static uint8_t lastid;
 
 static void onDrawAlarm(tContext *pContext)
 {
@@ -125,6 +126,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CREATED:
   {
     state |= STATE_ACTIVE;
+    add_watch_status(WS_NOTIFY);
     return 0x80;
   }
   case EVENT_WINDOW_ACTIVE:
@@ -148,6 +150,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     state &= ~STATE_ACTIVE;
     process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)message_result);
     motor_on(0, 0);
+    del_watch_status(WS_NOTIFY);
     break;
   case EVENT_KEY_PRESSED:
     if (lparam == KEY_ENTER)
