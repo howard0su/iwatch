@@ -3,7 +3,7 @@
 #include "isr_compat.h"
 #include <stdio.h>
 
-static uint8_t level;
+static uint16_t level;
 uint8_t uartattached = 1;
 
 static void setoutputfloat()
@@ -70,18 +70,19 @@ BATTERY_STATE battery_state(void)
 }
 
 // map battery level to 0-15 scale
-const uint8_t curve[] = 
+static const uint16_t curve[] = 
 {
-  183, 185, 187, 189, 190, 191, 192, 193, 194, 195, 198, 200, 204, 207, 209, 212
+  3038, 3080, 3113, 3131, 3159, 3199, 3251, 3306, 3373, 3447
 };
 
-/* return battery level from 0 - 15 */
+/* return battery level from 0 - 9 */
 uint8_t battery_level(void)
 {
 //  printf("battery level : %d\n", level);
   if (!(ADC12CTL1 & ADC12BUSY))
     ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
 
+  printf("level:%d\n", level);
   uint8_t ret;
   for(ret = 1; ret < sizeof(curve); ret++)
   {
@@ -89,7 +90,7 @@ uint8_t battery_level(void)
       return ret - 1;
   }
 
-  return 15;
+  return 9;
 }
 
 ISR(ADC12, _ADC12_ISR)
@@ -100,7 +101,7 @@ ISR(ADC12, _ADC12_ISR)
   case  2: break;                           // Vector  2:  ADC overflow
   case  4: break;                           // Vector  4:  ADC timing overflow
   case  6:                                  // Vector  6:  ADC12IFG0
-    level = (uint8_t)(ADC12MEM0 >> 4);
+    level = ADC12MEM0;
     break;
   case  8: break;                           // Vector  8:  ADC12IFG1
   case 10: break;                           // Vector 10:  ADC12IFG2
