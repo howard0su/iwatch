@@ -48,6 +48,7 @@
 
 #include "sys/process.h"
 #include "sys/arg.h"
+#include "watch/status.h"
 
 /*
  * Pointer to the currently running process structure.
@@ -352,6 +353,8 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
       printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
     }
 #endif /* DEBUG */
+
+    record_last_action();
     return PROCESS_ERR_FULL;
   }
   
