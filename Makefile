@@ -125,6 +125,7 @@ BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
 	btstack/src/hci_cmds.c \
+	btstack/ble/att.c \
 	platform/iwatch/btstack/ble_handler.c \
 	platform/iwatch/btstack/stlv.c \
 	platform/iwatch/btstack/stlv_client.c \
@@ -137,6 +138,7 @@ PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amx
 SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/CuTest.c \
  unittest/AllTests.c \
+ unittest/attTest.c \
  unittest/bleHandlerTest.c \
  unittest/cfsTest.c \
  unittest/obexTest.c \

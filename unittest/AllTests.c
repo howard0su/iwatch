@@ -20,6 +20,7 @@ void RunAllTests(void)
 	CuSuiteAddSuite(suite, GestureGetSuite());
     CuSuiteAddSuite(suite, StlvProtocalGetSuite());
     CuSuiteAddSuite(suite, BleHandlerTestGetSuite());
+  CuSuiteAddSuite(suite, AttTestGetSuite());
 
 	CuSuiteRun(suite);
 	CuSuiteSummary(suite, output);
