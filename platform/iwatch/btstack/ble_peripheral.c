@@ -263,16 +263,17 @@ void ble_init(void){
     central_device_db_init();
 
     sm_init();
-    gap_random_address_set_update_period(300000);
-    gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);
+//    gap_random_address_set_update_period(300000);
+//    gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);
 
     sm_set_authentication_requirements( SM_AUTHREQ_BONDING | SM_AUTHREQ_MITM_PROTECTION); 
+    sm_set_request_security(1);
 
     //strcpy(gap_device_name, "BTstack");
     sm_set_io_capabilities(IO_CAPABILITY_NO_INPUT_NO_OUTPUT);
-    sm_register_oob_data_callback(get_oob_data_callback);
-    sm_set_encryption_key_size_range(7, 16);
-    sm_test_set_irk(test_irk);
+//    sm_register_oob_data_callback(get_oob_data_callback);
+//    sm_set_encryption_key_size_range(7, 16);
+//    sm_test_set_irk(test_irk);
 
     //gap_random_address_set_update_period(300000);
     //gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);
