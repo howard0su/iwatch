@@ -202,7 +202,10 @@ OBJDIR = objs.msp430
 SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL) $(SERVICES) $(AMX)
 OBJS0 = $(SRCS:.c=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
+
+ifeq ($(WINE), )
 DEPFILES = $(OBJS:.o=.d)
+endif
 
 #####################
 # rules to build the object files
@@ -211,8 +214,7 @@ $(OBJDIR)/%.o: %.c
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
-	@$(WINE) $(CC) $< $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -o $@
-
+	@$(WINE) $(CC) $< $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) --dependencies=m + -o $@
 
 # create firmware image from common objects and example source file
 
@@ -222,6 +224,11 @@ $(OBJDIR)/watch.txt: ${OBJS}
 	@echo "Link $@"
 	$(WINE) ${LINK} $^ $(LIBS) ${LDFLAGS} -Omsp430_txt=$@ -l $(OBJDIR)/watch.map
 
+ifeq ($(WINE), )
+ifneq ($(MAKECMDGOALS), clean)
+-include $(DEPFILES)
+endif
+endif
 
 .SILENT:
 .PHONY:	clean
