@@ -14,6 +14,7 @@
 #include "watch/sportsdata.h"
 #include "cfs/cfs.h"
 #include "ble_file_handler.h"
+#include "rtc.h"
 
 static const ble_handle_t s_ble_handle_table[] = {
     /*     characteristic, name                          type                       size*/

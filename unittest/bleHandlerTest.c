@@ -9,6 +9,7 @@
 
 #include "ble_handler.h"
 #include "watch/sportsdata.h"
+#include "cfs/cfs-coffee.h"
 
 #define BLE_HANDLE_SEED_BEGIN 0x000b
 #define BLE_HANDLE_SEED_END   0x0037
@@ -37,10 +38,10 @@ int TestReadBleFile(CuTest* tc, char* filename, int unitsize)
     s_test_buffer_in[0] = 'X';
     att_handler(BLE_HANDLE_FILE_DESC, 0, s_test_buffer_in, sizeof(s_test_buffer_in), ATT_HANDLE_MODE_WRITE);
         //read process
-    uint16_t read_block_id = 0;
+    uint8_t read_block_id = 0;
 
     //write command "Investigation"
-    printf("write FILE_DESC:I\n", 0, read_block_id); 
+    printf("write FILE_DESC:I\n"); 
     s_test_buffer_in[0] = 'I';
     att_handler(BLE_HANDLE_FILE_DESC, 0, s_test_buffer_in, sizeof(s_test_buffer_in), ATT_HANDLE_MODE_WRITE);
 

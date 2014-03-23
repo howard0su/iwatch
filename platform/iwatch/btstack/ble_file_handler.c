@@ -53,22 +53,9 @@ static uint8_t s_file_data[20] = "";
 static uint8_t s_sub_block = 0;
 static uint16_t s_sub_block_offset = 0;
 
-static void init_ble_file_handler()
-{
-    s_file_mode = FS_IDLE;
-    memset(s_file_desc, 0, sizeof(s_file_desc));
-    memset(s_file_data, 0, sizeof(s_file_desc));
 
-    s_block_id = 0xff;
-    if (s_read_fd != -1)
-    {
-        cfs_close(s_read_fd);
-        s_read_fd = -1;
-    }
-}
-
+//FILE_DESC parse utility
 #define FD_GET_COMMAND(buf)   (buf[0])
-//#define FD_GET_BLOCKID(buf)   ((uint16_t)buf[2] | ((uint16_t)buf[3] & 0x00ff) << 8)
 #define FD_GET_BLOCKID(buf)   (buf[1])
 #define FD_GET_FILENAME(buf)  ((char*)&buf[4])
 
@@ -88,9 +75,24 @@ static void FD_SET_BLOCKSIZE(uint8_t* buf, uint16_t blocksize)
     memcpy(&buf[2], &blocksize, 2);
 }
 
+static void init_ble_file_handler()
+{
+    s_file_mode = FS_IDLE;
+    memset(s_file_desc, 0, sizeof(s_file_desc));
+    memset(s_file_data, 0, sizeof(s_file_desc));
+
+    s_block_id = 0xff;
+    if (s_read_fd != -1)
+    {
+        cfs_close(s_read_fd);
+        s_read_fd = -1;
+    }
+}
+
+//functionaility
 void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
 {
-    
+
     if (FD_GET_COMMAND(buffer) == FD_REST)
     {
         init_ble_file_handler();

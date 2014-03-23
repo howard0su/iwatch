@@ -1,14 +1,18 @@
+
+#include <stdio.h>
+#include <string.h>
+
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
-#include "rtc.h"
+#include "platform/iwatch/rtc.h"
 #include "ant/ant.h"
 #include "stlv.h"
 #include "stlv_client.h"
 #include "ble_handler.h"
-#include <stdio.h>
-#include <cfs/cfs.h>
+
+#include "cfs/cfs.h"
 #include "btstack/include/btstack/utils.h"
 #include "pedometer/pedometer.h"
 #include "sportsdata.h"

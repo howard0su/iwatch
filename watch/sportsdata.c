@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 
 #include "sportsdata.h"
 
@@ -84,7 +85,7 @@ static int check_file_format(int fd)
     size = cfs_read(fd, &signature, sizeof(signature));
     if (size != sizeof(signature))
     {
-        printf("check_file_format() signature error: size = %d/%d\n", size, sizeof(signature));
+        printf("check_file_format() signature error: size = %d/%d\n", size, (int)sizeof(signature));
         cfs_close(fd);
         return -1;
     }
@@ -433,7 +434,9 @@ uint8_t build_data_schema(uint8_t* buf, uint8_t coltype[], uint8_t colcount)
 static uint8_t s_cur_mode = DATA_MODE_NORMAL;
 uint8_t set_mode(uint8_t mode)
 {
+    uint8_t oldmode = s_cur_mode;
     s_cur_mode = mode;
+    return oldmode;
 }
 
 uint8_t get_mode()
