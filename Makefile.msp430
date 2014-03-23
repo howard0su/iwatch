@@ -104,6 +104,7 @@ GRLIB_FONTS = \
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
+  ble_file_handler.c \
   ble_handler.c \
   ble_peripheral.c \
 	bluetooth.c \

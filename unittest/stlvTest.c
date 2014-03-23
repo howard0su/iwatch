@@ -12,6 +12,7 @@
 #include "stlv_transport.h"
 #include "stlv_handler.h"
 #include "watch/sportsdata.h"
+#include "cfs/cfs-coffee.h"
 
 #ifndef NULL
 #   define NULL 0
