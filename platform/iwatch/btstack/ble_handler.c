@@ -226,17 +226,17 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         case BLE_HANDLE_FILE_DESC:
             if (mode == ATT_HANDLE_MODE_READ)
             {
-                log_info("ble_read_file_desc() enter: mode=%x\n", s_file_mode);
+                log_info("ble_read_file_desc() enter: mode=%x\n", get_file_mode());
                 ble_read_file_desc(buffer, buffer_size);
                 log_info("ble_read_file_desc() leave: mode=%x, cmd=%c,%d,%d [%x %x]\n", 
-                    s_file_mode, FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer), buffer[2], buffer[3]);
+                    get_file_mode(), FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer), buffer[2], buffer[3]);
             }
             else
             {
                 log_info("ble_write_file_desc() enter: mode=%x, cmd=%c,%d,%d [%x %x]\n", 
-                    s_file_mode, FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer), buffer[2], buffer[3]);
+                    get_file_mode(), FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer), buffer[2], buffer[3]);
                 ble_write_file_desc(buffer, buffer_size);
-                log_info("ble_write_file_desc() leave: mode=%x\n", s_file_mode);
+                log_info("ble_write_file_desc() leave: mode=%x\n", get_file_mode());
             }
             break;
 

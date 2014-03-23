@@ -48,7 +48,6 @@
 
 #include "sys/process.h"
 #include "sys/arg.h"
-#include "watch/status.h"
 
 /*
  * Pointer to the currently running process structure.
@@ -354,7 +353,6 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
     }
 #endif /* DEBUG */
 
-    record_last_action();
     return PROCESS_ERR_FULL;
   }
   

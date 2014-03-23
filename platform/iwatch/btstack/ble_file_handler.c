@@ -63,16 +63,21 @@ static uint16_t s_sub_block_offset = 0;
 #define FD_SET_BLOCKID(buf, blockid)    buf[1] = blockid
 #define FD_SET_FILENAME(buf, filename)  strcpy((char*)&buf[4], filename)
 
-static uint16_t FD_GET_BLOCKSIZE(uint8_t* buf)
+uint16_t FD_GET_BLOCKSIZE(uint8_t* buf)
 {
     uint16_t left = buf[3];
     uint16_t right = buf[2];
     return left << 8 | right;
 }
 
-static void FD_SET_BLOCKSIZE(uint8_t* buf, uint16_t blocksize)
+void FD_SET_BLOCKSIZE(uint8_t* buf, uint16_t blocksize)
 {
     memcpy(&buf[2], &blocksize, 2);
+}
+
+uint8_t get_file_mode()
+{
+    return s_file_mode;
 }
 
 static void init_ble_file_handler()

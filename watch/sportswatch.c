@@ -687,10 +687,10 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, data_buf, cursor);
 
         //BLE
-        ble_start_sync(1);
+        ble_start_sync(2);
         uint32_t timestamp = rtc_readtime32();
         //if (sports_type == SPORTS_DATA_FLAG_RUN)
-        ble_send_sports_data(timestamp, &grid_data[1], sportnum);
+        ble_send_sports_data(grid_data[0], &grid_data[1], sportnum);
 
       }
 /*
