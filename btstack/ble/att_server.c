@@ -37,6 +37,8 @@
 //
 // ATT Server Globals
 //
+//#define ENABLE_LOG_INFO
+//#define ENABLE_LOG_DEBUG
 
 #include "att_server.h"
 
@@ -67,6 +69,7 @@ static void att_run(void);
 static void att_client_run(void);
 
 static uint16_t att_build_request(att_connection_t *, uint8_t *buffer);
+static void att_handle_response(att_connection_t *, uint8_t*, uint16_t);
 static void att_clear_request();
 
 
@@ -136,7 +139,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                         	att_client_addr_type = packet[7];
                             bt_flip_addr(att_client_address, &packet[8]);
                             // reset connection properties
-                            att_connection.mtu = MTU;
+                            att_connection.mtu = MTU; //l2cap_max_mtu() - 6;
                             att_connection.encryption_key_size = 0;
                             att_connection.authenticated = 0;
 		                	att_connection.authorized = 0;
@@ -266,6 +269,7 @@ static void att_run(void){
             // NOTE: fall through for regular commands
 
         case ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED:
+        {
             if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
 
             uint8_t  att_response_buffer[MTU + 20];
@@ -298,7 +302,18 @@ static void att_run(void){
                 att_server_state = ATT_SERVER_IDLE;
             }
             break;
+        }
 
+        case ATT_SERVER_W4_RESPONSE:
+            log_error("don't expct be called with state w4 response\n");
+            break;
+
+        case ATT_SERVER_RESPONSE_RECEIVED:
+            {
+                att_server_state = ATT_SERVER_IDLE;
+                att_handle_response(&att_connection, att_request_buffer, att_request_size);
+            }
+            /* FALL THROUGH */
         case ATT_SERVER_IDLE:
             // check if we have anything to send
             if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
@@ -309,6 +324,7 @@ static void att_run(void){
             if (size == 0)
                 return; // no request need sent
 
+            hexdump(buffer, size);
 
             if (!l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, buffer, size))
             {
@@ -318,12 +334,6 @@ static void att_run(void){
 
             break;
 
-        case ATT_SERVER_W4_RESPONSE:
-            log_error("don't expct be called with state w4 response\n");
-            break;
-
-        case ATT_SERVER_RESPONSE_RECEIVED:
-            break;
     }
 }
 
@@ -436,17 +446,36 @@ static union request_info
         uint16_t end_handle;
         uint8_t  value[16];
     }_find_by_type_value;
+    struct
+    {
+        uint16_t attribute_group_type;
+        uint16_t start_handle;
+        uint16_t end_handle;
+    }_read_by_group_type;
 }request;
 
 void att_server_query_service(const uint8_t *uuid128)
 {
     request._find_by_type_value.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
-    request._find_by_type_value.start_handle = 0x0001;
+    request._find_by_type_value.start_handle = 1;
     request._find_by_type_value.end_handle = 0xffff;
     swap128(request._find_by_type_value.value, (uint8_t *)uuid128);
     
     request_type = ATT_FIND_BY_TYPE_VALUE_REQUEST;
+
+    att_run();
     return;
+}
+
+void att_server_send_gatt_services_request()
+{
+    request._read_by_group_type.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
+    request._read_by_group_type.start_handle = 1;
+    request._read_by_group_type.end_handle = 0xffff;
+
+    request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
+
+    att_run();
 }
 
 static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
@@ -463,6 +492,13 @@ static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
                 request._find_by_type_value.end_handle,
                 request._find_by_type_value.value,
                 16);
+        case ATT_READ_BY_GROUP_TYPE_REQUEST:
+            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+            return att_read_by_type_or_group_request(buffer,
+                request._read_by_group_type.attribute_group_type,
+                request._read_by_group_type.start_handle,
+                request._read_by_group_type.end_handle
+                );
         default:
             return 0;
     }
@@ -470,4 +506,26 @@ static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
 static void att_clear_request()
 {
     request_type = 0;
+}
+
+
+
+static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_t length)
+{
+    printf("response data");
+    hexdump(buffer, length);
+    switch(buffer[0])
+    {
+        case ATT_READ_BY_GROUP_TYPE_RESPONSE:
+            // check service
+            uint16_t lasthandle = report_gatt_services(conn, buffer, length);
+            request._read_by_group_type.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
+            request._read_by_group_type.start_handle = lasthandle + 1;
+            request._read_by_group_type.end_handle = 0xffff;
+
+            request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
+            break;
+        case ATT_ERROR_RESPONSE:
+            break;
+    }
 }

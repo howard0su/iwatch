@@ -122,6 +122,7 @@ BTSTACK0 = \
 
 BTSTACK1 = \
 	ble/att.c \
+  ble/att_client.c \
   ble/att_server.c \
   ble/central_device_db_memory.c \
   ble/sm.c \

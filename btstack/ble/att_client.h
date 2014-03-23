@@ -1,0 +1,26 @@
+#ifndef _ATT_CLIENT_H_
+#define _ATT_CLIENT_H_
+#include <btstack/btstack.h>
+#include <stdint.h>
+#include "att.h"
+
+typedef struct le_peripheral_event{
+    uint8_t   type;
+    uint8_t status;
+} le_peripheral_event_t;
+
+typedef struct le_service{
+    uint16_t start_group_handle;
+    uint16_t end_group_handle;
+    uint16_t uuid16; 
+    uint8_t  uuid128[16]; 
+} le_service_t;
+
+typedef struct le_service_event{
+    uint8_t  type;
+    le_service_t service; 
+} le_service_event_t;
+
+uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_t size);
+
+#endif
