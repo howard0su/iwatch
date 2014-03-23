@@ -478,6 +478,17 @@ void att_server_send_gatt_services_request()
     att_run();
 }
 
+void att_server_read_gatt_service(uint16_t start_handle, uint16_t end_handle)
+{
+    request._read_by_group_type.attribute_group_type = GATT_CHARACTERISTICS_UUID;
+    request._read_by_group_type.start_handle = start_handle;
+    request._read_by_group_type.end_handle = end_handle;
+
+    request_type = ATT_READ_BY_TYPE_REQUEST;
+
+    att_run();
+}
+
 static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
 {
     log_debug("ATT: try to send request\n");
@@ -494,7 +505,14 @@ static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
                 16);
         case ATT_READ_BY_GROUP_TYPE_REQUEST:
             log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
-            return att_read_by_type_or_group_request(buffer,
+            return att_read_by_group_request(buffer,
+                request._read_by_group_type.attribute_group_type,
+                request._read_by_group_type.start_handle,
+                request._read_by_group_type.end_handle
+                );
+        case ATT_READ_BY_TYPE_REQUEST:
+            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+             return att_read_by_type_request(buffer,
                 request._read_by_group_type.attribute_group_type,
                 request._read_by_group_type.start_handle,
                 request._read_by_group_type.end_handle
@@ -503,12 +521,11 @@ static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
             return 0;
     }
 }
+
 static void att_clear_request()
 {
     request_type = 0;
 }
-
-
 
 static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_t length)
 {
@@ -517,15 +534,30 @@ static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_
     switch(buffer[0])
     {
         case ATT_READ_BY_GROUP_TYPE_RESPONSE:
+            uint16_t lasthandle;
             // check service
-            uint16_t lasthandle = report_gatt_services(conn, buffer, length);
-            request._read_by_group_type.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
-            request._read_by_group_type.start_handle = lasthandle + 1;
-            request._read_by_group_type.end_handle = 0xffff;
+            lasthandle = report_gatt_services(conn, buffer, length);
 
-            request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
+            if (lasthandle != 0xff)
+            {
+                request._read_by_group_type.start_handle = lasthandle + 1;
+
+                request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
+            }
             break;
+        case ATT_READ_BY_TYPE_RESPONSE:
+            lasthandle = report_service_characters(conn, buffer, length);
+            if (lasthandle != 0xff)
+            {
+                request._read_by_group_type.start_handle = lasthandle + 1;
+
+                request_type = ATT_READ_BY_TYPE_REQUEST;
+            }
+            break;
+
         case ATT_ERROR_RESPONSE:
+            // done the last step
+            
             break;
     }
 }

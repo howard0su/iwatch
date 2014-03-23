@@ -116,8 +116,9 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                             todos = DISABLE_ADVERTISEMENTS;
 
                             // request connection parameter update - test parameters
-                            l2cap_le_request_connection_parameter_update(READ_BT_16(packet, 4), 20, 1000, 100, 100);
+                            //l2cap_le_request_connection_parameter_update(READ_BT_16(packet, 4), 20, 1000, 100, 100);
                             //att_server_query_service(ancsuuid);
+                            //sm_send_security_request();
                             gap_run();
                             break;
 
@@ -253,24 +254,25 @@ void ble_advertise(uint8_t onoff)
     gap_run();
 }
 
+static uint8_t test_irk[] =  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 void ble_init(void){
 
     advertisements_enabled = 0;
     // setup central device db
     central_device_db_init();
 
-    // setup SM: Display only
     sm_init();
-    //sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY);
+    gap_random_address_set_update_period(300000);
+    gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);
+
     sm_set_authentication_requirements( SM_AUTHREQ_BONDING | SM_AUTHREQ_MITM_PROTECTION); 
 
     //strcpy(gap_device_name, "BTstack");
-    sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY);
-    //sm_io_capabilities =  "IO_CAPABILITY_NO_INPUT_NO_OUTPUT";
-    //sm_set_authentication_requirements(0);
+    sm_set_io_capabilities(IO_CAPABILITY_NO_INPUT_NO_OUTPUT);
     sm_register_oob_data_callback(get_oob_data_callback);
-    //sm_set_encryption_key_size_range(sm_min_key_size, 16);
-    //sm_test_set_irk(test_irk);
+    sm_set_encryption_key_size_range(7, 16);
+    sm_test_set_irk(test_irk);
 
     //gap_random_address_set_update_period(300000);
     //gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);

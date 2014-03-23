@@ -235,7 +235,8 @@ uint16_t att_uuid_for_handle(uint16_t handle);
 uint16_t att_find_information_request(uint8_t *request, uint16_t start_handle, uint16_t end_handle);
 uint16_t att_read_blob_request(uint8_t *request, uint16_t attribute_handle, uint16_t value_offset);
 uint16_t att_read_request(uint8_t *request, uint16_t attribute_handle);
-uint16_t att_read_by_type_or_group_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle);
+uint16_t att_read_by_group_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle);
+uint16_t att_read_by_type_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle);
 uint16_t att_find_by_type_value_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle, uint8_t * value, uint16_t value_size);
 
 #if defined __cplusplus

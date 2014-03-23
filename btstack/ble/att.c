@@ -1152,7 +1152,17 @@ uint16_t att_find_by_type_value_request(uint8_t *request, uint16_t attribute_gro
     return 7 + value_size;
 }
 
-uint16_t att_read_by_type_or_group_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle){
+uint16_t att_read_by_type_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle){
+    // printf("att_read_by_type_or_group_request : %02X, %02X - %02X \n", peripheral_handle, start_handle, end_handle);
+    request[0] = ATT_READ_BY_TYPE_REQUEST;
+    bt_store_16(request, 1, start_handle);
+    bt_store_16(request, 3, end_handle);
+    bt_store_16(request, 5, attribute_group_type);
+   
+    return 7;
+}
+
+uint16_t att_read_by_group_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle){
     // printf("att_read_by_type_or_group_request : %02X, %02X - %02X \n", peripheral_handle, start_handle, end_handle);
     request[0] = ATT_READ_BY_GROUP_TYPE_REQUEST;
     bt_store_16(request, 1, start_handle);
