@@ -9,6 +9,7 @@
 
 #include "ble_handler.h"
 #include "watch/sportsdata.h"
+#include "cfs/cfs-coffee.h"
 
 #define BLE_HANDLE_SEED_BEGIN 0x000b
 #define BLE_HANDLE_SEED_END   0x0037
@@ -169,7 +170,7 @@ static void TestBleFile(CuTest* tc)
     TestReadBleFile(tc, FILE_NAME, 0);
 }
 
-static void TestBleSportsData(CuTest* tc)
+static void TestBleSportsDataFile(CuTest* tc)
 {
     cfs_coffee_format();
     init_send_pack_stub(); 
@@ -258,12 +259,52 @@ static void TestBleFile2(CuTest* tc)
     TestReadBleFile(tc, FILE_NAME, 0);
 }
 
+static void TestBleSportsData(CuTest* tc)
+{
+    uint32_t sample[] = {123456789, 987654321, 123454321, 987656789};
+    uint8_t buffer[20] = {0};
+    for (int i = 0; i < 10; ++i)
+    {
+        printf("turn %d\n", i);
+        ble_start_sync(i);
+        att_handler(BLE_HANDLE_SPORTS_DESC, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_READ);
+        CuAssertIntEquals(tc, i, buffer[0]);
+
+        ble_send_sports_data(i, sample, 4);
+        att_handler(BLE_HANDLE_SPORTS_DATA, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_READ);
+
+        uint32_t* p = (uint32_t*)buffer;
+
+        CuAssertIntEquals(tc, i, p[0]);
+        for (int j = 0; j < 4; ++j)
+        {
+            CuAssertIntEquals(tc, sample[j], p[j + 1]);
+        }
+    }
+}
+
+static void TestBleUnlock(CuTest* tc)
+{
+    uint8_t buffer[20] = {0};
+    att_handler(BLE_HANDLE_UNLOCK_WATCH, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_WRITE);
+}
+
+static void TestBleFirmwareVersion(CuTest* tc)
+{
+    uint8_t buffer[20] = {0};
+    att_handler(BLE_HANDLE_FW_VERSION, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_READ);
+    CuAssertStrEquals(tc, "DEBUG", (char*)buffer);
+}
+
 CuSuite* BleHandlerTestGetSuite(void)
 {
     CuSuite* suite = CuSuiteNew("BLE Handler Test");
     SUITE_ADD_TEST(suite, TestBleFile);
-    SUITE_ADD_TEST(suite, TestBleSportsData);
+    SUITE_ADD_TEST(suite, TestBleSportsDataFile);
     SUITE_ADD_TEST(suite, TestBleFile2);
+    SUITE_ADD_TEST(suite, TestBleSportsData);
+    SUITE_ADD_TEST(suite, TestBleUnlock);
+    SUITE_ADD_TEST(suite, TestBleFirmwareVersion);
     return suite;
 }
 

@@ -149,9 +149,9 @@ static int check_file_format(int fd)
         }
     }
 
-    return fd;
 }
 
+/*
 static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
 {
     uint16_t cyear;
@@ -160,6 +160,7 @@ static uint8_t is_today_file(uint8_t year, uint8_t month, uint8_t day)
 
     return cday == day && cmonth == month && cyear == year;
 }
+*/
 
 static uint8_t is_data_file(char* name)
 {
@@ -394,7 +395,7 @@ char* get_data_file()
             uint8_t year, month, day;
             if (check_file_name(dirent.name, &year, &month, &day))
             {
-                printf("get_data_file():%s, %d\n", dirent.name, dirent.size);
+                printf("get_data_file():%s, %d\n", dirent.name, (uint16_t)dirent.size);
                 cfs_closedir(&dir);
                 return dirent.name;
             }
