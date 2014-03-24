@@ -4,8 +4,8 @@
 
 #include "stdint.h"
 
-#define BLE_HANDLE_TEST_READ         0x000b
-#define BLE_HANDLE_TEST_WRITE        0x000d
+#define BLE_HANDLE_UNLOCK_WATCH      0x000b
+#define BLE_HANDLE_FW_VERSION        0x000d
 #define BLE_HANDLE_DATETIME          0x000f
 #define BLE_HANDLE_ALARM_0           0x0011
 #define BLE_HANDLE_ALARM_1           0x0013

@@ -15,11 +15,12 @@
 #include "cfs/cfs.h"
 #include "ble_file_handler.h"
 #include "rtc.h"
+#include "system.h"
 
 static const ble_handle_t s_ble_handle_table[] = {
     /*     characteristic, name                          type                       size*/
-    DEF_BLE_HANDLE("fff1", BLE_HANDLE_TEST_READ,         BLE_HANDLE_TYPE_INT8_ARR,  1),
-    DEF_BLE_HANDLE("fff2", BLE_HANDLE_TEST_WRITE,        BLE_HANDLE_TYPE_INT8_ARR,  1),
+    DEF_BLE_HANDLE("fff1", BLE_HANDLE_UNLOCK_WATCH,      BLE_HANDLE_TYPE_INT8_ARR,  1),
+    DEF_BLE_HANDLE("fff2", BLE_HANDLE_FW_VERSION,        BLE_HANDLE_TYPE_STRING,    20),
     DEF_BLE_HANDLE("fff3", BLE_HANDLE_DATETIME,          BLE_HANDLE_TYPE_INT8_ARR,  6),
     DEF_BLE_HANDLE("fff4", BLE_HANDLE_ALARM_0,           BLE_HANDLE_TYPE_INT8_ARR,  2),
     DEF_BLE_HANDLE("fff5", BLE_HANDLE_ALARM_1,           BLE_HANDLE_TYPE_INT8_ARR,  2),
@@ -42,8 +43,6 @@ static const ble_handle_t s_ble_handle_table[] = {
     DEF_BLE_HANDLE("ff22", BLE_HANDLE_CONF_GOALS,        BLE_HANDLE_TYPE_INT16_ARR, 3),
     DEF_BLE_HANDLE("ff23", BLE_HANDLE_CONF_USER_PROFILE, BLE_HANDLE_TYPE_INT8_ARR,  3),
 };
-
-static uint8_t s_test = 0;
 
 static uint32_t s_sports_data_buffer[5] = {0};
 static uint32_t s_sports_desc_buffer[2] = {0};
@@ -116,13 +115,21 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
 
     switch (handle)
     {
-        case BLE_HANDLE_TEST_READ:
-        case BLE_HANDLE_TEST_WRITE:
-            log_info("BLE Test Characteristic\n");
-            if (mode == ATT_HANDLE_MODE_READ)
-                buffer[0] = s_test;
+        case BLE_HANDLE_UNLOCK_WATCH:
+            if (mode == ATT_HANDLE_MODE_WRITE)
+            {
+                system_unlock();
+            }
             else
-                s_test = buffer[0];
+            {
+                buffer[0] = 0;
+            }
+            break;
+        case BLE_HANDLE_FW_VERSION:
+            if (mode == ATT_HANDLE_MODE_READ)
+            {
+                strcpy((char*)buffer, FWVERSION);
+            }
             break;
 
         case BLE_HANDLE_SPORTS_GRID:
@@ -437,8 +444,8 @@ void ble_start_sync(uint8_t mode)
 void ble_send_sports_data(uint32_t time, uint32_t data[], uint8_t size)
 {
     s_sports_data_buffer[0] = time;
-    for (uint8_t i = 1; i < size && i < count_elem(s_sports_data_buffer); ++i)
-        s_sports_data_buffer[i] = data[i];
+    for (uint8_t i = 0; i < size && i < count_elem(s_sports_data_buffer); ++i)
+        s_sports_data_buffer[i + 1] = data[i];
 }
 
 void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist)
