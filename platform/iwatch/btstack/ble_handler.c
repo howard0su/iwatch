@@ -167,6 +167,15 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memcpy(buffer, s_sports_data_buffer, sizeof(s_sports_data_buffer));
+                log_info("SPORTS_DATA: %ld, %ld, %ld, %ld, %ld\n", 
+                    s_sports_data_buffer[0],
+                    s_sports_data_buffer[1],
+                    s_sports_data_buffer[2],
+                    s_sports_data_buffer[3],
+                    s_sports_data_buffer[4]);
+                log_info("SPORTS_DATA[RAW]: %02x %02x %02x %02x, %02x %02x %02x %02x\n",
+                    buffer[0], buffer[1], buffer[2], buffer[3],
+                    buffer[4], buffer[5], buffer[6], buffer[7]);
             }
             else
             {
