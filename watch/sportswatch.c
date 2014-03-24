@@ -684,7 +684,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         cursor += (sportnum * sizeof(grid_data[0]));
 
         //STLV over RFCOMM
-        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, data_buf, cursor);
+        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, 
+          config->sports_grid_data, grid_data, sportnum);
 
         //BLE
         ble_start_sync(2);
@@ -740,8 +741,9 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       rtc_enablechange(0);
       ant_shutdown();
 
-      uint8_t dummy_stlv_data[4] = {0};
-      send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, dummy_stlv_data, sizeof(dummy_stlv_data));
+      uint8_t dummy_stlv_meta = 0;
+      uint32_t dummy_stlv_data = 0;
+      send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, &dummy_stlv_meta, &dummy_stlv_data, 1);
 
       ble_stop_sync();
       set_mode(DATA_MODE_NORMAL);

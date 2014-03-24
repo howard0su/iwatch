@@ -295,6 +295,26 @@ static void TestSportsGrid(CuTest* tc)
     handle_get_sports_grid();
 }
 
+
+static void TestSportsData(CuTest* tc)
+{
+    init_send_pack_stub();
+
+    uint8_t  sample_meta[] = {0x12, 0x34, 0x56, 0x78};
+    uint32_t sample_data[] = {0x12345678, 0x87654321, 0xabcdef89, 0x89abcdef};
+    send_sports_data(0, 1, sample_meta, sample_data, 4);
+
+    trySendOut();
+
+    CuAssertIntEquals(tc, 1,  get_send_pack_stub_count());
+
+    send_pack_stub_t* node = get_send_pack_stub();
+    hex_dump(node->data, node->len);
+
+    CuAssertIntEquals(tc, 64, node->len);
+    CuAssertIntEquals(tc, 63,  handle_stvl_transport(node->data, node->len));
+}
+
 static void TestAlarmConf(CuTest* tc)
 {
     UNUSED_VAR(tc);
@@ -371,6 +391,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestNotification);
     SUITE_ADD_TEST(suite, TestGooglNow);
     SUITE_ADD_TEST(suite, TestSportsFile);
+    SUITE_ADD_TEST(suite, TestSportsData);
     return suite;
 }
 
