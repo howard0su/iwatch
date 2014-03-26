@@ -429,11 +429,6 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
             return &s_ble_handle_table[i];
     }
     return NULL;
-    //uint16_t offset = (handle - s_ble_handle_table[0].handle) / 2;
-    //if (offset < sizeof(s_ble_handle_table) / sizeof(s_ble_handle_table[0]))
-    //    return &s_ble_handle_table[offset];
-    //else
-    //    return NULL;
 }
 
 void ble_start_sync(uint8_t mode)

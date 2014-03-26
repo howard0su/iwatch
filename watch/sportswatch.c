@@ -631,6 +631,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         //ant_init(MODE_CBSC);
       }
       rtc_enablechange(SECOND_CHANGE);
+
+      //clear grid data
       for (int i = 0; i < (int)(sizeof(grid_data)/sizeof(grid_data[0])); i++)
         grid_data[i] = 0;
       for (int i = 0; i < (int)(sizeof(base_data)/sizeof(base_data[0])); i++)
@@ -668,21 +670,6 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         ui_config* config = window_readconfig();
         sportnum = config->sports_grid + 4;
 
-        //grid number
-        data_buf[cursor] = sportnum;
-        cursor++;
-
-        //grids
-        for (int i = 0; i < sportnum; ++i)
-        {
-          data_buf[cursor] = config->sports_grid_data[i];
-          cursor++;
-        }
-
-        //data
-        memcpy(&data_buf[cursor], grid_data, sportnum * sizeof(grid_data[0]));
-        cursor += (sportnum * sizeof(grid_data[0]));
-
         //STLV over RFCOMM
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, 
           config->sports_grid_data, grid_data, sportnum);
@@ -694,35 +681,31 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
         ble_send_sports_data(grid_data[0], &grid_data[1], sportnum);
 
       }
-/*
-    {"w", 3, {SPORTS_TIME, SPORTS_STEPS,   SPORTS_CALS, SPORTS_DISTANCE, SPORTS_INVALID},  },
-    {"r", 4, {SPORTS_TIME, SPORTS_STEPS,   SPORTS_CALS, SPORTS_DISTANCE, SPORTS_HEARTRATE},},
-    {"b", 4, {SPORTS_TIME, SPORTS_CADENCE, SPORTS_CALS, SPORTS_DISTANCE, SPORTS_HEARTRATE},},
-*/
-    uint8_t hour, minute, second;
-    rtc_readtime(&hour, &minute, &second); 
-    if (second <= 10 &&
-        (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
-    {
-      if (get_mode() == DATA_MODE_RUNNING)
-      {
-        uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
 
-        uint32_t data[4] = {0};
-        data[0] = ped_get_steps() - s_sports_data[0];
-        data[1] = ped_get_calorie() - s_sports_data[1];
-        data[2] = ped_get_distance() - s_sports_data[2];
-        write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
-      }
-      else if (get_mode() == DATA_MODE_BIKING)
+      uint8_t hour, minute, second;
+      rtc_readtime(&hour, &minute, &second); 
+      if (second <= 10 &&
+          (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
       {
-        uint8_t meta[] = {DATA_COL_CADN, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
-        uint32_t data[4] = {0};
-        data[0] = ped_get_steps() - s_sports_data[0];
-        data[1] = ped_get_calorie() - s_sports_data[1];
-        data[2] = ped_get_distance() - s_sports_data[2];
-        write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
-      }
+        if (get_mode() == DATA_MODE_RUNNING)
+        {
+          uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
+
+          uint32_t data[4] = {0};
+          data[0] = ped_get_steps() - s_sports_data[0];
+          data[1] = ped_get_calorie() - s_sports_data[1];
+          data[2] = ped_get_distance() - s_sports_data[2];
+          write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+        }
+        else if (get_mode() == DATA_MODE_BIKING)
+        {
+          uint8_t meta[] = {DATA_COL_CADN, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
+          uint32_t data[4] = {0};
+          data[0] = ped_get_steps() - s_sports_data[0];
+          data[1] = ped_get_calorie() - s_sports_data[1];
+          data[2] = ped_get_distance() - s_sports_data[2];
+          write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+        }
 
       }
       break;
