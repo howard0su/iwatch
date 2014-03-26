@@ -69,6 +69,7 @@ static int central_device_db_read(int index, central_device_memory_db_t *device)
     }
 
     int size = cfs_read(handle, device, sizeof(central_device_memory_db_t));
+#if 0
     if (size != sizeof(central_device_memory_db_t))
     {
         log_error("read, size mismatch for central file: %d(%d != %d)\n", index, size, sizeof(central_device_memory_db_t));
@@ -76,7 +77,7 @@ static int central_device_db_read(int index, central_device_memory_db_t *device)
         cfs_remove(name);
         return -1;
     }
-
+#endif
     cfs_close(handle);
     return 0;
 }
