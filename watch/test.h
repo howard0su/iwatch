@@ -18,4 +18,5 @@ uint8_t test_googlenow(uint8_t ev, uint16_t lparam, void* rparam);
 uint8_t test_cleardata(uint8_t ev, uint16_t lparam, void* rparam);
 uint8_t test_builddata(uint8_t ev, uint16_t lparam, void* rparam);
 uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam);
+uint8_t test_sportsdata(uint8_t ev, uint16_t lparam, void* rparam);
 #endif

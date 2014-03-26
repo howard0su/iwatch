@@ -195,6 +195,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memcpy(buffer, s_sports_desc_buffer, sizeof(s_sports_desc_buffer));
+                log_info("SPORTS_DESC[0]=%d\n", buffer[0]);
             }
             else
             {
@@ -276,6 +277,10 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             }
             else
             {
+                log_info("GPS:%02x %02x %02x %02x, %02x %02x %02x %02x, %02x %02x %02x %02x\n"
+                    buffer[0], buffer[1], buffer[2], buffer[3],
+                    buffer[4], buffer[5], buffer[6], buffer[7],
+                    buffer[8], buffer[9], buffer[10], buffer[11]);
                 uint32_t spd  = READ_NET_32(buffer, 0);
                 uint32_t alt  = READ_NET_32(buffer, 4);
                 uint32_t dist = READ_NET_32(buffer, 8);
@@ -429,11 +434,6 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
             return &s_ble_handle_table[i];
     }
     return NULL;
-    //uint16_t offset = (handle - s_ble_handle_table[0].handle) / 2;
-    //if (offset < sizeof(s_ble_handle_table) / sizeof(s_ble_handle_table[0]))
-    //    return &s_ble_handle_table[offset];
-    //else
-    //    return NULL;
 }
 
 void ble_start_sync(uint8_t mode)

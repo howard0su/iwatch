@@ -1,6 +1,9 @@
-#include "stlv_client.h"
 
 #include <stdio.h>
+#include <string.h>
+
+#include "stlv_client.h"
+
 #include "stlv.h"
 #include "btstack-config.h"
 #include "debug.h"
@@ -153,7 +156,7 @@ void end_send_file(int handle)
     }
 }
 
-void send_sports_data(uint8_t id, uint8_t flag, uint8_t* data, uint8_t size)
+void send_sports_data(uint8_t id, uint8_t flag, uint8_t* meta, uint32_t* data, uint8_t size)
 {
     stlv_packet p = create_packet();
     if (p == 0)
@@ -167,8 +170,21 @@ void send_sports_data(uint8_t id, uint8_t flag, uint8_t* data, uint8_t size)
     element_handle elm_flag = append_element(p, h, "f", 1);
     element_append_char(p, elm_flag, flag);
 
+    uint8_t buffer[32] = {0};
+    uint8_t cursor = 0;
+
+    buffer[cursor++] = size; //sports number
+
+    //meta
+    for (int i = 0; i < size; ++i)
+        buffer[cursor++] = meta[i];
+
+    //data
+    memcpy(&buffer[cursor], data, size * sizeof(data[0]));
+    cursor += size * sizeof(data[0]);
+
     element_handle elm_data = append_element(p, h, "d", 1);
-    element_append_data(p, elm_data, data, size);
+    element_append_data(p, elm_data, buffer, cursor);
 
     send_packet(p, NULL, 0);
 }
