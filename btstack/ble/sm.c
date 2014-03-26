@@ -407,7 +407,7 @@ static void sm_aes128_start(sm_key_t key, sm_key_t plaintext){
     sm_key_t key_flipped, plaintext_flipped;
     swap128(key, key_flipped);
     swap128(plaintext, plaintext_flipped);
-    hci_send_cmd(&hci_le_encrypt, key_flipped, plaintext_flipped);
+        hci_send_cmd(&hci_le_encrypt, key_flipped, plaintext_flipped);
 }
 
 static void sm_ah_r_prime(uint8_t r[3], sm_key_t d1_prime){
@@ -804,6 +804,10 @@ static void sm_run(void){
             int addr_type;
             bd_addr_t addr;
             sm_key_t irk;
+
+            if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET))
+                return;
+
             central_device_db_info(sm_central_device_test, &addr_type, addr, irk);
             printf("device type %u, addr: %s\n", addr_type, bd_addr_to_str(addr));
 
@@ -839,6 +843,11 @@ static void sm_run(void){
             sm_notify_client(SM_IDENTITY_RESOLVING_FAILED, sm_m_addr_type, sm_m_address, 0, 0);
         }
     }
+
+    // assert that we can send either one
+    // we have to check again since we raised events
+    if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
+    if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
 
     // cmac
     switch (sm_cmac_state){
