@@ -268,7 +268,10 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             }
             else
             {
-                hexdump(buffer, buffer_size);
+                log_info("GPS:%02x %02x %02x %02x, %02x %02x %02x %02x, %02x %02x %02x %02x\n"
+                    buffer[0], buffer[1], buffer[2], buffer[3],
+                    buffer[4], buffer[5], buffer[6], buffer[7],
+                    buffer[8], buffer[9], buffer[10], buffer[11]);
                 uint32_t spd  = READ_NET_32(buffer, 0);
                 uint32_t alt  = READ_NET_32(buffer, 4);
                 uint32_t dist = READ_NET_32(buffer, 8);
