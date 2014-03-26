@@ -83,8 +83,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
 #define SPORTS_SYNC_MODE_SPORTS 0x01
 #define SPORTS_SYNC_MODE_SYNC   0x02
 void ble_start_sync(uint8_t mode);
-void ble_send_sports_data(uint32_t time, uint32_t data[], uint8_t size);
-void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist);
+void ble_send_sports_data(uint32_t data[], uint8_t size);
 void ble_stop_sync();
 #endif
 

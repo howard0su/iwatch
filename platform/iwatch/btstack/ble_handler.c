@@ -173,8 +173,9 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         case BLE_HANDLE_SPORTS_DATA:
             if (mode == ATT_HANDLE_MODE_READ)
             {
-                memcpy(buffer, s_sports_data_buffer, sizeof(s_sports_data_buffer));
-                log_info("SPORTS_DATA: %ld, %ld, %ld, %ld, %ld\n", 
+                memcpy(buffer, s_sports_data_buffer, buffer_size);
+                log_info("SPORTS_DATA(%d): %ld, %ld, %ld, %ld, %ld\n",
+                    buffer_size,
                     s_sports_data_buffer[0],
                     s_sports_data_buffer[1],
                     s_sports_data_buffer[2],
@@ -184,11 +185,6 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
                     buffer[0], buffer[1], buffer[2], buffer[3],
                     buffer[4], buffer[5], buffer[6], buffer[7]);
             }
-            else
-            {
-                for (uint8_t i = 0; i < buffer_size / sizeof(uint32_t); ++i)
-                    s_sports_data_buffer[i] = READ_NET_32(&buffer, i * sizeof(uint32_t));
-            }
             break;
 
         case BLE_HANDLE_SPORTS_DESC:
@@ -196,11 +192,6 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             {
                 memcpy(buffer, s_sports_desc_buffer, sizeof(s_sports_desc_buffer));
                 log_info("SPORTS_DESC[0]=%d\n", buffer[0]);
-            }
-            else
-            {
-                for (uint8_t i = 0; i < buffer_size / sizeof(uint32_t); ++i)
-                    s_sports_desc_buffer[i] = READ_NET_32(&buffer, i * sizeof(uint32_t));
             }
             break;
 
@@ -277,10 +268,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             }
             else
             {
-                log_info("GPS:%02x %02x %02x %02x, %02x %02x %02x %02x, %02x %02x %02x %02x\n"
-                    buffer[0], buffer[1], buffer[2], buffer[3],
-                    buffer[4], buffer[5], buffer[6], buffer[7],
-                    buffer[8], buffer[9], buffer[10], buffer[11]);
+                hexdump(buffer, buffer_size);
                 uint32_t spd  = READ_NET_32(buffer, 0);
                 uint32_t alt  = READ_NET_32(buffer, 4);
                 uint32_t dist = READ_NET_32(buffer, 8);
@@ -441,19 +429,10 @@ void ble_start_sync(uint8_t mode)
     s_sports_desc_buffer[0] = mode;
 }
 
-void ble_send_sports_data(uint32_t time, uint32_t data[], uint8_t size)
+void ble_send_sports_data(uint32_t data[], uint8_t size)
 {
-    s_sports_data_buffer[0] = time;
-    for (uint8_t i = 0; i < size && i < count_elem(s_sports_data_buffer); ++i)
-        s_sports_data_buffer[i + 1] = data[i];
-}
-
-void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist)
-{
-    s_sports_data_buffer[0] = time;
-    s_sports_data_buffer[1] = steps;
-    s_sports_data_buffer[2] = steps;
-    s_sports_data_buffer[3] = steps;
+    for (uint8_t i = 0; i < size && i < 5; ++i)
+        s_sports_data_buffer[i] = data[i];
 }
 
 void ble_stop_sync()
