@@ -813,3 +813,15 @@ uint8_t test_builddata(uint8_t ev, uint16_t lparam, void* rparam)
 
     return 0;
 }
+
+uint8_t test_sportsdata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+
+    printf("test_sportsdata()\n");
+    uint8_t meta[] = {1,2,3};
+    uint32_t data[] = {1234, 5678, 9012};
+
+    send_sports_data(0, 0x12, meta, data, 3);
+
+    return 0;
+}

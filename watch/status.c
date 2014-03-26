@@ -204,13 +204,13 @@ static void check_battery()
   {
     switch(level)
     {
-      case 0: case 1:
+      case 0: case 1: case 2:
       status |= BATTERY_EMPTY;
       break;
-      case 2: case 3: case 4:
+      case 3: case 4: case 5: case 6:
       status |= BATTERY_LESS;
       break;
-      case 5: case 6: case 7:
+      case 7: case 8: case 9: case 10: case 11: case 12: case 13:
       status |= BATTERY_MORE;
       break;
       default:
@@ -219,7 +219,7 @@ static void check_battery()
   }
   else if (state == BATTERY_CHARGING)
   {
-    if (level >= 9)
+    if (level >= 15)
     {
       status |= BATTERY_FULL;
     }
@@ -233,6 +233,11 @@ static void check_battery()
     }
   }
 
+  //report = level;
+  if (level > 11)
+    level = 9;
+  else if (level > 8)
+    level = 8;
   if (state == BATTERY_CHARGING)
     level |= 0x10;
   hfp_battery(level);
