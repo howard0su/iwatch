@@ -103,7 +103,7 @@ void hexdump(const void *data, int size){
 }
 
 void print_key(const char * name, sm_key_t key){
-    printf("%-6s ", name);
+    printf("%s ", name);
     hexdump(key, 16);
 }
 

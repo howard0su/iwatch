@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "btstack/src/remote_device_db.h"
+#include "btstack/ble/central_device_db.h"
+
 void test_cfs(CuTest* tc)
 {
   cfs_coffee_format();
@@ -125,6 +127,38 @@ void test_remote_db(CuTest* tc)
   CuAssertIntEquals(tc, remote_device_db_memory.get_link_key(&bd, &key, &type) ,  0);
 }
 
+void test_central_db(CuTest* tc)
+{
+  bd_addr_t bd = {1, 2, 3, 4, 5, 6};
+  sm_key_t key = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+
+  central_device_db_init();
+
+  CuAssertIntEquals(tc, central_device_db_count(), 0);
+
+  central_device_db_add(0, bd, key, key);
+
+  CuAssertIntEquals(tc, central_device_db_count(), 1);
+
+  int addr_type = 0xff;
+  bd_addr_t addr;
+  sm_key_t irk;
+  
+  central_device_db_info(0, &addr_type, addr, irk);
+
+  CuAssertIntEquals(tc, addr_type, 0);
+  CuAssertIntEquals(tc, addr[1], 2);
+
+  central_device_db_add(0, bd, key, key);
+
+  CuAssertIntEquals(tc, central_device_db_count(), 2);  
+  central_device_db_info(1, &addr_type, addr, irk);
+
+  CuAssertIntEquals(tc, addr_type, 0);
+  CuAssertIntEquals(tc, addr[1], 2);
+
+}
+
 void TestDir(CuTest* tc)
 {
   struct cfs_dir dir;
@@ -145,6 +179,7 @@ CuSuite* cfsGetSuite(void)
 	SUITE_ADD_TEST(suite, test_cfs);
 	SUITE_ADD_TEST(suite, test_remote_db);
   SUITE_ADD_TEST(suite, TestDir);
+  SUITE_ADD_TEST(suite, test_central_db);
 
 
   return suite;

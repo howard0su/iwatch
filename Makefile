@@ -124,6 +124,7 @@ WATCH = \
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
+	btstack/ble/central_device_db_memory.c \
 	btstack/src/hci_cmds.c \
 	btstack/ble/att.c \
 	platform/iwatch/btstack/ble_file_handler.c \

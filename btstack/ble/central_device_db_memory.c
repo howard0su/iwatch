@@ -33,17 +33,18 @@
  * Please inquire about commercial licensing options at contact@bluekitchen-gmbh.com
  *
  */
- 
+#include "btstack-config.h"
 #include "central_device_db.h"
+#include "debug.h"
 
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include <stdio.h>
 #include <string.h>
-
+#define NAMESERIAL "BLEDB%d.db"
 // Central Device db implemenation using static memory
 typedef struct central_device_memory_db {
-    int addr_type;
+    uint8_t addr_type;
     bd_addr_t addr;
     sm_key_t csrk;
     sm_key_t irk;
@@ -53,19 +54,26 @@ typedef struct central_device_memory_db {
 #define CENTRAL_DEVICE_MEMORY_SIZE 10
 static int central_devices_count;
 
+static void central_device_db_dump();
+
 /* Read the content from disk */
 static int central_device_db_read(int index, central_device_memory_db_t *device)
 {
     char name[20];
-    sprintf(name, "_LE_%d", index);
+    sprintf(name, NAMESERIAL, index);
     int handle = cfs_open(name, CFS_READ);
     if (handle == -1)
+    {
+        log_error("central file %s failed to open read\n", name);
         return -1;
+    }
 
     int size = cfs_read(handle, device, sizeof(central_device_memory_db_t));
     if (size != sizeof(central_device_memory_db_t))
     {
+        log_error("read, size mismatch for central file: %d(%d != %d)\n", index, size, sizeof(central_device_memory_db_t));
         cfs_close(handle);
+        cfs_remove(name);
         return -1;
     }
 
@@ -76,18 +84,24 @@ static int central_device_db_read(int index, central_device_memory_db_t *device)
 static int central_device_db_write(int index, central_device_memory_db_t *device)
 {
     char name[20];
-    sprintf(name, "_LE_%d", index);
+    sprintf(name, NAMESERIAL, index);
     cfs_remove(name);
     int handle = cfs_open(name, CFS_WRITE);
     if (handle == -1)
+    {
+        log_error("central file %s failed to open write\n", name);
         return -1;
+    }
 
     int size = cfs_write(handle, device, sizeof(central_device_memory_db_t));
     if (size != sizeof(central_device_memory_db_t))
     {
+        log_error("written, size mismatch for central file: %d(%d != %d)\n", index, size, sizeof(central_device_memory_db_t));
         cfs_close(handle);
+        cfs_remove(name);
         return -1;
     }
+    printf("%d bytes written.\n", size);
 
     cfs_close(handle);
     return 0;    
@@ -101,11 +115,19 @@ void central_device_db_init(){
     cfs_opendir(&dir, "/");
     while(!cfs_readdir(&dir, &entry))
     {
-        if (strncmp(entry.name, "_LE_", 4) == 0)
-            central_devices_count++;
+        if (strncmp(entry.name, "BLEDB", 5) == 0)
+        {
+            printf("find dbfile: %s\n", entry.name);
+            int index = entry.name[5] - '0';
+            if (index >= central_devices_count)
+            {
+            central_devices_count = index + 1;    
+            }
+        }
     }
 
     printf("central device db init: count = %d\n", central_devices_count);
+    central_device_db_dump();
 }
 
 // @returns number of device in db
@@ -115,7 +137,7 @@ int central_device_db_count(void){
 
 void central_device_db_remove(int index){
     char name[20];
-    sprintf(name, "_LE_%d", index);
+    sprintf(name, NAMESERIAL, index);
 
     cfs_remove(name);
 }
@@ -128,8 +150,7 @@ int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t 
     print_key("irk", irk);
     print_key("csrk", csrk);
 
-    int index = central_devices_count;
-    central_devices_count++;
+    int index = central_devices_count++;
     central_device_memory_db_t info;
 
     info.addr_type = addr_type;
@@ -152,6 +173,7 @@ void central_device_db_info(int index, int * addr_type, bd_addr_t addr, sm_key_t
     if (central_device_db_read(index, &info))
     {
         printf("faile to read the device info: %d\n", index);
+        if (addr_type) *addr_type = 0;
         return;
     }
 
@@ -194,7 +216,7 @@ void central_device_db_counter_set(int index, uint32_t counter){
     central_device_db_write(index, &info);
 }
 
-void central_device_db_dump(){
+static void central_device_db_dump(){
     printf("Central Device DB dump, devices: %u\n", central_devices_count);
     int i;
     for (i=0;i<central_devices_count;i++){
