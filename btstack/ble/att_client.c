@@ -117,11 +117,7 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
         {
             if (memcmp(uuid128, attribute_uuids[i], 16) == 0)
             {
-                if (properties == 0x10)
-                    attribute_handles[i] = value_handle + 1;
-                else    
-                    attribute_handles[i] = value_handle;
-                break;
+                attribute_handles[i] = value_handle;
             }
         }
 
@@ -133,15 +129,14 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
     {
         // subscribe event
         printf("sub to %d\n", attribute_handles[0]);
-        att_server_subscribe(attribute_handles[0]);
+        att_server_subscribe(attribute_handles[0] + 1); // write to CCC
         return 0xffff;
     }
     else
         return value_handle;
 }
 
-
-void     att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
+void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 {
     if (handle == attribute_handles[NOTIFICATION])
     {
@@ -151,5 +146,9 @@ void     att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             );
 
         // based on catery to fetch infomation
+    }
+    else
+    {
+        printf("handle: %d\n", handle);
     }
 }

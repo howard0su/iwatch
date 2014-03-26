@@ -121,8 +121,7 @@ static void att_handle_value_indication_timeout(timer_source_t *ts){
     att_handle_value_indication_notify_client(ATT_HANDLE_VALUE_INDICATION_TIMEOUT, att_request_handle, att_handle);
 }
 
-static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
-    
+static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){    
     switch (packet_type) {
             
         case HCI_EVENT_PACKET:
@@ -181,7 +180,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     printf("SM_IDENTITY_RESOLVING_FAILED\n");
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = -1;
-                    att_run();
+                    //att_run();
                     printf("SM_IDENTITY_RESOLVING_FAILED--\n");
                     break;
 
@@ -190,6 +189,8 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     if (event->addr_type != att_client_addr_type) break;
                     if (memcmp(event->address, att_client_address, 6) != 0) break;
                     att_connection.authorized = event->authorization_result;
+
+                    printf("!!!authorized!!!!");
                     att_run();
                 	break;
                 }
@@ -221,7 +222,7 @@ static void att_signed_write_handle_cmac_result(uint8_t hash[8]){
 }
 
 static void att_run(void){
-    log_info("Att run, state=%d\n", att_server_state);
+    printf("Att run, state=%d\n", att_server_state);
 
     switch (att_server_state){
         case ATT_SERVER_W4_RESPONSE:
@@ -337,6 +338,10 @@ static void att_run(void){
             {
                 att_server_state = ATT_SERVER_W4_RESPONSE;
                 att_clear_request();
+            }
+            else
+            {
+                printf("fail to send ble packet.\n");
             }
 
             break;
