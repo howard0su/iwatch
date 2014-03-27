@@ -115,8 +115,9 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       
       GrContextFontSet(pContext, &g_sFontNova16);
       const char* msg;
+      BATTERY_STATE state = battery_state();
       // draw the state
-      switch(battery_state())
+      switch(state)
       {
       case BATTERY_DISCHARGING:
         msg = "battery is discharging.";
@@ -130,7 +131,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       GrStringDraw(pContext, msg, -1, 10, 20, 0);
       char buf[50];
-      uint8_t level = battery_level();
+      uint8_t level = battery_level(state);
       sprintf(buf, "battery level is %d\n", level);
       GrStringDraw(pContext, buf, -1, 10, 40, 0);
       

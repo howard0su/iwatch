@@ -196,8 +196,8 @@ static void check_battery()
 {
   //uint8_t report = 0;
   // update battery status
-  uint8_t level = battery_level();
   uint8_t state = battery_state();
+  uint8_t level = battery_level(state);
 
   status &= ~BATTERY_STATUS;
   if (state == BATTERY_DISCHARGING)
