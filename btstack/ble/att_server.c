@@ -373,7 +373,7 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
     {
         att_server_state = ATT_SERVER_RESPONSE_RECEIVED;
     }
-    if (packet[0] & 0x01 == 1)
+    else if (packet[0] & 0x01 == 1)
     {
         att_server_state = ATT_SERVER_RESPONSE_RECEIVED;
     }
