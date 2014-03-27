@@ -224,7 +224,7 @@ static void att_signed_write_handle_cmac_result(uint8_t hash[8]){
 }
 
 static void att_run(void){
-    printf("ATT %d\n", att_server_state);
+    //printf("ATT %d\n", att_server_state);
     switch (att_server_state){
         case ATT_SERVER_W4_RESPONSE:
         case ATT_SERVER_W4_SIGNED_WRITE_VALIDATION:
