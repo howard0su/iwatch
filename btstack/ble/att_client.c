@@ -128,24 +128,51 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
         attribute_handles[2] != -1)
     {
         // subscribe event
-        printf("sub to %d\n", attribute_handles[0]);
-        att_server_subscribe(attribute_handles[0] + 1); // write to CCC
+        printf("sub to %d\n", attribute_handles[NOTIFICATION]);
+        att_server_subscribe(attribute_handles[NOTIFICATION] + 1); // write to CCC
         return 0xffff;
     }
     else
         return value_handle;
 }
 
+void report_write_done(att_connection_t *conn, uint16_t handle)
+{
+    printf("report_write_done: %d\n", handle);
+    if (handle == attribute_handles[NOTIFICATION] + 1)
+    {
+        att_server_subscribe(attribute_handles[DATASOURCE] + 1); // write to CCC
+    }
+}
+
 void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 {
     if (handle == attribute_handles[NOTIFICATION])
     {
+        uint32_t id =  READ_BT_32(data, 4);
         printf("id: %d flags:%d catery:%d count: %d UID:%ld\n",
             data[0], data[1], data[2], data[3],
-            READ_BT_32(data, 4)
+            id
             );
 
         // based on catery to fetch infomation
+        char buffer[] = {
+            0, // command id
+            0, 0, 0, 0, // uid
+            0,          // appid
+            1, 16, 0, // 16 bytes title
+            3, 64, 0, // 64bytes message
+        };
+        bt_store_32(buffer, 1, id);
+        att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(length));
+    }
+    else if (handle == attribute_handles[DATASOURCE])
+    {
+        printf("data received\n");
+        hexdump(data, length);
+
+        // parse the data
+
     }
     else
     {

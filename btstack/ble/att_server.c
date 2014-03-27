@@ -38,7 +38,7 @@
 // ATT Server Globals
 //
 //#define ENABLE_LOG_INFO
-//#define ENABLE_LOG_DEBUG
+#define ENABLE_LOG_DEBUG
 
 #include "att_server.h"
 
@@ -60,6 +60,7 @@
 #include "sm.h"
 #include "att.h"
 #include "att_server.h"
+#include "att_client.h"
 #include "gap_le.h"
 #include "central_device_db.h"
 
@@ -122,6 +123,8 @@ static void att_handle_value_indication_timeout(timer_source_t *ts){
 }
 
 static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){    
+    //printf("type=%x ev:%x\n", packet_type, packet[0]);
+
     switch (packet_type) {
             
         case HCI_EVENT_PACKET:
@@ -174,6 +177,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
                     printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
+                    att_server_send_gatt_services_request();
                     att_run();
                     break;
                 case SM_IDENTITY_RESOLVING_FAILED:
@@ -189,8 +193,6 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     if (event->addr_type != att_client_addr_type) break;
                     if (memcmp(event->address, att_client_address, 6) != 0) break;
                     att_connection.authorized = event->authorization_result;
-
-                    printf("!!!authorized!!!!");
                     att_run();
                 	break;
                 }
@@ -222,8 +224,7 @@ static void att_signed_write_handle_cmac_result(uint8_t hash[8]){
 }
 
 static void att_run(void){
-    printf("Att run, state=%d\n", att_server_state);
-
+    printf("ATT %d\n", att_server_state);
     switch (att_server_state){
         case ATT_SERVER_W4_RESPONSE:
         case ATT_SERVER_W4_SIGNED_WRITE_VALIDATION:
@@ -278,15 +279,7 @@ static void att_run(void){
             uint8_t  att_response_buffer[MTU + 20];
             uint16_t att_response_size;
 
-            if (att_request_buffer[0] == ATT_HANDLE_VALUE_NOTIFICATION)
-            {
-                att_response_size = 0;
-                att_server_state = ATT_SERVER_IDLE;
-                att_handle_notification(&att_connection, att_request_buffer, att_request_size);
-                return;
-            }
-            else
-                att_response_size = att_handle_request(&att_connection, att_request_buffer, att_request_size, att_response_buffer);
+            att_response_size = att_handle_request(&att_connection, att_request_buffer, att_request_size, att_response_buffer);
 
             // intercept "insufficient authorization" for authenticated connections to allow for user authorization
             if (att_response_buffer[0] == ATT_ERROR_RESPONSE
@@ -319,7 +312,12 @@ static void att_run(void){
         case ATT_SERVER_RESPONSE_RECEIVED:
             {
                 att_server_state = ATT_SERVER_IDLE;
-                att_handle_response(&att_connection, att_request_buffer, att_request_size);
+                if (att_request_buffer[0] == ATT_HANDLE_VALUE_NOTIFICATION)
+                {
+                    att_handle_notification(&att_connection, att_request_buffer, att_request_size);
+                }
+                else
+                    att_handle_response(&att_connection, att_request_buffer, att_request_size);
             }
             /* FALL THROUGH */
         case ATT_SERVER_IDLE:
@@ -352,6 +350,9 @@ static void att_run(void){
 static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
     if (packet_type != ATT_DATA_PACKET) return;
 
+    printf("packet data : ");
+    hexdump(packet, size);
+
     // handle value indication confirms
     if (packet[0] == ATT_HANDLE_VALUE_CONFIRMATION && att_handle_value_indication_handle){
         run_loop_remove_timer(&att_handle_value_indication_timer);
@@ -368,19 +369,17 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
         return;
     }
 
-    // last request still in processing?
-    if (att_server_state == ATT_SERVER_IDLE)
+    if (packet[0] == ATT_HANDLE_VALUE_NOTIFICATION)
     {
-        att_server_state = ATT_SERVER_REQUEST_RECEIVED;
+        att_server_state = ATT_SERVER_RESPONSE_RECEIVED;
     }
-    else if (att_server_state == ATT_SERVER_W4_RESPONSE)
+    if (packet[0] & 0x01 == 1)
     {
         att_server_state = ATT_SERVER_RESPONSE_RECEIVED;
     }
     else
     {
-        log_debug("don't expect any packet.\n");
-        return;
+        att_server_state = ATT_SERVER_REQUEST_RECEIVED;
     }
 
     // store packet
@@ -528,6 +527,24 @@ void att_server_subscribe(uint16_t handle)
     att_run();
 }
 
+void att_server_write(uint16_t handle, uint8_t *buffer, uint16_t length)
+{
+    request._write_attribute.attribute_handle = handle;
+    request._write_attribute.data = malloc(length);
+    if (!request._write_attribute.data)
+    {
+        log_error("Cannot allocate memory.\n");
+        return;
+    }
+    request._write_attribute.length = length;
+
+    memcpy(request._write_attribute.data, buffer, length);
+
+    request_type = ATT_WRITE_REQUEST;
+
+    att_run();    
+}
+
 static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
 {
     log_debug("ATT: try to send request\n");
@@ -535,7 +552,7 @@ static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
     switch(request_type)
     {
         case ATT_FIND_BY_TYPE_VALUE_REQUEST:
-            log_debug("ATT: try to send att_find_by_type_value_request request\n");
+            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
             return att_find_by_type_value_request(buffer,
                 request._find_by_type_value.attribute_group_type,
                 request._find_by_type_value.start_handle, 
@@ -543,27 +560,27 @@ static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
                 request._find_by_type_value.value,
                 16);
         case ATT_READ_BY_GROUP_TYPE_REQUEST:
-            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+            log_debug("ATT: try to send ATT_READ_BY_GROUP_TYPE_REQUEST request\n");
             return att_read_by_group_request(buffer,
                 request._read_by_group_type.attribute_group_type,
                 request._read_by_group_type.start_handle,
                 request._read_by_group_type.end_handle
                 );
         case ATT_READ_BY_TYPE_REQUEST:
-            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+            log_debug("ATT: try to send ATT_READ_BY_TYPE_REQUEST request\n");
              return att_read_by_type_request(buffer,
                 request._read_by_group_type.attribute_group_type,
                 request._read_by_group_type.start_handle,
                 request._read_by_group_type.end_handle
                 );
         case ATT_WRITE_REQUEST:
-            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+            log_debug("ATT: try to send ATT_WRITE_REQUEST request\n");
             return att_write_request(buffer,
                 request._write_attribute.attribute_handle,
                 request._write_attribute.data,
                 request._write_attribute.length);
         case ATT_WRITE_COMMAND:
-            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+            log_debug("ATT: try to send ATT_WRITE_COMMAND request\n");
             return att_write_command(buffer,
                 request._write_attribute.attribute_handle,
                 request._write_attribute.data,
@@ -587,8 +604,6 @@ static void att_clear_request()
 
 static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_t length)
 {
-    printf("response data : ");
-    hexdump(buffer, length);
     switch(buffer[0])
     {
         case ATT_READ_BY_GROUP_TYPE_RESPONSE:
@@ -612,7 +627,9 @@ static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_
                 request_type = ATT_READ_BY_TYPE_REQUEST;
             }
             break;
-
+        case ATT_WRITE_RESPONSE:
+            report_write_done(conn, request._write_attribute.attribute_handle);
+            break;
         case ATT_ERROR_RESPONSE:
             // done the last step
             
