@@ -648,6 +648,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 
       add_watch_status(WS_SPORTS);
 
+      ble_start_sync(2);
       return 0x80; // disable status
     }
   case EVENT_SPORT_DATA:
@@ -664,21 +665,16 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       if (upload_data_interval > 0 &&
           workout_time % upload_data_interval == 0)
       {
-        uint8_t cursor = 0;
-        uint8_t data_buf[32] = {0};
-
         ui_config* config = window_readconfig();
         sportnum = config->sports_grid + 4;
 
         //STLV over RFCOMM
-        send_sports_data(0, sports_type | SPORTS_DATA_FLAG_START, 
+        send_sports_data(0, 
+          sports_type | SPORTS_DATA_FLAG_START, 
           config->sports_grid_data, grid_data, sportnum);
 
         //BLE
-        ble_start_sync(2);
-        uint32_t timestamp = rtc_readtime32();
-        //if (sports_type == SPORTS_DATA_FLAG_RUN)
-        ble_send_sports_data(grid_data[0], &grid_data[1], sportnum);
+        ble_send_sports_data(grid_data, 5);
 
       }
 
@@ -706,8 +702,8 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
           data[2] = ped_get_distance() - s_sports_data[2];
           write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
         }
-
       }
+
       break;
     }
   case EVENT_WINDOW_PAINT:
