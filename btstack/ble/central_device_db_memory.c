@@ -51,7 +51,7 @@ typedef struct central_device_memory_db {
     uint32_t signing_counter;
 } central_device_memory_db_t;
 
-#define CENTRAL_DEVICE_MEMORY_SIZE 10
+#define CENTRAL_DEVICE_MEMORY_SIZE 1
 static int central_devices_count;
 
 static void central_device_db_dump();
@@ -126,6 +126,9 @@ void central_device_db_init(){
             }
         }
     }
+
+    if (central_devices_count > CENTRAL_DEVICE_MEMORY_SIZE)
+        central_devices_count = CENTRAL_DEVICE_MEMORY_SIZE;
 
     printf("central device db init: count = %d\n", central_devices_count);
     central_device_db_dump();

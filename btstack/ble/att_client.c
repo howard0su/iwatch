@@ -24,17 +24,8 @@
 #include "gap_le.h"
 #include "central_device_db.h"
 
-typedef enum
-{
-    SERVICE_QUERY_RESULT,
-    CHARACTERISTIC_QUERY_RESULT,
-    
-    P_W2_SEND_READ_CHARACTERISTIC_VALUE_QUERY,
-    P_W4_READ_CHARACTERISTIC_VALUE_RESULT,
-
-    P_W2_SEND_READ_LONG_CHARACTERISTIC_VALUE_QUERY,
-    P_W4_READ_LONG_CHARACTERISTIC_VALUE_RESULT
-}state_t;
+//XX: we should not use window.h here
+#include "window.h"
 
 static const uint8_t ancsuuid[] = {
     0x79, 0x05, 0xF4, 0x31, 0xB5, 0xCE, 0x4E, 0x99, 0xA4, 0x0F, 0x4B, 0x1E, 0x12, 0x2D, 0x00, 0xD0
@@ -149,11 +140,14 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 {
     if (handle == attribute_handles[NOTIFICATION])
     {
-        uint32_t id =  READ_BT_32(data, 4);
+        uint32_t uid =  READ_BT_32(data, 4);
         printf("id: %d flags:%d catery:%d count: %d UID:%ld\n",
             data[0], data[1], data[2], data[3],
-            id
+            uid
             );
+
+        if (data[0] != 0)
+            return;
 
         // based on catery to fetch infomation
         uint8_t buffer[] = {
@@ -161,18 +155,102 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             0, 0, 0, 0, // uid
             0,          // appid
             1, 16, 0, // 16 bytes title
-            3, 64, 0, // 64bytes message
+            3, 128, 0, // 64bytes message
         };
-        bt_store_32(buffer, 1, id);
+        bt_store_32(buffer, 1, uid);
         att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
     }
     else if (handle == attribute_handles[DATASOURCE])
     {
         printf("data received\n");
-        hexdump(data, length);
+        // start notification
 
+        static enum 
+        {
+            STATE_NONE,
+            STATE_UID,
+            STATE_ATTRIBUTEID,
+            STATE_ATTRIBUTELEN,
+            STATE_ATTRIBUTE,
+            STATE_DONE
+        }parse_state = STATE_NONE;
+        static uint8_t attributeid;
+        static uint16_t attrleftlen, len;
+        static char* bufptr;
+        static char appidbuf[32];
+        static char titlebuf[17];
+        static char msgbuf[129];
+
+
+        int index = 0;
+        while(index < length)
+        {
+            switch(parse_state)
+            {
+                case STATE_NONE:
+                    printf("Command: %d\t", data[index]);
+                    index++;
+                    parse_state = STATE_UID;
+                    break;
+                case STATE_UID:
+                    printf("uid: %ld\t", READ_BT_32(data, index));
+                    index += 4;
+                    parse_state = STATE_ATTRIBUTEID;
+                    break;
+                case STATE_ATTRIBUTEID:
+                    attributeid = data[index];
+                    printf("\nattributeid: %d\t", attributeid);
+                    switch(attributeid)
+                    {
+                        case 0:
+                        bufptr = appidbuf;
+                        break;
+                        case 1:
+                        bufptr = titlebuf;
+                        break;
+                        case 3:
+                        bufptr = msgbuf;
+                        break;
+                    }
+                    index++;
+                    parse_state = STATE_ATTRIBUTELEN;
+                    break;
+                case STATE_ATTRIBUTELEN:
+                    len = attrleftlen = READ_BT_16(data, index);
+                    printf("len: %d\t", attrleftlen);
+                    index+=2;
+                    parse_state = STATE_ATTRIBUTE;
+                    break;
+                case STATE_ATTRIBUTE:
+                    uint16_t l;
+                    if (length - index > attrleftlen)
+                        l = attrleftlen;
+                    else
+                        l = length - index;
+                    for(int i = 0; i < l; i++)
+                    {
+                        putchar(data[index + i]);
+                        bufptr[i + len - attrleftlen] = data[index + i];
+                    }
+                    index += l;
+                    attrleftlen -= l;
+                    if (attrleftlen == 0)
+                    {
+                        bufptr[len] = '\0';
+                        if (attributeid == 3)
+                            parse_state = STATE_NONE;
+                        else
+                            parse_state = STATE_ATTRIBUTEID;
+                    }
+                    break;
+            }
+        }
         // parse the data
 
+        if (parse_state == STATE_NONE)
+        {
+            window_notify(titlebuf, msgbuf, 0, -1);
+        }
     }
     else
     {

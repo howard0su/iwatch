@@ -602,14 +602,14 @@ static void att_clear_request()
     request_type = 0;
 }
 
-static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_t length)
+static void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint16_t length)
 {
     switch(buffer[0])
     {
         case ATT_READ_BY_GROUP_TYPE_RESPONSE:
             uint16_t lasthandle;
             // check service
-            lasthandle = report_gatt_services(conn, buffer, length);
+            lasthandle = report_gatt_services(att_connection, buffer, length);
 
             if (lasthandle != 0xff)
             {
@@ -619,7 +619,7 @@ static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_
             }
             break;
         case ATT_READ_BY_TYPE_RESPONSE:
-            lasthandle = report_service_characters(conn, buffer, length);
+            lasthandle = report_service_characters(att_connection, buffer, length);
             if (lasthandle != 0xff)
             {
                 request._read_by_group_type.start_handle = lasthandle + 1;
@@ -628,11 +628,26 @@ static void att_handle_response(att_connection_t *conn, uint8_t* buffer, uint16_
             }
             break;
         case ATT_WRITE_RESPONSE:
-            report_write_done(conn, request._write_attribute.attribute_handle);
+            report_write_done(att_connection, request._write_attribute.attribute_handle);
             break;
         case ATT_ERROR_RESPONSE:
             // done the last step
-            
+            if (buffer[0] == ATT_ERROR_RESPONSE
+                && (
+                    buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHORIZATION
+                    || buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHENTICATION
+                    )
+                && att_connection->authenticated){
+                switch (sm_authorization_state(att_client_addr_type, att_client_address)){
+                    case AUTHORIZATION_UNKNOWN:
+                        sm_request_authorization(att_client_addr_type, att_client_address);
+                        return;
+                    case AUTHORIZATION_PENDING:
+                        return;
+                    default:
+                        break;
+                }
+            }
             break;
     }
 }

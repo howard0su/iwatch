@@ -186,10 +186,11 @@ static void gap_run(){
         
         uint8_t adv_data[] = { 
             2, 0x1, 0x2,
+            3, 02, 0xf0, 0xff,
             14, 0x09, 'K','r', 'e', 'y', 'o', 's', 'L', 'E', ' ', 'X','X','X','X','\0'
         };
 
-        sprintf(&adv_data[14], "%02X%02X", (*hci_local_bd_addr())[4], (*hci_local_bd_addr())[5]);
+        sprintf(&adv_data[18], "%02X%02X", (*hci_local_bd_addr())[4], (*hci_local_bd_addr())[5]);
         printf("GAP_RUN: set advertisement data\n");
         hexdump(adv_data, sizeof(adv_data));
         hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data) - 1, adv_data);
@@ -221,7 +222,6 @@ static void gap_run(){
         uint8_t scan_data[] = {
             2, 0x1, 0x2,
             2, 0x11, 3,
-            3, 02, 0xf0, 0xff,
             17, 0x15, 0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
         };
 
