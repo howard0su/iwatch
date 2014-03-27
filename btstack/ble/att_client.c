@@ -156,7 +156,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             );
 
         // based on catery to fetch infomation
-        char buffer[] = {
+        uint8_t buffer[] = {
             0, // command id
             0, 0, 0, 0, // uid
             0,          // appid
@@ -164,7 +164,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             3, 64, 0, // 64bytes message
         };
         bt_store_32(buffer, 1, id);
-        att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(length));
+        att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
     }
     else if (handle == attribute_handles[DATASOURCE])
     {
