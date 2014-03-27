@@ -270,15 +270,14 @@ static void TestBleSportsData(CuTest* tc)
         att_handler(BLE_HANDLE_SPORTS_DESC, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_READ);
         CuAssertIntEquals(tc, i, buffer[0]);
 
-        ble_send_sports_data(i, sample, 4);
+        ble_send_sports_data(sample, 4);
         att_handler(BLE_HANDLE_SPORTS_DATA, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_READ);
 
         uint32_t* p = (uint32_t*)buffer;
 
-        CuAssertIntEquals(tc, i, p[0]);
         for (int j = 0; j < 4; ++j)
         {
-            CuAssertIntEquals(tc, sample[j], p[j + 1]);
+            CuAssertIntEquals(tc, sample[j], p[j]);
         }
     }
 }
