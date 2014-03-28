@@ -158,6 +158,9 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                 	if (att_request_handle != READ_BT_16(packet, 3)) break;
                 	att_connection.encryption_key_size = sm_encryption_key_size(att_client_addr_type, att_client_address);
                 	att_connection.authenticated = sm_authenticated(att_client_addr_type, att_client_address);
+                    //printf("HCI_EVENT_ENCRYPTION_CHANGE=>a:%d k:%d\n", att_connection.authenticated, att_connection.encryption_key_size);
+                    //if (att_connection.authenticated && att_connection.encryption_key_size > 0)
+                    att_server_send_gatt_services_request();
                 	break;
 
                 case HCI_EVENT_DISCONNECTION_COMPLETE:
@@ -177,7 +180,6 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
                     printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
-                    att_server_send_gatt_services_request();
                     att_run();
                     break;
                 case SM_IDENTITY_RESOLVING_FAILED:
