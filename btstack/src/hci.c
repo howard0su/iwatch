@@ -2147,3 +2147,7 @@ void gap_set_local_name(const char * local_name){
 }
 
 
+uint8_t hci_le_data_packet_length()
+{
+    return hci_stack->le_data_packet_length;
+}

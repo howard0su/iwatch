@@ -38,6 +38,7 @@
 #include <string.h>
 
 #include "att.h"
+#include "hci.h"
 
 // from src/utils.
 #define READ_BT_16( buffer, pos) ( ((uint16_t) buffer[pos]) | (((uint16_t)buffer[pos+1]) << 8))
@@ -218,7 +219,7 @@ void att_dump_attributes(void){
         }
         printf("Handle: 0x%04x, flags: 0x%04x, uuid: ", it.handle, it.flags);
         if (it.flags & ATT_PROPERTY_UUID128){
-            swap128(it.uuid, uuid128);
+            swap128((uint8_t*)it.uuid, uuid128);
             printUUID128(uuid128);
         } else {
             printf("%04x", READ_BT_16(it.uuid, 0));
@@ -1003,8 +1004,8 @@ static uint16_t prepare_handle_value(att_connection_t * att_connection,
                                      uint16_t value_len, 
                                      uint8_t * response_buffer){
     bt_store_16(response_buffer, 1, handle);
-    if (value_len > att_connection->mtu - 3){
-        value_len = att_connection->mtu - 3;
+    if (value_len > hci_le_data_packet_length() - HCI_ACL_HEADER_SIZE - 3){
+        value_len = hci_le_data_packet_length() - HCI_ACL_HEADER_SIZE - 3;
     }
     memcpy(&response_buffer[3], value, value_len);
     return value_len + 3;
@@ -1038,7 +1039,7 @@ uint16_t att_handle_request(att_connection_t * att_connection,
                             uint16_t request_len,
                             uint8_t * response_buffer){
     uint16_t response_len = 0;
-    uint16_t response_buffer_size = att_connection->mtu;
+    uint16_t response_buffer_size = hci_le_data_packet_length() - HCI_ACL_HEADER_SIZE;
     
     printf("Request=%d\n", request_buffer[0]);
     switch (request_buffer[0]){
