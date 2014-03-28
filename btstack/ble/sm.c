@@ -819,7 +819,11 @@ static void sm_run(void){
                 sm_notify_client(SM_IDENTITY_RESOLVING_SUCCEEDED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 break;
             }
-
+            else
+            {
+                central_device_db_remove(sm_central_device_test);
+            }
+            
             if (sm_m_addr_type == 0){
                 sm_central_device_test++;
                 continue;

@@ -38,7 +38,7 @@
 // ATT Server Globals
 //
 //#define ENABLE_LOG_INFO
-#define ENABLE_LOG_DEBUG
+//#define ENABLE_LOG_DEBUG
 
 #include "att_server.h"
 
@@ -180,6 +180,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
                     printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
+                    att_server_send_gatt_services_request();
                     att_run();
                     break;
                 case SM_IDENTITY_RESOLVING_FAILED:
@@ -350,10 +351,10 @@ static void att_run(void){
 }
 
 static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
-    if (packet_type != ATT_DATA_PACKET) return;
-
-    printf("packet data : ");
+    printf("packet data(%d): ", packet_type);
     hexdump(packet, size);
+
+    if (packet_type != ATT_DATA_PACKET) return;
 
     // handle value indication confirms
     if (packet[0] == ATT_HANDLE_VALUE_CONFIRMATION && att_handle_value_indication_handle){
@@ -656,8 +657,8 @@ static void att_handle_response(att_connection_t *att_connection, uint8_t* buffe
 
 static void att_handle_notification(att_connection_t *conn, uint8_t* buffer, uint16_t length)
 {
-    printf("notification data : ");
-    hexdump(buffer, length);
+    //printf("notification data : ");
+    //hexdump(buffer, length);
 
     uint16_t handler = READ_BT_16(buffer, 1);
 
