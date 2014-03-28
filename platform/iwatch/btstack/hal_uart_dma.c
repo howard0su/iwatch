@@ -99,12 +99,31 @@ In this mode, the maximum USCI baud rate is one-third the UART source clock freq
 int hal_uart_dma_set_baud(uint32_t baud){
   int result = 0;
 
+  while(UCA0STAT & UCBUSY);
   UCA0CTL1 |= UCSWRST;              //Reset State
 
   switch (baud){
 
   case 4000000:
     UCA0BR0 = 2;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
+    break;
+
+  case 2000000:
+    UCA0BR0 = 4;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
+    break;
+
+  case 1000000:
+    UCA0BR0 = 8;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
+    break;
+
+  case 500000:
+    UCA0BR0 = 16;
     UCA0BR1 = 0;
     UCA0MCTL= 0 << 1;  // + 0.000
     break;
