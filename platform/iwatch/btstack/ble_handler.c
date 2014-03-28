@@ -17,6 +17,64 @@
 #include "rtc.h"
 #include "system.h"
 
+//
+// list mapping between characteristics and handles
+//
+#define ATT_CHARACTERISTIC_GAP_APPEARANCE_01_VALUE_HANDLE 0x0003
+#define ATT_CHARACTERISTIC_GATT_SERVICE_CHANGED_01_VALUE_HANDLE 0x0006
+#define ATT_CHARACTERISTIC_FFF1_01_VALUE_HANDLE 0x0009
+#define ATT_CHARACTERISTIC_FFF2_01_VALUE_HANDLE 0x000b
+#define ATT_CHARACTERISTIC_FFF3_01_VALUE_HANDLE 0x000d
+#define ATT_CHARACTERISTIC_FFF4_01_VALUE_HANDLE 0x000f
+#define ATT_CHARACTERISTIC_FFF5_01_VALUE_HANDLE 0x0011
+#define ATT_CHARACTERISTIC_FFF6_01_VALUE_HANDLE 0x0013
+#define ATT_CHARACTERISTIC_FFF7_01_VALUE_HANDLE 0x0015
+#define ATT_CHARACTERISTIC_FFF8_01_VALUE_HANDLE 0x0017
+#define ATT_CHARACTERISTIC_FFF9_01_VALUE_HANDLE 0x0019
+#define ATT_CHARACTERISTIC_FF10_01_VALUE_HANDLE 0x001b
+#define ATT_CHARACTERISTIC_FF11_01_VALUE_HANDLE 0x001d
+#define ATT_CHARACTERISTIC_FF12_01_VALUE_HANDLE 0x001f
+#define ATT_CHARACTERISTIC_FF13_01_VALUE_HANDLE 0x0021
+#define ATT_CHARACTERISTIC_FF14_01_VALUE_HANDLE 0x0023
+#define ATT_CHARACTERISTIC_FF15_01_VALUE_HANDLE 0x0025
+#define ATT_CHARACTERISTIC_FF16_01_VALUE_HANDLE 0x0027
+#define ATT_CHARACTERISTIC_FF17_01_VALUE_HANDLE 0x0029
+#define ATT_CHARACTERISTIC_FF18_01_VALUE_HANDLE 0x002b
+#define ATT_CHARACTERISTIC_FF19_01_VALUE_HANDLE 0x002d
+#define ATT_CHARACTERISTIC_FF20_01_VALUE_HANDLE 0x002f
+#define ATT_CHARACTERISTIC_FF21_01_VALUE_HANDLE 0x0031
+#define ATT_CHARACTERISTIC_FF22_01_VALUE_HANDLE 0x0033
+#define ATT_CHARACTERISTIC_FF23_01_VALUE_HANDLE 0x0035
+#define ATT_CHARACTERISTIC_FF24_01_VALUE_HANDLE 0x0037
+#define ATT_CHARACTERISTIC_FF25_01_VALUE_HANDLE 0x0039
+
+#define BLE_HANDLE_UNLOCK_WATCH      ATT_CHARACTERISTIC_FFF1_01_VALUE_HANDLE
+#define BLE_HANDLE_FW_VERSION        ATT_CHARACTERISTIC_FFF2_01_VALUE_HANDLE
+#define BLE_HANDLE_DATETIME          ATT_CHARACTERISTIC_FFF3_01_VALUE_HANDLE
+#define BLE_HANDLE_ALARM_0           ATT_CHARACTERISTIC_FFF4_01_VALUE_HANDLE
+#define BLE_HANDLE_ALARM_1           ATT_CHARACTERISTIC_FFF5_01_VALUE_HANDLE
+#define BLE_HANDLE_ALARM_2           ATT_CHARACTERISTIC_FFF6_01_VALUE_HANDLE
+#define BLE_HANDLE_SPORTS_GRID       ATT_CHARACTERISTIC_FFF7_01_VALUE_HANDLE
+#define BLE_HANDLE_SPORTS_DATA       ATT_CHARACTERISTIC_FFF8_01_VALUE_HANDLE
+#define BLE_HANDLE_SPORTS_DESC       ATT_CHARACTERISTIC_FFF9_01_VALUE_HANDLE
+#define BLE_HANDLE_DEVICE_ID         ATT_CHARACTERISTIC_FF10_01_VALUE_HANDLE
+#define BLE_HANDLE_FILE_DESC         ATT_CHARACTERISTIC_FF11_01_VALUE_HANDLE
+#define BLE_HANDLE_FILE_DATA         ATT_CHARACTERISTIC_FF12_01_VALUE_HANDLE
+#define BLE_HANDLE_GPS_INFO          ATT_CHARACTERISTIC_FF13_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_GESTURE      ATT_CHARACTERISTIC_FF14_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WORLDCLOCK_0 ATT_CHARACTERISTIC_FF15_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WORLDCLOCK_1 ATT_CHARACTERISTIC_FF16_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WORLDCLOCK_2 ATT_CHARACTERISTIC_FF17_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WORLDCLOCK_3 ATT_CHARACTERISTIC_FF18_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WORLDCLOCK_4 ATT_CHARACTERISTIC_FF19_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WORLDCLOCK_5 ATT_CHARACTERISTIC_FF20_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_WATCHFACE    ATT_CHARACTERISTIC_FF21_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_GOALS        ATT_CHARACTERISTIC_FF22_01_VALUE_HANDLE
+#define BLE_HANDLE_CONF_USER_PROFILE ATT_CHARACTERISTIC_FF23_01_VALUE_HANDLE
+#define BLE_HANDLE_RESERVED_0        ATT_CHARACTERISTIC_FF24_01_VALUE_HANDLE
+#define BLE_HANDLE_RESERVED_1        ATT_CHARACTERISTIC_FF25_01_VALUE_HANDLE
+
+
 static const ble_handle_t s_ble_handle_table[] = {
     /*     characteristic, name                          type                       size*/
     DEF_BLE_HANDLE("fff1", BLE_HANDLE_UNLOCK_WATCH,      BLE_HANDLE_TYPE_INT8_ARR,  1),
@@ -96,9 +154,8 @@ static void att_write_world_clock(uint8_t id, char* buf)
 
 }
 
-uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
+static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
 {
-    log_info("att_handler(handle=%x, buflen=%d, mode=%d)\n", handle, buffer_size, mode);
     const ble_handle_t* hble = get_ble_handle(handle);
     if (hble == NULL)
     {
@@ -106,7 +163,9 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         return 0;
     }
 
-    uint16_t actual_size = hble->size * get_type_unit_size(hble->type);
+    log_info("att_handler(handle=%s, buflen=%d, mode=%d)\n", hble->name, buffer_size, mode);
+
+    uint16_t actual_size =  20; //hble->size * get_type_unit_size(hble->type);
     if (buffer == 0)
     {
         log_error("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
@@ -401,14 +460,34 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             break;
 
         case BLE_HANDLE_RESERVED_0:
-        case BLE_HANDLE_RESERVED_1:
+//        case BLE_HANDLE_RESERVED_1:
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memset(buffer, 0, buffer_size);
             }
             break;
     }
+
     return actual_size;
+}
+
+
+uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
+{
+    if (mode == ATT_HANDLE_MODE_READ)
+    {
+        return att_handler_internal(handle, offset, buffer, buffer_size, mode);
+    }
+    else
+    {
+        if (buffer == NULL)
+            return att_handler_internal(handle, offset, buffer, buffer_size, mode);
+        else
+        {
+            att_handler_internal(handle, offset, buffer, buffer_size, mode);
+            return 0;
+        }
+    }
 }
 
 uint8_t get_type_unit_size(uint8_t type)
