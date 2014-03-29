@@ -579,7 +579,7 @@ static void event_handler(uint8_t *packet, int size){
             if (COMMAND_COMPLETE_EVENT(packet, hci_le_read_buffer_size)){
                 hci_stack->le_data_packet_length = READ_BT_16(packet, 6);
                 hci_stack->total_num_le_packets  = packet[8];
-                log_info("hci_le_read_buffer_size: size %u, count %u\n", hci_stack->le_data_packet_length, hci_stack->total_num_le_packets);
+                printf("hci_le_read_buffer_size: size %u, count %u\n", hci_stack->le_data_packet_length, hci_stack->total_num_le_packets);
             }            
 #endif
             // Dump local address
@@ -853,6 +853,10 @@ static void event_handler(uint8_t *packet, int size){
             if(hci_stack->control && hci_stack->control->hw_error){
                 (*hci_stack->control->hw_error)();
             }
+            break;
+
+        case HCI_EVENT_DATA_BUFFER_OVERFLOW:
+            log_error("Data overrun\n");
             break;
 
         case HCI_EVENT_MODE_CHANGE_EVENT:
@@ -2149,5 +2153,5 @@ void gap_set_local_name(const char * local_name){
 
 uint8_t hci_le_data_packet_length()
 {
-    return hci_stack->le_data_packet_length;
+    return hci_stack->le_data_packet_length - 1;
 }
