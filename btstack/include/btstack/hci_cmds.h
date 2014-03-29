@@ -247,6 +247,7 @@ extern "C" {
 #define SM_IDENTITY_RESOLVING_SUCCEEDED  				   0xb8
 #define SM_AUTHORIZATION_REQUEST						   0xb9
 #define SM_AUTHORIZATION_RESULT							   0xba
+#define SM_BONDING_FINISHED                0xbb
 
 // GAP
 

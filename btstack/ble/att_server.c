@@ -195,6 +195,11 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_connection.authorized = event->authorization_result;
                     att_run();
                 	break;
+
+                case SM_BONDING_FINISHED:
+                    printf("pairing finished\n");
+                    att_server_send_gatt_services_request();
+                    break;
                 }
 
                 default:
