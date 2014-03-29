@@ -51,7 +51,7 @@ typedef struct central_device_memory_db {
     uint32_t signing_counter;
 } central_device_memory_db_t;
 
-#define CENTRAL_DEVICE_MEMORY_SIZE 1
+#define CENTRAL_DEVICE_MEMORY_SIZE 4
 static int central_devices_count;
 
 static void central_device_db_dump();
@@ -109,26 +109,7 @@ static int central_device_db_write(int index, central_device_memory_db_t *device
 }
 
 void central_device_db_init(){
-    central_devices_count = 0;
-
-    struct cfs_dir dir;
-    struct cfs_dirent entry;
-    cfs_opendir(&dir, "/");
-    while(!cfs_readdir(&dir, &entry))
-    {
-        if (strncmp(entry.name, "BLEDB", 5) == 0)
-        {
-            printf("find dbfile: %s\n", entry.name);
-            int index = entry.name[5] - '0';
-            if (index >= central_devices_count)
-            {
-            central_devices_count = index + 1;    
-            }
-        }
-    }
-
-    if (central_devices_count > CENTRAL_DEVICE_MEMORY_SIZE)
-        central_devices_count = CENTRAL_DEVICE_MEMORY_SIZE;
+    central_devices_count = CENTRAL_DEVICE_MEMORY_SIZE;
 
     printf("central device db init: count = %d\n", central_devices_count);
     central_device_db_dump();

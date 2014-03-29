@@ -804,10 +804,6 @@ static void sm_run(void){
                 sm_notify_client(SM_IDENTITY_RESOLVING_SUCCEEDED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 break;
             }
-            else
-            {
-                central_device_db_remove(sm_central_device_test);
-            }
             
             if (sm_m_addr_type == 0){
                 sm_central_device_test++;
@@ -984,7 +980,6 @@ static void sm_run(void){
         }
 
         case SM_STATE_DISTRIBUTE_KEYS:
-            sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_ENCRYPTION_INFORMATION){
                 sm_key_distribution_send_set &= ~SM_KEYDIST_FLAG_ENCRYPTION_INFORMATION;
                 uint8_t buffer[17];
@@ -992,6 +987,7 @@ static void sm_run(void){
                 swap128(sm_s_ltk, &buffer[1]);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_MASTER_IDENTIFICATION){
@@ -1002,6 +998,7 @@ static void sm_run(void){
                 swap64(sm_s_rand, &buffer[3]);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_IDENTITY_INFORMATION){
@@ -1011,6 +1008,7 @@ static void sm_run(void){
                 swap128(sm_persistent_irk, &buffer[1]);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_IDENTITY_ADDRESS_INFORMATION){
@@ -1021,6 +1019,7 @@ static void sm_run(void){
                 bt_flip_addr(&buffer[2], sm_s_address);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_SIGNING_IDENTIFICATION){
@@ -1031,12 +1030,13 @@ static void sm_run(void){
                 memset(&buffer[1], 0, 16);  // csrk not calculated
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
 
             if (sm_key_distribution_done()){
                 sm_timeout_stop();
-                sm_state_responding = SM_STATE_IDLE; 
+                sm_state_responding = SM_STATE_IDLE;
             }
 
             break;

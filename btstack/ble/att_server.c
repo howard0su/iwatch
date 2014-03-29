@@ -353,8 +353,8 @@ static void att_run(void){
 }
 
 static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
-    printf("packet data(%d): ", packet_type);
-    hexdump(packet, size);
+    //printf("packet data(%d): ", packet_type);
+    //hexdump(packet, size);
 
     if (packet_type != ATT_DATA_PACKET) return;
 
