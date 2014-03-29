@@ -247,10 +247,27 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             }
         }
         // parse the data
+        char icon = -1;
+#define ICON_FACEBOOK 's'
+#define ICON_TWITTER  't'
+#define ICON_MSG      'u' 
+
+        if (strcmp("com.apple.MobileSMS", appidbuf) == 0)
+        {
+            icon = ICON_MSG;
+        }
+        else if (strcmp("XX", appidbuf) == 0)
+        {
+            icon = ICON_TWITTER;
+        }
+        else if (strcmp("XX", appidbuf) == 0)
+        {
+            icon = ICON_FACEBOOK;
+        }
 
         if (parse_state == STATE_NONE)
         {
-            window_notify(titlebuf, msgbuf, 0, -1);
+            window_notify(titlebuf, msgbuf, 0, icon);
         }
     }
     else
