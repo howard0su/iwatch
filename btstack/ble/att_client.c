@@ -136,6 +136,24 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     }
 }
 
+#define MAX_TITLE 16
+#define MAX_MESSAGE 256
+static enum 
+{
+    STATE_NONE,
+    STATE_UID,
+    STATE_ATTRIBUTEID,
+    STATE_ATTRIBUTELEN,
+    STATE_ATTRIBUTE,
+    STATE_DONE
+}parse_state = STATE_NONE;
+static uint8_t attributeid;
+static uint16_t attrleftlen, len;
+static char* bufptr;
+static char appidbuf[32];
+static char titlebuf[MAX_TITLE + 1];
+static char msgbuf[MAX_MESSAGE + 1];
+
 void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 {
     if (handle == attribute_handles[NOTIFICATION])
@@ -154,8 +172,8 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             0, // command id
             0, 0, 0, 0, // uid
             0,          // appid
-            1, 16, 0, // 16 bytes title
-            3, 128, 0, // 64bytes message
+            1, MAX_TITLE, 0, // 16 bytes title
+            3, MAX_MESSAGE, 0, // 64bytes message
         };
         bt_store_32(buffer, 1, uid);
         att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
@@ -164,23 +182,6 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     {
         printf("data received\n");
         // start notification
-
-        static enum 
-        {
-            STATE_NONE,
-            STATE_UID,
-            STATE_ATTRIBUTEID,
-            STATE_ATTRIBUTELEN,
-            STATE_ATTRIBUTE,
-            STATE_DONE
-        }parse_state = STATE_NONE;
-        static uint8_t attributeid;
-        static uint16_t attrleftlen, len;
-        static char* bufptr;
-        static char appidbuf[32];
-        static char titlebuf[17];
-        static char msgbuf[129];
-
 
         int index = 0;
         while(index < length)
