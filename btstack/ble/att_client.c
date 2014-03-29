@@ -137,7 +137,7 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
 }
 
 #define MAX_TITLE 16
-#define MAX_MESSAGE 256
+#define MAX_MESSAGE 200
 static enum 
 {
     STATE_NONE,
