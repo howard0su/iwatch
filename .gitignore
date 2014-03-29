@@ -27,3 +27,4 @@ objs.native/
 objs.msp430watch.d43
 objs.msp430watch.txt
 Makefile.msp430.local
+buildlocal.bat
