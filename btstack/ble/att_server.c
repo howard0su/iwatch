@@ -317,12 +317,7 @@ static void att_run(void){
         case ATT_SERVER_RESPONSE_RECEIVED:
             {
                 att_server_state = ATT_SERVER_IDLE;
-                if (att_request_buffer[0] == ATT_HANDLE_VALUE_NOTIFICATION)
-                {
-                    att_handle_notification(&att_connection, att_request_buffer, att_request_size);
-                }
-                else
-                    att_handle_response(&att_connection, att_request_buffer, att_request_size);
+                att_handle_response(&att_connection, att_request_buffer, att_request_size);
             }
             /* FALL THROUGH */
         case ATT_SERVER_IDLE:
@@ -376,7 +371,8 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
 
     if (packet[0] == ATT_HANDLE_VALUE_NOTIFICATION)
     {
-        att_server_state = ATT_SERVER_RESPONSE_RECEIVED;
+        att_handle_notification(&att_connection, packet, size);
+        return;
     }
     else if (packet[0] & 0x01 == 1)
     {
