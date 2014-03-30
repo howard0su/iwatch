@@ -45,6 +45,7 @@ static unsigned long stop_seconds;
 const static uint8_t init_data[] =
 {
   MPU6050_RA_PWR_MGMT_1, 0x04, // wake up sensor
+  MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_XG_BIT | MPU6050_PWR2_STBY_YG_BIT | MPU6050_PWR2_STBY_ZG_BIT, // wake up sensor
   MPU6050_RA_ACCEL_CONFIG, MPU6050_ACCEL_FS_2G, //set acc sensitivity to 2G
   MPU6050_RA_CONFIG, 0x01, //set DLPF to 21 Hz
   MPU6050_RA_SMPLRT_DIV, (uint8_t)(1000/DEFAULT_MPU_HZ - 1), ////set sampling to 62.5 Hz
