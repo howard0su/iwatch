@@ -51,7 +51,7 @@ static uint16_t start_group_handle, end_group_handle;
 static uint16_t attribute_handles[3];
 
 uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_t size){
-    // printf(" report_gatt_services for %02X\n", peripheral->handle);
+    // log_info(" report_gatt_services for %02X\n", peripheral->handle);
     uint8_t attr_length = packet[1];
     uint16_t last = 0;
     uint8_t uuid_length = attr_length - 4;
@@ -69,7 +69,7 @@ uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_
             swap128(&packet[i+4], uuid128);
         }
         printUUID128(uuid128);
-        printf("\nstart_group_handle: %d, end_group_handle: %d\n", start_group_handle, end_group_handle);
+        log_info("\nstart_group_handle: %d, end_group_handle: %d\n", start_group_handle, end_group_handle);
 
         if (memcmp(ancsuuid, uuid128, 16) == 0)
         {
@@ -102,7 +102,7 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
         }
 
         printUUID128(uuid128);
-        printf("\nproperties: %x start_handle:%d value_handle: %d\n", properties, start_handle, value_handle);
+        log_info("\nproperties: %x start_handle:%d value_handle: %d\n", properties, start_handle, value_handle);
 
         for(int i = 0 ;i < 3; i++)
         {
@@ -119,7 +119,7 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
         attribute_handles[2] != -1)
     {
         // subscribe event
-        printf("sub to %d\n", attribute_handles[NOTIFICATION]);
+        log_info("sub to %d\n", attribute_handles[NOTIFICATION]);
         att_server_subscribe(attribute_handles[NOTIFICATION] + 1); // write to CCC
         return 0xffff;
     }
@@ -129,19 +129,37 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
 
 void report_write_done(att_connection_t *conn, uint16_t handle)
 {
-    printf("report_write_done: %d\n", handle);
+    log_info("report_write_done: %d\n", handle);
     if (handle == attribute_handles[NOTIFICATION] + 1)
     {
         att_server_subscribe(attribute_handles[DATASOURCE] + 1); // write to CCC
     }
 }
 
+#define MAX_TITLE 16
+#define MAX_MESSAGE 200
+static enum 
+{
+    STATE_NONE,
+    STATE_UID,
+    STATE_ATTRIBUTEID,
+    STATE_ATTRIBUTELEN,
+    STATE_ATTRIBUTE,
+    STATE_DONE
+}parse_state = STATE_NONE;
+static uint8_t attributeid;
+static uint16_t attrleftlen, len;
+static char* bufptr;
+static char appidbuf[32];
+static char titlebuf[MAX_TITLE + 1];
+static char msgbuf[MAX_MESSAGE + 1];
+
 void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 {
     if (handle == attribute_handles[NOTIFICATION])
     {
         uint32_t uid =  READ_BT_32(data, 4);
-        printf("id: %d flags:%d catery:%d count: %d UID:%ld\n",
+        log_info("id: %d flags:%d catery:%d count: %d UID:%ld\n",
             data[0], data[1], data[2], data[3],
             uid
             );
@@ -154,8 +172,8 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             0, // command id
             0, 0, 0, 0, // uid
             0,          // appid
-            1, 16, 0, // 16 bytes title
-            3, 128, 0, // 64bytes message
+            1, MAX_TITLE, 0, // 16 bytes title
+            3, MAX_MESSAGE, 0, // 64bytes message
         };
         bt_store_32(buffer, 1, uid);
         att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
@@ -164,23 +182,6 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     {
         printf("data received\n");
         // start notification
-
-        static enum 
-        {
-            STATE_NONE,
-            STATE_UID,
-            STATE_ATTRIBUTEID,
-            STATE_ATTRIBUTELEN,
-            STATE_ATTRIBUTE,
-            STATE_DONE
-        }parse_state = STATE_NONE;
-        static uint8_t attributeid;
-        static uint16_t attrleftlen, len;
-        static char* bufptr;
-        static char appidbuf[32];
-        static char titlebuf[17];
-        static char msgbuf[129];
-
 
         int index = 0;
         while(index < length)
@@ -246,14 +247,31 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             }
         }
         // parse the data
+        char icon = -1;
+#define ICON_FACEBOOK 's'
+#define ICON_TWITTER  't'
+#define ICON_MSG      'u' 
+
+        if (strcmp("com.apple.MobileSMS", appidbuf) == 0)
+        {
+            icon = ICON_MSG;
+        }
+        else if (strcmp("XX", appidbuf) == 0)
+        {
+            icon = ICON_TWITTER;
+        }
+        else if (strcmp("XX", appidbuf) == 0)
+        {
+            icon = ICON_FACEBOOK;
+        }
 
         if (parse_state == STATE_NONE)
         {
-            window_notify(titlebuf, msgbuf, 0, -1);
+            window_notify(titlebuf, msgbuf, 0, icon);
         }
     }
     else
     {
-        printf("handle: %d\n", handle);
+        log_info("handle: %d\n", handle);
     }
 }

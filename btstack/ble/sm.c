@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "btstack-config.h"
 #include "debug.h"
 #include "hci.h"
 #include "l2cap.h"
@@ -50,28 +51,22 @@
 
 typedef enum {
 
-    SM_STATE_IDLE,
 
+
+
+
+
+    SM_STATE_IDLE,
     SM_STATE_SEND_SECURITY_REQUEST,
     SM_STATE_SEND_LTK_REQUESTED_NEGATIVE_REPLY,
-
-    // Phase 1: Pairing Feature Exchange
-
-    SM_STATE_PH1_SEND_PAIRING_RESPONSE,
+    SM_STATE_PH1_SEND_PAIRING_RESPONSE, // Phase 1: Pairing Feature Exchange
     SM_STATE_PH1_W4_PAIRING_CONFIRM,
     SM_STATE_PH1_W4_USER_RESPONSE,
-
     SM_STATE_SEND_PAIRING_FAILED,
     SM_STATE_SEND_PAIRING_RANDOM,
-
-    // Phase 2: Authenticating and Encrypting
-
-    // get random number for TK if we show it 
-    SM_STATE_PH2_GET_RANDOM_TK,
+    SM_STATE_PH2_GET_RANDOM_TK,     // Phase 2: Authenticating and Encrypting // get random number for TK if we show it 
     SM_STATE_PH2_W4_RANDOM_TK,
-
-    // calculate confirm values for local and remote connection
-    SM_STATE_PH2_C1_GET_RANDOM_A,
+    SM_STATE_PH2_C1_GET_RANDOM_A, // calculate confirm values for local and remote connection
     SM_STATE_PH2_C1_W4_RANDOM_A,
     SM_STATE_PH2_C1_GET_RANDOM_B,
     SM_STATE_PH2_C1_W4_RANDOM_B,
@@ -85,18 +80,12 @@ typedef enum {
     SM_STATE_PH2_C1_W4_ENC_C,
     SM_STATE_PH2_C1_GET_ENC_D,
     SM_STATE_PH2_C1_W4_ENC_D,
-
-    // calc STK
-    SM_STATE_PH2_CALC_STK,
+    SM_STATE_PH2_CALC_STK, // calc STK
     SM_STATE_PH2_W4_STK,
     SM_STATE_PH2_SEND_STK,
     SM_STATE_PH2_W4_LTK_REQUEST,
     SM_STATE_PH2_W4_CONNECTION_ENCRYPTED,
-
-    // Phase 3: Transport Specific Key Distribution
-    
-    // calculate DHK, Y, EDIV, and LTK
-    SM_STATE_PH3_GET_RANDOM,
+    SM_STATE_PH3_GET_RANDOM,     // Phase 3: Transport Specific Key Distribution // calculate DHK, Y, EDIV, and LTK
     SM_STATE_PH3_W4_RANDOM,
     SM_STATE_PH3_GET_DIV,
     SM_STATE_PH3_W4_DIV,
@@ -104,19 +93,13 @@ typedef enum {
     SM_STATE_PH3_Y_W4_ENC,
     SM_STATE_PH3_LTK_GET_ENC,
     SM_STATE_PH3_LTK_W4_ENC,
-
-    //
-    SM_STATE_DISTRIBUTE_KEYS,
-
-    // re establish previously distribued LTK
-    SM_STATE_PH4_Y_GET_ENC,
+    SM_STATE_DISTRIBUTE_KEYS, //
+    SM_STATE_PH4_Y_GET_ENC, // re establish previously distribued LTK
     SM_STATE_PH4_Y_W4_ENC,
     SM_STATE_PH4_LTK_GET_ENC,
     SM_STATE_PH4_LTK_W4_ENC,
     SM_STATE_PH4_SEND_LTK,
-
     SM_STATE_TIMEOUT, // no other security messages are exchanged
-
 } security_manager_state_t;
 
 typedef enum {
@@ -741,6 +724,8 @@ static void sm_pdu_received_in_wrong_state(){
 
 static void sm_run(void){
 
+    log_info("sm_run:%d\n", sm_state_responding);
+
     // assert that we can send either one
     if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
     if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
@@ -818,10 +803,6 @@ static void sm_run(void){
                 central_device_db_csrk(sm_central_device_matched, sm_m_csrk);
                 sm_notify_client(SM_IDENTITY_RESOLVING_SUCCEEDED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 break;
-            }
-            else
-            {
-                central_device_db_remove(sm_central_device_test);
             }
             
             if (sm_m_addr_type == 0){
@@ -1006,6 +987,7 @@ static void sm_run(void){
                 swap128(sm_s_ltk, &buffer[1]);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_MASTER_IDENTIFICATION){
@@ -1016,6 +998,7 @@ static void sm_run(void){
                 swap64(sm_s_rand, &buffer[3]);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_IDENTITY_INFORMATION){
@@ -1025,6 +1008,7 @@ static void sm_run(void){
                 swap128(sm_persistent_irk, &buffer[1]);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_IDENTITY_ADDRESS_INFORMATION){
@@ -1035,6 +1019,7 @@ static void sm_run(void){
                 bt_flip_addr(&buffer[2], sm_s_address);
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
             if (sm_key_distribution_send_set &   SM_KEYDIST_FLAG_SIGNING_IDENTIFICATION){
@@ -1045,12 +1030,13 @@ static void sm_run(void){
                 memset(&buffer[1], 0, 16);  // csrk not calculated
                 l2cap_send_connectionless(sm_response_handle, L2CAP_CID_SECURITY_MANAGER_PROTOCOL, (uint8_t*) buffer, sizeof(buffer));
                 sm_timeout_reset();
+                sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
                 return;
             }
 
             if (sm_key_distribution_done()){
                 sm_timeout_stop();
-                sm_state_responding = SM_STATE_IDLE; 
+                sm_state_responding = SM_STATE_IDLE;
             }
 
             break;

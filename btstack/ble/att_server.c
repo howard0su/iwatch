@@ -158,9 +158,6 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                 	if (att_request_handle != READ_BT_16(packet, 3)) break;
                 	att_connection.encryption_key_size = sm_encryption_key_size(att_client_addr_type, att_client_address);
                 	att_connection.authenticated = sm_authenticated(att_client_addr_type, att_client_address);
-                    //printf("HCI_EVENT_ENCRYPTION_CHANGE=>a:%d k:%d\n", att_connection.authenticated, att_connection.encryption_key_size);
-                    //if (att_connection.authenticated && att_connection.encryption_key_size > 0)
-                    att_server_send_gatt_services_request();
                 	break;
 
                 case HCI_EVENT_DISCONNECTION_COMPLETE:
@@ -198,6 +195,11 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_connection.authorized = event->authorization_result;
                     att_run();
                 	break;
+
+                case SM_BONDING_FINISHED:
+                    printf("pairing finished\n");
+                    att_server_send_gatt_services_request();
+                    break;
                 }
 
                 default:
@@ -351,8 +353,8 @@ static void att_run(void){
 }
 
 static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
-    printf("packet data(%d): ", packet_type);
-    hexdump(packet, size);
+    //printf("packet data(%d): ", packet_type);
+    //hexdump(packet, size);
 
     if (packet_type != ATT_DATA_PACKET) return;
 
@@ -650,6 +652,7 @@ static void att_handle_response(att_connection_t *att_connection, uint8_t* buffe
                     default:
                         break;
                 }
+                att_run();
             }
             break;
     }
