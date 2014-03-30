@@ -45,7 +45,7 @@
 #define FS_SEND_OK       0x40
 #define FS_SEND_ERR      0x50
 
-#define READ_BLOCK_SIZE  100
+#define READ_BLOCK_SIZE  300
 
 static uint8_t  s_file_mode        = FS_IDLE;
 static uint8_t  s_file_desc[20]    = {0};
