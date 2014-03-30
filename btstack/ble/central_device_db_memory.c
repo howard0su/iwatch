@@ -128,14 +128,21 @@ void central_device_db_remove(int index){
 }
 
 int central_device_db_add(int addr_type, bd_addr_t addr, sm_key_t irk, sm_key_t csrk){
-    if (central_devices_count >= CENTRAL_DEVICE_MEMORY_SIZE) return -1;
-
     printf("Central Device DB adding type %u - ", addr_type);
     print_bd_addr(addr);
     print_key("irk", irk);
     print_key("csrk", csrk);
 
-    int index = central_devices_count++;
+    int index;
+    if (central_devices_count >= CENTRAL_DEVICE_MEMORY_SIZE) 
+    {
+        index = clock_seconds() % CENTRAL_DEVICE_MEMORY_SIZE;
+    }
+    else
+    {
+        index = central_devices_count++;
+    }
+
     central_device_memory_db_t info;
 
     info.addr_type = addr_type;
