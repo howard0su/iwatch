@@ -26,7 +26,7 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day);
 void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint32_t data[], uint8_t size);
 void close_data_file();
 
-char* get_data_file();
+char* get_data_file(uint32_t* size);
 void remove_data_file(char* filename);
 uint8_t build_data_schema(uint8_t* buf, uint8_t coltype[], uint8_t colcount);
 void clear_data_file();

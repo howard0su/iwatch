@@ -376,7 +376,7 @@ void clear_data_file()
 
 }
 
-char* get_data_file()
+char* get_data_file(uint32_t* filesize)
 {
     struct cfs_dir dir;
     int ret = cfs_opendir(&dir, "");
@@ -397,6 +397,7 @@ char* get_data_file()
             {
                 printf("get_data_file():%s, %d\n", dirent.name, (uint16_t)dirent.size);
                 cfs_closedir(&dir);
+                *filesize = dirent.size;
                 return dirent.name;
             }
         }

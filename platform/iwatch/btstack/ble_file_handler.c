@@ -37,6 +37,7 @@
 #define FS_READING       0x02
 #define FS_NO_DATA       0x03
 #define FS_FILE_FOUND    0x04
+#define FS_TRANSFERRIG   0x05
 
 #define FS_WRITE         0x10
 #define FS_WF_PREPARED   0x20
@@ -44,14 +45,21 @@
 #define FS_SEND_OK       0x40
 #define FS_SEND_ERR      0x50
 
-static uint8_t s_file_mode = FS_IDLE;
-static uint8_t s_file_desc[20] = {0};
-static int s_read_fd = -1;
-static int s_write_fd = -1;
-static uint8_t s_block_id = 0xff;
-static uint8_t s_file_data[20] = "";
-static uint8_t s_sub_block = 0;
+#define READ_BLOCK_SIZE  100
+
+static uint8_t  s_file_mode        = FS_IDLE;
+static uint8_t  s_file_desc[20]    = {0};
+
+static int      s_read_fd          = -1;
+static int      s_write_fd         = -1;
+static uint32_t s_file_size        = 0;
+static uint32_t s_file_cursor      = 0;
+static uint32_t s_this_block_size  = 0;
+static uint8_t  s_file_data[20]    = "";
+static uint8_t  s_block_id         = 0xff;
+static uint8_t  s_sub_block        = 0;
 static uint16_t s_sub_block_offset = 0;
+static uint16_t s_block_cursor     = 0;
 
 
 //FILE_DESC parse utility
@@ -183,7 +191,7 @@ void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
         if (FD_GET_COMMAND(buffer) == FD_READ_FILE)
         {
             memcpy(s_file_desc, buffer, sizeof(s_file_desc));
-            s_file_mode = FS_READING;
+            s_file_mode = FS_TRANSFERRIG;
             return;
         }
         break;
@@ -192,6 +200,7 @@ void ble_write_file_desc(uint8_t* buffer, uint16_t buffer_size)
         if (FD_GET_COMMAND(buffer) == FD_READ_FILE)
         {
             memcpy(s_file_desc, buffer, sizeof(s_file_desc));
+            s_file_mode = FS_TRANSFERRIG;
             return;
         }
         break;
@@ -213,7 +222,9 @@ void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
         // for data upload
         case FS_INVESTIGATING:
         {
-            char* name = get_data_file();
+            char* name = get_data_file(&s_file_size);
+            s_file_cursor      = 0;
+            s_sub_block_offset = 0;
             if (name == NULL)
             {
                 FD_SET_COMMAND(s_file_desc, FD_NO_FILE);
@@ -221,9 +232,12 @@ void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
             }
             else
             {
+                s_this_block_size = s_file_size - s_file_cursor;
+                if (s_this_block_size > READ_BLOCK_SIZE)
+                    s_this_block_size = READ_BLOCK_SIZE;
                 FD_SET_COMMAND(s_file_desc, FD_FILE_FOUND);
                 FD_SET_BLOCKID(s_file_desc, 0);
-                FD_SET_BLOCKSIZE(s_file_desc, 0);
+                FD_SET_BLOCKSIZE(s_file_desc, s_this_block_size);
                 FD_SET_FILENAME(s_file_desc, name);
                 s_file_mode = FS_FILE_FOUND;
                 s_block_id = 0;
@@ -232,44 +246,10 @@ void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
         break;
 
         case FS_READING:
-        {
-            uint8_t blockid = FD_GET_BLOCKID(s_file_desc);
-            if (blockid != s_block_id)
-            {
-                log_error("wrong block id: exp %d, act %d\n", s_block_id, blockid);
-                FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
-                    s_file_mode = FS_IDLE;
-                    break;
-            }
-
-            if (s_read_fd == -1)
-            {
-                char* filename = FD_GET_FILENAME(s_file_desc);
-                s_read_fd = cfs_open(filename, CFS_READ);
-                if (s_read_fd == -1)
-                {
-                    log_error("cfs_open(%s) failed when FS_READING\n", filename);
-                    FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
-                    s_file_mode = FS_IDLE;
-                    break;
-                }
-            }
-
-            int read_byte = cfs_read(s_read_fd, s_file_data, sizeof(s_file_data));
-            if (read_byte == 0)
-            {
-                log_error("cfs_read(%d) failed when FS_READING\n", s_read_fd);
-                FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
-                s_file_mode = FS_IDLE;
-                break;
-            }
-
-            s_block_id = blockid + 1;
-            FD_SET_BLOCKSIZE(s_file_desc, read_byte);
+        case FS_TRANSFERRIG:
             FD_SET_COMMAND(s_file_desc, FD_DATA_TRAN);
-
-        }
-        break;
+            FD_SET_BLOCKSIZE(s_file_desc, s_this_block_size);
+            break;
 
         //for fw upgrade
         case FS_WRITE:
@@ -296,9 +276,80 @@ void ble_read_file_desc(uint8_t * buffer, uint16_t buffer_size)
 
 void ble_read_file_data(uint8_t* buffer, uint8_t buffer_size)
 {
-    if (s_file_mode == FS_READING)
+    if (s_file_mode == FS_TRANSFERRIG)
     {
-        memcpy(buffer, s_file_data, buffer_size);
+        uint8_t blockid = FD_GET_BLOCKID(s_file_desc);
+        if (blockid != s_block_id)
+        {
+            log_error("wrong block id: exp %d, act %d\n", s_block_id, blockid);
+            FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
+                s_file_mode = FS_IDLE;
+                return;
+        }
+
+        if (s_read_fd == -1)
+        {
+            char* filename = FD_GET_FILENAME(s_file_desc);
+            s_read_fd = cfs_open(filename, CFS_READ);
+            if (s_read_fd == -1)
+            {
+                log_error("cfs_open(%s) failed when FS_READING\n", filename);
+                FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
+                s_file_mode = FS_IDLE;
+                return;
+            }
+        }
+
+        int read_byte = cfs_read(s_read_fd, buffer, buffer_size);
+        if (read_byte == 0)
+        {
+            log_info("file sent complete\n");
+            s_file_size       = 0;
+            s_file_cursor     = 0;
+            s_this_block_size = 0;
+            s_block_id        = 0;
+
+            cfs_close(s_read_fd);
+            s_read_fd = -1;
+
+            FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
+            s_file_mode = FS_IDLE;
+            return;
+        }
+        s_block_cursor += read_byte;
+
+        if (s_block_cursor >= READ_BLOCK_SIZE)
+        {
+            s_file_cursor += s_block_cursor;
+            s_block_cursor = 0;
+
+            if (s_file_size <= s_file_cursor)
+            {
+                log_info("file sent complete\n");
+                s_file_size       = 0;
+                s_file_cursor     = 0;
+                s_this_block_size = 0;
+                s_block_id        = 0;
+
+                cfs_close(s_read_fd);
+                s_read_fd = -1;
+
+                FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
+                s_file_mode = FS_IDLE;
+                return;
+            }
+
+            s_this_block_size = s_file_size - s_file_cursor;
+            if (s_this_block_size > READ_BLOCK_SIZE)
+                s_this_block_size = READ_BLOCK_SIZE;
+
+            log_info("send next block id=%d, size=%d\n", s_block_id, s_this_block_size);
+            s_block_id = blockid + 1;
+            FD_SET_BLOCKSIZE(s_file_desc, s_this_block_size);
+            FD_SET_COMMAND(s_file_desc, FD_DATA_TRAN);
+
+            s_file_mode = FS_READING;
+        }
     }
     else
     {

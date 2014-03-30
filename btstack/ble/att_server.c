@@ -64,7 +64,7 @@
 #include "gap_le.h"
 #include "central_device_db.h"
 
-#define MTU 80
+#define MTU 100
 
 static void att_run(void);
 static void att_client_run(void);

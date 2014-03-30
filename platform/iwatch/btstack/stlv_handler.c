@@ -155,7 +155,8 @@ void handle_get_file(char* name)
 
 void handle_get_activity()
 {
-    char* fn = get_data_file();
+    uint32_t size = 0;
+    char* fn = get_data_file(&size);
     if (fn == NULL)
     {
         log_info("handle_get_activity() no valid data\n");
