@@ -166,6 +166,8 @@ static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t *
     log_info("att_handler(handle=%s, buflen=%d, mode=%d)\n", hble->name, buffer_size, mode);
 
     uint16_t actual_size =  20; //hble->size * get_type_unit_size(hble->type);
+    if (handle == BLE_HANDLE_FILE_DATA && mode == ATT_HANDLE_MODE_WRITE)
+        actual_size = 80;
     if (buffer == 0)
     {
         log_error("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);

@@ -352,8 +352,8 @@ void ble_write_file_data(uint8_t* buffer, uint8_t buffer_size)
             return;
         }
 
-        if (sub_block_size > sizeof(s_file_data) - 1)
-            sub_block_size = sizeof(s_file_data) - 1;
+        if (sub_block_size > buffer_size - 1)
+            sub_block_size = buffer_size - 1;
 
         log_info("Recv:sub block:sid=%u,size=%d\n", sub_block_id, sub_block_size);
         handle_file_data(s_write_fd, &buffer[1], sub_block_size);
