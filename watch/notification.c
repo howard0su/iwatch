@@ -106,7 +106,7 @@ static void onDraw(tContext *pContext)
 
   GrContextClipRegionSet(pContext, &contentrect);
   //draw message
-  if (GrStringDrawWrap(pContext, message, 8, 26 - skip, LCD_X_SIZE - 12,  16))
+  if (GrStringDrawWrap(pContext, message, 8, 26 - skip, LCD_X_SIZE - 12,  0))
   {
     state |= STATE_MORE;
   }

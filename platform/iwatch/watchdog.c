@@ -81,7 +81,7 @@ static void displaystack(uint16_t *ptr)
   GrContextForegroundSet(&context, ClrWhite);
   GrContextFontSet(&context, (tFont*)&g_sFontNova12b);
   GrStringDrawCentered(&context, "Crash Info", -1, 30, 8, 0);
-  GrStringDrawWrap(&context, buf, 2, 16, 120, 13);
+  GrStringDrawWrap(&context, buf, 2, 16, 120, 1);
   
   GrStringDraw(&context, PROCESS_CURRENT()->name, -1, 2, 100, 0);
   //GrFlush(&context);

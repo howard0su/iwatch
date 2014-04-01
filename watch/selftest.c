@@ -148,7 +148,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
              energest_total_time[ENERGEST_TYPE_IRQ].current,
              energest_total_time[ENERGEST_TYPE_SERIAL].current);
       
-      GrStringDrawWrap(pContext, buf, 0, 55, 100, 15);
+      GrStringDrawWrap(pContext, buf, 0, 55, 100, 1);
 #endif
       
       if (state == RECORDING)

@@ -246,7 +246,7 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
   case GRID_4:
     GrContextFontSet(pContext, &g_sFontRed13);
     GrStringDrawWrap(pContext, d->name, region_4grid[index].sXMin + 8, region_4grid[index].sYMin + 8,
-                    (region_4grid[index].sXMax - region_4grid[index].sXMin) / 3, 16);
+                    (region_4grid[index].sXMax - region_4grid[index].sXMin) / 3, 1);
 
     GrContextFontSet(pContext, &g_sFontNova28b);
     width = GrStringWidthGet(pContext, buf, -1);

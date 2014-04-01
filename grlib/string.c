@@ -2841,9 +2841,9 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
           {
               laststop = iterator;
           }
-      }while(w < width && ulChar != '\0'&& ulChar != '\n');
+      }while(w <= width && ulChar != '\0' && ulChar != '\n' && ulChar != '\r');
  
-        if (w >= width)
+        if (w > width)
         {
             if (laststop == -1) 
             {
@@ -2865,9 +2865,9 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
         if (ulChar == '\0')
             return 0;
         start = iterator;
+        starty += margin + GrStringHeightGet(pContext);
         while(*(pcString + start) == '\n' || *(pcString + start) == ' ')
             start++;
-        starty += margin;
 
         if (starty > pContext->sClipRegion.sYMax)
             return 1;
