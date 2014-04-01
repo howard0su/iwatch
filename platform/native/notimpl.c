@@ -92,7 +92,7 @@ void button_init() {}
 void backlight_init() {}
 void rtimer_arch_init(void) {}
 void rtimer_arch_schedule(rtimer_clock_t t){}
-uint8_t battery_level() {return 71;}
+uint8_t battery_level(BATTERY_STATE state) {return 71;}
 BATTERY_STATE battery_state() {return BATTERY_CHARGING;}
 void backlight_on(uint8_t level, clock_time_t length) {}
 void mpu6050_init() {}
@@ -347,3 +347,8 @@ NOT_IMPL_VOID(spp_sniff, int onoff);
 NOT_IMPL_VOID(system_unlock);
 
 void hfp_battery(uint8_t level) {}
+
+uint8_t hci_le_data_packet_length()
+{
+    return 26;
+}

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2011-2012 by Matthias Ringwald
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,6 @@
 
 // Buetooth Base UUID 00000000-0000-1000-8000-00805F9B34FB in little endian
 static const uint8_t bluetooth_base_uuid[] = { 0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-static void bt_store_16(uint8_t *buffer, uint16_t pos, uint16_t value){
-    buffer[pos++] = value;
-    buffer[pos++] = value >> 8;
-}
 
 static void hexdump2(void const *data, int size){
     int i;

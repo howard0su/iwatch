@@ -12,5 +12,5 @@ void battery_init(void);
 BATTERY_STATE battery_state(void);
 
 // battery level
-uint8_t       battery_level(void);
+uint8_t       battery_level(BATTERY_STATE);
 #endif
