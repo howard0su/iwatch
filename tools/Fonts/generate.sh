@@ -10,7 +10,9 @@
 ../grlib/ftrasterize/ftrasterize -f Nova -s 38 -b -v ProximaNova-Bold.otf
 ../grlib/ftrasterize/ftrasterize -f Nova -s 50 -b  ProximaNova-Bold.otf
 ../grlib/ftrasterize/ftrasterize -f Icon -s 16 -v icons_16x16_all.pbm
+../grlib/ftrasterize/ftrasterize -f Icon -s 32 -v icons_32x32_all.pbm
 ../grlib/ftrasterize/ftrasterize -f Icon -s 48 -v icons_48x48_all.pbm
+
 ../grlib/ftrasterize/ftrasterize -f Nova -s 28  ProximaNova-Regular.otf
 ../grlib/ftrasterize/ftrasterize -f Nova -s 28 -b  ProximaNova-Bold.otf
 
