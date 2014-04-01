@@ -2815,7 +2815,7 @@ GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
     return(ulLen);
 }
 
-int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
+int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, int hardwrap)
 {
      int start, laststop, iterator, w;
      unsigned long ulChar, ulSkip;
@@ -2845,7 +2845,7 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
  
         if (w > width)
         {
-            if (laststop == -1) 
+            if (laststop == -1 || hardwrap == 0)
             {
                 // no way to put this string, then we just wrappt it
                 iterator -= ulSkip; // remove last character
@@ -2865,7 +2865,7 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
         if (ulChar == '\0')
             return 0;
         start = iterator;
-        starty += margin + GrStringHeightGet(pContext);
+        starty += GrStringHeightGet(pContext);
         while(*(pcString + start) == '\n' || *(pcString + start) == ' ')
             start++;
 

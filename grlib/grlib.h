@@ -2304,7 +2304,7 @@ extern const tFontWrapper g_sFontUnicode;
 
 extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
 // return 0 when the region is enough, otherwise some text cannot draw due to limit
-extern int GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin);
+extern int GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, int hardwrap);
 extern int NumLeadingZeros(long x);
 
 extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
