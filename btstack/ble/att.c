@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011-2012 by Matthias Ringwald
  *
  * Redistribution and use in source and binary forms, with or without
