@@ -83,6 +83,7 @@ GRLIB_FONTS = \
 	fontdigit52b.c \
 	fontdigit56.c \
 	fonticon16.c \
+	fonticon32.c \
 	fonticon48.c \
 	fontunicode.c \
 	logoimg.c
