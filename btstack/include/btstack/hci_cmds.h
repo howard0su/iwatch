@@ -74,6 +74,8 @@ extern "C" {
 // debug log messages
 #define LOG_MESSAGE_PACKET      0xfc
 
+// LE Packet
+#define HCI_LE_DATA_PACKET      0x15 // BTSTACK HACK
     
 // Fixed PSM numbers
 #define PSM_SDP    0x01

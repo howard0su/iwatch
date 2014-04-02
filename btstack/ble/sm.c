@@ -728,7 +728,7 @@ static void sm_run(void){
 
     // assert that we can send either one
     if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
-    if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
+    if (!hci_can_send_packet_now(HCI_LE_DATA_PACKET)) return;
 
     // distributed key generation
     switch (dkg_state){
@@ -828,11 +828,6 @@ static void sm_run(void){
             sm_notify_client(SM_IDENTITY_RESOLVING_FAILED, sm_m_addr_type, sm_m_address, 0, 0);
         }
     }
-
-    // assert that we can send either one
-    // we have to check again since we raised events
-    if (!hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
-    if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
 
     // cmac
     switch (sm_cmac_state){

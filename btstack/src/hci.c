@@ -297,9 +297,11 @@ int hci_can_send_packet_now(uint8_t packet_type){
     // check regular Bluetooth flow control
     switch (packet_type) {
         case HCI_ACL_DATA_PACKET:
-            return hci_number_free_acl_slots() + hci_number_free_le_slots();
+            return hci_number_free_acl_slots();
         case HCI_COMMAND_DATA_PACKET:
             return hci_stack->num_cmd_packets;
+        case HCI_LE_DATA_PACKET:
+            return hci_number_free_le_slots();
         default:
             return 0;
     }
@@ -625,7 +627,7 @@ static void event_handler(uint8_t *packet, int size){
                     continue;
                 }
                 conn->num_acl_packets_sent -= num_packets;
-                // log_info("hci_number_completed_packet %u processed for handle %u, outstanding %u\n", num_packets, handle, conn->num_acl_packets_sent);
+                log_info("hci_number_completed_packet %u processed for handle %u, outstanding %u\n", num_packets, handle, conn->num_acl_packets_sent);
             }
             break;
             
