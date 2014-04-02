@@ -274,7 +274,7 @@ uint8_t hci_number_free_le_slots(){
     linked_item_t *it;
     for (it = (linked_item_t *) hci_stack->connections; it ; it = it->next){
         hci_connection_t * connection = (hci_connection_t *) it;
-        if (connection->con_handle < 1024)
+        if (connection->con_handle <= 1024)
             continue;
         if (free_slots < connection->num_acl_packets_sent) {
             log_error("hci_number_free_le_slots: sum of outgoing packets > total le packets!\n");

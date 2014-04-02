@@ -496,12 +496,16 @@ void l2cap_run(void){
     // check pending signaling responses
     while (signaling_responses_pending){
         
-        if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) break;
         
         hci_con_handle_t handle = signaling_responses[0].handle;
         uint8_t  sig_id = signaling_responses[0].sig_id;
         uint16_t infoType = signaling_responses[0].data;    // INFORMATION_REQUEST
         uint16_t result   = signaling_responses[0].data;    // CONNECTION_REQUEST, COMMAND_REJECT
+        
+        if (handle <= 1024)
+            if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) break;
+        else
+            if (!hci_can_send_packet_now(HCI_LE_DATA_PACKET)) break;
         
         switch (signaling_responses[0].code){
             case CONNECTION_REQUEST:
