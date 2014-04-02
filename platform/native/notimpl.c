@@ -352,3 +352,5 @@ uint8_t hci_le_data_packet_length()
 {
     return 26;
 }
+void att_fetch_next(uint32_t uid, uint32_t combine)
+{}

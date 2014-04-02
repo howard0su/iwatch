@@ -1,5 +1,5 @@
 
-#include "att_client.h"
+#include "ancs.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -49,6 +49,8 @@ static uint16_t start_group_handle, end_group_handle;
 #define CONTROLPOINT 1
 #define DATASOURCE   2
 static uint16_t attribute_handles[3];
+
+static uint16_t write_handle;
 
 uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_t size){
     // log_info(" report_gatt_services for %02X\n", peripheral->handle);
@@ -120,6 +122,7 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
     {
         // subscribe event
         log_info("sub to %d\n", attribute_handles[NOTIFICATION]);
+        write_handle = attribute_handles[NOTIFICATION] + 1;
         att_server_subscribe(attribute_handles[NOTIFICATION] + 1); // write to CCC
         return 0xffff;
     }
@@ -132,7 +135,12 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     log_info("report_write_done: %d\n", handle);
     if (handle == attribute_handles[NOTIFICATION] + 1)
     {
+        write_handle = attribute_handles[DATASOURCE] + 1;
         att_server_subscribe(attribute_handles[DATASOURCE] + 1); // write to CCC
+    }
+    else if (handle == attribute_handles[DATASOURCE] + 1)
+    {
+        printf("subscribe to ANCS finished.\n");
     }
 }
 
@@ -159,6 +167,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     if (handle == attribute_handles[NOTIFICATION])
     {
         uint32_t uid =  READ_BT_32(data, 4);
+        uint32_t combine = READ_BT_32(data, 4);
         log_info("id: %d flags:%d catery:%d count: %d UID:%ld\n",
             data[0], data[1], data[2], data[3],
             uid
@@ -167,16 +176,15 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
         if (data[0] != 0)
             return;
 
-        // based on catery to fetch infomation
-        uint8_t buffer[] = {
-            0, // command id
-            0, 0, 0, 0, // uid
-            0,          // appid
-            1, MAX_TITLE, 0, // 16 bytes title
-            3, MAX_MESSAGE, 0, // 64bytes message
-        };
-        bt_store_32(buffer, 1, uid);
-        att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
+        if (data[2] == CategoryIDIncomingCall)
+        {
+            // need convert the title to CLIP command
+
+        }
+        else
+        {
+            window_notify_ancs(uid, combine);
+        }
     }
     else if (handle == attribute_handles[DATASOURCE])
     {
@@ -267,11 +275,61 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 
         if (parse_state == STATE_NONE)
         {
-            window_notify(titlebuf, msgbuf, 0, icon);
+            window_notify_content(titlebuf, msgbuf, 0, icon);
         }
     }
     else
     {
         log_info("handle: %d\n", handle);
     }
+}
+
+
+void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint16_t length)
+{
+    switch(buffer[0])
+    {
+        case ATT_READ_BY_GROUP_TYPE_RESPONSE:
+            uint16_t lasthandle;
+            // check service
+            lasthandle = report_gatt_services(att_connection, buffer, length);
+
+            if (lasthandle != 0xff)
+            {
+                att_server_send_gatt_services_request(lasthandle + 1);
+            }
+            break;
+        case ATT_READ_BY_TYPE_RESPONSE:
+            lasthandle = report_service_characters(att_connection, buffer, length);
+            if (lasthandle != 0xff)
+            {
+                att_server_read_gatt_service(lasthandle + 1, 0xffff);
+            }
+            break;
+        case ATT_WRITE_RESPONSE:
+            report_write_done(att_connection, write_handle);
+            break;
+        case ATT_ERROR_RESPONSE:
+            log_error("Get error from ancs server\n");
+            break;
+
+        case ATT_HANDLE_VALUE_NOTIFICATION:
+            uint16_t handler = READ_BT_16(buffer, 1);
+            att_client_notify(handler, buffer + 3, length - 3);
+        break;
+    }
+}
+
+void att_fetch_next(uint32_t uid, uint32_t combine)
+{
+    // based on catery to fetch infomation
+    uint8_t buffer[] = {
+            0, // command id
+            0, 0, 0, 0, // uid
+            0,          // appid
+            1, MAX_TITLE, 0, // 16 bytes title
+            3, MAX_MESSAGE, 0, // 64bytes message
+    };
+    bt_store_32(buffer, 1, uid);
+    att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
 }
