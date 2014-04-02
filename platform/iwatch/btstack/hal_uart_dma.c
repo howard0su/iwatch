@@ -220,9 +220,9 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 // int used to indicate a request for more new data
 void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
-  //log_info("hal_uart_dma_receive_block, size %u temp_size: %u\n\r", len, rx_temp_size);
+  //log_info("receive_block size %u temp: %u\n", len, rx_temp_size);
 
-  UCA0IE &= ~UCRXIE ;  // disable RX interrupts
+  int x = splhigh();
   if (rx_temp_size)
   {
     *buffer = rx_temp_buffer;
@@ -235,8 +235,6 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
   {
     if (rx_done_handler)
       (*rx_done_handler)();
-
-    UCA0IE |= UCRXIE;    // enable RX interrupts
   }
   else
   {
@@ -247,6 +245,8 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
     // enable send
     BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
   }
+
+  splx(x);
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep)
@@ -279,30 +279,32 @@ ISR(USCI_A0, usbRxTxISR)
   switch (__even_in_range(UCA0IV, 16)){
 
   case 2: // RXIFG
+    uint8_t data = UCA0RXBUF;
     if (bytes_to_read == 0) {
       BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
-      UCA0IE &= ~UCRXIE;
+      UCA0IE &= ~UCRXIE ;  // disable RX interrupts
 
       // put the data into buffer to avoid race condition
-      rx_temp_buffer = UCA0RXBUF;
-      rx_temp_size = 1;
+      rx_temp_buffer = data;
+      rx_temp_size++;
       return;
     }
-    *rx_buffer_ptr = UCA0RXBUF;
+
+    *rx_buffer_ptr = data;
     ++rx_buffer_ptr;
     --bytes_to_read;
     if (bytes_to_read > 0) {
       break;
     }
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
-    UCA0IE &= ~UCRXIE;
 
     if (rx_done_handler)
       (*rx_done_handler)();
-    
+
     if (triggered)
     {
       triggered = 0;
+      UCA0IE &= ~UCRXIE ;  // disable RX interrupts
       LPM4_EXIT;
     }
     break;
