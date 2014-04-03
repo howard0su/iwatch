@@ -81,26 +81,27 @@ GRLIB0 = \
   string.c
 
 GRLIB_FONTS = \
-  fontnova13.c \
-  fontnova12b.c \
-  fontnova16.c \
-  fontnova16b.c \
-  fontnova28.c \
-  fontnova28b.c \
-  fontnova38.c \
-  fontnova38b.c \
-  fontnova50b.c \
-  fontred13.c \
-  fontbaby12.c \
-  fontbaby16.c \
-  fontdigit44.c \
-  fontdigit44b.c \
-  fontdigit52b.c \
-  fontdigit56.c \
+  fontdriod28b.c \
+  fontgothamblack30.c \
+  fontgothambold42.c \
+  fontgothamlight42.c \
+  fontgothammedium32.c \
+  fontgothammedium42.c \
+  fontgothic14.c \
+  fontgothic14b.c \
+  fontgothic18.c \
+  fontgothic18b.c \
+  fontgothic24.c \
+  fontgothic24b.c \
+  fontgothic28.c \
+  fontgothic28b.c \
   fonticon16.c \
+  fonticon32.c \
   fonticon48.c \
+  fontrobotocondensed18b.c \
   fontunicode.c \
   logoimg.c
+
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \

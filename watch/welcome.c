@@ -30,7 +30,7 @@ static void OnDraw(tContext *pContext)
 
   // draw welcome
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
-  //GrContextFontSet(pContext, (tFont*)&g_sFontNova16);
+  //GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
   for (int i = 0; i < 4; i++)
   	GrStringDrawCentered(pContext, welcomes[i], -1, LCD_X_SIZE - index + i * 20, 70 + i * 20, 0);

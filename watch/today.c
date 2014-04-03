@@ -25,7 +25,7 @@ static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text,
     }
 
   // draw text
-  GrContextFontSet(pContext, &g_sFontNova13);
+  GrContextFontSet(pContext, &g_sFontGothic14);
   GrStringDraw(pContext, text, -1, 30, 30 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
@@ -39,7 +39,7 @@ static void onDraw(tContext *pContext)
   GrRectFill(pContext, &client_clip);
 
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova38);
+  GrContextFontSet(pContext, &g_sFontGothamlight42);
 
   if (state == WALK)
   {

@@ -25,7 +25,7 @@ static void onDraw(tContext *pContext)
   GrRectFill(pContext, &client_clip);
   GrContextForegroundSet(pContext, ClrWhite);
   
-  GrContextFontSet(pContext, &g_sFontBaby16);
+  GrContextFontSet(pContext, &g_sFontGothic14);
   if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
   {
     GrStringDrawCentered(pContext, "Calling", -1, 72, 60, 0);
@@ -61,7 +61,7 @@ static void onDraw(tContext *pContext)
   }
 
   // draw the phone number
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic14b);
   GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
 }
 

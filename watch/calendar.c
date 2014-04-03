@@ -23,13 +23,13 @@ static void OnDraw(tContext *pContext)
   GrRectFill(pContext, &rect);
 
   // draw the title bar
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic14b);
   sprintf(buf, "%s %d", month_name[month - 1], year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 15, 0);
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontBaby12);
+  GrContextFontSet(pContext, &g_sFontGothic14);
   for(int i = 0; i < 7; i++)
   {
     GrStringDrawCentered( pContext, week_shortname[i], -1, i * 20 + 11, 35, 0);
@@ -37,7 +37,7 @@ static void OnDraw(tContext *pContext)
     GrLineDrawV(pContext, i * 20, 28, 42);
   }
 
-  GrContextFontSet(pContext, &g_sFontNova16);
+  GrContextFontSet(pContext, &g_sFontGothic14);
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
 

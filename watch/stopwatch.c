@@ -33,12 +33,12 @@ static void OnDraw(tContext* pContext)
   GrRectFill(pContext, &client_clip);
 
   // draw the countdown time
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
   window_drawtime(pContext, 45, times, 0);
 
   if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 70))
   {
-    GrContextFontSet(pContext, &g_sFontNova16b);
+    GrContextFontSet(pContext, &g_sFontGothic14b);
     //printf("stop: %d current: %d\n", currentStop, topView);
     char buf[20];
 
@@ -53,7 +53,7 @@ static void OnDraw(tContext* pContext)
       GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 20);
     }
 
-    GrContextFontSet(pContext, &g_sFontNova12b);
+    GrContextFontSet(pContext, &g_sFontGothic14b);
     for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
       if (i == 0)

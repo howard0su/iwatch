@@ -31,10 +31,10 @@ static void drawItem(tContext *pContext,
   if (y)
     GrLineDrawH(pContext, 0, 144,  y);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontNova16);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
   GrStringDraw(pContext, name, -1, 12, y + 10, 0);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontNova13);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
   sprintf(buf, "%02d:%02d %s", hour, minute, ampm);
   GrStringDraw(pContext, buf, -1, 12, y + 30, 0);
 

@@ -15,10 +15,10 @@ uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrRectFill(pContext, &client_clip);
 
       GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, &g_sFontNova16);
+      GrContextFontSet(pContext, &g_sFontGothic14);
 	  GrStringDrawCentered(pContext, "Reset Watch", -1, LCD_X_SIZE/2, 40, 0);
 	  
-	  GrContextFontSet(pContext, &g_sFontNova16b);
+	  GrContextFontSet(pContext, &g_sFontGothic14b);
 	  GrStringDrawCentered(pContext, "Confirm?", -1, LCD_X_SIZE/2, 100, 0);
 
 	  window_button(pContext, KEY_DOWN, "Reset");

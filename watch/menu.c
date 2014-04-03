@@ -159,7 +159,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrStringDraw(pContext, &item->icon, 1, 10, 14 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
-  GrContextFontSet(pContext, &g_sFontBaby16);
+  GrContextFontSet(pContext, &g_sFontGothic14);
   if (item->icon < 0x80)
   {
     GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);

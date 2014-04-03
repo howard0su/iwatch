@@ -79,7 +79,7 @@ static void displaystack(uint16_t *ptr)
   GrRectFill(&context, &fullscreen_clip);
 
   GrContextForegroundSet(&context, ClrWhite);
-  GrContextFontSet(&context, (tFont*)&g_sFontNova12b);
+  GrContextFontSet(&context, (tFont*)&g_sFontGothic14);
   GrStringDrawCentered(&context, "Crash Info", -1, 30, 8, 0);
   GrStringDrawWrap(&context, buf, 2, 16, 120, 1);
   
