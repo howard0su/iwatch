@@ -1,0 +1,36 @@
+#!/bin/sh
+rm -Rf *.c
+#../grlib/ftrasterize/ftrasterize -f Red -s 13  "C&C Red Alert [LAN].ttf"
+#../grlib/ftrasterize/ftrasterize -f Baby -s 16  babyblue.ttf
+#../grlib/ftrasterize/ftrasterize -f Baby -s 12  babyblue.ttf
+../grlib/ftrasterize/ftrasterize -f Gothic -s 14    "News Gothic Light.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 14 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 18    "News Gothic Light.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 18 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f RobotoCondensed -s 18 -b RobotoCondensed-Regular.ttf
+../grlib/ftrasterize/ftrasterize -f Gothic -s 24    "News Gothic Light.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 24 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 28    "News Gothic Light.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 28 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f Driod -s 28 -b DroidSerif-Bold.ttf
+../grlib/ftrasterize/ftrasterize -f GothamBlack -s 30 Gotham-Black.otf
+../grlib/ftrasterize/ftrasterize -f GothamBold  -s 42  Gotham-Bold.otf
+../grlib/ftrasterize/ftrasterize -f GothamLight -s 42 Gotham-Light.otf
+
+echo "Generate digit numbers"
+../grlib/ftrasterize/ftrasterize -f GothamMedium -s 32 -v -n -p 48 -e 58 Gotham-Medium.otf
+../grlib/ftrasterize/ftrasterize -f GothamMedium -s 42 -v -n -p 48 -e 58 Gotham-Medium.otf
+../grlib/ftrasterize/ftrasterize -f Roboto -b -s 49 -v -n -p 48 -e 58 Roboto-Bold.otf
+
+../grlib/ftrasterize/ftrasterize -f Icon -s 16 -v icons_16x16_all.pbm
+../grlib/ftrasterize/ftrasterize -f Icon -s 32 -v icons_32x32_all.pbm
+../grlib/ftrasterize/ftrasterize -f Icon -s 48 -v icons_48x48_all.pbm
+
+
+# generate digit clock fonts
+#../grlib/ftrasterize/ftrasterize -f Digit -s 44 -v -n -p 48 -e 58 msgothic.ttc
+#../grlib/ftrasterize/ftrasterize -f Digit -s 44 -v -n -b -p 48 -e 58 ProximaNova-Bold.otf
+#../grlib/ftrasterize/ftrasterize -f Digit -s 52 -v -n -b -p 48 -e 58 ProximaNova-Bold.otf
+#../grlib/ftrasterize/ftrasterize -f Digit -s 56 -v -n -p 48 -e 58 msgothic.ttc
+
+#../grlib/ftrasterize/ftrasterize -v -f unicode -s 18 -c unicode.txt -y -r -u simhei.ttf gulim.ttc
