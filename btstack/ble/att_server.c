@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2011-2012 BlueKitchen GmbH
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,6 +103,14 @@ static timer_source_t att_handle_value_indication_timer;
 
 static btstack_packet_handler_t att_client_packet_handler = NULL;
 
+static const uint16_t connection_params[] =
+{
+//  min, max, latency, timeout,
+    20, 600, 0, 500,// normal situation
+    20, 600, 0, 500,// idle situation
+    16, 16, 0, 6,// fast situation
+};
+static uint8_t target_connection_params = 0xff;
 
 static void att_handle_value_indication_notify_client(uint8_t status, uint16_t client_handle, uint16_t attribute_handle){
     uint8_t event[7];
@@ -328,7 +336,29 @@ static void att_run(void){
             uint16_t size = att_build_request(&att_connection, buffer);
 
             if (size == 0)
+            {
+                if ((target_connection_params != 0xff) && (att_request_handle > 1024))
+                {
+                    printf("try to set connection parameters\n");
+                    int ret;
+                    ret = l2cap_le_request_connection_parameter_update(att_request_handle, 
+                            connection_params[target_connection_params * 4],
+                            connection_params[target_connection_params * 4+1],
+                            connection_params[target_connection_params * 4+2],
+                            connection_params[target_connection_params * 4+3]
+                            );
+                    if (!ret)
+                    {
+                        target_connection_params = 0xff;
+                    }
+                    else
+                    {
+                        printf("with error %x\n", ret);
+                    }
+                }
+
                 return; // no request need sent
+            }
 
             hexdump(buffer, size);
 
@@ -662,4 +692,10 @@ static void att_handle_notification(att_connection_t *conn, uint8_t* buffer, uin
     uint16_t handler = READ_BT_16(buffer, 1);
 
     att_client_notify(handler, buffer + 3, length - 3);
+}
+
+void att_enter_mode(int mode)
+{
+    printf("set mode: %d\n", mode);
+    target_connection_params = mode;   
 }

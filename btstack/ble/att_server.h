@@ -82,6 +82,12 @@ void att_server_send_gatt_services_request();
 void att_server_subscribe(uint16_t handle);
 void att_server_write(uint16_t handle, uint8_t *buffer, uint16_t length);
 
+#define MODE_NORMAL 0
+#define MODE_SLEEP 1
+#define MODE_FAST 2
+void att_enter_mode(int mode);
+
+
 #if defined __cplusplus
 }
 #endif
