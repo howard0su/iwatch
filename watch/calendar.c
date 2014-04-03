@@ -58,7 +58,7 @@ static void OnDraw(tContext *pContext)
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
-    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 11, y - 2, 0);
+    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 11, y, 0);
     if (today)
     {
       const tRectangle rect2 = {weekday * 20 + 16, y - 5, weekday * 20 + 17, y - 4};

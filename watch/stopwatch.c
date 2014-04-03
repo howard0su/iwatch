@@ -49,8 +49,8 @@ static void OnDraw(tContext* pContext)
       GrStringDraw(pContext, buf, -1, 2, (i - topView) * 20 + NUMBASE, 0);
 
       sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
-      GrStringDraw(pContext, buf, -1, 28, (i - topView) * 20 + NUMBASE, 0);
-      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 20);
+      GrStringDraw(pContext, buf, -1, 25, (i - topView) * 20 + NUMBASE, 0);
+      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 15);
     }
 
     GrContextFontSet(pContext, &g_sFontGothic14b);
@@ -62,12 +62,12 @@ static void OnDraw(tContext* pContext)
       if (delta_times[i - 1][0] != 0)
       {
         sprintf(buf, "+%02d:%02d:%02d", delta_times[i - 1][0], delta_times[i - 1][1],delta_times[i - 1][2]);
-        GrStringDraw(pContext, buf, -1, 80, (i - topView) * 20 + NUMBASE +  3, 0);
+        GrStringDraw(pContext, buf, -1, 70, (i - topView) * 20 + NUMBASE +  3, 0);
       }
       else
       {
         sprintf(buf, "+%02d:%02d", delta_times[i - 1][1],delta_times[i - 1][2]);
-        GrStringDraw(pContext, buf, -1, 100, (i - topView) * 20 + NUMBASE + 3, 0);
+        GrStringDraw(pContext, buf, -1, 90, (i - topView) * 20 + NUMBASE + 3, 0);
       }
       
     }

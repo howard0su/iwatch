@@ -20,8 +20,8 @@ static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text,
   }
 
   // draw text
-  GrContextFontSet(pContext, &g_sFontGothic14);
-  GrStringDraw(pContext, text, -1, 20, 30 + n * LINEMARGIN, 0);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
+  GrStringDraw(pContext, text, -1, 10, 30 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
   GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * LINEMARGIN, 0);
