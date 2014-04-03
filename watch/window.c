@@ -63,7 +63,13 @@ static ui_config ui_config_data =
   60, 170, 82, //profiles
   0x00, { 0, 1, 2, 3, }, //gesture
 
-  8, 8 // default level of volume and light
+  8, 8, // default level of volume and light
+
+  {
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+  },
 };
 
 

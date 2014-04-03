@@ -118,6 +118,14 @@ extern uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam);
 
+#define MAX_ALARM_COUNT 3
+typedef struct _alarm_t
+{
+  uint8_t flag;
+  uint8_t hour;
+  uint8_t minutes;
+}alarm_t;
+
 #define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {
   uint32_t signature;
@@ -165,6 +173,9 @@ typedef struct {
 
   uint8_t volume_level;
   uint8_t light_level;
+
+  //alarms
+  alarm_t alarms[MAX_ALARM_COUNT];
 
 }ui_config;
 

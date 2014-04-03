@@ -306,6 +306,8 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         record_activity_data(hour, minute);
       }
 
+#if 0
+      //sports watch pause/resume
       uint16_t ws_status = get_watch_status();
       if (ws_status != WS_NORMAL)
       {
@@ -321,9 +323,21 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
           }
         }
       }
+#endif
 
       //if (minute % 5 == 0)
       check_battery();
+
+      //check alarms
+      ui_config* uiconf = window_readconfig();
+      for (int i = 0; i < sizeof(uiconf->alarms) / sizeof(uiconf->alarms[0]); ++i)
+      {
+        if (uiconf->alarms[i].flag != 0 && uiconf->alarms[i].hour == hour && uiconf->alarms[i].minutes == minute)
+        {
+          window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, 0);
+          break;
+        }
+      }
 
       status ^= MID_STATUS;
       break;
