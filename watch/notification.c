@@ -92,11 +92,15 @@ static void onDraw(tContext *pContext)
   // draw title
   if (message_title)
   {
-  GrStringDraw(pContext, message_title, -1, 34, 6, 0);
+    GrStringDraw(pContext, message_title, -1, 34, 6, 0);
+  }
+  else
+  {
+    GrStringDraw(pContext, "Loading", -1, 34, 6, 0);
+  }
+    
   // draw the line
   GrLineDrawH(pContext, 5, LCD_X_SIZE - 4, 23);
-  }
-
 
   GrContextClipRegionSet(pContext, &contentrect);
   //draw message
@@ -111,7 +115,10 @@ static void onDraw(tContext *pContext)
       state &= ~STATE_MORE;
     }
   }
-
+  else
+  {
+    GrStringDraw(pContext, "Loading", -1, 8, 26 - skip, 0);
+  }
   GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 }
 
@@ -142,7 +149,7 @@ static void pop_uid()
   if (num_uids == 0)
     return;
 
-  for(int i = 0; i < num_uids - 1 && i > 0; i++)
+  for(int i = 0; i < num_uids - 1; i++)
   {
     uids[i] = uids[i + 1];
     attributes[i] = attributes[i + 1];
