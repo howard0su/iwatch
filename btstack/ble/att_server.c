@@ -106,8 +106,8 @@ static btstack_packet_handler_t att_client_packet_handler = NULL;
 static const uint16_t connection_params[] =
 {
 //  min, max, latency, timeout,
-    20, 600, 0, 500,// normal situation
-    20, 600, 0, 500,// idle situation
+    20, 600, 0, 50,// normal situation
+    20, 600, 0, 50,// idle situation
     16, 16, 0, 6,// fast situation
 };
 static uint8_t target_connection_params = 0xff;
@@ -573,7 +573,7 @@ void att_server_write(uint16_t handle, uint8_t *buffer, uint16_t length)
 
     request_type = ATT_WRITE_REQUEST;
 
-    att_run();    
+    att_run();
 }
 
 static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
