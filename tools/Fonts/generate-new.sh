@@ -5,13 +5,13 @@ rm -Rf *.c
 #../grlib/ftrasterize/ftrasterize -f Baby -s 12  babyblue.ttf
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 14    "News Gothic Light.ttf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 14 -b "News Gothic Bold.ttf"
-../grlib/ftrasterize/ftrasterize -f Gothic -s 18    "News Gothic Light.ttf"
-../grlib/ftrasterize/ftrasterize -f Gothic -s 18 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 18    "RasterGothic18Cond.otf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 18 -b "RasterGothic18CondBold.otf"
 ../grlib/ftrasterize/ftrasterize -f RobotoCondensed -s 18 -b RobotoCondensed-Regular.ttf
-../grlib/ftrasterize/ftrasterize -f Gothic -s 24    "News Gothic Light.ttf"
-../grlib/ftrasterize/ftrasterize -f Gothic -s 24 -b "News Gothic Bold.ttf"
-../grlib/ftrasterize/ftrasterize -f Gothic -s 28    "News Gothic Light.ttf"
-../grlib/ftrasterize/ftrasterize -f Gothic -s 28 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 24    "News Gothic Light.otf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 24 -b "RasterGothic24CondBold.otf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 28    "RasterGothic28Cond.otf"
+../grlib/ftrasterize/ftrasterize -f Gothic -s 28 -b "RasterGothic28CondBold.otf"
 ../grlib/ftrasterize/ftrasterize -f Driod -s 28 -b DroidSerif-Bold.ttf
 ../grlib/ftrasterize/ftrasterize -f GothamBlack -s 30 Gotham-Black.otf
 ../grlib/ftrasterize/ftrasterize -f GothamBold  -s 42  Gotham-Bold.otf
