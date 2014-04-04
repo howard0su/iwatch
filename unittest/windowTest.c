@@ -554,7 +554,6 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
                   GrStringDraw(pContext, chinesetext, -1, 0, 105, 0);
-                  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);                  
 #endif
                   GrContextFontSet(pContext, &g_sFontGothic14b);
 
@@ -711,8 +710,11 @@ const uint8_t chinesedata[] = {
 0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
 0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA
 };
+extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
 void TestNotification(CuTest *tc)
 {
+  GrContextClipRegionSet(&context, &fullscreen_clip);
+
   handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
@@ -734,6 +736,15 @@ void TestNotification(CuTest *tc)
   window_close();
 
   window_notify("SMS", chinesedata, NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_notify_ancs(0, 0);
+  window_notify_ancs(1, 1);
+  window_notify_ancs(2, 2);
+  window_notify_ancs(3, 3);
+  window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();

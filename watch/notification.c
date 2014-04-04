@@ -18,19 +18,9 @@ static uint8_t message_buttons;
 static uint8_t message_result;
 
 #define BORDER 5
-#define BOTTOMBAR 0
-
-static const tRectangle rect[5] =
-{
-  {0, 0, LCD_X_SIZE, BORDER},
-  {0, 0, BORDER, LCD_Y_SIZE},
-  {0, LCD_Y_SIZE - BORDER - BOTTOMBAR, LCD_X_SIZE, LCD_Y_SIZE - BOTTOMBAR},
-  {LCD_X_SIZE - BORDER, 0, LCD_X_SIZE, LCD_Y_SIZE - BOTTOMBAR},
-  {BORDER/2, BORDER/2, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2 - BOTTOMBAR}
-};
 
 static const tRectangle contentrect = 
-{8, 26, LCD_X_SIZE - BORDER/2, LCD_Y_SIZE - BORDER/2 - BOTTOMBAR};
+{0, 12, LCD_X_SIZE, LCD_Y_SIZE};
 
 static enum
 {
@@ -42,27 +32,60 @@ static enum
 static uint8_t skip = 0;
 static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam);
 
-
 #define EMPTY 0xfe
 #define SPECIAL 0xff
 
 #define MAX_NOTIFY 5
 
 static uint8_t  num_uids = 0;
+static uint8_t  selectidx = 0;
 static uint32_t uids[MAX_NOTIFY];
 static uint32_t attributes[MAX_NOTIFY];
+
+static int IsNonEnglish(const char* str)
+{
+  if (str == NULL)
+    return 0;
+
+  while(*str)
+  {
+    if (*str & 0x80)
+      return 1;
+    str++;
+  }
+
+  return 0;
+}
+
+static void onDrawTitleBar(tContext *pContext)
+{
+  // draw the title bar of circles
+  const tRectangle rect = {0, 0, LCD_X_SIZE, 12};
+
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextClipRegionSet(pContext, &rect);
+
+  GrRectFill(pContext, &rect);
+
+  GrContextForegroundSet(pContext, ClrWhite);
+
+  long startx = LCD_X_SIZE/2 - num_uids * 4;
+
+  for(int i = 0; i < num_uids; i++)
+  {
+    if (i == selectidx)
+      GrCircleFill(pContext, startx + i * 10, 4, 3);
+    else
+      GrCircleDraw(pContext, startx + i * 10, 4, 3);
+  }
+}
 
 static void onDrawAlarm(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextBackgroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &fullscreen_clip);
 
   // draw table title
-  GrContextForegroundSet(pContext, ClrBlack);
-  GrContextBackgroundSet(pContext, ClrWhite);
-  GrRectFillRound(pContext, &rect[4], 4);
-
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
 
@@ -70,56 +93,79 @@ static void onDrawAlarm(tContext *pContext)
   GrStringDrawCentered(pContext, &message_icon, 1, LCD_X_SIZE/2, LCD_Y_SIZE, 0);
 }
 
+const tFont *get_titlefont()
+{
+  return (tFont*)&g_sFontGothic24b;
+}
+
+const tFont *get_contentfont()
+{
+  return (tFont*)&g_sFontGothic18b;
+}
+
+
 static void onDraw(tContext *pContext)
 {
+  // draw circles
+  onDrawTitleBar(pContext);
+
+  GrContextClipRegionSet(pContext, &contentrect);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextBackgroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &fullscreen_clip);
 
   GrContextForegroundSet(pContext, ClrBlack);
-  GrContextBackgroundSet(pContext, ClrWhite);
 
-  // draw circles
+  long starty = 12 - skip;
 
+#if 0
   // draw icon
   if (message_icon)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);    
-    GrStringDraw(pContext, &message_icon, 1, 12, 6, 0);
+    GrStringDraw(pContext, &message_icon, 1, 12, starty, 0);
   }
+  #endif
+  const tFont *titleFont;
+  const tFont *contentFont;
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontGothic28b);
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
-
-  // draw title
-  if (message_title)
+  if (IsNonEnglish(message_title) || IsNonEnglish(message_subtitle) || IsNonEnglish(message))
   {
-    GrStringDraw(pContext, message_title, -1, 34, 6, 0);
+    titleFont = contentFont = (const tFont*)&g_sFontUnicode;
   }
   else
   {
-    GrStringDraw(pContext, "Loading", -1, 34, 6, 0);
+    titleFont = get_titlefont();
+    contentFont = get_contentfont();
   }
-    
-  GrContextClipRegionSet(pContext, &contentrect);
-  GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
-  //draw message
-  if (message)
+
+  GrContextFontSet(pContext, titleFont);
+
+  // draw title
+  if (message_title && (*message_title != '\0'))
   {
-    if (GrStringDrawWrap(pContext, message, 8, 26 - skip, LCD_X_SIZE - 12,  0))
+    starty = GrStringDrawWrap(pContext, message_title, 20, starty, LCD_X_SIZE - 1, 0);
+  }
+
+  if (message_subtitle && (*message_subtitle != '\0'))
+    starty = GrStringDrawWrap(pContext, message_subtitle, 1, starty, LCD_X_SIZE - 1, 0);
+    
+  GrContextFontSet(pContext, contentFont);
+  //draw message
+  if (message && *message != '\0')
+  {
+    if (GrStringDrawWrap(pContext, message, 1, starty, LCD_X_SIZE - 1,  0) == -1)
     {
       state |= STATE_MORE;
+      for(int i = 0; i < 6; i++)
+      {
+          GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
+      }
     }
     else
     {
       state &= ~STATE_MORE;
     }
   }
-  else
-  {
-    GrStringDraw(pContext, "Loading", -1, 8, 26 - skip, 0);
-  }
-  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
 }
 
 static void push_uid(uint32_t id, uint32_t attribute)
@@ -144,43 +190,19 @@ static void dump_uid()
   }
 }
 
-static void pop_uid()
-{
-  if (num_uids == 0)
-    return;
-
-  for(int i = 0; i < num_uids - 1; i++)
-  {
-    uids[i] = uids[i + 1];
-    attributes[i] = attributes[i + 1];
-  }
-
-  num_uids--;
-}
-
-static void get_uid(uint32_t *uid, uint32_t *attribute)
-{
-  if (num_uids == 0)
-    *uid = EMPTY;
-
-  *uid = uids[0];
-  *attribute = attributes[0];
-}
-
-static int more_uid()
-{
-  return num_uids > 0;
-}
-
 void window_notify(const char* title, const char* msg, uint8_t buttons, char icon)
 {
   message_title = title;
+  message_subtitle = NULL;
   message = msg;
   message_buttons = buttons;
   message_icon = icon;
+  skip = 0;
 
   push_uid(SPECIAL, 0);
 
+  selectidx = 0;
+
   motor_on(50, CLOCK_SECOND);
   backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
 
@@ -190,24 +212,26 @@ void window_notify(const char* title, const char* msg, uint8_t buttons, char ico
     window_open(notify_process, NULL);
 }
 
-void fetch_next()
+void fetch_content()
 {
   uint32_t uid;
-  uint32_t combine;
+  uint32_t attribute;
   message_title = NULL;
   message = NULL;
 
-  get_uid(&uid, &combine);
+  uid = uids[selectidx];
+  attribute = attributes[selectidx];
 
-  printf("Attribute: %lx", combine);
-  att_fetch_next(uid, combine);
+  printf("Attribute: %lx", attribute);
+  att_fetch_next(uid, attribute);
 }
 
-void window_notify_ancs(uint32_t uid, uint32_t combine)
+void window_notify_ancs(uint32_t uid, uint32_t attribute)
 {
   message_title = NULL;
   message = NULL;
-  push_uid(uid, combine);
+  push_uid(uid, attribute);
+  selectidx = 0;
 
   motor_on(50, CLOCK_SECOND);
   backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
@@ -217,9 +241,7 @@ void window_notify_ancs(uint32_t uid, uint32_t combine)
   else 
     window_open(notify_process, NULL);
 
-  fetch_next();
-
-  dump_uid();
+  fetch_content();
 }
 
 void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon)
@@ -230,6 +252,8 @@ void window_notify_content(const char* title, const char* subtitle, const char* 
   message_date = date;
   message_buttons = buttons;
   message_icon = icon;
+
+  skip = 0;
 
   window_invalid(NULL);
 
@@ -269,6 +293,9 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)message_result);
     motor_on(0, 0);
     del_watch_status(WS_NOTIFY);
+    selectidx = 0;
+    num_uids = 0;
+    return 0;
     break;
   case EVENT_KEY_PRESSED:
     if (lparam == KEY_ENTER)
@@ -283,10 +310,10 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
         skip += 16;
         window_invalid(NULL);
       }
-      else if (num_uids > 1)
+      else if (selectidx < num_uids)
       {
-        pop_uid();
-        fetch_next();
+        selectidx++;
+        fetch_content();
         window_invalid(NULL);
       }
     }
@@ -297,6 +324,23 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
         skip-=16;
         window_invalid(NULL);
       }
+      else if (skip == 0)
+      {
+        if (selectidx > 0)
+        {  
+          selectidx--;
+          window_invalid(NULL);
+        }
+     }
+    }
+    else if (lparam == KEY_ENTER)
+    {
+      if (selectidx < num_uids)
+      {
+        selectidx++;
+        fetch_content();
+        window_invalid(NULL);
+      }
     }
     break;
   default:
@@ -305,3 +349,4 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
 
   return 1;
 }
+
