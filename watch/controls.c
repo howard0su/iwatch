@@ -99,7 +99,7 @@ static const tRectangle button_rect[] =
 */
 void window_button(tContext *pContext, uint8_t key, const char* text)
 {
-  GrContextFontSet(pContext, &g_sFontGothic14);
+  GrContextFontSet(pContext, &g_sFontGothic14b);
 
   // draw black box
   if (text)

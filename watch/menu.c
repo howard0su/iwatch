@@ -153,14 +153,14 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
     GrContextBackgroundSet(pContext, ClrWhite);
   }
   
-  if (item->icon < 0x80)
+  if (item->icon < 0x80 && item->icon != 0)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon32);
     GrStringDraw(pContext, &item->icon, 1, 4, 8 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
   GrContextFontSet(pContext, textFont);
-  if (item->icon < 0x80)
+  if (item->icon < 0x80 && item->icon != 0)
   {
     GrStringDraw(pContext, item->name, -1, 40, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
@@ -170,9 +170,10 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
     int width;
     // <= 0
     GrStringDraw(pContext, item->name, -1, 5, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
-
+    GrContextFontSet(pContext, &g_sFontGothic18);
     switch(item->icon)
     {
+      case 0:
       case 0xFF:
         return;
       case DATA_DATE:
@@ -227,7 +228,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 12 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
   }
 }
 
@@ -243,10 +244,10 @@ static void OnDraw(tContext *pContext)
 
   struct MenuItem const * item = Items;
 
-  if (item == &MainMenu)
+  if (item == MainMenu)
     textfont = &g_sFontGothic28b;
   else
-    textfont = &g_sFontGothic14b;
+    textfont = &g_sFontGothic24b;
 
   item += currentTop;
 
