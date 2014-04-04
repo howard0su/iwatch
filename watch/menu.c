@@ -74,16 +74,16 @@ static const struct MenuItem AboutMenu[] =
 
 static const struct MenuItem MainMenu[] =
 {
-  {'a', "Today's Activity", &today_process},
-  {'b', "Analog Watch", &analogclock_process},
-  {'c', "Digital Watch", &digitclock_process},
-  {'d', "World Clock", &worldclock_process},
+  {'a', "Activity", &today_process},
+  {'b', "Sports", &sporttype_process},
+  {'c', "Music", &control_process},
+  {'d', "Clock", &worldclock_process},
   {'e', "Calendar", &calendar_process},
-  {'f', "Stop Watch", &stopwatch_process},
-  {'g', "Countdown Timer", &countdown_process},
-  {'k', "Music Control", &control_process},
-  {'h', "Sports Watch", &sporttype_process},
-  {'l', "Setttings", &menu_process},
+  {'f', "Timer", &stopwatch_process},
+  {'g', "Countdown", &countdown_process},
+  {'h', "Digital", &digitclock_process},
+  {'i', "Analog", &analogclock_process},
+  {'j', "Settings", &menu_process},
   {0, NULL, NULL}
 };
 
@@ -119,12 +119,12 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define rows            d.menu.rows
 #define row_count       d.menu.row_count
 
-#define NUM_MENU_A_PAGE 5
-#define MENU_SPACE 30
+#define NUM_MENU_A_PAGE 3
+#define MENU_SPACE ((168 - 30)/NUM_MENU_A_PAGE)
 
 extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
-static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
+static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
@@ -138,7 +138,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 17 + index * MENU_SPACE, LCD_X_SIZE - 2, 9 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -155,21 +155,21 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
   
   if (item->icon < 0x80)
   {
-    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, &item->icon, 1, 10, 14 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon32);
+    GrStringDraw(pContext, &item->icon, 1, 4, 8 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
-  GrContextFontSet(pContext, &g_sFontGothic18b);
+  GrContextFontSet(pContext, textFont);
   if (item->icon < 0x80)
   {
-    GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, item->name, -1, 40, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
   else
   {
     char buf[20];
     int width;
     // <= 0
-    GrStringDraw(pContext, item->name, -1, 12, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, item->name, -1, 5, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
 
     switch(item->icon)
     {
@@ -206,7 +206,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       sprintf(buf, "%s", "OFF");
       break;
       case DATA_LEGAL:
-      strcpy(buf, "legal.kreyos.com");
+      strcpy(buf, "kreyos.com/legal");
       break;
       case DATA_VERSION:
       strcpy(buf, FWVERSION);
@@ -227,7 +227,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 }
 
@@ -237,15 +237,17 @@ static uint8_t menuLength;
 
 static void OnDraw(tContext *pContext)
 {
+  const tFont *textfont;
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
 
   struct MenuItem const * item = Items;
 
-  if (currentTop > 0)
-  {
-    // draw some grey area means something in the up
-  }
+  if (item == &MainMenu)
+    textfont = &g_sFontGothic28b;
+  else
+    textfont = &g_sFontGothic14b;
+
   item += currentTop;
 
   for(int i = 0; i < NUM_MENU_A_PAGE; i++)
@@ -253,33 +255,30 @@ static void OnDraw(tContext *pContext)
     if (item->name == NULL)
       break;
 
-    drawMenuItem(pContext, item, i, current == currentTop + i);
+    drawMenuItem(pContext, textfont, item, i, current == currentTop + i);
     item++;
   }
 
   if (item->name != NULL)
   {
+    GrContextForegroundSet(pContext, ClrWhite);
     // there is something more
+    for(int i = 0; i < 8; i++)
+    {
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  160 - i);
+    }
+    GrContextForegroundSet(pContext, ClrBlack);
   }
 
-  if (NUM_MENU_A_PAGE < menuLength)
+  if (currentTop > 0)
   {
-    // draw progress bar
-    #define STEPS 128
-    int length = NUM_MENU_A_PAGE * STEPS / menuLength;
-    int start = currentTop * STEPS / menuLength;
-
-    tRectangle rect = {136, 20, 143, 20 + STEPS + 10};
     GrContextForegroundSet(pContext, ClrWhite);
-    GrRectFillRound(pContext, &rect, 3);
+    // draw some grey area means something in the up
+    for(int i = 0; i < 8; i++)
+    {
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  18 + i);
+    }
     GrContextForegroundSet(pContext, ClrBlack);
-
-    rect.sXMin += 2;
-    rect.sXMax -= 2;
-
-    rect.sYMin += 4 + start;
-    rect.sYMax = rect.sYMin + length;
-    GrRectFill(pContext, &rect);
   }
 }
 
@@ -307,7 +306,7 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
         if (item->name == NULL)
           break;
 
-        drawMenuItem(pContext, item, i, current == currentTop + i);
+        drawMenuItem(pContext, &g_sFontGothic14b, item, i, 0);
         i++;
         item++;
       }
