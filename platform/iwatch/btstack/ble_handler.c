@@ -99,6 +99,20 @@ static void att_write_world_clock(uint8_t id, char* buf)
     window_loadconfig();
 
 }
+static void ble_set_alarm(uint8_t id, uint8_t flag, uint8_t hour, uint8_t minutes, uint8_t att_mode)
+{
+    log_info("Set Alarm()\n");
+    if (att_mode == ATT_HANDLE_MODE_WRITE)
+    {
+        uint8_t alarm_id = id;
+        ui_config* conf = window_readconfig();
+        conf->alarms[alarm_id].flag    = flag;
+        conf->alarms[alarm_id].hour    = hour;
+        conf->alarms[alarm_id].minutes = minutes;
+        window_writeconfig();
+        window_loadconfig();
+    }
+}
 
 static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
 {
@@ -218,17 +232,13 @@ static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t *
             break;
 
         case BLE_HANDLE_ALARM_0:
+            ble_set_alarm(0, buffer[0], buffer[1], buffer[2], mode);
+            break;
         case BLE_HANDLE_ALARM_1:
+            ble_set_alarm(1, buffer[0], buffer[1], buffer[2], mode);
+            break;
         case BLE_HANDLE_ALARM_2:
-            log_info("Set Alarm()\n");
-            if (mode == ATT_HANDLE_MODE_READ)
-            {
-                memset(buffer, 0, buffer_size); //no way read them back so far
-            }
-            else
-            {
-                rtc_setalarm(0, 0, buffer[0] | 0x80, buffer[1] | 0x80);
-            }
+            ble_set_alarm(2, buffer[0], buffer[1], buffer[2], mode);
             break;
 
         case BLE_HANDLE_DEVICE_ID:

@@ -352,26 +352,37 @@ void handle_alarm(alarm_conf_t* para)
     log_info("  hour         = %d\n", para->hour);
     log_info("  minute       = %d\n", para->minute);
 
+    if (para->id >= MAX_ALARM_COUNT)
+        return;
+
     switch(para->mode)
     {
         case ALARM_MODE_DISABLE:
+            {
+                ui_config* conf = window_readconfig();
+                conf->alarms[para->id].flag    = 0;
+                conf->alarms[para->id].hour    = 0;
+                conf->alarms[para->id].minutes = 0;
+                window_writeconfig();
+                window_loadconfig();
+            }
+            break;
         case ALARM_MODE_NO_EXIST:
-            rtc_setalarm(0, 0, 0, 0);
-            break;
         case ALARM_MODE_MONTHLY:
-            rtc_setalarm(para->day_of_month | 0x80, 0, para->hour | 0x80, para->minute | 0x80);
-            break;
         case ALARM_MODE_HOURLY:
-            rtc_setalarm(0, 0, 0, para->minute | 0x80);
-            break;
-        case ALARM_MODE_DAILY:
-            rtc_setalarm(0, 0, para->hour | 0x80, para->minute | 0x80);
-            break;
         case ALARM_MODE_WEEKLY:
-            rtc_setalarm(0, para->day_of_week | 0x80, para->hour | 0x80, para->minute | 0x80);
-            break;
         case ALARM_MODE_ONCE:
             // no way
+            break;
+        case ALARM_MODE_DAILY:
+            {
+                ui_config* conf = window_readconfig();
+                conf->alarms[para->id].flag    = 1;
+                conf->alarms[para->id].hour    = para->hour;
+                conf->alarms[para->id].minutes = para->minute;
+                window_writeconfig();
+                window_loadconfig();
+            }
             break;
     }
 }
