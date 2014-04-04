@@ -145,8 +145,8 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     }
 }
 
-#define MAX_TITLE 16
-#define MAX_MESSAGE 200
+#define MAX_TITLE 43
+#define MAX_MESSAGE 250
 static enum 
 {
     STATE_NONE,
@@ -161,7 +161,9 @@ static uint16_t attrleftlen, len;
 static char* bufptr;
 static char appidbuf[32];
 static char titlebuf[MAX_TITLE + 1];
+static char subtitlebuf[MAX_TITLE + 1];
 static char msgbuf[MAX_MESSAGE + 1];
+static char datebuf[16];
 
 void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 {
@@ -218,8 +220,13 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                         case 1:
                         bufptr = titlebuf;
                         break;
+                        case 2:
+                        bufptr = subtitlebuf;
                         case 3:
                         bufptr = msgbuf;
+                        break;
+                        case 5:
+                        bufptr = datebuf;
                         break;
                     }
                     index++;
@@ -247,7 +254,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     if (attrleftlen == 0)
                     {
                         bufptr[len] = '\0';
-                        if (attributeid == 3)
+                        if (attributeid == 5)
                             parse_state = STATE_NONE;
                         else
                             parse_state = STATE_ATTRIBUTEID;
@@ -276,7 +283,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 
         if (parse_state == STATE_NONE)
         {
-            window_notify_content(titlebuf, msgbuf, 0, icon);
+            window_notify_content(titlebuf, subtitlebuf, msgbuf, datebuf, 0, icon);
         }
     }
     else
@@ -328,8 +335,10 @@ void att_fetch_next(uint32_t uid, uint32_t combine)
             0, // command id
             0, 0, 0, 0, // uid
             0,          // appid
-            1, MAX_TITLE, 0, // 16 bytes title
-            3, MAX_MESSAGE, 0, // 64bytes message
+            NotificationAttributeIDTitle, MAX_TITLE, 0, // 16 bytes title
+            NotificationAttributeIDSubtitle, MAX_TITLE, 0,
+            NotificationAttributeIDMessage, MAX_MESSAGE, 0, // 64bytes message
+            NotificationAttributeIDDate,
     };
     bt_store_32(buffer, 1, uid);
     att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));

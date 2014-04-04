@@ -10,7 +10,9 @@
 #include <stdio.h>
 
 static const char* message_title;
+static const char* message_subtitle;
 static const char* message;
+static const char* message_date;
 static char message_icon;
 static uint8_t message_buttons;
 static uint8_t message_result;
@@ -86,7 +88,7 @@ static void onDraw(tContext *pContext)
     GrStringDraw(pContext, &message_icon, 1, 12, 6, 0);
   }
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic28b);
   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
 
   // draw title
@@ -99,10 +101,8 @@ static void onDraw(tContext *pContext)
     GrStringDraw(pContext, "Loading", -1, 34, 6, 0);
   }
     
-  // draw the line
-  GrLineDrawH(pContext, 5, LCD_X_SIZE - 4, 23);
-
   GrContextClipRegionSet(pContext, &contentrect);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
   //draw message
   if (message)
   {
@@ -194,8 +194,12 @@ void fetch_next()
 {
   uint32_t uid;
   uint32_t combine;
+  message_title = NULL;
+  message = NULL;
 
   get_uid(&uid, &combine);
+
+  printf("Attribute: %lx", combine);
   att_fetch_next(uid, combine);
 }
 
@@ -218,10 +222,12 @@ void window_notify_ancs(uint32_t uid, uint32_t combine)
   dump_uid();
 }
 
-void window_notify_content(const char* title, const char* msg, uint8_t buttons, char icon)
+void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon)
 {
   message_title = title;
+  message_subtitle = subtitle;
   message = msg;
+  message_date = date;
   message_buttons = buttons;
   message_icon = icon;
 
@@ -281,6 +287,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         pop_uid();
         fetch_next();
+        window_invalid(NULL);
       }
     }
     else if (lparam == KEY_UP)
