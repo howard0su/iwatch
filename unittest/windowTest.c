@@ -24,11 +24,11 @@ static const tFont *fonts[] =
 &g_sFontGothamlight42,
 (const tFont*)&g_sFontExGothammedium32,
 (const tFont*)&g_sFontExGothammedium42,
-&g_sFontGothic14,
-&g_sFontGothic14b,
+//&g_sFontGothic14,
+//&g_sFontGothic14b,
 &g_sFontGothic18,
 &g_sFontGothic18b,
-&g_sFontGothic24,
+//&g_sFontGothic24,
 &g_sFontGothic24b,
 &g_sFontGothic28,
 &g_sFontGothic28b,
@@ -555,7 +555,7 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
                   GrStringDraw(pContext, chinesetext, -1, 0, 105, 0);
 #endif
-                  GrContextFontSet(pContext, &g_sFontGothic14b);
+                  GrContextFontSet(pContext, &g_sFontGothic18b);
 
                   GrStringDraw(pContext, name, -1, 0, 120, 0);
 

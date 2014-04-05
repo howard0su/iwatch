@@ -64,7 +64,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrContextForegroundSet(pContext, ClrWhite);
       	  unsigned int available_minutes, lost_minutes;
       	  slp_get_availabledatainfo(&available_minutes, &lost_minutes);
-          GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
+          GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
 		  char buf[20];		  
 		  formattime(buf, slp_getfallasleep_time());
 		  drawItem(pContext, 0, 0, "Time to Sleep", buf);

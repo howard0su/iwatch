@@ -2279,17 +2279,18 @@ extern unsigned long GrMapWIN1254_Unicode(const char *pcSrcChar,
 #define ASSERT(x) assert(x)
 typedef unsigned char tBoolean;
 
+extern const tFont g_sFontBaby12;
 extern const tFont g_sFontDriod28b;
 extern const tFont g_sFontGothamblack30;
 extern const tFont g_sFontGothambold42;
 extern const tFont g_sFontGothamlight42;
 extern const tFontEx g_sFontExGothammedium32;
 extern const tFontEx g_sFontExGothammedium42;
-extern const tFont g_sFontGothic14;
-extern const tFont g_sFontGothic14b;
+//extern const tFont g_sFontGothic14;
+//extern const tFont g_sFontGothic14b;
 extern const tFont g_sFontGothic18;
 extern const tFont g_sFontGothic18b;
-extern const tFont g_sFontGothic24;
+//extern const tFont g_sFontGothic24;
 extern const tFont g_sFontGothic24b;
 extern const tFont g_sFontGothic28;
 extern const tFont g_sFontGothic28b;

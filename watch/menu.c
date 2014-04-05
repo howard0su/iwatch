@@ -79,8 +79,8 @@ static const struct MenuItem MainMenu[] =
   {'c', "Music", &control_process},
   {'d', "Clock", &worldclock_process},
   {'e', "Calendar", &calendar_process},
-  {'f', "Timer", &stopwatch_process},
-  {'g', "Countdown", &countdown_process},
+  {'f', "Stopwatch", &stopwatch_process},
+  {'g', "Timer", &countdown_process},
   {'h', "Digital", &digitclock_process},
   {'i', "Analog", &analogclock_process},
   {'j', "Settings", &menu_process},
@@ -307,7 +307,7 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
         if (item->name == NULL)
           break;
 
-        drawMenuItem(pContext, &g_sFontGothic14b, item, i, 0);
+        drawMenuItem(pContext, &g_sFontGothic18b, item, i, 0);
         i++;
         item++;
       }

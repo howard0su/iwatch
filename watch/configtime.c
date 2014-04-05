@@ -83,7 +83,7 @@ static void OnDrawTime(tContext *pContext)
     GrStringDraw(pContext, buf, -1, 70, 70, 0);
   }
 
-  GrContextFontSet(pContext, &g_sFontGothic14b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   // draw AM/PM
   uint8_t out;
   uint8_t ampm;

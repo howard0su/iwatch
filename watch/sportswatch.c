@@ -136,7 +136,7 @@ static void drawGridTime(tContext *pContext)
   case GRID_3:
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
     GrStringDraw(pContext, "i", 1, 10, 15, 0);
-    GrContextFontSet(pContext, &g_sFontGothic14);
+    GrContextFontSet(pContext, &g_sFontGothic18);
     GrStringDraw(pContext, datapoints[0].name, -1, 28, 15, 0);
     GrContextFontSet(pContext, &g_sFontGothic28b);
     sprintf(buf, "%02d:%02d:%02d", time[2], time[1], time[0]);
@@ -233,18 +233,18 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
   switch(window_readconfig()->sports_grid)
   {
   case GRID_3:
-    GrContextFontSet(pContext, &g_sFontGothic14);
+    GrContextFontSet(pContext, &g_sFontGothic18);
     GrStringDraw(pContext, d->name, -1,  region_3grid[index].sXMin + 8, region_3grid[index].sYMin, 0);
     GrContextFontSet(pContext, &g_sFontGothic28b);
     GrStringDraw(pContext, buf, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 20, 0);
     if (unit)
     {
-      GrContextFontSet(pContext, &g_sFontGothic14);
+      GrContextFontSet(pContext, &g_sFontGothic18);
       GrStringDraw(pContext, unit, -1, region_3grid[index].sXMin + 8, region_3grid[index].sYMin + 50, 0);
     }
     break;
   case GRID_4:
-    GrContextFontSet(pContext, &g_sFontGothic14);
+    GrContextFontSet(pContext, &g_sFontGothic18);
     GrStringDrawWrap(pContext, d->name, region_4grid[index].sXMin + 8, region_4grid[index].sYMin + 8,
                     (region_4grid[index].sXMax - region_4grid[index].sXMin) / 3, 1);
 
@@ -254,19 +254,19 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
       region_4grid[index].sYMin + 10, 0);
     if (unit)
     {
-      GrContextFontSet(pContext, &g_sFontGothic14);
+      GrContextFontSet(pContext, &g_sFontGothic18);
       GrStringDraw(pContext, unit, -1, (region_4grid[index].sXMax - region_4grid[index].sXMin) * 3 / 4  + 8, region_4grid[index].sYMin + 20, 0);
     }
     break;
   case GRID_5:
-    GrContextFontSet(pContext, &g_sFontGothic14);
+    GrContextFontSet(pContext, &g_sFontGothic18);
     GrStringDraw(pContext, d->name, -1,  region_5grid[index].sXMin + 8, region_5grid[index].sYMin, 0);
     GrContextFontSet(pContext, &g_sFontGothic28b);
     width = GrStringWidthGet(pContext, buf, -1);
     GrStringDraw(pContext, buf, -1, region_5grid[index].sXMax - 4 - width, region_5grid[index].sYMin + 15, 0);
     if (unit)
     {
-      GrContextFontSet(pContext, &g_sFontGothic14);
+      GrContextFontSet(pContext, &g_sFontGothic18);
       GrStringDraw(pContext, unit, -1, region_5grid[index].sXMin + 8, region_5grid[index].sYMin + 40, 0);
     }
     break;

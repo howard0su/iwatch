@@ -21,6 +21,7 @@
 #include "sm.h"
 #include "att.h"
 #include "att_server.h"
+#include "att_client.h"
 #include "gap_le.h"
 #include "central_device_db.h"
 
@@ -55,7 +56,6 @@ static uint16_t write_handle;
 uint16_t report_gatt_services(att_connection_t *conn, uint8_t * packet,  uint16_t size){
     // log_info(" report_gatt_services for %02X\n", peripheral->handle);
     uint8_t attr_length = packet[1];
-    uint16_t last = 0;
     uint8_t uuid_length = attr_length - 4;
     uint8_t uuid128[16];
 
@@ -141,7 +141,7 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     else if (handle == attribute_handles[DATASOURCE] + 1)
     {
         printf("subscribe to ANCS finished.\n");
-        att_enter_mode(1);
+//        att_enter_mode(1);
     }
 }
 

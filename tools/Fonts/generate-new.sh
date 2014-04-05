@@ -3,12 +3,13 @@ rm -Rf *.c
 #../grlib/ftrasterize/ftrasterize -f Red -s 13  "C&C Red Alert [LAN].ttf"
 #../grlib/ftrasterize/ftrasterize -f Baby -s 16  babyblue.ttf
 #../grlib/ftrasterize/ftrasterize -f Baby -s 12  babyblue.ttf
-../grlib/ftrasterize/ftrasterize -f Gothic -s 14    "News Gothic Light.ttf"
-../grlib/ftrasterize/ftrasterize -f Gothic -s 14 -b "News Gothic Bold.ttf"
+../grlib/ftrasterize/ftrasterize -f Baby -s 12  babyblue.ttf
+#../grlib/ftrasterize/ftrasterize -f Gothic -s 14    "News Gothic Light.ttf"
+#../grlib/ftrasterize/ftrasterize -f Gothic -s 14 -b "News Gothic Bold.ttf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 18    "RasterGothic18Cond.otf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 18 -b "RasterGothic18CondBold.otf"
 ../grlib/ftrasterize/ftrasterize -f RobotoCondensed -s 18 -b RobotoCondensed-Regular.ttf
-../grlib/ftrasterize/ftrasterize -f Gothic -s 24    "News Gothic Light.otf"
+#../grlib/ftrasterize/ftrasterize -f Gothic -s 24    "News Gothic Light.otf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 24 -b "RasterGothic24CondBold.otf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 28    "RasterGothic28Cond.otf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 28 -b "RasterGothic28CondBold.otf"

@@ -38,7 +38,7 @@ static void OnDraw(tContext* pContext)
 
   if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 70))
   {
-    GrContextFontSet(pContext, &g_sFontGothic14b);
+    GrContextFontSet(pContext, &g_sFontGothic18b);
     //printf("stop: %d current: %d\n", currentStop, topView);
     char buf[20];
 
@@ -53,7 +53,7 @@ static void OnDraw(tContext* pContext)
       GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 15);
     }
 
-    GrContextFontSet(pContext, &g_sFontGothic14b);
+    GrContextFontSet(pContext, &g_sFontGothic18b);
     for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
       if (i == 0)

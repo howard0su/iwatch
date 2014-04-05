@@ -9,7 +9,7 @@ static void onDraw(tContext *pContext)
   GrRectFill(pContext, &client_clip);
   GrContextForegroundSet(pContext, ClrWhite);
   
-  GrContextFontSet(pContext, &g_sFontGothic14b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   GrStringDrawCentered(pContext, "Firmware Upgrade", -1, 72, 60, 0);
   if (progress == 100)
   	GrStringDrawCentered(pContext, "Done", -1, 72, 96, 0);

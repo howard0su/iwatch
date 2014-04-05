@@ -81,6 +81,7 @@ GRLIB0 = \
   string.c
 
 GRLIB_FONTS = \
+  fontbaby12.c \
   fontdriod28b.c \
   fontgothamblack30.c \
   fontgothambold42.c \
