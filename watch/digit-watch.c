@@ -110,22 +110,22 @@ static void drawClock2(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, &g_sFontGothamlight42);
+  GrContextFontSet(pContext, &g_sFontGothamblack30);
   buffer = toEnglish(hour, buf);
-  GrStringDraw(pContext, buffer, -1, 10, 50, 0);
+  GrStringDraw(pContext, buffer, -1, 1, 50, 0);
 
   GrContextFontSet(pContext, &g_sFontGothic18b);
   buffer = toEnglish(_minute, buf);
-  GrStringDraw(pContext, buffer, -1, 10, 85, 0);
+  GrStringDraw(pContext, buffer, -1, 1, 85, 0);
 
-  GrContextFontSet(pContext, &g_sFontGothic18);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm)
   {
-    GrStringDraw(pContext, "In the PM", -1, 10, 100, 0);
+    GrStringDraw(pContext, "In the PM", -1, 1, 100, 0);
   }
   else
   {
-    GrStringDraw(pContext, "In the AM", -1, 10, 100, 0);
+    GrStringDraw(pContext, "In the AM", -1, 1, 100, 0);
   }
 }
 
@@ -140,10 +140,10 @@ static void drawClock3(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, &g_sFontGothamlight42);
+  GrContextFontSet(pContext, &g_sFontGothamblack30);
 
   buffer = toEnglish(hour, buf);
-  tRectangle rect = {8, 28, LCD_X_SIZE-8, 65};
+  tRectangle rect = {0, 28, LCD_X_SIZE, 65};
   GrRectFillRound(pContext, &rect, 8);
   GrContextForegroundSet(pContext, ClrBlack);
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE/ 2, 45, 0);
@@ -275,7 +275,7 @@ static void drawClock7(tContext *pContext)
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, 105, 85, 0);
 
-  GrContextFontSet(pContext, &g_sFontGothic18);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 35, 0);
 }
