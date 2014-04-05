@@ -138,7 +138,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 17 + index * MENU_SPACE, LCD_X_SIZE - 2, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 27 + index * MENU_SPACE, LCD_X_SIZE - 2, 16 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -156,20 +156,20 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
   if (item->icon < 0x80 && item->icon != 0)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon32);
-    GrStringDraw(pContext, &item->icon, 1, 4, 8 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, &item->icon, 1, 4, 13 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
   GrContextFontSet(pContext, textFont);
   if (item->icon < 0x80 && item->icon != 0)
   {
-    GrStringDraw(pContext, item->name, -1, 40, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, item->name, -1, 40, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
   else
   {
     char buf[20];
     int width;
     // <= 0
-    GrStringDraw(pContext, item->name, -1, 5, 12 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, item->name, -1, 5, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
     GrContextFontSet(pContext, &g_sFontGothic18);
     switch(item->icon)
     {
@@ -228,7 +228,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 12 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 17 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
   }
 }
 
@@ -266,7 +266,7 @@ static void OnDraw(tContext *pContext)
     // there is something more
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  160 - i);
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }
