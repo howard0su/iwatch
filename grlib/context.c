@@ -163,7 +163,7 @@ GrContextInit(tContext *pContext, const tDisplay *pDisplay)
     {
         pContext->pfnStringRenderer = GrDefaultStringRenderer;
         pContext->pCodePointMapTable = g_psDefaultCodePointMapTable;
-        pContext->usCodepage = CODEPAGE_ISO8859_1;
+        pContext->usCodepage = CODEPAGE_UTF_8;
         pContext->ucNumCodePointMaps = NUM_DEFAULT_CODEPOINT_MAPS;
         pContext->ucReserved = 0;
     }
