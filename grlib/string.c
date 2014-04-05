@@ -2871,9 +2871,16 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
 
         if (starty > pContext->sClipRegion.sYMax)
             return -1;
-   }
+    }
 
-   return starty + GrStringHeightGet(pContext);
+    if (starty + GrStringHeightGet(pContext) > pContext->sClipRegion.sYMax)
+    {
+        return -1;
+    }
+    else
+    {
+        return starty + GrStringHeightGet(pContext);
+    }
 }
 //*****************************************************************************
 //

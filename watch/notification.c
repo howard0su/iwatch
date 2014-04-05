@@ -93,16 +93,27 @@ static void onDrawAlarm(tContext *pContext)
   GrStringDrawCentered(pContext, &message_icon, 1, LCD_X_SIZE/2, LCD_Y_SIZE, 0);
 }
 
-const tFont *get_titlefont()
+static const tFont *get_titlefont()
 {
   return (tFont*)&g_sFontGothic24b;
 }
 
-const tFont *get_contentfont()
+static const tFont *get_contentfont()
 {
   return (tFont*)&g_sFontGothic18b;
 }
 
+static void convertdate(char *buf, const char* date)
+{
+  // date is in format YYYYMMDDTHHMM
+  int month;
+  int day;
+
+  month = (date[4] - '0') * 10 + (date[5] - '0');
+  day = (date[6] - '0') * 10 + (date[7] - '0');
+
+  sprintf(buf, "%d %s, %c%c%c%c", day, month_shortname[month - 1], date[0], date[1], date[2], date[3]);
+}
 
 static void onDraw(tContext *pContext)
 {
@@ -117,33 +128,40 @@ static void onDraw(tContext *pContext)
 
   long starty = 12 - skip;
 
-#if 0
+  if (message_icon && message_date)
+  {
+    // draw the title bar
   // draw icon
   if (message_icon)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);    
-    GrStringDraw(pContext, &message_icon, 1, 12, starty, 0);
+      GrStringDraw(pContext, &message_icon, 1, 8, starty, 0);
   }
-  #endif
+
+    if (message_date)
+  {
+      char buf[20];
+      convertdate(buf, message_date);
+
+      GrContextFontSet(pContext, (tFont*)&g_sFontBaby12);
+      GrStringDraw(pContext, buf, -1, 30, starty, 0);
+  }
+
+    starty += 16;
+  }
+
   const tFont *titleFont;
   const tFont *contentFont;
 
-  if (IsNonEnglish(message_title) || IsNonEnglish(message_subtitle) || IsNonEnglish(message))
-  {
-    titleFont = contentFont = (const tFont*)&g_sFontUnicode;
-  }
-  else
-  {
     titleFont = get_titlefont();
     contentFont = get_contentfont();
-  }
 
   GrContextFontSet(pContext, titleFont);
 
   // draw title
   if (message_title && (*message_title != '\0'))
   {
-    starty = GrStringDrawWrap(pContext, message_title, 20, starty, LCD_X_SIZE - 1, 0);
+    starty = GrStringDrawWrap(pContext, message_title, 1, starty, LCD_X_SIZE - 1, 0);
   }
 
   if (message_subtitle && (*message_subtitle != '\0'))
@@ -329,6 +347,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
         if (selectidx > 0)
         {  
           selectidx--;
+          fetch_content();
           window_invalid(NULL);
         }
      }
