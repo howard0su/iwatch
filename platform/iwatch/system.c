@@ -223,6 +223,7 @@ void system_resetfactory()
   new_data.system_lock = 1;
   new_data.system_reset = 1;
 
+  ped_reset();
   // write the data
   flash_setup();
   flash_clear(INFOD);
