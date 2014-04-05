@@ -20,8 +20,8 @@ static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text,
   }
 
   // draw text
-  GrContextFontSet(pContext, &g_sFontNova13);
-  GrStringDraw(pContext, text, -1, 20, 30 + n * LINEMARGIN, 0);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
+  GrStringDraw(pContext, text, -1, 10, 30 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
   GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * LINEMARGIN, 0);
@@ -64,7 +64,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrContextForegroundSet(pContext, ClrWhite);
       	  unsigned int available_minutes, lost_minutes;
       	  slp_get_availabledatainfo(&available_minutes, &lost_minutes);
-          GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+          GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
 		  char buf[20];		  
 		  formattime(buf, slp_getfallasleep_time());
 		  drawItem(pContext, 0, 0, "Time to Sleep", buf);

@@ -38,7 +38,7 @@ static void onDraw(tContext *pContext)
     width = GrStringWidthGet(pContext, &buf, 1);
     GrStringDraw(pContext, &buf, 1, (LCD_X_SIZE - width ) /2, 10 + i * 75, 0);
 
-    GrContextFontSet(pContext, &g_sFontNova16);
+    GrContextFontSet(pContext, &g_sFontGothic18b);
     width = GrStringWidthGet(pContext, selections[i].text, -1);
     GrStringDraw(pContext, selections[i].text, -1, (LCD_X_SIZE - width ) /2, 55 + i * 75, 0);
   }

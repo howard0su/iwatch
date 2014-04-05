@@ -57,7 +57,7 @@ static void OnDraw(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
   // draw length
   //if (position != 0)
   {

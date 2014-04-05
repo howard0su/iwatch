@@ -35,6 +35,7 @@
 #include "dev/watchdog.h"
 #include "isr_compat.h"
 #include <stdio.h>
+#include <string.h>
 #include "button.h"
 #include "grlib/grlib.h"
 #include "sys/process.h"
@@ -79,7 +80,7 @@ static void displaystack(uint16_t *ptr)
   GrRectFill(&context, &fullscreen_clip);
 
   GrContextForegroundSet(&context, ClrWhite);
-  GrContextFontSet(&context, (tFont*)&g_sFontNova12b);
+  GrContextFontSet(&context, (tFont*)&g_sFontBaby12);
   GrStringDrawCentered(&context, "Crash Info", -1, 30, 8, 0);
   GrStringDrawWrap(&context, buf, 2, 16, 120, 1);
   

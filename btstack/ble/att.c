@@ -39,6 +39,7 @@
 
 #include "att.h"
 #include "hci.h"
+#include "btstack/utils.h"
 
 // from src/utils.
 #define READ_BT_16( buffer, pos) ( ((uint16_t) buffer[pos]) | (((uint16_t)buffer[pos+1]) << 8))

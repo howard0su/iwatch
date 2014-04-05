@@ -181,7 +181,7 @@ static void OnDraw(tContext* pContext)
     adjustAMPM(hour, &hour, &ampm);
 
     sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
-    GrContextFontSet(pContext, &g_sFontNova12b);
+    GrContextFontSet(pContext, &g_sFontGothic18);
     int width = GrStringWidthGet(pContext, buf, -1);
     GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);
   }

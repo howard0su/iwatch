@@ -52,7 +52,7 @@ static void GrStringDrawReverse(tContext *pContext, char* pcString, long lLength
 static void OnDrawTime(tContext *pContext)
 {
   char buf[20];
-  GrContextFontSet(pContext, &g_sFontNova38b);
+  GrContextFontSet(pContext, &g_sFontGothambold42);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
@@ -83,7 +83,7 @@ static void OnDrawTime(tContext *pContext)
     GrStringDraw(pContext, buf, -1, 70, 70, 0);
   }
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   // draw AM/PM
   uint8_t out;
   uint8_t ampm;
@@ -104,7 +104,7 @@ static void OnDrawTime(tContext *pContext)
 static void OnDrawDate(tContext *pContext)
 {
   char buf[20];
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);

@@ -58,14 +58,14 @@ void window_progress(tContext *pContext, long lY, uint8_t step)
   GrRectFillRound(pContext, &rect, 3);
   GrContextForegroundSet(pContext, ClrBlack);
 
-  if (step < 100)
-  {
-    rect.sXMin += 4;
-    rect.sYMin += 2;
-    rect.sYMax -= 2;
-    rect.sXMax = rect.sXMin + step;
-    GrRectFill(pContext, &rect);
-  }
+  if (step > 100)
+    step = 100;
+
+  rect.sXMin += 4;
+  rect.sYMin += 2;
+  rect.sYMax -= 2;
+  rect.sXMax = rect.sXMin + step;
+  GrRectFill(pContext, &rect);
 }
 
 void window_volume(tContext *pContext, long lX, long lY, int total, int current)
@@ -99,7 +99,7 @@ static const tRectangle button_rect[] =
 */
 void window_button(tContext *pContext, uint8_t key, const char* text)
 {
-  GrContextFontSet(pContext, &g_sFontRed13);
+  GrContextFontSet(pContext, &g_sFontGothic18);
 
   // draw black box
   if (text)

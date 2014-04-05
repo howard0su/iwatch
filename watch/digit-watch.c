@@ -59,18 +59,18 @@ static void drawClock0(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
 
   sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 50, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, 100, 65, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova13);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 135, 0);
 }
@@ -84,16 +84,16 @@ static void drawClock1(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
 
   sprintf(buf, "%02d", hour);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE/ 2, 45, 0);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit52b);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
   sprintf(buf, "%02d", _minute);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 90, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
@@ -110,22 +110,22 @@ static void drawClock2(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, &g_sFontNova38);
+  GrContextFontSet(pContext, &g_sFontGothamblack30);
   buffer = toEnglish(hour, buf);
-  GrStringDraw(pContext, buffer, -1, 10, 50, 0);
+  GrStringDraw(pContext, buffer, -1, 1, 50, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   buffer = toEnglish(_minute, buf);
-  GrStringDraw(pContext, buffer, -1, 10, 85, 0);
+  GrStringDraw(pContext, buffer, -1, 1, 85, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm)
   {
-    GrStringDraw(pContext, "In the PM", -1, 10, 100, 0);
+    GrStringDraw(pContext, "In the PM", -1, 1, 100, 0);
   }
   else
   {
-    GrStringDraw(pContext, "In the AM", -1, 10, 100, 0);
+    GrStringDraw(pContext, "In the AM", -1, 1, 100, 0);
   }
 }
 
@@ -140,20 +140,20 @@ static void drawClock3(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, &g_sFontNova38);
+  GrContextFontSet(pContext, &g_sFontGothamblack30);
 
   buffer = toEnglish(hour, buf);
-  tRectangle rect = {8, 28, LCD_X_SIZE-8, 65};
+  tRectangle rect = {0, 28, LCD_X_SIZE, 65};
   GrRectFillRound(pContext, &rect, 8);
   GrContextForegroundSet(pContext, ClrBlack);
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE/ 2, 45, 0);
   GrContextForegroundSet(pContext, ClrWhite);
   
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   buffer = toEnglish(_minute, buf);
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE / 2, 80, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   if (ampm)
   {
     GrStringDrawCentered(pContext, "In the PM", -1, LCD_X_SIZE / 2, 120, 0);
@@ -182,12 +182,12 @@ static void drawClock4(tContext *pContext)
 
   rtc_readdate(&year, &month, &day, NULL);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
 
   sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 65, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   tRectangle rect = {8, 100, LCD_X_SIZE-8, 120};
   GrRectFillRound(pContext, &rect, 6);
@@ -208,18 +208,18 @@ static void drawClock5(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
 
   sprintf(buf, "%02d:%02d", hour, _minute);  
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 65, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, 105, 80, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   sprintf(buf, "%02d-%02d-%02d", month, day, year - 2000);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 135, 0);
 }
@@ -236,15 +236,15 @@ static void drawClock6(tContext *pContext)
   tRectangle rect = {30, 20, LCD_X_SIZE - 30, LCD_Y_SIZE - 40};
   GrRectFillRound(pContext, &rect, 8);
   GrContextForegroundSet(pContext, ClrBlack);
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit52b);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
   sprintf(buf, "%02d", hour);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 50, 0);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit56);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
   sprintf(buf, "%02d", _minute);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 95, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   GrContextForegroundSet(pContext, ClrWhite);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 135, 0);
@@ -264,18 +264,18 @@ static void drawClock7(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontExDigit44b);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
 
   sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 70, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, 105, 85, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova13);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 35, 0);
 }
