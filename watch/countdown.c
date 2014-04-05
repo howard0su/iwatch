@@ -84,7 +84,7 @@ static void OnDrawProgress(tContext *pContext)
 
 static void OnDraw(tContext *pContext)
 {
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);

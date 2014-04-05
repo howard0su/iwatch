@@ -17,17 +17,49 @@
 
 static const tFont *fonts[] =
 {
- &g_sFontNova12b,
- &g_sFontNova13,
- &g_sFontNova16,
- &g_sFontNova16b,
- &g_sFontNova38,
- &g_sFontNova38b,
- &g_sFontNova50b,
- //&g_sFontBaby16,
- //&g_sFontBaby12,
- //&g_sFontRed13,
+(const tFont*)&g_sFontUnicode,
+&g_sFontDriod28b,
+&g_sFontGothamblack30,
+&g_sFontGothambold42,
+&g_sFontGothamlight42,
+(const tFont*)&g_sFontExGothammedium32,
+(const tFont*)&g_sFontExGothammedium42,
+//&g_sFontGothic14,
+//&g_sFontGothic14b,
+&g_sFontGothic18,
+&g_sFontGothic18b,
+//&g_sFontGothic24,
+&g_sFontGothic24b,
+&g_sFontGothic28,
+&g_sFontGothic28b,
+(const tFont*)&g_sFontExIcon16,
+(const tFont*)&g_sFontExIcon32,
+(const tFont*)&g_sFontExIcon48,
+&g_sFontRobotocondensed18b,
  NULL
+};
+
+static const char* names[] = 
+{
+  "Unicode",
+  "Driod28b",
+  "Gothamblack30",
+  "Gothambold42",
+  "Gothamlight42",
+  "ExGothammedium32",
+  "ExGothammedium42",
+//  "Gothic14",
+//  "Gothic14b",
+  "Gothic18",
+  "Gothic18b",
+//  "Gothic24",
+  "Gothic24b",
+  "Gothic28",
+  "Gothic28b",
+  "Icon16",
+  "Icon32",
+  "Icon48",
+  "Robotocondensed18b",
 };
 
 struct _event
@@ -300,16 +332,16 @@ static void test_window(windowproc window, void* data)
   };
 
   run_window_events(window, my_events);
-  GrContextClipRegionSet(&context, &status_clip);
-  status_process(EVENT_WINDOW_PAINT, 0, &context);
+ // GrContextClipRegionSet(&context, &status_clip);
+ // status_process(EVENT_WINDOW_PAINT, 0, &context);
 }
 
 static void test_window_stopwatch(windowproc window, void* data)
 {
   GrContextFontSet(&context, (const tFont*)NULL);
   window(EVENT_WINDOW_CREATED, 0, data);
-  GrContextClipRegionSet(&context, &status_clip);
-  status_process(EVENT_WINDOW_PAINT, 0, &context);
+//  GrContextClipRegionSet(&context, &status_clip);
+//  status_process(EVENT_WINDOW_PAINT, 0, &context);
   for(int i = 3; i >= 0; i--)
     window(EVENT_KEY_PRESSED, KEY_ENTER, (void*)0);
   GrContextClipRegionSet(&context, &client_clip);
@@ -492,12 +524,14 @@ void TestBtConfig(CuTest* tc)
 static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
 
 static void* font;
+static const char* name;
 static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
 {
         switch(event)
         {
                 case EVENT_WINDOW_CREATED:
-                font = rparam;
+                font = fonts[(int)rparam];
+                name = names[(int)rparam];
                 return 0x80;
 
                 case EVENT_WINDOW_PAINT:
@@ -509,9 +543,10 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrContextForegroundSet(pContext, ClrWhite);
                   GrContextFontSet(pContext, (const tFont*)font);
 
-                  GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
-                  GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
+                  GrStringDraw(pContext, "012345678", -1, 0, 20, 0);
+                  GrStringDraw(pContext, "abcdef", -1, 0, 60, 0);
 
+#if 0
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
                   //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
                   GrStringDraw(pContext, L"中文测试", -1, 0, 55, 0);
@@ -519,7 +554,10 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
                   GrStringDraw(pContext, chinesetext, -1, 0, 105, 0);
-                  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);                  
+#endif
+                  GrContextFontSet(pContext, &g_sFontGothic18b);
+
+                  GrStringDraw(pContext, name, -1, 0, 120, 0);
 
                   break;
                 }
@@ -532,7 +570,7 @@ extern void *xmem_test();
 void TestWideFont(CuTest* tc)
 {
     struct _event _events[] = {
-    {1, EVENT_WINDOW_CREATED, &g_sFontUnicode, 0},
+    {1, EVENT_WINDOW_CREATED, 0, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };
@@ -584,8 +622,9 @@ void TestWindows(CuTest *tc)
   //load_script("script1.amx", rom);
   //test_window(&script_process, rom);
 
-  //for(int i = 0; fonts[i]; i++)
-  //  test_window(&testfont, (void*)fonts[i]);
+  for(int i = 0; fonts[i]; i++)
+    test_window(&testfont, i);
+
   test_window(&worldclock_process, NULL);
 
   test_window(&today_process, NULL);
@@ -671,8 +710,11 @@ const uint8_t chinesedata[] = {
 0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
 0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA
 };
+extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
 void TestNotification(CuTest *tc)
 {
+  GrContextClipRegionSet(&context, &fullscreen_clip);
+
   handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
@@ -694,6 +736,15 @@ void TestNotification(CuTest *tc)
   window_close();
 
   window_notify("SMS", chinesedata, NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_notify_ancs(0, 0);
+  window_notify_ancs(1, 1);
+  window_notify_ancs(2, 2);
+  window_notify_ancs(3, 3);
+  window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();

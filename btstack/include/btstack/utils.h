@@ -126,6 +126,7 @@ void net_store_32(uint8_t *buffer, uint16_t pos, uint32_t value);
 
 void hexdump(const void *data, int size);
 void printUUID(const uint8_t *uuid);
+void printUUID128(const uint8_t *uuid);
 void swapX(uint8_t *src, uint8_t *dst, int len);
 void swap24(uint8_t  src[3],  uint8_t dst[3]);
 void swap56(uint8_t  src[7],  uint8_t dst[7]);

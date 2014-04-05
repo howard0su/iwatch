@@ -62,7 +62,7 @@ void draw_screen(tContext *pContext)
   GrContextFontSet(pContext, (const tFont*)&g_sFontExIcon48);
   GrStringDraw(pContext, &icon, 1, 50 + offset, 50, 0);
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   GrStringDrawCentered(pContext, str, -1, LCD_X_SIZE/2, 105, 0);
 }
 

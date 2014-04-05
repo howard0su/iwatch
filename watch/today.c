@@ -15,31 +15,31 @@ static enum {
 #define state d.today.state
 
 
-#define LINEMARGIN 25
+#define LINEMARGIN 30
 static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text, const char* value)
 {
   if (icon)
     {
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-      GrStringDraw(pContext, &icon, 1, 8, 30 + n * LINEMARGIN, 0);
+      GrStringDraw(pContext, &icon, 1, 1, 10 + n * LINEMARGIN, 0);
     }
 
   // draw text
-  GrContextFontSet(pContext, &g_sFontNova13);
-  GrStringDraw(pContext, text, -1, 30, 30 + n * LINEMARGIN, 0);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
+  GrStringDraw(pContext, text, -1, 20, 10 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
-  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * LINEMARGIN, 0);
+  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 10 + n * LINEMARGIN, 0);
 }
 
 static void onDraw(tContext *pContext)
 {
   char buf[30];
   GrContextForegroundSet(pContext, ClrBlack);
-  GrRectFill(pContext, &client_clip);
+  GrRectFill(pContext, &fullscreen_clip);
 
   GrContextForegroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova38);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
 
   if (state == WALK)
   {
@@ -47,17 +47,11 @@ static void onDraw(tContext *pContext)
     drawItem(pContext, 0, 'y', "Steps Taken", buf);
 
     sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
-    drawItem(pContext, 1, 'z', "Walk Time", buf);
+    drawItem(pContext, 1, 'z', "Active Time", buf);
 
     uint16_t cals = ped_get_calorie();
-#if 0
-    if (cals < 1000)
-      sprintf(buf, "%d cal", cals);
-    else
-      sprintf(buf, "%d.%02d kcal", cals / 1000, (cals % 1000) / 10);
-#endif
     sprintf(buf, "%d", cals);
-    drawItem(pContext, 2, 'z'+1, "Calorie", buf);
+    drawItem(pContext, 2, 'z'+1, "Calories", buf);
 
     sprintf(buf, "%dm", ped_get_distance());
     drawItem(pContext, 3, 'z'+2, "Distance", buf);
@@ -67,34 +61,14 @@ static void onDraw(tContext *pContext)
     uint16_t goal = window_readconfig()->goal_steps;
     uint32_t steps = ped_get_steps();
 
-    window_progress(pContext, 28 + 4 * LINEMARGIN, steps * 100 / goal);
+    if (steps < goal)
+      window_progress(pContext, 5 + 4 * LINEMARGIN, steps * 100 / goal);
+    else
+      window_progress(pContext, 5 + 4 * LINEMARGIN, 100);
     sprintf(buf, "%d%% of goal of %d", (uint16_t)(steps * 100 / goal), goal);
     GrContextForegroundSet(pContext, ClrWhite);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 144, 0);
   }
-  #if 0
-  else
-  {
-    sprintf(buf, "%d", ped_get_steps());
-    drawItem(pContext, 0, 'y', "Steps Taken", buf);
-
-    sprintf(buf, "%d", ped_get_time());
-    drawItem(pContext, 1, 'z', "Walk Time", buf);
-
-    sprintf(buf, "%d", ped_get_calorie());
-    drawItem(pContext, 2, 'z'+1, "Caloris", buf);
-
-    sprintf(buf, "%d m", ped_get_distance());
-    drawItem(pContext, 3, 'z'+2, "Distance", buf);    
-  }
-  GrContextForegroundSet(pContext, ClrWhite);
-  for(int i = 0; i < 6; i++)
-  {
-    GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
-
-    GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
-  }
-#endif
 }
 
 uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -107,7 +81,7 @@ uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam)
   case PROCESS_EVENT_TIMER:
     window_timer(CLOCK_SECOND * 5);
     window_invalid(NULL);
-    break;
+    return 0x80;
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;

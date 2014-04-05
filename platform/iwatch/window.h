@@ -83,6 +83,8 @@ extern void window_volume(tContext *pContext, long lX, long lY, int total, int c
 #define NOTIFY_RESULT_REJECT 2
 
 extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
+extern void window_notify_ancs(uint32_t uid, uint32_t attribute);
+extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
 extern const tRectangle fullscreen_clip;

@@ -34,7 +34,7 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Test Buttons", -1, 32, 16, 0);
 
 #if 1
@@ -53,7 +53,7 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
  		  		GrStringDraw(pContext, buf, -1, 5, 60 + i * 16, 0);
  		  	}
  		  }
- 		  GrContextFontSet(pContext, (tFont*)&g_sFontBaby12);
+ 		  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Long press exit to quit", -1, 2, 120, 0);
 		  break;
 		}
@@ -118,7 +118,7 @@ uint8_t test_motor(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Test Motor", -1, 32, 50, 0);
 
     	  sprintf(buf, "Motor Level: %d", data);
@@ -156,7 +156,7 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Speaker is looping back to mic", -1, 0, 50, 0);
 
   		window_volume(pContext, 30, 125, 8, codec_getvolume());
@@ -232,7 +232,7 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Test Lights", -1, 32, 50, 0);
 
     	sprintf(buf, "Light Level: %d", data);
@@ -353,7 +353,7 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
   	      if (onoff)
  		  	GrStringDraw(pContext, "ANT is on", -1, 32, 50, 0);
  		  else
@@ -408,7 +408,7 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 		  GrContextForegroundSet(pContext, ClrWhite);
 
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
 		  if (data == 0)
 		  {
 				GrStringDraw(pContext, "MPU6050 passed self testing", -1, 32, 50, 0);
@@ -500,7 +500,7 @@ uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       switch(onoff)
       {
  		  	case 0:
@@ -673,7 +673,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       switch(onoff)
       {
  		  	case 0:
@@ -770,7 +770,7 @@ uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       
 	  	GrStringDraw(pContext, "BT DUT mode is on", -1, 32, 50, 0);
  		  break;

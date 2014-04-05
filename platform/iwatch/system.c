@@ -97,7 +97,10 @@ void system_restore()
   for(int i = 2; i < sizeof(globaldata); i++)
     CRCDIRB_L = *d;
 
-  if (globaldata.checksum == CRCINIRES)
+  if (globaldata.checksum == CRCINIRES && 
+    globaldata.now.year < 2050 && 
+    globaldata.now.month <= 12 && 
+    globaldata.now.day <= 31)
     rtc_restore(); // rtc have to restore since it has hardware registers
   else
     ped_reset(); // ped have to reset since no local storage
