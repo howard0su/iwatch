@@ -187,7 +187,7 @@ static void gap_run(){
         uint8_t adv_data[] = { 
             2, 0x1, 0x2,
             3, 02, 0xf0, 0xff,
-            14, 0x09, 'K','r', 'e', 'y', 'o', 's', 'L', 'E', ' ', 'X','X','X','X','\0'
+            14, 0x09, 'M','e', 't', 'e', 'o', 'r', 'L', 'E', ' ', 'X','X','X','X','\0'
         };
 
         sprintf(&adv_data[18], "%02X%02X", (*hci_local_bd_addr())[4], (*hci_local_bd_addr())[5]);

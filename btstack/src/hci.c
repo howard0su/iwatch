@@ -1580,7 +1580,7 @@ void hci_run(){
                     } else {
                         char hostname[30];
 #ifdef EMBEDDED
-                        sprintf(hostname, "Kreyos %02X%02X", hci_stack->local_bd_addr[4], hci_stack->local_bd_addr[5]);
+                        sprintf(hostname, "Meteor %02X%02X", hci_stack->local_bd_addr[4], hci_stack->local_bd_addr[5]);
                         printf("---> Name %s\n", hostname);
 #else
                         // hostname for POSIX systems
