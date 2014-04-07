@@ -82,12 +82,33 @@ static void onDrawTitleBar(tContext *pContext)
 
 static const tFont *get_titlefont()
 {
-  return (tFont*)&g_sFontGothic24b;
+  switch(window_readconfig()->font_config)
+  {
+    case 1:
+      return (const tFont*)&g_sFontGothic28b;
+    case 2:
+      return (const tFont*)&g_sFontUnicode;
+      break;
+    case 0:
+    default:
+      return (const tFont*)&g_sFontGothic24b;
+  }
 }
 
 static const tFont *get_contentfont()
 {
-  return (tFont*)&g_sFontGothic18b;
+  switch(window_readconfig()->font_config)
+  {
+    case 1:
+      return (const tFont*)&g_sFontGothic24b;
+    case 2:
+      return (const tFont*)&g_sFontUnicode;
+      break;
+    case 0:
+    default:
+      return (const tFont*)&g_sFontGothic18b;
+  }
+  
 }
 
 static void convertdate(char *buf, const char* date)
@@ -118,21 +139,21 @@ static void onDraw(tContext *pContext)
   if (message_icon && message_date)
   {
     // draw the title bar
-  // draw icon
-  if (message_icon)
-  {
-    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);    
-      GrStringDraw(pContext, &message_icon, 1, 8, starty, 0);
-  }
+    // draw icon
+    if (message_icon)
+    {
+      GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);    
+        GrStringDraw(pContext, &message_icon, 1, 8, starty, 0);
+    }
 
     if (message_date)
-  {
-      char buf[20];
-      convertdate(buf, message_date);
+    {
+        char buf[20];
+        convertdate(buf, message_date);
 
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby12);
-      GrStringDraw(pContext, buf, -1, 30, starty, 0);
-  }
+        GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+        GrStringDraw(pContext, buf, -1, 30, starty, 0);
+    }
 
     starty += 16;
   }
@@ -287,7 +308,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   case EVENT_WINDOW_PAINT:
     {
-        onDraw((tContext*)rparam);
+      onDraw((tContext*)rparam);
       break;
     }
   case EVENT_WINDOW_CLOSING:
@@ -300,12 +321,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     return 0;
     break;
   case EVENT_KEY_PRESSED:
-    if (lparam == KEY_ENTER)
-    {
-      message_result = NOTIFY_RESULT_OK;
-      window_close();
-    }
-    else if (lparam == KEY_DOWN)
+    if (lparam == KEY_DOWN)
     {
       if (state & STATE_MORE)
       {

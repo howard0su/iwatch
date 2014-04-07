@@ -44,6 +44,7 @@ union _data d;
 //  uint8_t gesture_flag;
 //  uint8_t gesture_map[4];
 //  uint16_t lap_length;
+//  uint8_t font_config;
 static ui_config ui_config_data =
 {
   UI_CONFIG_SIGNATURE, //signature

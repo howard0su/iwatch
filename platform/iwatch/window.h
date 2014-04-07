@@ -180,7 +180,8 @@ typedef struct {
 
   //alarms
   alarm_t alarms[MAX_ALARM_COUNT];
-
+  // config 0 - Normal, 1 - Larger, 2 - CJK
+  uint8_t font_config;
 }ui_config;
 
 extern ui_config* window_readconfig();
