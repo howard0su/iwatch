@@ -756,10 +756,12 @@ void TestNotification(CuTest *tc)
   GrFlush(&context);
   window_close();
 
-  window_notify_ancs(0, 0);
-  window_notify_ancs(1, 1);
-  window_notify_ancs(2, 2);
-  window_notify_ancs(3, 3);
+  window_notify_ancs(0, 0, 1, 1);
+  window_notify_ancs(0, 1, 1, 1);
+  window_notify_ancs(0, 2, 1, 1);
+  window_notify_ancs(0, 3, 1, 1);
+  window_notify_ancs(2, 3, 1, 1);
+  window_notify_ancs(1, 1, 1, 1);
   window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);

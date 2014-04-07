@@ -186,12 +186,12 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
         }
         else
         {
-            window_notify_ancs(uid, combine);
+            window_notify_ancs(data[0], uid, data[1], data[2]);
         }
     }
     else if (handle == attribute_handles[DATASOURCE])
     {
-        printf("data received\n");
+        log_info("data received\n");
         // start notification
 
         int index = 0;
@@ -200,32 +200,33 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             switch(parse_state)
             {
                 case STATE_NONE:
-                    printf("Command: %d\t", data[index]);
+                    log_info("Command: %d\t", data[index]);
                     index++;
                     parse_state = STATE_UID;
                     break;
                 case STATE_UID:
-                    printf("uid: %ld\t", READ_BT_32(data, index));
+                    log_info("uid: %ld\t", READ_BT_32(data, index));
                     index += 4;
                     parse_state = STATE_ATTRIBUTEID;
                     break;
                 case STATE_ATTRIBUTEID:
                     attributeid = data[index];
-                    printf("\nattributeid: %d\t", attributeid);
+                    log_info("\nattributeid: %d\t", attributeid);
                     switch(attributeid)
                     {
-                        case 0:
+                        case NotificationAttributeIDAppIdentifier:
                         bufptr = appidbuf;
                         break;
-                        case 1:
+                        case NotificationAttributeIDTitle:
                         bufptr = titlebuf;
                         break;
-                        case 2:
+                        case NotificationAttributeIDSubtitle:
                         bufptr = subtitlebuf;
-                        case 3:
+                        break;
+                        case NotificationAttributeIDMessage:
                         bufptr = msgbuf;
                         break;
-                        case 5:
+                        case NotificationAttributeIDDate:
                         bufptr = datebuf;
                         break;
                     }
@@ -234,7 +235,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     break;
                 case STATE_ATTRIBUTELEN:
                     len = attrleftlen = READ_BT_16(data, index);
-                    printf("len: %d\t", attrleftlen);
+                    log_info("len: %d\t", attrleftlen);
                     index+=2;
                     parse_state = STATE_ATTRIBUTE;
                     break;
@@ -246,7 +247,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                         l = length - index;
                     for(int i = 0; i < l; i++)
                     {
-                        putchar(data[index + i]);
+                        //putchar(data[index + i]);
                         bufptr[i + len - attrleftlen] = data[index + i];
                     }
                     index += l;
@@ -254,7 +255,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     if (attrleftlen == 0)
                     {
                         bufptr[len] = '\0';
-                        if (attributeid == 5)
+                        if (attributeid == NotificationAttributeIDDate)
                             parse_state = STATE_NONE;
                         else
                             parse_state = STATE_ATTRIBUTEID;
@@ -334,7 +335,7 @@ void att_fetch_next(uint32_t uid, uint32_t combine)
     uint8_t buffer[] = {
             0, // command id
             0, 0, 0, 0, // uid
-            0,          // appid
+            NotificationAttributeIDAppIdentifier,          // appid
             NotificationAttributeIDTitle, MAX_TITLE, 0, // 16 bytes title
             NotificationAttributeIDSubtitle, MAX_TITLE, 0,
             NotificationAttributeIDMessage, MAX_MESSAGE, 0, // 64bytes message

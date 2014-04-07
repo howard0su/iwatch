@@ -161,8 +161,14 @@ static void onDraw(tContext *pContext)
   const tFont *titleFont;
   const tFont *contentFont;
 
-    titleFont = get_titlefont();
-    contentFont = get_contentfont();
+  titleFont = get_titlefont();
+  contentFont = get_contentfont();
+
+  if (IsNonEnglish(message_title) || IsNonEnglish(message_subtitle))
+    titleFont = (tFont*)&g_sFontUnicode;
+
+  if (IsNonEnglish(message))
+    contentFont = (tFont*)&g_sFontUnicode;
 
   GrContextFontSet(pContext, titleFont);
 
@@ -252,22 +258,65 @@ void fetch_content()
   att_fetch_next(uid, attribute);
 }
 
-void window_notify_ancs(uint32_t uid, uint32_t attribute)
+void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t category)
 {
-  message_title = NULL;
-  message = NULL;
-  push_uid(uid, attribute);
-  selectidx = 0;
+  if (command == 0) // add
+  {
+    message_title = NULL;
+    message = NULL;
+    push_uid(uid, (flag << 8) | category);
+    selectidx = 0;
+    motor_on(50, CLOCK_SECOND);
+    backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
 
-  motor_on(50, CLOCK_SECOND);
-  backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
+    if (state & STATE_ACTIVE)
+      window_invalid(NULL);
+    else 
+      window_open(notify_process, NULL);
 
-  if (state & STATE_ACTIVE)
-    window_invalid(NULL);
-  else 
-    window_open(notify_process, NULL);
+    fetch_content();    
+  }
+  else if (command == 1)
+  {
+    if (state & STATE_ACTIVE)
+    {
+      // check if the current 
+      if (uids[0] == uid)
+      {
+        fetch_content();
+      }
+      window_invalid(NULL);
+      motor_on(50, CLOCK_SECOND);
+    }
+  }
+  else if (command == 2) // remove
+  {
+    if (!(state & STATE_ACTIVE))
+      return;
 
-  fetch_content();
+    uint8_t refresh = 0;
+    if (uids[0] == uid)
+    {
+      refresh = 1;
+    }
+
+    // find the item
+    int i;
+    for(i = 0; i < num_uids; i++)
+    {
+      if (uids[i] == uid)
+        break;
+    }
+
+    for (int j = i ; j < num_uids; j++)
+    {
+      uids[j] = uids[j+1];
+      attributes[j] = attributes[j+1];
+    }
+
+    if (refresh)
+      fetch_content();
+  }
 }
 
 void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon)

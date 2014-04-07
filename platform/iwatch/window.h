@@ -85,7 +85,7 @@ extern void window_volume(tContext *pContext, long lX, long lY, int total, int c
 
 extern void window_messagebox(uint8_t icon, const char* message, uint8_t flags);
 extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
-extern void window_notify_ancs(uint32_t uid, uint32_t attribute);
+extern void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t category);
 extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
