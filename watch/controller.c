@@ -97,13 +97,11 @@ static void OnDraw(tContext *pContext)
 
   // draw title
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
   GrContextForegroundSet(pContext, ClrWhite);
   if (title)
     GrStringDraw(pContext, title, -1, 12, 108, 0);
   if (artist)
     GrStringDraw(pContext, artist, -1, 12, 125, 0);
-  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);   
 
   switch(state)
   {
