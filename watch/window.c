@@ -455,7 +455,7 @@ void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
 }
 
 static uint8_t messagebox_icon;
-static char* messagebox_message;
+static const char* messagebox_message;
 static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev)
@@ -481,8 +481,11 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     
     case EVENT_WINDOW_CLOSING:
-    motor_on(0, 0);
-    return 0;
+      motor_on(0, 0);
+      break;
+
+    default:
+      return 0;
   }
 
   return 1;
