@@ -308,7 +308,7 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
         if (item->name == NULL)
           break;
 
-        drawMenuItem(pContext, &g_sFontGothic18b, (168 - 30)/6, item, i, 0);
+        drawMenuItem(pContext, &g_sFontGothic18b, (168 - 30)/5, item, i, 0);
         i++;
         item++;
       }
