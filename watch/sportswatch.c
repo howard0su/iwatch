@@ -688,19 +688,30 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
           uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
 
           uint32_t data[4] = {0};
-          data[0] = ped_get_steps() - s_sports_data[0];
-          data[1] = ped_get_calorie() - s_sports_data[1];
-          data[2] = ped_get_distance() - s_sports_data[2];
+          data[0] = base_data[SPORTS_STEPS]    - s_sports_data[0];
+          data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
+          data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
+          data[3] = base_data[SPORTS_HEARTRATE];
           write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+
+          for (int i = 0; i < sizeof(data) / sizeof(data[0]); ++i)
+          {
+            s_sports_data[i] += data[i];
+          }
         }
         else if (get_mode() == DATA_MODE_BIKING)
         {
           uint8_t meta[] = {DATA_COL_CADN, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
           uint32_t data[4] = {0};
-          data[0] = ped_get_steps() - s_sports_data[0];
-          data[1] = ped_get_calorie() - s_sports_data[1];
-          data[2] = ped_get_distance() - s_sports_data[2];
+          data[0] = base_data[SPORTS_CADENCE]  - s_sports_data[0];
+          data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
+          data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
+          data[3] = base_data[SPORTS_HEARTRATE];
           write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+          for (int i = 0; i < sizeof(data) / sizeof(data[0]); ++i)
+          {
+            s_sports_data[i] += data[i];
+          }
         }
       }
 
