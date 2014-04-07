@@ -49,11 +49,6 @@ PROCESS_THREAD(rtc_process, ev, data)
     {
       process_post(ui_process, EVENT_TIME_CHANGED, &now);
     }
-    else
-    {
-      // notification of alarm
-      window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, ICON_LARGE_ALARM);
-    }
   }
   PROCESS_END();
 }
