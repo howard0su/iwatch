@@ -57,10 +57,13 @@ static void OnDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextFontSet(pContext, (tFont*)&g_sFontGothic18b);
 
-  char buf[20];
-  const char* btaddr = bluetooth_address();
-  sprintf(buf, "Meteor %x%x", btaddr[4], btaddr[5]);
-  GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 153, 0);
+  if (bluetooth_running())
+  {
+    char buf[20];
+    const char* btaddr = bluetooth_address();
+    sprintf(buf, "Meteor %x%x", btaddr[4], btaddr[5]);
+    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 153, 0);
+  }
 }
 
 uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -86,9 +89,10 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
       		if (lparam == BT_INITIALIZED)
       		{
         		bluetooth_discoverable(1);
-		    }
+		      }
+          window_invalid(NULL);
 		    break;
-		}
+		  }
 
 		case EVENT_KEY_PRESSED:
 			if (lparam == KEY_UP)
