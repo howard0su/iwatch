@@ -25,6 +25,7 @@
 
 #ifndef __GRLIB_H__
 #define __GRLIB_H__
+#include <stdint.h>
 
 //*****************************************************************************
 //
@@ -417,20 +418,20 @@ typedef struct
     //! value depends upon the codepage that the font is using, as defined in
     //! the eCodePage field of the associated tFontWide structure.
     //
-    unsigned long ulStartCodepoint;
+    uint32_t ulStartCodepoint;
 
     //
     //! The number of characters encoded in this block.  The first character
     //! is given by ulStartCodepoint and the last is (ulStartCodepoint +
     //! ulNumBlockChars - 1).
     //
-    unsigned long ulNumCodepoints;
+    uint32_t ulNumCodepoints;
 
     //
     //! The offset from the beginning of the tFontWide header to the glyph
     //! offset table for this block of characters.
     //
-    unsigned long ulGlyphTableOffset;
+    uint32_t ulGlyphTableOffset;
 }
 tFontBlock;
 
