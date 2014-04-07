@@ -262,7 +262,7 @@ uint8_t bluetooth_running()
 
 const char* bluetooth_address()
 {
-  return bd_addr_to_str((const char*)hci_local_bd_addr());
+  return (const char*)hci_local_bd_addr();
 }
 
 static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)

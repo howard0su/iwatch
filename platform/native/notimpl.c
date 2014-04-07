@@ -185,7 +185,7 @@ void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumB
 {
   if (fp == NULL)
   {
-    fp = fopen("fontunicod16pt.bin", "rb");
+    fp = fopen("fontunicode18pt.bin", "rb");
   }
 
   printf("Read %x\n", ReadAddr);
@@ -222,7 +222,10 @@ uint16_t __swap_bytes(uint16_t d)
 
 void codec_setvolume(int a) {}
 
-char *bluetooth_address() {return "TH:IS:IS:AD:DR";}
+const char buf[] = "THISISAD";
+const char *bluetooth_address() {
+  return &buf[0];
+}
 
 
 static const uint8_t month_day_map[] = {

@@ -1,21 +1,10 @@
 #include "contiki.h"
 #include "grlib/grlib.h"
 #include "window.h"
-
+#include "btstack/bluetooth.h"
 #include "Template_Driver.h"
 
-extern const unsigned char logoPixel[];
-static uint8_t index;
-
-//static const char chinese[] = {0xE6, 0xAC, 0xA2, 0xE8, 0xBF, 0x8E, 0x00};
-static const char *welcomes[] = {
-	"Welcome",
-	"Bienvenue",
-	"Welkom",
-	"欢迎",
-};
-
-#define SPAN 24
+#include <stdio.h>
 
 static void OnDraw(tContext *pContext)
 {
@@ -26,16 +15,52 @@ static void OnDraw(tContext *pContext)
   // draw the log
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
-  GrImageDraw(pContext, logoPixel, 8, 20);
 
   // draw welcome
-  GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
-  //GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
-  for (int i = 0; i < 4; i++)
-  	GrStringDrawCentered(pContext, welcomes[i], -1, LCD_X_SIZE - index + i * 20, 70 + i * 20, 0);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
+  char icon = 'h';
+  GrStringDraw(pContext, &icon, 1, 12, 16, 0);
+  icon = 'i';
+  GrStringDraw(pContext, &icon, 1, 99, 16, 0);
 
-  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);
+  icon = 'j'; // small bt icon
+  GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
+  GrStringDraw(pContext, &icon, 1, 64, 29, 0);
+
+  tRectangle rect2 = {48, 35, 48 + 3, 35 + 3}; 
+  for(int i = 0; i < 3; i++)
+  {
+  	GrRectFill(pContext, &rect2);
+  	rect2.sXMin = rect2.sXMax + 2;
+  	rect2.sXMax = rect2.sXMin + 3;
+  }
+
+  rect2.sXMin = 74;
+  rect2.sXMax = 76;
+  for(int i = 0; i < 3; i++)
+  {
+  	GrRectFill(pContext, &rect2);
+  	rect2.sXMin = rect2.sXMax + 2;
+  	rect2.sXMax = rect2.sXMin + 3;
+  }
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic28b);
+  GrStringDrawCentered(pContext, "Install the", -1, LCD_X_SIZE/2, 78, 0);
+  GrStringDrawCentered(pContext, "Kreyos App", -1, LCD_X_SIZE/2, 103, 0);
+
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+  GrStringDrawCentered(pContext, "kreyos.com/setup", -1, LCD_X_SIZE/2, 123, 0);
+
+  static const tRectangle rect3 = {0, 140, LCD_X_SIZE, LCD_Y_SIZE};
+  GrRectFill(pContext, &rect3);
+
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18b);
+
+  char buf[20];
+  const char* btaddr = bluetooth_address();
+  sprintf(buf, "Meteor %x%x", btaddr[4], btaddr[5]);
+  GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 153, 0);
 }
 
 uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -44,26 +69,29 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:
-		case EVENT_WINDOW_ACTIVE:
-			window_timer(CLOCK_SECOND/2);
+		      // check the btstack status
+		    if (bluetooth_running())
+		    {
+		      // if btstack is on, make it discoverable
+		      bluetooth_discoverable(1);
+		    }
 			return 0x80;
 
 		case EVENT_WINDOW_PAINT:
 			OnDraw((tContext*)rparam);
 			break;
 
-		case PROCESS_EVENT_TIMER:
-			index += 5;
-			if (index > LCD_X_SIZE + LCD_X_SIZE/2)
-				index = 0;
-			window_invalid(&rect);
-			window_timer(CLOCK_SECOND/2);
-			break;
+		case EVENT_BT_STATUS:
+    	{
+      		if (lparam == BT_INITIALIZED)
+      		{
+        		bluetooth_discoverable(1);
+		    }
+		    break;
+		}
 
 		case EVENT_KEY_PRESSED:
-			if (lparam == KEY_DOWN)
-				window_open(&btconfig_process, NULL);
-			else if (lparam == KEY_UP)
+			if (lparam == KEY_UP)
 				system_unlock();
 			break;
 	}
