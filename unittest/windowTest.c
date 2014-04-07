@@ -76,35 +76,22 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-    // analog watch
+    // sport watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
+//   {1, EVENT_TIME_CHANGED, (void*)0, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-    // digit watch
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+  {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
 
    // world clock
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -114,6 +101,7 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
 
    // calendar 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -125,6 +113,7 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
 
    // stop watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -160,21 +149,39 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
+
+    // digit watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-    // sport watch
+
+    // analog watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
-   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
-//   {1, EVENT_TIME_CHANGED, (void*)0, 0},
-   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
-   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0}, 
+
+
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -194,13 +201,21 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
 
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
 
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+ 
    {1, EVENT_FIRMWARE_UPGRADE, 0},
    {1, EVENT_FIRMWARE_UPGRADE, 1024* 10},
    {1, EVENT_FIRMWARE_UPGRADE, 1024* 60},

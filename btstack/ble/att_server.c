@@ -185,14 +185,11 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
                     printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
-                    att_server_send_gatt_services_request();
-                    att_run();
                     break;
                 case SM_IDENTITY_RESOLVING_FAILED:
                     printf("SM_IDENTITY_RESOLVING_FAILED\n");
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = -1;
-                    //att_run();
                     printf("SM_IDENTITY_RESOLVING_FAILED--\n");
                     break;
 
@@ -201,7 +198,6 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     if (event->addr_type != att_client_addr_type) break;
                     if (memcmp(event->address, att_client_address, 6) != 0) break;
                     att_connection.authorized = event->authorization_result;
-                    att_run();
                 	break;
 
                 case SM_BONDING_FINISHED:
@@ -214,6 +210,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     break;
             }
     }
+    
     if (att_client_packet_handler){
         att_client_packet_handler(packet_type, channel, packet, size);
     }
@@ -514,7 +511,6 @@ void att_server_query_service(const uint8_t *uuid128)
     request_type = ATT_FIND_BY_TYPE_VALUE_REQUEST;
 
     att_run();
-    return;
 }
 
 void att_server_send_gatt_services_request()

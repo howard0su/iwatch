@@ -59,7 +59,7 @@ static void drawClock0(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
 
   sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 50, 0);
@@ -68,7 +68,7 @@ static void drawClock0(tContext *pContext)
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
-  GrStringDraw(pContext, buf, 2, 100, 65, 0);
+  GrStringDraw(pContext, buf, 2, 110, 70, 0);
 
   GrContextFontSet(pContext, &g_sFontGothic18);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
@@ -84,7 +84,7 @@ static void drawClock1(tContext *pContext)
   // draw time
   adjustAMPM(hour, &hour, &ampm);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
 
   sprintf(buf, "%02d", hour);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE/ 2, 45, 0);
@@ -182,12 +182,12 @@ static void drawClock4(tContext *pContext)
 
   rtc_readdate(&year, &month, &day, NULL);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontGothamlight42);
+  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
 
   sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 65, 0);
 
-  GrContextFontSet(pContext, &g_sFontGothic18);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
   tRectangle rect = {8, 100, LCD_X_SIZE-8, 120};
   GrRectFillRound(pContext, &rect, 6);
@@ -219,7 +219,7 @@ static void drawClock5(tContext *pContext)
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, 105, 80, 0);
 
-  GrContextFontSet(pContext, &g_sFontGothic18);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   sprintf(buf, "%02d-%02d-%02d", month, day, year - 2000);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 135, 0);
 }
@@ -236,7 +236,7 @@ static void drawClock6(tContext *pContext)
   tRectangle rect = {30, 20, LCD_X_SIZE - 30, LCD_Y_SIZE - 40};
   GrRectFillRound(pContext, &rect, 8);
   GrContextForegroundSet(pContext, ClrBlack);
-  GrContextFontSet(pContext, (tFont*)&g_sFontExGothammedium42);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothambold42);
   sprintf(buf, "%02d", hour);
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 50, 0);
 

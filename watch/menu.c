@@ -55,7 +55,7 @@ static const struct MenuItem SetupMenu[] =
   {DATA_LIGHT, "Back Light", &configlight_process},
   {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
-  {-1,   "Reset to Factory", &reset_process},
+  {-1,   "Factory Reset", &reset_process},
   {-1,   "About", &about_process},
 //  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
@@ -120,11 +120,11 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define row_count       d.menu.row_count
 
 #define NUM_MENU_A_PAGE 3
-#define MENU_SPACE ((168 - 30)/NUM_MENU_A_PAGE)
+#define MAINMENU_SPACE ((168 - 30)/NUM_MENU_A_PAGE)
 
 extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
-static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct MenuItem *item, int index, int selected)
+static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPACE, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
@@ -138,7 +138,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 27 + index * MENU_SPACE, LCD_X_SIZE - 2, 16 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 25 + index * MENU_SPACE, LCD_X_SIZE - 2, 20 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -201,7 +201,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, const struct
         break;
       }
       case DATA_BT:
-      sprintf(buf, "%s", "ON");
+      sprintf(buf, "%s", bluetooth_running()?"ON":"OFF");
       break;
       case DATA_ANT:
       sprintf(buf, "%s", "OFF");
@@ -256,7 +256,7 @@ static void OnDraw(tContext *pContext)
     if (item->name == NULL)
       break;
 
-    drawMenuItem(pContext, textfont, item, i, current == currentTop + i);
+    drawMenuItem(pContext, textfont, MAINMENU_SPACE, item, i, current == currentTop + i);
     item++;
   }
 
@@ -307,7 +307,7 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
         if (item->name == NULL)
           break;
 
-        drawMenuItem(pContext, &g_sFontGothic18b, item, i, 0);
+        drawMenuItem(pContext, &g_sFontGothic18b, (168 - 30)/6, item, i, 0);
         i++;
         item++;
       }

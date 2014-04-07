@@ -328,7 +328,7 @@ static void sm_truncate_key(sm_key_t key, int max_encryption_size){
 // established.
 
 static void sm_timeout_handler(timer_source_t * timer){
-    printf("SM timeout\n");
+    printf("SM timeout with state: %d\n", sm_state_responding);
     sm_state_responding = SM_STATE_TIMEOUT;
 }
 static void sm_timeout_start(){
@@ -479,7 +479,7 @@ static void sm_notify_client(uint8_t type, uint8_t addr_type, bd_addr_t address,
     log_info("sm_notify_client %02x, addres_type %u, address %s, num '%06u', index %u", event.type, event.addr_type, bd_addr_to_str(event.address), event.passkey, event.central_device_db_index);
 
     if (!sm_client_packet_handler) return;
-    sm_client_packet_handler(HCI_EVENT_PACKET, 0, (uint8_t*) &event, sizeof(event));
+        sm_client_packet_handler(HCI_EVENT_PACKET, 0, (uint8_t*) &event, sizeof(event));
 }
 
 static void sm_notify_client_authorization(uint8_t type, uint8_t addr_type, bd_addr_t address, uint8_t result){
@@ -971,6 +971,7 @@ static void sm_run(void){
             swap128(sm_s_ltk, ltk_flipped);
             hci_send_cmd(&hci_le_long_term_key_request_reply, sm_response_handle, ltk_flipped);
             sm_state_responding = SM_STATE_IDLE;
+            sm_notify_client(SM_BONDING_FINISHED, sm_m_addr_type, sm_m_address, 0, sm_central_device_matched);
             return;
         }
 
