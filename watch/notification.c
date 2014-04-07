@@ -29,7 +29,7 @@ static enum
   STATE_PENDING = 0x04
 }state;
 
-static uint8_t skip = 0;
+static int skip = 0;
 static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define EMPTY 0xfe
@@ -143,16 +143,16 @@ static void onDraw(tContext *pContext)
     if (message_icon)
     {
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);    
-        GrStringDraw(pContext, &message_icon, 1, 8, starty, 0);
+      GrStringDraw(pContext, &message_icon, 1, 8, starty, 0);
     }
 
     if (message_date)
     {
-        char buf[20];
-        convertdate(buf, message_date);
+      char buf[20];
+      convertdate(buf, message_date);
 
-        GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
-        GrStringDraw(pContext, buf, -1, 30, starty, 0);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      GrStringDraw(pContext, buf, -1, 30, starty, 0);
     }
 
     starty += 16;
