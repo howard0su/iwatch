@@ -14,22 +14,11 @@
 #include "pedometer/pedometer.h"
 #include "sportsdata.h"
 #include "memory.h"
-
+#include "icons.h"
 
 extern const tRectangle status_clip;
 extern void hfp_battery(int level);
 extern void ped_reset();
-
-#define ICON_RUN        'h'
-#define ICON_ALARM      'i'
-#define ICON_BT         'j'
-
-#define ICON_BATTERY_FULL 'm'
-#define ICON_BATTERY_MORE 'n'
-#define ICON_BATTERY_LESS 'o'
-#define ICON_BATTERY_EMPTY 'p'
-#define ICON_BATTERY_CHARGE_LESS 'q'
-#define ICON_BATTERY_CHARGE_MORE 'r'
 
 #define BATTERY_X 125
 #define BT_X 107

@@ -19,6 +19,7 @@
 #include "hfp.h"
 #include "memory.h"
 #include "gesture/gesture.h"
+#include "icons.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -185,7 +186,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
       if (!hfp_connected())
       {
-        window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
+        window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);
         return 1;
       }
       break;    

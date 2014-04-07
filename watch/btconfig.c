@@ -1,5 +1,6 @@
 #include "contiki.h"
 #include "window.h"
+#include "icons.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 

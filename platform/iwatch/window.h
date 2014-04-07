@@ -82,6 +82,8 @@ extern void window_volume(tContext *pContext, long lX, long lY, int total, int c
 #define NOTIFY_RESULT_ACCEPT 1
 #define NOTIFY_RESULT_REJECT 2
 
+
+extern void window_messagebox(uint8_t icon, const char* message, uint8_t flags);
 extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
 extern void window_notify_ancs(uint32_t uid, uint32_t attribute);
 extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
@@ -256,13 +258,5 @@ enum SPORTS_GRID
 
     GRID_MAX,
 };
-
-#define ICON_LARGE_CYCLE 'a'
-#define ICON_LARGE_RUN   'b'
-#define ICON_LARGE_ALARM 'c'
-#define ICON_LARGE_BT    'd'
-#define ICON_LARGE_NOBT  'e'
-#define ICON_LARGE_WAIT1 'f'
-#define ICON_LARGE_WAIT2 'g'
 
 #endif

@@ -452,3 +452,53 @@ void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
   ui_window(event, lparam, rparam);
   PROCESS_CONTEXT_END(&system_process);
 }
+
+static uint8_t messagebox_icon;
+static char* messagebox_message;
+static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  switch(ev)
+  {
+    case EVENT_WINDOW_CREATED:
+    return 0x0;
+
+    case EVENT_WINDOW_PAINT:
+    {
+      tContext *pContext = (tContext*)rparam;
+
+      GrContextForegroundSet(pContext, ClrWhite);
+      GrRectFill(pContext, &client_clip);
+
+      GrContextForegroundSet(pContext, ClrBlack);
+
+      GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
+      GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 28, 0);
+
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      GrStringDrawWrap(pContext, messagebox_message, 20, 100, LCD_X_SIZE - 40, 0);
+      break;
+    }
+    
+    case EVENT_WINDOW_CLOSING:
+    motor_on(0, 0);
+    return 0;
+  }
+
+  return 1;
+}
+
+void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
+{
+  messagebox_icon = icon;
+  messagebox_message = message;
+  window_open(messagebox_process, NULL);
+
+  if (flags)
+  {
+    motor_on(50, 0);
+  }
+  else
+  {
+    motor_on(50, CLOCK_SECOND/2);
+  }
+}

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "window.h"
+#include "watch/icons.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "sys/timer.h"
@@ -760,6 +761,11 @@ void TestNotification(CuTest *tc)
   window_notify_ancs(2, 2);
   window_notify_ancs(3, 3);
   window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();

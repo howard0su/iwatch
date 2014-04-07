@@ -80,19 +80,6 @@ static void onDrawTitleBar(tContext *pContext)
   }
 }
 
-static void onDrawAlarm(tContext *pContext)
-{
-  GrContextForegroundSet(pContext, ClrWhite);
-  GrRectFill(pContext, &fullscreen_clip);
-
-  // draw table title
-  GrContextForegroundSet(pContext, ClrWhite);
-  GrContextBackgroundSet(pContext, ClrBlack);
-
-  GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
-  GrStringDrawCentered(pContext, &message_icon, 1, LCD_X_SIZE/2, LCD_Y_SIZE, 0);
-}
-
 static const tFont *get_titlefont()
 {
   return (tFont*)&g_sFontGothic24b;
@@ -300,9 +287,6 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
   }
   case EVENT_WINDOW_PAINT:
     {
-      if ((message_buttons & NOTIFY_ALARM) == NOTIFY_ALARM)
-        onDrawAlarm((tContext*)rparam);
-      else
         onDraw((tContext*)rparam);
       break;
     }
