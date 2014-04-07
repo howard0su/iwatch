@@ -201,7 +201,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
         break;
       }
       case DATA_BT:
-      sprintf(buf, "%s", "ON");
+      sprintf(buf, "%s", bluetooth_running()?"ON":"OFF");
       break;
       case DATA_ANT:
       sprintf(buf, "%s", "OFF");
