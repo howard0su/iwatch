@@ -216,14 +216,12 @@ static struct _event test_events[] = {
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
  
-#if 0
    {1, EVENT_FIRMWARE_UPGRADE, 0},
    {1, EVENT_FIRMWARE_UPGRADE, 1024* 10},
    {1, EVENT_FIRMWARE_UPGRADE, 1024* 60},
    {1, EVENT_FIRMWARE_UPGRADE, 1024* 190},
    {1, EVENT_FIRMWARE_UPGRADE, -1},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-#endif
    {-1}
 };
 
