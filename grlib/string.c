@@ -193,7 +193,7 @@ GrStringWidthGet(const tContext *pContext, const char *pcString, long lLength)
 {
     const unsigned char *pucData;
     unsigned char ucWidth, ucHeight, ucBaseline, ucFormat;
-    uint32_t ulCount, ulChar, ulSkip;
+    unsigned long ulCount, ulChar, ulSkip;
     long lWidth;
 
     //
@@ -210,11 +210,11 @@ GrStringWidthGet(const tContext *pContext, const char *pcString, long lLength)
     //
     // Set the maximum number of characters we should render.  Note that the
     // value -1 is used to indicate that the function should render until it
-    // hits the end of the string so casting it to an uint32_t here is
+    // hits the end of the string so casting it to an unsigned long here is
     // fine since this says keep rendering for 2^32 characters.  We are very
     // unlikely to ever be passed a string this long.
     //
-    ulCount = (uint32_t)lLength;
+    ulCount = (unsigned long)lLength;
 
     //
     // Loop through each character in the string.
@@ -325,7 +325,7 @@ GrStringWidthGet(const tContext *pContext, const char *pcString, long lLength)
 //
 void
 GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
-             long lX, long lY, uint32_t bOpaque)
+             long lX, long lY, unsigned long bOpaque)
 {
     long lIdx, lX0, lY0, lCount, lOff, lOn, lBit;
     const unsigned char *pucData;
@@ -861,7 +861,7 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
 //
 void
 GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
-             long lX, long lY, uint32_t bOpaque)
+             long lX, long lY, unsigned long bOpaque)
 {
     ASSERT(pContext);
     ASSERT(pContext->pfnStringRenderer);
@@ -908,10 +908,10 @@ GrStringDraw(const tContext *pContext, const char *pcString, long lLength,
 //*****************************************************************************
 void
 GrDefaultStringRenderer(const tContext *pContext, const char *pcString,
-                        long lLength, long lX, long lY, uint32_t bOpaque)
+                        long lLength, long lX, long lY, unsigned long bOpaque)
 {
     unsigned char ucFormat, ucWidth, ucMaxWidth, ucHeight, ucBaseline;
-    uint32_t ulChar, ulCount, ulSkip;
+    unsigned long ulChar, ulCount, ulSkip;
     const unsigned char *pucData;
 
     //
@@ -939,11 +939,11 @@ GrDefaultStringRenderer(const tContext *pContext, const char *pcString,
     //
     // Set the maximum number of characters we should render.  Note that the
     // value -1 is used to indicate that the function should render until it
-    // hits the end of the string so casting it to an uint32_t here is
+    // hits the end of the string so casting it to an unsigned long here is
     // fine since this says keep rendering for 2^32 characters.  We are very
     // unlikely to ever be passed a string this long.
     //
-    ulCount = (uint32_t)lLength;
+    ulCount = (unsigned long)lLength;
 
     //
     // Loop through each character in the string.
@@ -1055,9 +1055,9 @@ GrDefaultStringRenderer(const tContext *pContext, const char *pcString,
 //! string or 0 if no valid character was found.
 //!
 //*****************************************************************************
-uint32_t
+unsigned long
 GrStringNextCharGet(const tContext *pContext, const char *pcString,
-                    uint32_t ulCount, uint32_t *pulSkip)
+                    unsigned long ulCount, unsigned long *pulSkip)
 {
     ASSERT(pContext);
     ASSERT(pcString);
@@ -1090,7 +1090,7 @@ GrStringNextCharGet(const tContext *pContext, const char *pcString,
         // string and font codepages (i.e. the legacy case).
         //
         *pulSkip = 1;
-        return((uint32_t)*pcString);
+        return((unsigned long)*pcString);
     }
 }
 
@@ -1125,8 +1125,8 @@ GrStringNextCharGet(const tContext *pContext, const char *pcString,
 //*****************************************************************************
 void
 GrFontGlyphRender(const tContext *pContext, const unsigned char *pucData,
-                  long lX, long lY, uint32_t bCompressed,
-                  uint32_t bOpaque)
+                  long lX, long lY, unsigned long bCompressed,
+                  unsigned long bOpaque)
 {
     long lIdx, lX0, lY0, lCount, lOff, lOn, lBit, lClipX1, lClipX2;
 
@@ -1672,7 +1672,7 @@ GrFontInfoGet(const tFont *pFont, unsigned char *pucFormat,
 //! \return Returns the baseline of the font, in pixels.
 //
 //*****************************************************************************
-uint32_t
+unsigned long
 GrFontBaselineGet(const tFont *pFont)
 {
     unsigned char ucFormat, ucWidth, ucHeight, ucBaseline;
@@ -1681,7 +1681,7 @@ GrFontBaselineGet(const tFont *pFont)
 
     if(pFont->ucFormat != FONT_FMT_WRAPPED)
     {
-        return((uint32_t)(pFont->ucBaseline));
+        return((unsigned long)(pFont->ucBaseline));
     }
     else
     {
@@ -1690,7 +1690,7 @@ GrFontBaselineGet(const tFont *pFont)
         pWrap = (tFontWrapper *)pFont;
         pWrap->pFuncs->pfnFontInfoGet(pWrap->pucFontId, &ucFormat, &ucWidth,
                                       &ucHeight, &ucBaseline);
-        return((uint32_t)ucBaseline);
+        return((unsigned long)ucBaseline);
     }
 
 }
@@ -1708,7 +1708,7 @@ GrFontBaselineGet(const tFont *pFont)
 //! \return Returns the height of the font, in pixels.
 //
 //*****************************************************************************
-uint32_t
+unsigned long
 GrFontHeightGet(const tFont *pFont)
 {
     unsigned char ucFormat, ucWidth, ucHeight, ucBaseline;
@@ -1726,7 +1726,7 @@ GrFontHeightGet(const tFont *pFont)
         pWrap = (tFontWrapper *)pFont;
         pWrap->pFuncs->pfnFontInfoGet(pWrap->pucFontId, &ucFormat, &ucWidth,
                                       &ucHeight, &ucBaseline);
-        return((uint32_t)ucHeight);
+        return((unsigned long)ucHeight);
     }
 }
 
@@ -1742,7 +1742,7 @@ GrFontHeightGet(const tFont *pFont)
 //! \return Returns the maximum width of the font, in pixels.
 //
 //*****************************************************************************
-uint32_t
+unsigned long
 GrFontMaxWidthGet(const tFont *pFont)
 {
     unsigned char ucFormat, ucWidth, ucHeight, ucBaseline;
@@ -1760,7 +1760,7 @@ GrFontMaxWidthGet(const tFont *pFont)
         pWrap = (tFontWrapper *)pFont;
         pWrap->pFuncs->pfnFontInfoGet(pWrap->pucFontId, &ucFormat, &ucWidth,
                                       &ucHeight, &ucBaseline);
-        return((uint32_t)ucWidth);
+        return((unsigned long)ucWidth);
     }
 }
 
@@ -1783,7 +1783,7 @@ GrFontMaxWidthGet(const tFont *pFont)
 //
 //*****************************************************************************
 static const unsigned char *
-FontGlyphDataGet(const tFont *pFont, uint32_t ulCodePoint,
+FontGlyphDataGet(const tFont *pFont, unsigned long ulCodePoint,
                  unsigned char *pucWidth)
 {
     const unsigned char *pucGlyphs;
@@ -1852,14 +1852,14 @@ FontGlyphDataGet(const tFont *pFont, uint32_t ulCodePoint,
 //
 //*****************************************************************************
 static const unsigned char *
-FontWideGlyphDataGet(const tFontWide *pFont, uint32_t ulCodePoint,
+FontWideGlyphDataGet(const tFontWide *pFont, unsigned long ulCodePoint,
                      unsigned char *pucWidth)
 {
     const unsigned char *pucData;
     tFontBlock *pBlock;
-    uint32_t *pulOffsetTable;
-    uint32_t ulLoop;
-    uint32_t ulOffset;
+    unsigned long *pulOffsetTable;
+    unsigned long ulLoop;
+    unsigned long ulOffset;
 
     //
     // Get a pointer to the first block description in the font.
@@ -1900,7 +1900,7 @@ FontWideGlyphDataGet(const tFontWide *pFont, uint32_t ulCodePoint,
     //
     // Get the offset to the glyph data via the block's offset table.
     //
-    pulOffsetTable = (uint32_t *)((unsigned char *)pFont +
+    pulOffsetTable = (unsigned long *)((unsigned char *)pFont +
             pBlock[ulLoop].ulGlyphTableOffset);
     ulOffset = pulOffsetTable[ulCodePoint - pBlock[ulLoop].ulStartCodepoint];
 
@@ -1948,7 +1948,7 @@ FontWideGlyphDataGet(const tFontWide *pFont, uint32_t ulCodePoint,
 //
 //*****************************************************************************
 const unsigned char *
-GrFontGlyphDataGet(const tFont *pFont, uint32_t ulCodePoint,
+GrFontGlyphDataGet(const tFont *pFont, unsigned long ulCodePoint,
                    unsigned char *pucWidth)
 {
     ASSERT(pFont);
@@ -2048,7 +2048,7 @@ GrFontCodepageGet(const tFont *pFont)
 static long
 UpdateContextCharMapping(tContext *pContext)
 {
-    uint32_t ulLoop;
+    unsigned long ulLoop;
     unsigned short usFontCodepage;
 
     //
@@ -2149,9 +2149,9 @@ GrFontNumBlocksGet(const tFont *pFont)
     }
 }
 
-uint32_t
+unsigned long
 GrFontBlockCodepointsGet(const tFont *pFont, unsigned short usBlockIndex,
-                         uint32_t *pulStart)
+                         unsigned long *pulStart)
 {
     ASSERT(pFont);
     ASSERT(pulStart);
@@ -2226,8 +2226,8 @@ GrFontBlockCodepointsGet(const tFont *pFont, unsigned short usBlockIndex,
              //
              pFontEx = (tFontEx *)pFont;
 
-             *pulStart = (uint32_t)pFontEx->ucFirst;
-             return((uint32_t)(pFontEx->ucLast - pFontEx->ucFirst + 1));
+             *pulStart = (unsigned long)pFontEx->ucFirst;
+             return((unsigned long)(pFontEx->ucLast - pFontEx->ucFirst + 1));
          }
          else
          {
@@ -2389,7 +2389,7 @@ GrContextFontSet(tContext *pContext, const tFont *pFont)
 // table.
 //
 //*****************************************************************************
-static const uint32_t *g_pulStringTable;
+static const unsigned long *g_pulStringTable;
 static const unsigned short *g_pusLanguageTable;
 static const unsigned char *g_pucStringData;
 
@@ -2430,7 +2430,7 @@ GrStringTableSet(const void *pvTable)
     //
     // Save a pointer to the String Index table.
     //
-    g_pulStringTable = (uint32_t *)(g_pusLanguageTable +
+    g_pulStringTable = (unsigned long *)(g_pusLanguageTable +
                                          g_usNumLanguages);
 
     //
@@ -2458,7 +2458,7 @@ GrStringTableSet(const void *pvTable)
 //! non-zero value if the laguage was found.
 //
 //*****************************************************************************
-uint32_t
+unsigned long
 GrStringLanguageSet(unsigned short usLangID)
 {
     long lLang;
@@ -2507,10 +2507,10 @@ GrStringLanguageSet(unsigned short usLangID)
 //! \return Returns the number of valid bytes returned in the \e pcData buffer.
 //
 //*****************************************************************************
-uint32_t
-GrStringGet(long lIndex, char *pcData, uint32_t ulSize)
+unsigned long
+GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
 {
-    uint32_t ulLen, ulOffset, ulSubCode[16];
+    unsigned long ulLen, ulOffset, ulSubCode[16];
     long lPos, lIdx, lBit, lSkip, lBuf;
     unsigned char *pucBufferOut;
     const unsigned char *pucString;
@@ -2797,7 +2797,7 @@ GrStringGet(long lIndex, char *pcData, uint32_t ulSize)
     //
     if(pucBufferOut)
     {
-        ulLen = ((uint32_t)pucBufferOut - (uint32_t)pcData);
+        ulLen = ((unsigned long)pucBufferOut - (unsigned long)pcData);
 
         //
         // Null terminate the string if there is room.
@@ -2818,7 +2818,7 @@ GrStringGet(long lIndex, char *pcData, uint32_t ulSize)
 int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, int hardwrap)
 {
      int start, laststop, iterator, w;
-     uint32_t ulChar, ulSkip;
+     unsigned long ulChar, ulSkip;
 
     start = 0;
     for(;;)
