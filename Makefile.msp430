@@ -143,9 +143,6 @@ BTSTACK1 = \
 	src/l2cap_signaling.c \
 	src/linked_list.c \
 	src/memory_pool.c \
-	src/mns.c \
-  src/obex.c \
-  src/mas.c \
 	src/remote_device_db_memory.c \
 	src/rfcomm.c \
 	src/sdp.c \
