@@ -221,8 +221,8 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       case DATA_BTADDR:
       {
         const char* ptr = bluetooth_address();
-        sprintf(buf, "Meteor %x%x", ptr[4], ptr[5]);
-      break;
+        sprintf(buf, "Meteor %02X%02X", ptr[4], ptr[5]);
+        break;
       }
       default:
       strcpy(buf, "TODO");

@@ -61,7 +61,7 @@ static void OnDraw(tContext *pContext)
   {
     char buf[20];
     const char* btaddr = bluetooth_address();
-    sprintf(buf, "Meteor %x%x", btaddr[4], btaddr[5]);
+    sprintf(buf, "Meteor %02X%02X", btaddr[4], btaddr[5]);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 153, 0);
   }
 }
