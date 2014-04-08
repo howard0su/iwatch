@@ -45,7 +45,7 @@
 #if defined(codered) || defined(gcc) || defined(sourcerygxx)
 #define NumLeadingZeros(x) __extension__                        \
         ({                                                      \
-            register unsigned long __ret, __inp = x;            \
+            register uint32_t __ret, __inp = x;            \
             __asm__("clz %0, %1" : "=r" (__ret) : "r" (__inp)); \
             __ret;                                              \
         })
@@ -333,10 +333,10 @@ const unsigned short g_pusWIN1254_Unicode[] =
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_1_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -348,7 +348,7 @@ GrMapISO8859_1_Unicode(const char *pcSrcChar,
     // There is a 1:1 mapping of characters in ISO8859-1 to Unicode.
     //
     *pulSkip = 1;
-    return((unsigned long)((unsigned char)*pcSrcChar));
+    return((uint32_t)((unsigned char)*pcSrcChar));
 }
 
 //*****************************************************************************
@@ -377,10 +377,10 @@ GrMapISO8859_1_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_2_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -399,11 +399,11 @@ GrMapISO8859_2_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusISO8859_2_Unicode[
+        return((uint32_t)g_pusISO8859_2_Unicode[
                               (unsigned char)*pcSrcChar - 0xA1]);
     }
 }
@@ -433,10 +433,10 @@ GrMapISO8859_2_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_3_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -455,11 +455,11 @@ GrMapISO8859_3_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusISO8859_3_Unicode[
+        return((uint32_t)g_pusISO8859_3_Unicode[
                (unsigned char)*pcSrcChar - 0xA1]);
     }
 }
@@ -489,10 +489,10 @@ GrMapISO8859_3_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_4_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -511,11 +511,11 @@ GrMapISO8859_4_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusISO8859_4_Unicode[
+        return((uint32_t)g_pusISO8859_4_Unicode[
                (unsigned char)*pcSrcChar - 0xA1]);
     }
 }
@@ -546,10 +546,10 @@ GrMapISO8859_4_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_5_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -568,11 +568,11 @@ GrMapISO8859_5_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)((unsigned char)*pcSrcChar) + 0x360);
+        return((uint32_t)((unsigned char)*pcSrcChar) + 0x360);
     }
 }
 
@@ -603,10 +603,10 @@ GrMapISO8859_5_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_6_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -626,11 +626,11 @@ GrMapISO8859_6_Unicode(const char *pcSrcChar,
     if(((unsigned char)*pcSrcChar <= 0xA4) ||
        ((unsigned char)*pcSrcChar == 0xAD))
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)((unsigned char)*pcSrcChar) + 0x560);
+        return((uint32_t)((unsigned char)*pcSrcChar) + 0x560);
     }
 }
 
@@ -661,10 +661,10 @@ GrMapISO8859_6_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_7_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -687,14 +687,14 @@ GrMapISO8859_7_Unicode(const char *pcSrcChar,
         // This character is in the basic ASCII range so return it without
         // remapping.
         //
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else if((unsigned char)*pcSrcChar >= 0xBE)
     {
         //
         // This character can be mapped to Unicode by a simple addition.
         //
-        return((unsigned long)((unsigned char)*pcSrcChar) + 0x2D0);
+        return((uint32_t)((unsigned char)*pcSrcChar) + 0x2D0);
     }
     else
     {
@@ -733,10 +733,10 @@ GrMapISO8859_7_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_8_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -759,7 +759,7 @@ GrMapISO8859_8_Unicode(const char *pcSrcChar,
         // This character is in the basic ASCII range so return it without
         // remapping.
         //
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else if((unsigned char)*pcSrcChar == 0xDF)
     {
@@ -810,10 +810,10 @@ GrMapISO8859_8_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_9_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -886,7 +886,7 @@ GrMapISO8859_9_Unicode(const char *pcSrcChar,
         //
         default:
         {
-            return((unsigned long)(unsigned char)*pcSrcChar);
+            return((uint32_t)(unsigned char)*pcSrcChar);
         }
     }
 }
@@ -916,10 +916,10 @@ GrMapISO8859_9_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_10_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -938,11 +938,11 @@ GrMapISO8859_10_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusISO8859_10_Unicode[
+        return((uint32_t)g_pusISO8859_10_Unicode[
                (unsigned char)*pcSrcChar - 0xA1]);
     }
 }
@@ -973,10 +973,10 @@ GrMapISO8859_10_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_11_Unicode(const char *pcSrcChar,
-                        unsigned long ulCount,
-                        unsigned long *pulSkip)
+                        uint32_t ulCount,
+                        uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -995,11 +995,11 @@ GrMapISO8859_11_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)((unsigned char)*pcSrcChar) + 0xD60);
+        return((uint32_t)((unsigned char)*pcSrcChar) + 0xD60);
     }
 }
 
@@ -1028,10 +1028,10 @@ GrMapISO8859_11_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_13_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1050,11 +1050,11 @@ GrMapISO8859_13_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusISO8859_13_Unicode[
+        return((uint32_t)g_pusISO8859_13_Unicode[
                (unsigned char)*pcSrcChar - 0xA1]);
     }
 }
@@ -1084,10 +1084,10 @@ GrMapISO8859_13_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_14_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1163,11 +1163,11 @@ GrMapISO8859_14_Unicode(const char *pcSrcChar,
         {
             if((unsigned char)*pcSrcChar >= 0xC0)
             {
-                return((unsigned long)(unsigned char)*pcSrcChar);
+                return((uint32_t)(unsigned char)*pcSrcChar);
             }
             else
             {
-                return((unsigned long)g_pusISO8859_14_Unicode[
+                return((uint32_t)g_pusISO8859_14_Unicode[
                        (unsigned char)*pcSrcChar - 0xA1]);
             }
         }
@@ -1198,10 +1198,10 @@ GrMapISO8859_14_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_15_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1289,7 +1289,7 @@ GrMapISO8859_15_Unicode(const char *pcSrcChar,
         //
         default:
         {
-            return((unsigned long)(unsigned char)*pcSrcChar);
+            return((uint32_t)(unsigned char)*pcSrcChar);
         }
     }
 }
@@ -1319,10 +1319,10 @@ GrMapISO8859_15_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapISO8859_16_Unicode(const char *pcSrcChar,
-                       unsigned long ulCount,
-                       unsigned long *pulSkip)
+                       uint32_t ulCount,
+                       uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1341,11 +1341,11 @@ GrMapISO8859_16_Unicode(const char *pcSrcChar,
     //
     if((unsigned char)*pcSrcChar <= 0xA0)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusISO8859_16_Unicode[
+        return((uint32_t)g_pusISO8859_16_Unicode[
                (unsigned char)*pcSrcChar - 0xA1]);
     }
 }
@@ -1375,11 +1375,11 @@ GrMapISO8859_16_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapUTF8_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                  unsigned long *pulSkip)
+uint32_t
+GrMapUTF8_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                  uint32_t *pulSkip)
 {
-    unsigned long ulUnicode, ulToRead, ulIndex;
+    uint32_t ulUnicode, ulToRead, ulIndex;
 
     //
     // Parameter sanity check.
@@ -1437,7 +1437,7 @@ GrMapUTF8_Unicode(const char *pcSrcChar, unsigned long ulCount,
         // it uses.
         //
         ulToRead = NumLeadingZeros(
-                ~((unsigned long)pcSrcChar[ulIndex] << 24)) - 1;
+                ~((uint32_t)pcSrcChar[ulIndex] << 24)) - 1;
 
 
         //
@@ -1537,12 +1537,12 @@ GrMapUTF8_Unicode(const char *pcSrcChar, unsigned long ulCount,
 // \e pcSrcChar string passed.
 //
 //*****************************************************************************
-static unsigned long
-GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                   unsigned long *pulSkip, tBoolean bLE)
+static uint32_t
+GrMapUTF16_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                   uint32_t *pulSkip, tBoolean bLE)
 {
     unsigned short usChar, usCharToo;
-    unsigned long ulCode;
+    uint32_t ulCode;
     const unsigned char *pcChar;
 
     //
@@ -1580,7 +1580,7 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
             // Yes - return the value and tell the caller to skip the
             // appropriate number of bytes to get to the end of this character.
             //
-            ulCode = (unsigned long)usChar;
+            ulCode = (uint32_t)usChar;
             break;
         }
         else
@@ -1616,8 +1616,8 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
                         pcChar += 2;
                         ulCount -= 2;
                         ulCode = 0x10000 +
-                                 ((unsigned long)(usChar - 0xD800) << 10) +
-                                 ((unsigned long)usCharToo - 0xDC00);
+                                 ((uint32_t)(usChar - 0xD800) << 10) +
+                                 ((uint32_t)usCharToo - 0xDC00);
                         break;
                     }
                 }
@@ -1630,7 +1630,7 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
     // character we just parsed and return the character codepoint if we
     // found one.
     //
-    *pulSkip = (unsigned long)(pcChar - (const unsigned char *)pcSrcChar);
+    *pulSkip = (uint32_t)(pcChar - (const unsigned char *)pcSrcChar);
     return(ulCode);
 }
 
@@ -1659,9 +1659,9 @@ GrMapUTF16_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! \e pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapUTF16LE_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapUTF16LE_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Call the low level UTF parsing function and return the result.
@@ -1694,9 +1694,9 @@ GrMapUTF16LE_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! \e pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapUTF16BE_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapUTF16BE_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Call the low level UTF parsing function and return the result.
@@ -1725,10 +1725,10 @@ GrMapUTF16BE_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
+uint32_t
 GrMapUnicode_Unicode(const char *pcSrcChar,
-                     unsigned long ulCount,
-                     unsigned long *pulSkip)
+                     uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1786,9 +1786,9 @@ GrMapUnicode_Unicode(const char *pcSrcChar,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapWIN1250_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapWIN1250_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1807,11 +1807,11 @@ GrMapWIN1250_Unicode(const char *pcSrcChar, unsigned long ulCount,
     //
     if((unsigned char)*pcSrcChar <= 0x7F)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusWIN1250_Unicode[
+        return((uint32_t)g_pusWIN1250_Unicode[
                               (unsigned char)*pcSrcChar - 0x80]);
     }
 }
@@ -1843,9 +1843,9 @@ GrMapWIN1250_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapWIN1251_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapWIN1251_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1864,17 +1864,17 @@ GrMapWIN1251_Unicode(const char *pcSrcChar, unsigned long ulCount,
     //
     if((unsigned char)*pcSrcChar <= 0x7F)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else if(((unsigned char)*pcSrcChar >= 0x80) &&
             ((unsigned char)*pcSrcChar <= 0xBF))
     {
-        return((unsigned long)g_pusWIN1251_Unicode[
+        return((uint32_t)g_pusWIN1251_Unicode[
                (unsigned char)*pcSrcChar - 0x80]);
     }
     else
     {
-         return((unsigned long)((unsigned char)*pcSrcChar) + 0x350);
+         return((uint32_t)((unsigned char)*pcSrcChar) + 0x350);
     }
 }
 
@@ -1906,9 +1906,9 @@ GrMapWIN1251_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapWIN1252_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapWIN1252_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1928,11 +1928,11 @@ GrMapWIN1252_Unicode(const char *pcSrcChar, unsigned long ulCount,
     if(((unsigned char)*pcSrcChar <= 0x7F) ||
        ((unsigned char)*pcSrcChar >= 0xA0))
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else
     {
-        return((unsigned long)g_pusWIN1252_Unicode[
+        return((uint32_t)g_pusWIN1252_Unicode[
                               (unsigned char)*pcSrcChar - 0x80]);
     }
 }
@@ -1964,9 +1964,9 @@ GrMapWIN1252_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapWIN1253_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapWIN1253_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -1985,7 +1985,7 @@ GrMapWIN1253_Unicode(const char *pcSrcChar, unsigned long ulCount,
     //
     if((unsigned char)*pcSrcChar <= 0x7F)
     {
-        return((unsigned long)(unsigned char)*pcSrcChar);
+        return((uint32_t)(unsigned char)*pcSrcChar);
     }
     else if(((unsigned char)*pcSrcChar >= 0x80) &&
             ((unsigned char)*pcSrcChar <= 0xBF))
@@ -1993,7 +1993,7 @@ GrMapWIN1253_Unicode(const char *pcSrcChar, unsigned long ulCount,
         //
         // This is a character we remap via the global table.
         //
-        return((unsigned long)g_pusWIN1253_Unicode[
+        return((uint32_t)g_pusWIN1253_Unicode[
                (unsigned char)*pcSrcChar - 0x80]);
     }
     else
@@ -2001,7 +2001,7 @@ GrMapWIN1253_Unicode(const char *pcSrcChar, unsigned long ulCount,
         //
         // This is a character we can calculate the Unicode character code for.
         //
-        return((unsigned long)((unsigned char)*pcSrcChar) + 0x2D0);
+        return((uint32_t)((unsigned char)*pcSrcChar) + 0x2D0);
     }
 }
 
@@ -2029,9 +2029,9 @@ GrMapWIN1253_Unicode(const char *pcSrcChar, unsigned long ulCount,
 //! pcSrcChar string passed.
 //
 //*****************************************************************************
-unsigned long
-GrMapWIN1254_Unicode(const char *pcSrcChar, unsigned long ulCount,
-                     unsigned long *pulSkip)
+uint32_t
+GrMapWIN1254_Unicode(const char *pcSrcChar, uint32_t ulCount,
+                     uint32_t *pulSkip)
 {
     //
     // Parameter sanity check.
@@ -2058,7 +2058,7 @@ GrMapWIN1254_Unicode(const char *pcSrcChar, unsigned long ulCount,
         //
         // This is a character we remap via the global table.
         //
-        return((unsigned long)g_pusWIN1254_Unicode[
+        return((uint32_t)g_pusWIN1254_Unicode[
                (unsigned char)*pcSrcChar - 0x80]);
     }
 }

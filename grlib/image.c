@@ -58,10 +58,10 @@ PixelTransparentDraw(const tContext *pContext, long lX, long lY,
                      long lX0, long lCount, long lBPP,
                      const unsigned char *pucData,
                      const unsigned char *pucPalette,
-                     unsigned long ulTransparent)
+                     uint32_t ulTransparent)
 {
     long lStart, lLen, lIndex, lStartX0, lOn, lOff, lNumBytes, lBit, lDraw;
-    unsigned long ulMask;
+    uint32_t ulMask;
     unsigned char ucPixel;
     tBoolean bSkip;
 
@@ -222,7 +222,7 @@ PixelTransparentDraw(const tContext *pContext, long lX, long lY,
                     lDraw = ((lOff + lOn) > lLen) ? (lX + lLen) :
                             (lX + lOff + lOn);
                     DpyLineDrawH(pContext->pDisplay, lX + lOff, lDraw - 1, lY,
-                                 *(unsigned long *)(pucPalette +
+                                 *(uint32_t *)(pucPalette +
                                  (ulTransparent ? 0 : 4)));
                 }
 
@@ -422,13 +422,13 @@ PixelTransparentDraw(const tContext *pContext, long lX, long lY,
 //*****************************************************************************
 static void
 InternalImageDraw(const tContext *pContext, const unsigned char *pucImage,
-                  long lX, long lY, unsigned long ulTransparent,
+                  long lX, long lY, uint32_t ulTransparent,
                   tBoolean bTransparent)
 {
-    unsigned long ulByte, ulBits, ulMatch, ulSize, ulIdx, ulCount, ulNum;
+    uint32_t ulByte, ulBits, ulMatch, ulSize, ulIdx, ulCount, ulNum;
     long lBPP, lWidth, lHeight, lX0, lX1, lX2, lXMask;
     const unsigned char *pucPalette;
-    unsigned long pulBWPalette[2];
+    uint32_t pulBWPalette[2];
 
     //
     // Check the arguments.
@@ -636,7 +636,7 @@ InternalImageDraw(const tContext *pContext, const unsigned char *pucImage,
         //
         for(ulBits = 0; ulBits < sizeof(g_pucDictionary); ulBits += 4)
         {
-            *(unsigned long *)(g_pucDictionary + ulBits) = 0;
+            *(uint32_t *)(g_pucDictionary + ulBits) = 0;
         }
 
         //
@@ -934,7 +934,7 @@ InternalImageDraw(const tContext *pContext, const unsigned char *pucImage,
 //*****************************************************************************
 void
 GrTransparentImageDraw(const tContext *pContext, const unsigned char *pucImage,
-                       long lX, long lY, unsigned long ulTransparent)
+                       long lX, long lY, uint32_t ulTransparent)
 {
     InternalImageDraw(pContext, pucImage, lX, lY, ulTransparent, true);
 }

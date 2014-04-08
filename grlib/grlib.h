@@ -139,8 +139,8 @@ typedef struct
     //! A pointer to the function to translate 24-bit RGB colors to
     //! display-specific colors.
     //
-    unsigned long (*pfnColorTranslate)(void *pvDisplayData,
-                                       unsigned long ulValue);
+    uint32_t (*pfnColorTranslate)(void *pvDisplayData,
+                                       uint32_t ulValue);
 
     //
     //! A pointer to the function to flush any cached drawing operations on
@@ -453,7 +453,7 @@ typedef struct
     //! characters may be skipped while avoiding the overhead of defining a new
     //! block.
     //
-    unsigned long ulGlyphOffset[1];
+    uint32_t ulGlyphOffset[1];
 }
 tFontOffsetTable;
 
@@ -484,7 +484,7 @@ typedef struct
     //! buffer should suffice.  This is used to support GrFontGlyphDataGet.
     //
     const unsigned char *(*pfnFontGlyphDataGet)(unsigned char *pucFontId,
-                                                unsigned long ulCodePoint,
+                                                uint32_t ulCodePoint,
                                                 unsigned char *pucWidth);
 
     //
@@ -503,9 +503,9 @@ typedef struct
     //! A pointer to the function used to determine the codepoints in a given
     //! codepoints in a given font block.
     //
-    unsigned long (*pfnFontBlockCodepointsGet)(unsigned char *pucFontId,
+    uint32_t (*pfnFontBlockCodepointsGet)(unsigned char *pucFontId,
                                                unsigned short usBlockIndex,
-                                               unsigned long *pulStart);
+                                               uint32_t *pulStart);
 }
 tFontAccessFuncs;
 
@@ -738,9 +738,9 @@ typedef struct
     //! A pointer to the conversion function which will be used to translate
     //! input strings into codepoints in the output codepage.
     //
-    unsigned long (*pfnMapChar)(const char *pcSrcChar,
-                                unsigned long ulCount,
-                                unsigned long *pulSkip);
+    uint32_t (*pfnMapChar)(const char *pcSrcChar,
+                                uint32_t ulCount,
+                                uint32_t *pulSkip);
 }
 tCodePointMap;
 
@@ -761,7 +761,7 @@ struct _tContext;
 //
 //*****************************************************************************
 typedef void (*tStringRenderer)(const struct _tContext *, const char *, long, long,
-                                long, unsigned long);
+                                long, uint32_t);
 
 //*****************************************************************************
 //
@@ -778,7 +778,7 @@ typedef struct
     //! requiring mixed rendering directions such as Arabic or Hebrew.
     //
     void (*pfnStringRenderer)(const struct _tContext *, const char *, long,
-                              long, long, unsigned long);
+                              long, long, uint32_t);
 
     //
     //! The default codepoint mapping function table.  This table contains
@@ -837,12 +837,12 @@ typedef struct _tContext
     //
     //! The color used to draw primitives onto the screen.
     //
-    unsigned long ulForeground;
+    uint32_t ulForeground;
 
     //
     //! The background color used to draw primitives onto the screen.
     //
-    unsigned long ulBackground;
+    uint32_t ulBackground;
 
     //
     //! The font used to render text onto the screen.
@@ -856,7 +856,7 @@ typedef struct _tContext
     //! set, this function is passed control whenever GrStringDraw is called.
     //
     void (*pfnStringRenderer)(const struct _tContext *, const char *, long,
-                              long, long, unsigned long);
+                              long, long, uint32_t);
 
     //
     //! A table of functions used to map between the various supported
@@ -2057,7 +2057,7 @@ extern const tFont g_sFontFixed6x8;
 #if defined(codered) || defined(gcc) || defined(sourcerygxx)
 #define NumLeadingZeros(x) __extension__                        \
         ({                                                      \
-            register unsigned long __ret, __inp = x;            \
+            register uint32_t __ret, __inp = x;            \
             __asm__("clz %0, %1" : "=r" (__ret) : "r" (__inp)); \
             __ret;                                              \
         })
@@ -2092,7 +2092,7 @@ extern void GrImageDraw(const tContext *pContext,
 extern void GrTransparentImageDraw(const tContext *pContext,
                                    const unsigned char *pucImage,
                                    long lX, long lY,
-                                   unsigned long ulTransparent);
+                                   uint32_t ulTransparent);
 extern void GrLineDraw(const tContext *pContext, long lX1, long lY1, long lX2,
                        long lY2);
 extern void GrLineDrawH(const tContext *pContext, long lX1, long lX2, long lY);
@@ -2102,25 +2102,25 @@ extern void GrOffScreen1BPPInit(tDisplay *pDisplay, unsigned char *pucImage,
 extern void GrOffScreen4BPPInit(tDisplay *pDisplay, unsigned char *pucImage,
                                 long lWidth, long lHeight);
 extern void GrOffScreen4BPPPaletteSet(tDisplay *pDisplay,
-                                      unsigned long *pulPalette,
-                                      unsigned long ulOffset,
-                                      unsigned long ulCount);
+                                      uint32_t *pulPalette,
+                                      uint32_t ulOffset,
+                                      uint32_t ulCount);
 extern void GrOffScreen8BPPInit(tDisplay *pDisplay, unsigned char *pucImage,
                                 long lWidth, long lHeight);
 extern void GrOffScreen8BPPPaletteSet(tDisplay *pDisplay,
-                                      unsigned long *pulPalette,
-                                      unsigned long ulOffset,
-                                      unsigned long ulCount);
+                                      uint32_t *pulPalette,
+                                      uint32_t ulOffset,
+                                      uint32_t ulCount);
 extern void GrRectDraw(const tContext *pContext, const tRectangle *pRect);
 extern void GrRectFill(const tContext *pContext, const tRectangle *pRect);
 extern void GrStringDraw(const tContext *pContext, const char *pcString,
                          long lLength, long lX, long lY,
-                         unsigned long bOpaque);
+                         uint32_t bOpaque);
 extern long GrStringWidthGet(const tContext *pContext, const char *pcString,
                              long lLength);
 extern void GrStringTableSet(const void *pvTable);
-unsigned long GrStringLanguageSet(unsigned short usLangID);
-unsigned long GrStringGet(long lIndex, char *pcData, unsigned long ulSize);
+uint32_t GrStringLanguageSet(unsigned short usLangID);
+uint32_t GrStringGet(long lIndex, char *pcData, uint32_t ulSize);
 extern long GrRectOverlapCheck(tRectangle *psRect1, tRectangle *psRect2);
 extern long GrRectIntersectGet(tRectangle *psRect1, tRectangle *psRect2,
                                tRectangle *psIntersect);
@@ -2134,17 +2134,17 @@ extern long GrRectIntersectGet(tRectangle *psRect1, tRectangle *psRect2,
 extern void GrFontInfoGet(const tFont *pFont, unsigned char *pucFormat,
                           unsigned char *pucMaxWidth, unsigned char *pucHeight,
                           unsigned char *pucBaseline);
-extern unsigned long GrFontMaxWidthGet(const tFont *pFont);
-extern unsigned long GrFontHeightGet(const tFont *pFont);
-extern unsigned long GrFontBaselineGet(const tFont *pFont);
+extern uint32_t GrFontMaxWidthGet(const tFont *pFont);
+extern uint32_t GrFontHeightGet(const tFont *pFont);
+extern uint32_t GrFontBaselineGet(const tFont *pFont);
 extern const unsigned char *GrFontGlyphDataGet(const tFont *pFont,
-                                               unsigned long ulCodePoint,
+                                               uint32_t ulCodePoint,
                                                unsigned char *pucWidth);
 extern unsigned short GrFontCodepageGet(const tFont *pFont);
 extern unsigned short GrFontNumBlocksGet(const tFont *pFont);
-extern unsigned long GrFontBlockCodepointsGet(const tFont *pFont,
+extern uint32_t GrFontBlockCodepointsGet(const tFont *pFont,
                                            unsigned short usBlockIndex,
-                                           unsigned long *pulStart);
+                                           uint32_t *pulStart);
 
 //*****************************************************************************
 //
@@ -2152,11 +2152,11 @@ extern unsigned long GrFontBlockCodepointsGet(const tFont *pFont,
 //
 //*****************************************************************************
 void GrFontGlyphRender(const tContext *pContext, const unsigned char *pucData,
-                       long lX, long lY, unsigned long bCompressed,
-                       unsigned long bOpaque);
+                       long lX, long lY, uint32_t bCompressed,
+                       uint32_t bOpaque);
 void
 GrDefaultStringRenderer(const tContext *pContext, const char *pcString,
-                        long lLength, long lX, long lY, unsigned long bOpaque);
+                        long lLength, long lX, long lY, uint32_t bOpaque);
 
 //*****************************************************************************
 //
@@ -2168,87 +2168,87 @@ extern void GrCodepageMapTableSet(tContext *pContext,
                                   unsigned char ucNumMaps);
 extern long GrStringCodepageSet(tContext *pContext,
                                 unsigned short usCodepage);
-extern unsigned long GrStringRendererSet(tContext *pContext,
+extern uint32_t GrStringRendererSet(tContext *pContext,
                                          tStringRenderer pfnRenderer);
-extern unsigned long GrStringNumGlyphsGet(const tContext *pContext,
+extern uint32_t GrStringNumGlyphsGet(const tContext *pContext,
                                           const char *pcString);
-extern unsigned long GrStringNextCharGet(const tContext *pContext,
+extern uint32_t GrStringNextCharGet(const tContext *pContext,
                                          const char *pcString,
-                                         unsigned long ulCount,
-                                         unsigned long *pulSkip);
+                                         uint32_t ulCount,
+                                         uint32_t *pulSkip);
 
-extern unsigned long GrMapUnicode_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapUTF8_Unicode(const char *pcSrcChar,
-                                       unsigned long ulCount,
-                                       unsigned long *pulSkip);
-extern unsigned long GrMapUTF16LE_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapUTF16BE_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_1_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_2_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_3_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_4_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_5_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_6_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_7_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_8_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_9_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_10_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_11_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_13_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_14_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_15_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapISO8859_16_Unicode(const char *pcSrcChar,
-                                            unsigned long ulCount,
-                                            unsigned long *pulSkip);
-extern unsigned long GrMapWIN1250_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapWIN1251_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapWIN1252_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapWIN1253_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
-extern unsigned long GrMapWIN1254_Unicode(const char *pcSrcChar,
-                                          unsigned long ulCount,
-                                          unsigned long *pulSkip);
+extern uint32_t GrMapUnicode_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapUTF8_Unicode(const char *pcSrcChar,
+                                       uint32_t ulCount,
+                                       uint32_t *pulSkip);
+extern uint32_t GrMapUTF16LE_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapUTF16BE_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_1_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_2_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_3_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_4_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_5_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_6_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_7_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_8_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_9_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_10_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_11_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_13_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_14_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_15_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapISO8859_16_Unicode(const char *pcSrcChar,
+                                            uint32_t ulCount,
+                                            uint32_t *pulSkip);
+extern uint32_t GrMapWIN1250_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapWIN1251_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapWIN1252_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapWIN1253_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
+extern uint32_t GrMapWIN1254_Unicode(const char *pcSrcChar,
+                                          uint32_t ulCount,
+                                          uint32_t *pulSkip);
 
 //*****************************************************************************
 //
