@@ -89,9 +89,9 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
- //  {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-//   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-//   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
 
@@ -761,7 +761,7 @@ void TestNotification(CuTest *tc)
   window_notify_ancs(0, 1, 1, 1);
   window_notify_ancs(0, 2, 1, 1);
   window_notify_ancs(0, 3, 1, 1);
-  window_notify_ancs(2, 3, 1, 1);
+  window_notify_ancs(2, 2, 1, 1);
   window_notify_ancs(1, 1, 1, 1);
   window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
