@@ -390,6 +390,23 @@ void window_close()
 
 #define WINDOWCONFIG "_uiconfig"
 
+void window_reload()
+{
+   stackptr = 0;
+   statusflag = 0;
+  //window_open(&menu_process, NULL);
+  if (
+    system_testing())
+    ui_window = menu_process;
+  else if (system_locked())
+    ui_window = welcome_process;
+  else
+    ui_window = menu_process;
+
+  process_exit(&system_process);
+  process_start(&system_process, NULL);
+}
+
 void window_loadconfig()
 {
   printf("load config file\n");

@@ -211,7 +211,7 @@ void system_unlock()
   flash_writepage(INFOD, (uint16_t*)&new_data, 128);
   flash_done();
   
-  system_reset(); 
+  window_reload();
 }
 
 void system_resetfactory()
