@@ -22,5 +22,6 @@
 #define ICON_LARGET_WATCH 'h'
 #define ICON_LARGET_PHONE 'i'
 #define ICON_LARGE_WARNING 'j'
+#define ICON_LARGE_LOWBATTERY 'k'
 
 #endif
