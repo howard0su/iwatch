@@ -142,6 +142,7 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     {
         printf("subscribe to ANCS finished.\n");
         att_enter_mode(MODE_NORMAL);
+        window_notify_ancs_init();
     }
 }
 

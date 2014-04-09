@@ -260,6 +260,11 @@ void fetch_content()
   att_fetch_next(uid, attribute);
 }
 
+void window_notify_ancs_init()
+{
+  lastmessageid = -1;
+}
+
 void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t category)
 {
   if (command == 0) // add
