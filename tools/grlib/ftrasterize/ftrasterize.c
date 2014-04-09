@@ -4136,7 +4136,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
         //
         if(ulCount == 0)
         {
-            if(sscanf(pucData + ulMax, "%lu", &ulWidth) != 1)
+            if(sscanf(pucData + ulMax, "%u", &ulWidth) != 1)
             {
                 fprintf(stderr, "has an invalid width.\n");
                 return(1);
@@ -4144,7 +4144,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
         }
         else if(ulCount == 1)
         {
-            if(sscanf(pucData + ulMax, "%lu", &ulHeight) != 1)
+            if(sscanf(pucData + ulMax, "%u", &ulHeight) != 1)
             {
                 fprintf(stderr, "has an invalid height.\n");
                 return(1);
