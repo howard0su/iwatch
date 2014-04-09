@@ -106,9 +106,9 @@ static btstack_packet_handler_t att_client_packet_handler = NULL;
 static const uint16_t connection_params[] =
 {
 //  min, max, latency, timeout,
-    20, 600, 0, 0x48,// normal situation
-    20, 600, 0, 0x148,// idle situation
-    16, 16, 0, 6,// fast situation
+    20, 600, 0, 200,// normal situation
+    600, 800, 0, 600,// idle situation
+    16, 50, 0, 10,// fast situation
 };
 static uint8_t target_connection_params = 0xff;
 
