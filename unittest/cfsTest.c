@@ -134,11 +134,11 @@ void test_central_db(CuTest* tc)
 
   central_device_db_init();
 
-  CuAssertIntEquals(tc, central_device_db_count(), 0);
+  CuAssertIntEquals(tc, central_device_db_count(), 4);
 
   central_device_db_add(0, bd, key, key);
 
-  CuAssertIntEquals(tc, central_device_db_count(), 1);
+  CuAssertIntEquals(tc, central_device_db_count(), 4);
 
   int addr_type = 0xff;
   bd_addr_t addr;
@@ -151,7 +151,7 @@ void test_central_db(CuTest* tc)
 
   central_device_db_add(0, bd, key, key);
 
-  CuAssertIntEquals(tc, central_device_db_count(), 2);  
+  CuAssertIntEquals(tc, central_device_db_count(), 4);  
   central_device_db_info(1, &addr_type, addr, irk);
 
   CuAssertIntEquals(tc, addr_type, 0);
