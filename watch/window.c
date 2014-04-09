@@ -513,7 +513,6 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
 {
   messagebox_icon = icon;
   messagebox_message = message;
-  window_open(messagebox_process, NULL);
 
   if (flags)
   {
@@ -523,4 +522,15 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
   {
     motor_on(50, CLOCK_SECOND/2);
   }
+
+  for (int i = 1; i <= stackptr; i++)
+  {
+    if (stack[i] == &messagebox_process)
+    {
+      window_invalid(NULL);
+      return;
+    }
+  }
+
+  window_open(&messagebox_process, NULL);
 }
