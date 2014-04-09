@@ -17,6 +17,8 @@ static char message_icon;
 static uint8_t message_buttons;
 static uint8_t message_result;
 
+static uint32_t lastmessageid = -1;
+
 #define BORDER 5
 
 static const tRectangle contentrect = 
@@ -262,6 +264,11 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
 {
   if (command == 0) // add
   {
+    if (lastmessageid != -1 && lastmessageid >= uid)
+    {
+      return;
+    }
+
     message_title = NULL;
     message = NULL;
     push_uid(uid, (flag << 8) | category);
@@ -269,6 +276,7 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
     motor_on(50, CLOCK_SECOND);
     backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
 
+    lastmessageid = uid;
     if (state & STATE_ACTIVE)
       window_invalid(NULL);
     else 
@@ -313,6 +321,7 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
       uids[j] = uids[j+1];
       attributes[j] = attributes[j+1];
     }
+    num_uids--;
 
     if (refresh)
       fetch_content();
