@@ -482,6 +482,7 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
     
     case EVENT_WINDOW_CLOSING:
       motor_on(0, 0);
+      process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)0);
       break;
 
     default:
