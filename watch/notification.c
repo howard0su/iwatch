@@ -204,7 +204,10 @@ static void onDraw(tContext *pContext)
 
 static void push_uid(uint32_t id, uint32_t attribute)
 {
-  for(int i = num_uids - 1; i >= 0; i--)
+  if (num_uids < MAX_NOTIFY)
+    num_uids++;
+
+  for(int i = num_uids; i >= 0; i--)
   {
     uids[i] = uids[i - 1];
     attributes[i] = attributes[i - 1];
@@ -212,8 +215,6 @@ static void push_uid(uint32_t id, uint32_t attribute)
 
   uids[0] = id;
   attributes[0] = attribute;
-  if (num_uids < MAX_NOTIFY)
-    num_uids++;
 }
 
 static void dump_uid()
