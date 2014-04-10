@@ -4,7 +4,7 @@ CC      = $(IARPATH)/bin/icc430.exe
 LINK    = $(IARPATH)/bin/xlink.exe
 ECHO	= echo
 
-FWVERSION = 20140401 
+FWVERSION = DEBUG
 
 IGNORE_WARNINGS=Pa050
 
