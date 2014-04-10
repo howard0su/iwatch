@@ -128,10 +128,14 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                     break;
 
                     case HCI_EVENT_DISCONNECTION_COMPLETE:
-                        todos = ENABLE_ADVERTISEMENTS;
-                        gap_run();
-                        break;
-
+                        {
+                            uint16_t handle = READ_BT_16(packet, 3);
+                            if (handle < 1024)
+                                break;
+                            todos = ENABLE_ADVERTISEMENTS;
+                            gap_run();
+                            break;
+                        }
 
                 case SM_PASSKEY_DISPLAY_NUMBER: {
                     // display number

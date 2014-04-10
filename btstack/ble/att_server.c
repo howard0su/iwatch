@@ -169,6 +169,11 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                 	break;
 
                 case HCI_EVENT_DISCONNECTION_COMPLETE:
+                    {
+                        uint16_t handle = READ_BT_16(packet, 3);
+                        if (handle <= 1024)
+                            break;
+                    
                     // restart advertising if we have been connected before
                     // -> avoid sending advertise enable a second time before command complete was received 
                     att_server_state = ATT_SERVER_IDLE;
@@ -176,7 +181,8 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     att_handle_value_indication_handle = 0; // reset error state
                     att_clear_transaction_queue();
                     break;
-                    
+                    }
+
                 case SM_IDENTITY_RESOLVING_STARTED:
                     printf("SM_IDENTITY_RESOLVING_STARTED\n");
                     att_ir_lookup_active = 1;
