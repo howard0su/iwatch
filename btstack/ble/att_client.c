@@ -141,7 +141,7 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     else if (handle == attribute_handles[DATASOURCE] + 1)
     {
         printf("subscribe to ANCS finished.\n");
-        att_enter_mode(MODE_NORMAL);
+        att_enter_mode(MODE_SLEEP);
         window_notify_ancs_init();
     }
 }

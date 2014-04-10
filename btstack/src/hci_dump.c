@@ -395,6 +395,31 @@ void getPDUName(char** name_string, uint8_t *pdu, uint8_t in)
       strcpy(name_string, "HCI Synchonous Connection Changed Event");
       break;
 
+    case 0x3E:
+      {
+        // LE META Event
+        switch(pdu[2])
+        {
+          case 0x01:
+            strcpy(name_string, "LE Connection Complete");
+            break;
+          case 0x02:
+            strcpy(name_string, "LE Advertising Report");
+            break;
+          case 0x03:
+            strcpy(name_string, "LE Connection Update Complete");
+            break;
+          case 0x04:
+            strcpy(name_string, "LE Read Remote Used Features Complete");
+            break;
+          case 0x05:
+            strcpy(name_string, "LE Long Term Key Request");
+            break;
+          default:
+            strcpy(name_string, "Unknow LE Meta Event");
+            break;
+        }
+      }
       /* Ralink modify start, Tom, 2008/1/20 */
     case 0x38:
       strcpy(name_string, "HCI Link Supervision Timeout Changed Event");
