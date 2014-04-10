@@ -107,8 +107,8 @@ static const uint16_t connection_params[] =
 {
 //  min, max, latency, timeout,
     20, 600, 0, 200,// normal situation
-    600, 800, 0, 600,// idle situation
-    16, 50, 0, 10,// fast situation
+    24, 45, 3, 500,// idle situation
+    16, 32, 0, 10,// fast situation
 };
 static uint8_t target_connection_params = 0xff;
 
