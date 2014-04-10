@@ -38,7 +38,9 @@ extern void ped_reset();
 #define BATTERY_MORE_CHARGE 6
 
 static uint16_t status;
+static char alarmtext[10]; // 12:34 67
 
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 static uint16_t s_watch_status = 0;
 uint16_t add_watch_status(uint16_t value)
 {
@@ -204,7 +206,10 @@ static void check_battery()
       break;
       default:
       status |= BATTERY_FULL;
-  }
+    }
+
+    if (level == 0)
+      window_messagebox(ICON_LARGE_LOWBATTERY, "LOW BATTERY\nConnect charger now.", 0);
   }
   else if (state == BATTERY_CHARGING)
   {
@@ -323,7 +328,10 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       {
         if (uiconf->alarms[i].flag != 0 && uiconf->alarms[i].hour == hour && uiconf->alarms[i].minutes == minute)
         {
-          window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, 0);
+          uint8_t ampm;
+          adjustAMPM(hour, &hour, &ampm);
+          sprintf(alarmtext, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
+          window_messagebox(ICON_LARGE_ALARM, alarmtext, 1);
           break;
         }
       }
