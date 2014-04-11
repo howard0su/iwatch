@@ -44,21 +44,6 @@ static uint8_t  selectidx = 0;
 static uint32_t uids[MAX_NOTIFY];
 static uint32_t attributes[MAX_NOTIFY];
 
-static int IsNonEnglish(const char* str)
-{
-  if (str == NULL)
-    return 0;
-
-  while(*str)
-  {
-    if (*str & 0x80)
-      return 1;
-    str++;
-  }
-
-  return 0;
-}
-
 static void onDrawTitleBar(tContext *pContext)
 {
   // draw the title bar of circles
@@ -91,7 +76,6 @@ static const tFont *get_titlefont()
     case 2:
       return (const tFont*)&g_sFontUnicode;
       break;
-    case 0:
     default:
       return (const tFont*)&g_sFontGothic24b;
   }
@@ -105,7 +89,6 @@ static const tFont *get_contentfont()
       return (const tFont*)&g_sFontGothic24b;
     case 2:
       return (const tFont*)&g_sFontUnicode;
-      break;
     case 0:
     default:
       return (const tFont*)&g_sFontGothic18b;
@@ -150,7 +133,7 @@ static void onDraw(tContext *pContext)
 
     if (message_date)
     {
-      char buf[20];
+      char buf[40];
       convertdate(buf, message_date);
 
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
@@ -165,12 +148,6 @@ static void onDraw(tContext *pContext)
 
   titleFont = get_titlefont();
   contentFont = get_contentfont();
-
-  if (IsNonEnglish(message_title) || IsNonEnglish(message_subtitle))
-    titleFont = (tFont*)&g_sFontUnicode;
-
-  if (IsNonEnglish(message))
-    contentFont = (tFont*)&g_sFontUnicode;
 
   GrContextFontSet(pContext, titleFont);
 
@@ -215,14 +192,6 @@ static void push_uid(uint32_t id, uint32_t attribute)
 
   uids[0] = id;
   attributes[0] = attribute;
-}
-
-static void dump_uid()
-{
-  for(int i = 0; i < num_uids; i++)
-  {
-    printf("%d uid: %ld\n", i, uids[i]);
-  }
 }
 
 void window_notify(const char* title, const char* msg, uint8_t buttons, char icon)
@@ -345,8 +314,6 @@ void window_notify_content(const char* title, const char* subtitle, const char* 
   skip = 0;
 
   window_invalid(NULL);
-
-  dump_uid();
 }
 
 // notify window process
@@ -366,7 +333,6 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       motor_on(50, 0);
     }
-    // read the first id from SPI flash
     break;
   }
   case EVENT_WINDOW_PAINT:
