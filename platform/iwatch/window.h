@@ -71,6 +71,7 @@ extern void window_button(tContext *pContext, uint8_t key, const char* text);
 extern void window_progress(tContext *pContext, long lY, uint8_t step);
 extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected);
 extern void window_volume(tContext *pContext, long lX, long lY, int total, int current);
+extern void window_selecttext(tContext *pContext, const char* pcString, long lLength, long lX, long lY);
 
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1
@@ -105,6 +106,7 @@ extern uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configdate_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t configfont_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t calendar_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t selftest_process(uint8_t event, uint16_t lparam, void* rparam);
@@ -194,6 +196,7 @@ extern void window_loadconfig();
 extern const char * const month_name[];
 extern const char * const month_shortname[];
 extern const char * const week_shortname[];
+extern const char * const fontconfig_name[];
 extern const char* toEnglish(uint8_t number, char* buffer);
 
 // #define EVENT_SPORT_DATA              0x92

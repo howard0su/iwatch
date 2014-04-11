@@ -99,12 +99,6 @@ static void OnDraw(tContext *pContext)
   case STATE_CONFIG_MINUTE:
   case STATE_CONFIG_HOUR:
     {
-      for(int i = 0; i < 10; i++)
-      {
-        GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
-        GrLineDrawH(pContext, 130 - i, 130 + i,  153 - i);
-      }
-
       window_drawtime(pContext, 65, times, 1 << state);
       window_button(pContext, KEY_ENTER, "OK");
       break;

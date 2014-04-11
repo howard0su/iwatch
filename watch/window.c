@@ -493,7 +493,7 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 28, 0);
 
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
-      GrStringDrawWrap(pContext, messagebox_message, 20, 100, LCD_X_SIZE - 40, 0);
+      GrStringDrawWrap(pContext, messagebox_message, 10, 100, LCD_X_SIZE - 20, 0);
       break;
     }
     

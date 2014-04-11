@@ -39,6 +39,7 @@
 #define DATA_LEGAL 0xF7
 #define DATA_LIGHT 0xF8
 #define DATA_VOL  0xF9
+#define DATA_FONTCONFIG 0xFA
 #define NO_DATA   0xFF
 
 struct MenuItem
@@ -55,6 +56,7 @@ static const struct MenuItem SetupMenu[] =
   {DATA_LIGHT, "Back Light", &configlight_process},
   {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
+  {DATA_FONTCONFIG, "Font", &configfont_process},
   {-1,   "Factory Reset", &reset_process},
   {-1,   "About", &about_process},
 //  {NO_DATA, "Shutdown", &shutdown_process},
@@ -224,6 +226,11 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
         sprintf(buf, "Meteor %02X%02X", ptr[4], ptr[5]);
         break;
       }
+      case DATA_FONTCONFIG:
+      {
+        strcpy(buf, fontconfig_name[window_readconfig()->font_config]);
+        break;
+      }
       default:
       strcpy(buf, "TODO");
       break;
@@ -331,7 +338,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = (system_testing()==1)?TestMenu:MainMenu;
       }
-      else if (strcmp(rparam, "Watch Setup") == 0)
+      else if (strcmp(rparam, "Settings") == 0)
       {
         Items = SetupMenu;
       }

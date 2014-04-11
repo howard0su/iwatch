@@ -91,7 +91,7 @@ static struct _event test_events[] = {
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+  // {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
 
@@ -211,11 +211,19 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
  
    {1, EVENT_FIRMWARE_UPGRADE, 0},
@@ -538,6 +546,22 @@ void TestBtConfig(CuTest* tc)
   run_window_events(&btconfig_process, test_events);
 }
 
+void TestFontConfig(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+  for(int i = 0; i < 3; i++)
+  {
+    window_readconfig()->font_config = i;
+    run_window_events(&configfont_process, test_events);
+  }
+  window_readconfig()->font_config = 0;
+}
+
 static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
 
 static void* font;
@@ -798,6 +822,7 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestControl);
   SUITE_ADD_TEST(suite, TestWelcome);
   SUITE_ADD_TEST(suite, TestBtConfig);
+  SUITE_ADD_TEST(suite, TestFontConfig);
 
   SUITE_ADD_TEST(suite, TestSleep);
 
