@@ -439,7 +439,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       if (Items == SetupMenu)
       {
         Items = MainMenu;
-        currentTop = 5;
+        currentTop = 7;
         current = 9;
         getMenuLength();
         window_invalid(NULL);
