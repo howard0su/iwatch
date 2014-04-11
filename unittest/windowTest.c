@@ -363,7 +363,6 @@ static void test_window(windowproc window, void* data)
 
 static void test_window_stopwatch(windowproc window, void* data)
 {
-  GrContextFontSet(&context, (const tFont*)NULL);
   window(EVENT_WINDOW_CREATED, 0, data);
 //  GrContextClipRegionSet(&context, &status_clip);
 //  status_process(EVENT_WINDOW_PAINT, 0, &context);
