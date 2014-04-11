@@ -436,7 +436,7 @@ uint8_t configfont_process(uint8_t event, uint16_t lparam, void* rparam)
       switch(lparam)
       {
         case KEY_UP:
-        if (state < 3)
+        if (state < 2)
           state++;
         break;
         case KEY_DOWN:
