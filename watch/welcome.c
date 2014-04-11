@@ -3,7 +3,7 @@
 #include "window.h"
 #include "btstack/bluetooth.h"
 #include "Template_Driver.h"
-
+#include "icons.h"
 #include <stdio.h>
 
 static void OnDraw(tContext *pContext)
@@ -18,12 +18,12 @@ static void OnDraw(tContext *pContext)
 
   // draw welcome
   GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
-  char icon = 'h';
+  char icon = ICON_LARGET_WATCH;
   GrStringDraw(pContext, &icon, 1, 12, 16, 0);
-  icon = 'i';
+  icon = ICON_LARGET_PHONE;
   GrStringDraw(pContext, &icon, 1, 99, 16, 0);
 
-  icon = 'j'; // small bt icon
+  icon = ICON_BT; // small bt icon
   GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
   GrStringDraw(pContext, &icon, 1, 64, 29, 0);
 
@@ -86,11 +86,11 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 
 		case EVENT_BT_STATUS:
     	{
-      		if (lparam == BT_INITIALIZED)
-      		{
-        		bluetooth_discoverable(1);
-		      }
-          window_invalid(NULL);
+    		if (lparam == BT_INITIALIZED)
+    		{
+      		bluetooth_discoverable(1);
+	      }
+        window_invalid(NULL);
 		    break;
 		  }
 
