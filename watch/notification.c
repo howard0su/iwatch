@@ -257,7 +257,6 @@ void fetch_content()
   uid = uids[selectidx];
   attribute = attributes[selectidx];
 
-  printf("Attribute: %lx", attribute);
   att_fetch_next(uid, attribute);
 }
 
