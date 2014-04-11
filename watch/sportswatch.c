@@ -57,7 +57,7 @@ static const struct _datapoints datapoints[] =
   {"Total Workout Time", NULL,  NULL,   FORMAT_NONE},
   {"Speed",              "mph", "km/h", FORMAT_SPD},
   {"Heart Rate",         "bpm", "bpm",  FORMAT_NONE},
-  {"Burned Calories",    "cal", "KJ",   FORMAT_CALS},
+  {"Calories",           "cal", "KJ",   FORMAT_CALS},
   {"Distance",           "mile","km",   FORMAT_DIST},
   {"Avg Speed",          "mph", "km/p", FORMAT_NONE},
   {"Altitude",           "ft",  "mt",   FORMAT_ALT},
