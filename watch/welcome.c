@@ -25,9 +25,9 @@ static void OnDraw(tContext *pContext)
 
   icon = ICON_BT; // small bt icon
   GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-  GrStringDraw(pContext, &icon, 1, 64, 29, 0);
+  GrStringDraw(pContext, &icon, 1, 64, 35, 0);
 
-  tRectangle rect2 = {48, 35, 48 + 3, 35 + 3}; 
+  tRectangle rect2 = {48, 40, 48 + 3, 40 + 3}; 
   for(int i = 0; i < 3; i++)
   {
   	GrRectFill(pContext, &rect2);

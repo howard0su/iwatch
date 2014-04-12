@@ -88,13 +88,27 @@ static const tRectangle button_rect[] =
 */
 void window_button(tContext *pContext, uint8_t key, const char* text)
 {
+  long forecolor, backcolor;
+
+  if (key & 0x80)
+  {
+    forecolor = ClrBlack;
+    backcolor = ClrWhite;
+    key &= ~(0x80);
+  }
+  else
+  {
+    forecolor = ClrWhite;
+    backcolor = ClrBlack;
+  }
   GrContextFontSet(pContext, &g_sFontGothic18);
+
 
   // draw black box
   if (text)
   {
     const tRectangle *rect = &button_rect[key];
-    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextForegroundSet(pContext, forecolor);
     GrRectFill(pContext, rect);
 
     // draw triagle
@@ -112,16 +126,14 @@ void window_button(tContext *pContext, uint8_t key, const char* text)
       }
     }
 
-    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextForegroundSet(pContext, backcolor);
     GrStringDrawCentered(pContext, text, -1, (rect->sXMin + rect->sXMax) /2, (rect->sYMin + rect->sYMax) /2, 0);
   }
   else
   {
-    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextForegroundSet(pContext, backcolor);
     GrRectFill(pContext, &button_rect[key]);
   }
-
-  GrContextForegroundSet(pContext, ClrWhite);
 }
 
 void window_selecttext(tContext *pContext, const char* pcString, long lLength, long lX, long lY)

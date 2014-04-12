@@ -200,7 +200,7 @@ uint8_t script_process(uint8_t event, uint16_t lparam, void* rparam)
       if (state == ERROR)
       {
         GrContextFontSet(pContext, &g_sFontGothic18);
-        GrStringDrawWrap(pContext, aux_StrError(idxOnCreate), 10, 80, 130, 1);
+        GrStringDrawWrap(pContext, aux_StrError(idxOnCreate), 10, 80, 130, 0);
 
         return 1;
       }

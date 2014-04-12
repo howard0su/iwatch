@@ -46,7 +46,7 @@ static void OnDrawTime(tContext *pContext)
 
   GrContextForegroundSet(pContext, ClrWhite);
 
-  sprintf(buf, "%d", HOUR);
+  sprintf(buf, "%02d", HOUR);
   if (state == STATE_CONFIG_HOUR)
   {
     window_selecttext(pContext, buf, -1, 10, 70);
@@ -58,7 +58,7 @@ static void OnDrawTime(tContext *pContext)
 
   GrStringDraw(pContext, ":", 1, 55, 70, 0);
 
-  sprintf(buf, "%d", MINUTE);
+  sprintf(buf, "%02d", MINUTE);
   if (state == STATE_CONFIG_MINUTE)
   {
     window_selecttext(pContext, buf, -1, 70, 70);
@@ -115,7 +115,7 @@ static void OnDrawDate(tContext *pContext)
     GrStringDraw(pContext, buf, -1, 25, 60, 0);
   }
 
-  sprintf(buf, "%d", DAY);
+  sprintf(buf, "%02d", DAY);
   if (state == STATE_CONFIG_DAY)
   {
     window_selecttext(pContext, buf, -1, 90, 60);

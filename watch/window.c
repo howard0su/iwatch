@@ -473,11 +473,14 @@ void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
 
 static uint8_t messagebox_icon;
 static const char* messagebox_message;
+static uint8_t messagebox_result;
+static uint8_t messagebox_flags;
 static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   switch(ev)
   {
     case EVENT_WINDOW_CREATED:
+    messagebox_result = 0;
     return 0x0;
 
     case EVENT_WINDOW_PAINT:
@@ -490,16 +493,44 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrContextForegroundSet(pContext, ClrBlack);
 
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
-      GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 28, 0);
+      GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 37, 0);
 
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
-      GrStringDrawWrap(pContext, messagebox_message, 10, 100, LCD_X_SIZE - 20, 0);
+      GrStringDrawWrap(pContext, messagebox_message, 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+
+      if (messagebox_flags & NOTIFY_CONFIRM)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "Confirm");
+      }
+      else if (messagebox_flags & NOTIFY_OK)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "OK");
+      }
+      else if (messagebox_flags & NOTIFY_YESNO)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "YES");
+        window_button(pContext, KEY_DOWN | 0x80, "NO"); 
+      }
       break;
     }
-    
+
+    case EVENT_KEY_PRESSED:
+    {
+      if (lparam == KEY_ENTER)
+      {
+        messagebox_result = 1;
+        window_close();
+      }
+      else if (lparam == KEY_DOWN && (messagebox_flags & NOTIFY_YESNO))
+      {
+        messagebox_result = 2;
+        window_close();  
+      }
+      break;
+    }
     case EVENT_WINDOW_CLOSING:
       motor_on(0, 0);
-      process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)0);
+      process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)messagebox_result);
       break;
 
     default:
@@ -513,8 +544,9 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
 {
   messagebox_icon = icon;
   messagebox_message = message;
+  messagebox_flags = flags;
 
-  if (flags)
+  if (flags & NOTIFY_ALARM)
   {
     motor_on(50, 0);
   }

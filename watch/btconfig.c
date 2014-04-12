@@ -18,9 +18,6 @@ void draw_screen(tContext *pContext)
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
 
-  GrContextForegroundSet(pContext, ClrWhite);
-  GrContextBackgroundSet(pContext, ClrBlack);
-
   // display text
   if (state == BT_ON)
   {
@@ -59,6 +56,9 @@ void draw_screen(tContext *pContext)
   {
     return;
   }
+
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
 
   GrContextFontSet(pContext, (const tFont*)&g_sFontExIcon48);
   GrStringDraw(pContext, &icon, 1, 50 + offset, 50, 0);

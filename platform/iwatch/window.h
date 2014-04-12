@@ -77,6 +77,7 @@ extern void window_selecttext(tContext *pContext, const char* pcString, long lLe
 #define NOTIFY_YESNO 1
 #define NOTIFY_ACCEPT_REJECT 2
 #define NOTIFY_ALARM  0x10
+#define NOTIFY_CONFIRM 0x20
 
 #define NOTIFY_RESULT_OK 1
 #define NOTIFY_RESULT_YES 1
