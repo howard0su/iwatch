@@ -86,12 +86,6 @@
 #define SMCLKDIR P11DIR
 #define SMCLKBIT BIT2
 
-#define PCODECDIR P7DIR
-#define PCODECOUT P7OUT
-#define PCODECBIT BIT7
-
-
-
 #define BT_ACLK_SEL   P11SEL
 #define BT_ACLK_DIR   P11DIR
 #define BT_ACLK_BIT   BIT0    // P11.0 ACLK 32Khz -> BT
@@ -138,6 +132,12 @@
 #define OEHCIDIR    P9DIR
 #define OEHCIOUT    P9OUT
 #define OEHCIBIT    BIT2
+
+//P8.7 nOE CODEC
+#define PCODECDIR P8DIR
+#define PCODECOUT P8OUT
+#define PCODECBIT BIT7
+
 
 //P6.2 1.8v 
 #define BTPOWERDIR    P6DIR
