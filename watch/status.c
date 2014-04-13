@@ -147,12 +147,12 @@ static void OnDraw(tContext* pContext)
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
     GrStringDraw(pContext, &icon, 1, 48, 0, 0);
 
-    int part = window_readconfig()->goal_steps / 5;
+    uint16_t part = window_readconfig()->goal_steps / 5;
     uint16_t steps = ped_get_steps();
-    for(int i = 1; i <= 5; i++)
+    for(int i = 0; i < 5; i++)
     {
       tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
-      if (i * part / 2 <= steps)
+      if (i * part + part / 2 <= steps)
       {
         GrRectFill(pContext, &rect);
       }
