@@ -199,7 +199,7 @@ void bluetooth_enableConTxMode(int mode, int freq)
 
 uint16_t ped_get_steps()
 {
-  return 60000;
+  return 6000;
 }
 
 uint16_t ped_get_calorie() {return 10;}
