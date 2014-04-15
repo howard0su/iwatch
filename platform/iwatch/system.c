@@ -21,8 +21,8 @@ __attribute__ ((section(".infod")))
 #pragma constseg = INFOD
 #endif
 static const struct system_data init_data = {
-  1, 0, 1, 1,
-  0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+  0, 0, 1, 1,
+  0xAA, 0xBB, 0xCC, 0xDD, 0x01, 0x02,
 };
 #ifndef __GNUC__
 #pragma constseg = default
