@@ -84,6 +84,8 @@ static void gap_run();
 
 // write requests
 static int att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
+    if (transaction_mode == ATT_TRANSACTION_MODE_CANCEL)
+        return 0;
     return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_WRITE);
 }
 
