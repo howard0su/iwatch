@@ -12,6 +12,8 @@
 #define ICON_BATTERY_CHARGE_LESS 'q'
 #define ICON_BATTERY_CHARGE_MORE 'r'
 
+#define ICON_CHARGING ('z' + 3)
+
 #define ICON_LARGE_CYCLE 'a'
 #define ICON_LARGE_RUN   'b'
 #define ICON_LARGE_ALARM 'c'

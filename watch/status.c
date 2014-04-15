@@ -20,9 +20,8 @@ extern const tRectangle status_clip;
 extern void hfp_battery(int level);
 extern void ped_reset();
 
-#define BATTERY_X 125
-#define BT_X 107
-#define ALARM_X 89
+#define CHARGE_X 137
+#define ICONSPACE 18
 
 #define BATTERY_STATUS 0x07 // bit0 bit1 bit2 for battery
 #define BLUETOOTH_STATUS 0x08
@@ -30,12 +29,11 @@ extern void ped_reset();
 #define ALARM_STATUS  0x20
 #define MID_STATUS    0x40
 
-#define BATTERY_EMPTY 1
-#define BATTERY_LESS  2
-#define BATTERY_MORE  3
-#define BATTERY_FULL  4
-#define BATTERY_LESS_CHARGE 5
-#define BATTERY_MORE_CHARGE 6
+#define BATTERY_EMPTY 0
+#define BATTERY_LESS  1
+#define BATTERY_MORE  2
+#define BATTERY_FULL  3
+#define BATTERY_CHARGING 4
 
 static uint16_t status;
 static char alarmtext[10]; // 12:34 67
@@ -101,57 +99,65 @@ static void OnDraw(tContext* pContext)
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
   char icon;
+  int x = CHARGE_X;
 
-  if (status & BLUETOOTH_STATUS)
+  if (status & BATTERY_CHARGING)
   {
-    icon = ICON_BT;
-    GrStringDraw(pContext, &icon, 1, BT_X, 0, 0);
+    icon = ICON_CHARGING;
+    GrStringDraw(pContext, &icon, 1, x, 0, 0);
+    x -= ICONSPACE;
   }
 
-  if (status & ALARM_STATUS)
+  switch(status & 0x03)
   {
-    icon = ICON_ALARM;
-    GrStringDraw(pContext, &icon, 1, ALARM_X, 0, 0);
-  }
-
-  switch(status & BATTERY_STATUS)
-  {
-  case BATTERY_EMPTY:
-    icon = ICON_BATTERY_EMPTY;
-    break;
-  case BATTERY_LESS:
-    icon = ICON_BATTERY_LESS;
-    break;
-  case BATTERY_MORE:
-    icon = ICON_BATTERY_MORE;
-    break;
-  case BATTERY_FULL:
-    icon = ICON_BATTERY_FULL;
-    break;
-  case BATTERY_LESS_CHARGE:
-    icon = ICON_BATTERY_CHARGE_LESS;
-    break;
-  case BATTERY_MORE_CHARGE:
-    icon = ICON_BATTERY_CHARGE_MORE;
-    break;
-  default:
-    icon = 0;
+    case BATTERY_EMPTY:
+      icon = ICON_BATTERY_EMPTY;
+      break;
+    case BATTERY_LESS:
+      icon = ICON_BATTERY_LESS;
+      break;
+    case BATTERY_MORE:
+      icon = ICON_BATTERY_MORE;
+      break;
+    case BATTERY_FULL:
+      icon = ICON_BATTERY_FULL;
+      break;
+    default:
+      icon = 0;
   }
 
   if (icon != 0)
-    GrStringDraw(pContext, &icon, 1, BATTERY_X, 0, 0);
+  {
+    GrStringDraw(pContext, &icon, 1, x, 0, 0);
+    x -= ICONSPACE - 4;
+  }
+
+  //if (status & BLUETOOTH_STATUS)
+  {
+    icon = ICON_BT;
+    GrStringDraw(pContext, &icon, 1, x, 0, 0);
+    x -= ICONSPACE;
+  }
+
+  //if (status & ALARM_STATUS)
+  {
+    icon = ICON_ALARM;
+    GrStringDraw(pContext, &icon, 1, x, 0, 0);
+    x -= ICONSPACE;
+  }
+
   if (status & MID_STATUS)
   {
     char icon = ICON_RUN;
     // draw activity
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, &icon, 1, 48, 0, 0);
+    GrStringDraw(pContext, &icon, 1, 0, 0, 0);
 
     uint16_t part = window_readconfig()->goal_steps / 5;
     uint16_t steps = ped_get_steps();
     for(int i = 0; i < 5; i++)
     {
-      tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
+      tRectangle rect = {18 + i * 6, 6, 18 + 4 + i * 6, 9};
       if (i * part + part / 2 <= steps)
       {
         GrRectFill(pContext, &rect);
@@ -174,7 +180,7 @@ static void OnDraw(tContext* pContext)
     sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
     int width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width)/2, 0, 0);
+    GrStringDraw(pContext, buf, -1, 0, 2, 0);
   }
 }
 
@@ -187,48 +193,38 @@ static void check_battery()
 {
   //uint8_t report = 0;
   // update battery status
-  uint8_t state = battery_state();
+  BATTERY_STATE state = battery_state();
   uint8_t level = battery_level(state);
 
   status &= ~BATTERY_STATUS;
-  if (state == BATTERY_DISCHARGING)
-  {
-    switch(level)
-    {
-      case 0: case 1:
-      status |= BATTERY_EMPTY;
-      break;
-      case 2: case 3: case 4:
-      status |= BATTERY_LESS;
-      break;
-      case 5: case 6: case 7:
-      status |= BATTERY_MORE;
-      break;
-      default:
-      status |= BATTERY_FULL;
-    }
 
-    if (level == 0)
+  switch(level)
+  {
+    case 0: case 1:
+    status |= BATTERY_EMPTY;
+    break;
+    case 2: case 3: case 4:
+    status |= BATTERY_LESS;
+    break;
+    case 5: case 6: case 7:
+    status |= BATTERY_MORE;
+    break;
+    default:
+    status |= BATTERY_FULL;
+  }
+
+  if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
+  {
       window_messagebox(ICON_LARGE_LOWBATTERY, "LOW BATTERY\nConnect charger now.", 0);
-  }
-  else if (state == BATTERY_CHARGING)
-  {
-    if (level >= 9)
-    {
-      status |= BATTERY_FULL;
-    }
-    else if ((status & BATTERY_STATUS) == BATTERY_MORE_CHARGE)
-    {
-      status |= BATTERY_LESS_CHARGE;
-    }
-    else
-    {
-      status |= BATTERY_MORE_CHARGE;
-    }
+      return;
   }
 
-  if (state == BATTERY_CHARGING)
+  if (state == BATTERY_STATE_CHARGING)
+  {
+    status |= BATTERY_CHARGING;
     level |= 0x10;
+  }
+
   hfp_battery(level);
 }
 
@@ -271,7 +267,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
-    status = 0;
+    status = MID_STATUS;
     check_battery();
     status_invalid();
     break;
