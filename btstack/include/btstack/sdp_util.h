@@ -141,6 +141,7 @@ int       spd_get_filtered_size(const uint8_t *record, const uint8_t *attributeI
 int       sdp_filter_attributes_in_attributeIDList(const uint8_t *record, const uint8_t *attributeIDList, uint16_t startOffset, uint16_t maxBytes, uint16_t *usedBytes, uint8_t *buffer);
 uint16_t  sdp_get_parameters_for_uuid(const uint8_t *record, uint16_t uuid);
 
+void sdp_normalize_uuid(uint8_t *uuid, uint32_t shortUUID);
 #if defined __cplusplus
 }
 #endif

@@ -12,8 +12,8 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
   data[2] = ':';
   #define SPACING 3
   uint8_t height = GrStringHeightGet(pContext);
-  uint8_t width_all = GrStringWidthGet(pContext, data, 3);
-  uint8_t width_digit = GrStringWidthGet(pContext, data, 2);
+  uint8_t width_all = GrStringWidthGet(pContext, data, 3) + 10;
+  uint8_t width_digit = GrStringWidthGet(pContext, data, 2) + 4;
 
   long startx = (LCD_X_SIZE - width_all - width_all - width_digit) / 2;
   if (startx < 0) startx = 0;
@@ -23,24 +23,13 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
     data[0] = '0' + times[i] / 10;
     data[1] = '0' + times[i] % 10;
 
+    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextBackgroundSet(pContext, ClrBlack);
+
     if (selected & (1 << i))
-    {
-      // revert color
-      GrContextForegroundSet(pContext, ClrWhite);
-      GrContextBackgroundSet(pContext, ClrBlack);
-
-      tRectangle rect = {startx + i * width_all + 2, y, startx + i * width_all + width_digit + 1, y + height};
-      GrRectFillRound(pContext, &rect, 3);
-      GrContextForegroundSet(pContext, ClrBlack);
-      GrContextBackgroundSet(pContext, ClrWhite);
-    }
+      window_selecttext(pContext, data, 2, startx + SPACING + i * width_all, y);
     else
-    {
-      GrContextForegroundSet(pContext, ClrWhite);
-      GrContextBackgroundSet(pContext, ClrBlack);
-    }
-
-    GrStringDraw(pContext, data, 2, startx + SPACING + i * width_all, y, 0);
+      GrStringDraw(pContext, data, 2, startx + SPACING + i * width_all, y, 0);
 
     if (i != 2)
     {
@@ -58,14 +47,14 @@ void window_progress(tContext *pContext, long lY, uint8_t step)
   GrRectFillRound(pContext, &rect, 3);
   GrContextForegroundSet(pContext, ClrBlack);
 
-  if (step < 100)
-  {
-    rect.sXMin += 4;
-    rect.sYMin += 2;
-    rect.sYMax -= 2;
-    rect.sXMax = rect.sXMin + step;
-    GrRectFill(pContext, &rect);
-  }
+  if (step > 100)
+    step = 100;
+
+  rect.sXMin += 4;
+  rect.sYMin += 2;
+  rect.sYMax -= 2;
+  rect.sXMax = rect.sXMin + step;
+  GrRectFill(pContext, &rect);
 }
 
 void window_volume(tContext *pContext, long lX, long lY, int total, int current)
@@ -99,13 +88,27 @@ static const tRectangle button_rect[] =
 */
 void window_button(tContext *pContext, uint8_t key, const char* text)
 {
-  GrContextFontSet(pContext, &g_sFontRed13);
+  long forecolor, backcolor;
+
+  if (key & 0x80)
+  {
+    forecolor = ClrBlack;
+    backcolor = ClrWhite;
+    key &= ~(0x80);
+  }
+  else
+  {
+    forecolor = ClrWhite;
+    backcolor = ClrBlack;
+  }
+  GrContextFontSet(pContext, &g_sFontGothic18);
+
 
   // draw black box
   if (text)
   {
     const tRectangle *rect = &button_rect[key];
-    GrContextForegroundSet(pContext, ClrWhite);
+    GrContextForegroundSet(pContext, forecolor);
     GrRectFill(pContext, rect);
 
     // draw triagle
@@ -123,14 +126,37 @@ void window_button(tContext *pContext, uint8_t key, const char* text)
       }
     }
 
-    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextForegroundSet(pContext, backcolor);
     GrStringDrawCentered(pContext, text, -1, (rect->sXMin + rect->sXMax) /2, (rect->sYMin + rect->sYMax) /2, 0);
   }
   else
   {
-    GrContextForegroundSet(pContext, ClrBlack);
+    GrContextForegroundSet(pContext, backcolor);
     GrRectFill(pContext, &button_rect[key]);
   }
+}
+
+void window_selecttext(tContext *pContext, const char* pcString, long lLength, long lX, long lY)
+{
+  int height = GrStringHeightGet(pContext);
+  int width = GrStringWidthGet(pContext, pcString, lLength);
+
+  tRectangle rect = {lX - 2, lY - 2, lX + width + 2, lY + height + 2};
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrRectFillRound(pContext, &rect, 3);
+  GrContextForegroundSet(pContext, ClrBlack);
+
+  GrStringDraw(pContext, pcString, lLength, lX, lY, 0);
 
   GrContextForegroundSet(pContext, ClrWhite);
+
+  // there is something more
+  long x = lX + width/2;
+  long y0 = lY - 5 - 6;
+  long y1 = lY + height + 5 + 6;
+  for(int i = 0; i < 6; i++)
+  {
+    GrLineDrawH(pContext, x - i, x + i,  y1 - i);
+    GrLineDrawH(pContext, x - i, x + i,  y0 + i);
+  }
 }

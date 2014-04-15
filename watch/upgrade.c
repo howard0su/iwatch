@@ -1,75 +1,60 @@
-/****************************************************************
-*  Description: Implementation for upgrade firmware
-*    History:
-*      Jun Su          2013/6/21        Created
-*
-* Copyright (c) Jun Su, 2013
-*
-* This unpublished material is proprietary to Jun Su.
-* All rights reserved. The methods and
-* techniques described herein are considered trade secrets
-* and/or confidential. Reproduction or distribution, in whole
-* or in part, is forbidden except by express written permission.
-****************************************************************/
-
 #include "contiki.h"
 #include "window.h"
-#include "grlib/grlib.h"
-#include "Template_Driver.h"
-#include "rtc.h"
-#include <stdio.h>
 
-// Function prototypes
-void copy_flash_to_RAM(void);
-void write_block_int(void);
-
-static uint8_t enter_bsl()
-{
-  copy_flash_to_RAM();                      // Copy flash to RAM function
-
-  write_block_int();                        // This portion of code is executed
-
-  while(1);
-}
-
-static enum {W4CONFIRM, CONFIRMED} state = W4CONFIRM;
-
+static uint8_t progress;
+extern int CheckUpgrade();
 static void onDraw(tContext *pContext)
 {
-	GrContextForegroundSet(pContext, ClrBlack);
-	GrRectFill(pContext, &client_clip);
-	GrContextForegroundSet(pContext, ClrWhite);
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrRectFill(pContext, &client_clip);
+  GrContextForegroundSet(pContext, ClrWhite);
+  
+  GrContextFontSet(pContext, &g_sFontGothic18b);
+  GrStringDrawCentered(pContext, "Firmware Upgrade", -1, 72, 60, 0);
+  if (progress == 100)
+  	GrStringDrawCentered(pContext, "Done", -1, 72, 96, 0);
+  else
+  	GrStringDrawCentered(pContext, "Don't do any operation", -1, 72, 96, 0);
 
-	GrContextFontSet(pContext, &g_sFontNova16);
-	if (state == W4CONFIRM)
-	  GrStringDrawWrap(pContext, "Plug watch to PC and press any key to continue", 0, 30, 150, 30);
-	else
-	{
-	   GrStringDraw(pContext, "Run the flash program.", -1, 0, 30, 0);
-	   GrStringDraw(pContext, "DO NOT UNPLUG", -1, 0, 90, 0);
-	}
+  if (progress == 100)
+  	window_button(pContext, KEY_ENTER, "Reboot");
+  else
+	window_progress(pContext, 110, progress);
 }
 
-uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
+extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-  // enable 
-  switch(ev)
-  {
-  case EVENT_WINDOW_PAINT:
-  	onDraw((tContext*)rparam);
-
-  	if (state == CONFIRMED)
-  		window_timer(CLOCK_SECOND);
-  	break;
-  case EVENT_KEY_PRESSED:
-  	state = CONFIRMED;
-  	window_invalid(NULL);
-  	break;
-  case PROCESS_EVENT_TIMER:
-  	enter_bsl();
-  	break;
-  default:
-  	return 0;
-  }
-  return 1;
+	switch(ev)
+	{
+		case EVENT_FIRMWARE_UPGRADE:
+			if (rparam == (void*)-1)
+			{
+				progress = 100;
+			}
+			else
+			{
+				progress = (long)rparam * 100/(230UL*1024);
+			}
+			window_invalid(NULL);
+			break;
+		case EVENT_WINDOW_PAINT:
+			onDraw((tContext*)rparam);
+		    break;
+		case EVENT_EXIT_PRESSED:
+			if (progress != 100)
+				return 1;
+			break;
+		case EVENT_KEY_PRESSED:
+		 	if (lparam == KEY_ENTER)
+		 	{
+		 		if (progress == 100)
+		 		{
+		 			if (!CheckUpgrade())
+		 				system_reset();
+		 			else
+		 				window_close();
+		 		}
+		 	}
+		 	break;
+	}
 }

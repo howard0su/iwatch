@@ -34,25 +34,10 @@ enum _statedate{
 
 extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
-static void GrStringDrawReverse(tContext *pContext, char* pcString, long lLength, long lX, long lY, unsigned long bOpaque)
-{
-  int height = GrStringHeightGet(pContext);
-  int width = GrStringWidthGet(pContext, pcString, lLength);
-
-  tRectangle rect = {lX - 2, lY - 2, lX + width + 2, lY + height + 2};
-  GrContextForegroundSet(pContext, ClrWhite);
-  GrRectFillRound(pContext, &rect, 3);
-  GrContextForegroundSet(pContext, ClrBlack);
-
-  GrStringDraw(pContext, pcString, lLength, lX, lY, bOpaque);
-
-  GrContextForegroundSet(pContext, ClrWhite);
-}
-
 static void OnDrawTime(tContext *pContext)
 {
   char buf[20];
-  GrContextFontSet(pContext, &g_sFontNova38b);
+  GrContextFontSet(pContext, &g_sFontGothambold42);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
@@ -61,10 +46,10 @@ static void OnDrawTime(tContext *pContext)
 
   GrContextForegroundSet(pContext, ClrWhite);
 
-  sprintf(buf, "%d", HOUR);
+  sprintf(buf, "%02d", HOUR);
   if (state == STATE_CONFIG_HOUR)
   {
-    GrStringDrawReverse(pContext, buf, -1, 10, 70, 1);
+    window_selecttext(pContext, buf, -1, 10, 70);
   }
   else
   {
@@ -73,17 +58,17 @@ static void OnDrawTime(tContext *pContext)
 
   GrStringDraw(pContext, ":", 1, 55, 70, 0);
 
-  sprintf(buf, "%d", MINUTE);
+  sprintf(buf, "%02d", MINUTE);
   if (state == STATE_CONFIG_MINUTE)
   {
-    GrStringDrawReverse(pContext, buf, -1, 70, 70, 0);
+    window_selecttext(pContext, buf, -1, 70, 70);
   }
   else
   {
     GrStringDraw(pContext, buf, -1, 70, 70, 0);
   }
 
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   // draw AM/PM
   uint8_t out;
   uint8_t ampm;
@@ -95,8 +80,6 @@ static void OnDrawTime(tContext *pContext)
 
   if (state != STATE_CONFIG_READY)
   {
-    window_button(pContext, KEY_UP, "UP");
-    window_button(pContext, KEY_DOWN, "DOWN");
     window_button(pContext, KEY_ENTER, "OK");
   }
 }
@@ -104,7 +87,7 @@ static void OnDrawTime(tContext *pContext)
 static void OnDrawDate(tContext *pContext)
 {
   char buf[20];
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
@@ -115,7 +98,7 @@ static void OnDrawDate(tContext *pContext)
   sprintf(buf, "%4d", 2000 + YEAR);
   if (state == STATE_CONFIG_YEAR)
   {
-    GrStringDrawReverse(pContext, buf, -1, 40, 100, 0);
+    window_selecttext(pContext, buf, -1, 40, 100);
   }
   else
   {
@@ -125,17 +108,17 @@ static void OnDrawDate(tContext *pContext)
   sprintf(buf, "%s", month_shortname[MONTH - 1]);
   if (state == STATE_CONFIG_MONTH)
   {
-    GrStringDrawReverse(pContext, buf, -1, 25, 60, 0);
+    window_selecttext(pContext, buf, -1, 25, 60);
   }
   else
   {
     GrStringDraw(pContext, buf, -1, 25, 60, 0);
   }
 
-  sprintf(buf, "%d", DAY);
+  sprintf(buf, "%02d", DAY);
   if (state == STATE_CONFIG_DAY)
   {
-    GrStringDrawReverse(pContext, buf, -1, 90, 60, 0);
+    window_selecttext(pContext, buf, -1, 90, 60);
   }
   else
   {
@@ -144,8 +127,6 @@ static void OnDrawDate(tContext *pContext)
 
   if (state != STATE_CONFIG_READY)
   {
-    window_button(pContext, KEY_UP, "UP");
-    window_button(pContext, KEY_DOWN, "DOWN");
     window_button(pContext, KEY_ENTER, "OK");
   }
 }
@@ -324,8 +305,6 @@ static void OnDrawLevel(tContext *pContext, int level)
 
   window_volume(pContext, 30, 100, 8, level);
 
-  window_button(pContext, KEY_UP, "+");
-  window_button(pContext, KEY_DOWN, "-");
   window_button(pContext, KEY_ENTER, "OK");
 }
 
@@ -407,6 +386,65 @@ uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam)
         break;
         case KEY_ENTER:
           window_readconfig()->volume_level = state;
+          window_writeconfig();
+          window_close();
+          return 1;
+      }
+      window_invalid(NULL);
+      break;
+    }
+  default:
+    return 0;
+  }
+
+  return 1;
+}
+
+static void OnDrawFontConfig(tContext *pContext, int config)
+{
+    // clear the region
+  GrContextForegroundSet(pContext, ClrBlack);
+  GrRectFill(pContext, &client_clip);
+
+  GrContextForegroundSet(pContext, ClrWhite);
+  GrContextBackgroundSet(pContext, ClrBlack);
+
+  GrContextFontSet(pContext, &g_sFontGothic24b);
+  int width = GrStringWidthGet(pContext, fontconfig_name[config], -1);
+  window_selecttext(pContext, fontconfig_name[config], -1, 72 - width/2, 70);
+
+  window_button(pContext, KEY_ENTER, "OK");
+}
+
+
+uint8_t configfont_process(uint8_t event, uint16_t lparam, void* rparam)
+{
+  switch(event)
+  {
+  case EVENT_WINDOW_CREATED:
+    {
+      state = window_readconfig()->font_config;
+      break;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      OnDrawFontConfig((tContext*)rparam, state);
+      break;
+    }
+  case EVENT_KEY_PRESSED:
+    {
+      switch(lparam)
+      {
+        case KEY_UP:
+        if (state < 2)
+          state++;
+        break;
+        case KEY_DOWN:
+        if (state > 0)
+          state--;
+        break;
+        case KEY_ENTER:
+          window_readconfig()->font_config = state;
           window_writeconfig();
           window_close();
           return 1;

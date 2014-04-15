@@ -1100,7 +1100,7 @@
         </option>
         <option>
           <name>GHeapSize2</name>
-          <state>3800</state>
+          <state>3600</state>
         </option>
         <option>
           <name>RadioDataModelType</name>
@@ -1108,7 +1108,7 @@
         </option>
         <option>
           <name>GHeap20Size</name>
-          <state>3800</state>
+          <state>3600</state>
         </option>
         <option>
           <name>GeneralMisraRules98</name>
@@ -2034,9 +2034,6 @@
       <name>$PROJ_DIR$\..\watch\digit-watch.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\watch\filesys_proc.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\gesture\gesture.c</name>
     </file>
     <file>
@@ -2053,9 +2050,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\phone.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\watch\recordoperation.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\selftest.c</name>
@@ -2093,9 +2087,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\today.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\watch\upgrade.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\watch\window.c</name>
@@ -2459,6 +2450,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\pedometer\pedometer_dist.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\pedometer\sleepalgo.r43</name>
     </file>
   </group>
   <group>

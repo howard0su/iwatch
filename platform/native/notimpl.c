@@ -14,6 +14,9 @@
 
 uint8_t shutdown_mode;
 
+#define NOT_IMPL_VOID(f, ...) void f(__VAR_ARGS){printf("[Not Impl]%s\n", __func__);}
+#define NOT_IMPL(f, rettype, ret, ...) rettype f(__VAR_ARGS){printf("[Not Impl]%s\n", __func__);return ret;}
+
 void rtc_init(){}
 extern void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
 {
@@ -89,15 +92,13 @@ void button_init() {}
 void backlight_init() {}
 void rtimer_arch_init(void) {}
 void rtimer_arch_schedule(rtimer_clock_t t){}
-uint8_t battery_level() {return 71;}
-BATTERY_STATE battery_state() {return BATTERY_CHARGING;}
+uint8_t battery_level(BATTERY_STATE state) {return 7;}
+BATTERY_STATE battery_state() {return BATTERY_STATE_CHARGING;}
 void backlight_on(uint8_t level, clock_time_t length) {}
 void mpu6050_init() {}
 
 
-uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam) {return 0;}
 uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
-uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam) {return 0;}
 
 void flash_setup(void) {}
 void flash_done(void) {}
@@ -111,7 +112,7 @@ unsigned long mpu_getsteptime()
 {return 1257;}
 unsigned long mpu_getsteps()
 {return 1435;}
-void mpu_gesturemode(uint8_t d)
+void mpu_switchmode(int d)
 {}
 
 void ant_init(ModeEnum mode) {}
@@ -184,9 +185,10 @@ void SPI_FLASH_BufferRead_Raw(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumB
 {
   if (fp == NULL)
   {
-    fp = fopen("./fontunicod16pt.bin", "rb");
+    fp = fopen("fontunicode18pt.bin", "rb");
   }
 
+  printf("Read %x\n", ReadAddr);
   fseek(fp, ReadAddr, SEEK_SET);
   fread(pBuffer,   NumByteToRead, 1, fp);
 }
@@ -197,7 +199,7 @@ void bluetooth_enableConTxMode(int mode, int freq)
 
 uint16_t ped_get_steps()
 {
-  return 60000;
+  return 6000;
 }
 
 uint16_t ped_get_calorie() {return 10;}
@@ -220,7 +222,10 @@ uint16_t __swap_bytes(uint16_t d)
 
 void codec_setvolume(int a) {}
 
-char *bluetooth_address() {return "TH:IS:IS:AD:DR";}
+const char buf[] = "THISISAD";
+const char *bluetooth_address() {
+  return &buf[0];
+}
 
 
 static const uint8_t month_day_map[] = {
@@ -312,8 +317,6 @@ uint32_t rtc_readtime32()
     return calc_timestamp(year - 2000, month, day, hour, min, sec);
 }
 
-
-
 int avrcp_get_attributes(uint32_t item) {return 1;}
 int avrcp_get_playstatus() {return 1;}
 uint8_t avrcp_connected(){ return 0;}
@@ -321,10 +324,36 @@ void avctp_send_passthrough(uint8_t op) {}
 void avrcp_connect(bd_addr_t remote_addr) {}
 bd_addr_t* hfp_remote_addr() {return NULL;}
 
- void codec_wakeup(){}
- void codec_suspend() {}
+NOT_IMPL_VOID(codec_wakeup);
+NOT_IMPL_VOID(codec_suspend);
 
 #include "hci.h"
-int hci_send_cmd(const hci_cmd_t *cmd, ...) {}
+int hci_send_cmd(const hci_cmd_t *cmd, ...) {return 0;}
 
-int hci_send_cmd_packet(uint8_t *packet, int size){}
+int hci_send_cmd_packet(uint8_t *packet, int size){return 0;}
+
+NOT_IMPL_VOID(WriteFirmware, void* data, uint32_t offset, int size);
+NOT_IMPL_VOID(EraseFirmware);
+NOT_IMPL_VOID(Upgrade);
+NOT_IMPL_VOID(system_reset);
+NOT_IMPL(system_locked, uint8_t, 0);
+NOT_IMPL(system_retail, uint8_t, 1);
+NOT_IMPL_VOID(system_resetfactory);
+NOT_IMPL(CheckUpgrade, int, 0);
+
+NOT_IMPL_VOID(bluetooth_discoverable);
+NOT_IMPL_VOID(bluetooth_init);
+NOT_IMPL_VOID(bluetooth_shutdown);
+NOT_IMPL(bluetooth_running, uint8_t, 1);
+
+NOT_IMPL_VOID(spp_sniff, int onoff);
+NOT_IMPL_VOID(system_unlock);
+
+void hfp_battery(uint8_t level) {}
+
+uint8_t hci_le_data_packet_length()
+{
+    return 26;
+}
+void att_fetch_next(uint32_t uid, uint32_t combine)
+{}

@@ -37,7 +37,8 @@
  *  Created by Matthias Ringwald on 7/23/09.
  */
 
-#pragma once
+#ifndef __UTILS_H
+#define __UTILS_H
 
 
 #if defined __cplusplus
@@ -58,22 +59,35 @@ typedef uint16_t hci_con_handle_t;
 typedef uint8_t bd_addr_t[BD_ADDR_LEN];
 
 /**
- * @brief The link key type
+ * @brief link key and its type
  */
 #define LINK_KEY_LEN 16
-typedef uint8_t link_key_t[LINK_KEY_LEN];
+typedef uint8_t link_key_t[LINK_KEY_LEN]; 
 
-/**
- * @brief The device name type
- */
-#define DEVICE_NAME_LEN 32
-typedef uint8_t device_name_t[DEVICE_NAME_LEN+1];
+typedef enum {
+	COMBINATION_KEY = 0,	// standard pairing
+	LOCAL_UNIT_KEY,			// ?
+	REMOTE_UNIT_KEY,		// ?
+	DEBUG_COMBINATION_KEY,	// SSP with debug
+	UNAUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P192, // SSP Simple Pairing
+	AUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P192,	 // SSP Passkey, Number confirm, OOB
+	CHANGED_COMBINATION_KEY,							 // Link key changed using Change Connection Lnk Key
+	UNAUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P256, // SSP Simpe Pairing
+	AUTHENTICATED_COMBINATION_KEY_GENERATED_FROM_P256,   // SSP Passkey, Number confirm, OOB
+} link_key_type_t;
 
 /**
  * @brief 128 bit key used with AES128 in Security Manager
  */
 typedef uint8_t sm_key_t[16];
 
+/**
+ * @brief The device name type
+ */
+#define DEVICE_NAME_LEN 32
+typedef uint8_t device_name_t[DEVICE_NAME_LEN+1]; 
+	
+	
 // helper for BT little endian format
 #define READ_BT_16( buffer, pos) ( ((uint16_t) buffer[pos]) | (((uint16_t)buffer[pos+1]) << 8))
 #define READ_BT_24( buffer, pos) ( ((uint32_t) buffer[pos]) | (((uint32_t)buffer[pos+1]) << 8) | (((uint32_t)buffer[pos+2]) << 16))
@@ -112,13 +126,21 @@ void net_store_32(uint8_t *buffer, uint16_t pos, uint32_t value);
 
 void hexdump(const void *data, int size);
 void printUUID(const uint8_t *uuid);
+void printUUID128(const uint8_t *uuid);
+void swapX(uint8_t *src, uint8_t *dst, int len);
+void swap24(uint8_t  src[3],  uint8_t dst[3]);
+void swap56(uint8_t  src[7],  uint8_t dst[7]);
+void swap64(uint8_t  src[8],  uint8_t dst[8]);
+void swap128(uint8_t src[16], uint8_t dst[16]);
+
+void print_key(const char * name, sm_key_t key);
 
 // @deprecated please use more convenient bd_addr_to_str
 void print_bd_addr( bd_addr_t addr);
 char * bd_addr_to_str(const bd_addr_t addr);
 
 int sscan_bd_addr(uint8_t * addr_string, bd_addr_t addr);
-
+    
 uint8_t crc8_check(uint8_t *data, uint16_t len, uint8_t check_sum);
 uint8_t crc8_calc(uint8_t *data, uint16_t len);
 
@@ -127,8 +149,10 @@ uint8_t crc8_calc(uint8_t *data, uint16_t len);
 
 #define htons(x) __swap_bytes(x)
 #define count_elem(arr) (sizeof(arr)/sizeof(arr[0]))
+int is_authenticated_link_key(link_key_type_t link_key_type);
 
 #if defined __cplusplus
 }
 #endif
-
+		
+#endif // __UTILS_H

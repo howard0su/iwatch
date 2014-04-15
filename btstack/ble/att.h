@@ -161,7 +161,7 @@ typedef uint16_t (*att_read_callback_t)(uint16_t handle, uint16_t offset, uint8_
 // @param buffer 
 // @param buffer_size
 // @param signature used for signed write commmands
-// @returns 1 if request could be queue for ATT_TRANSACTION_MODE_ACTIVE 
+// @returns 0 if write was ok, ATT_ERROR_PREPARE_QUEUE_FULL if no space in queue, ATT_ERROR_INVALID_OFFSET if offset is larger than max buffer
 typedef int (*att_write_callback_t)(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature);
 
 // MARK: ATT Operations
@@ -223,6 +223,23 @@ uint16_t att_prepare_handle_value_indication(att_connection_t * att_connection,
                                              uint8_t *value,
                                              uint16_t value_len, 
                                              uint8_t * response_buffer);
+
+/*
+ * @brief transcation queue of prepared writes, e.g., after disconnect
+ */
+void att_clear_transaction_queue();
+
+// experimental client API
+uint16_t att_uuid_for_handle(uint16_t handle);
+
+uint16_t att_find_information_request(uint8_t *request, uint16_t start_handle, uint16_t end_handle);
+uint16_t att_read_blob_request(uint8_t *request, uint16_t attribute_handle, uint16_t value_offset);
+uint16_t att_read_request(uint8_t *request, uint16_t attribute_handle);
+uint16_t att_write_request(uint8_t *request, uint16_t attribute_handle, uint8_t *data, uint8_t length);
+uint16_t att_write_command(uint8_t *request, uint16_t attribute_handle, uint8_t *data, uint8_t length);
+uint16_t att_read_by_group_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle);
+uint16_t att_read_by_type_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle);
+uint16_t att_find_by_type_value_request(uint8_t *request, uint16_t attribute_group_type, uint16_t start_handle, uint16_t end_handle, uint8_t * value, uint16_t value_size);
 
 #if defined __cplusplus
 }

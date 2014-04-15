@@ -33,12 +33,12 @@ static void OnDraw(tContext* pContext)
   GrRectFill(pContext, &client_clip);
 
   // draw the countdown time
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
   window_drawtime(pContext, 45, times, 0);
 
   if ((state != STATE_INIT) && (pContext->sClipRegion.sYMax > 70))
   {
-    GrContextFontSet(pContext, &g_sFontNova16b);
+    GrContextFontSet(pContext, &g_sFontGothic18b);
     //printf("stop: %d current: %d\n", currentStop, topView);
     char buf[20];
 
@@ -49,11 +49,11 @@ static void OnDraw(tContext* pContext)
       GrStringDraw(pContext, buf, -1, 2, (i - topView) * 20 + NUMBASE, 0);
 
       sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
-      GrStringDraw(pContext, buf, -1, 28, (i - topView) * 20 + NUMBASE, 0);
-      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 20);
+      GrStringDraw(pContext, buf, -1, 25, (i - topView) * 20 + NUMBASE, 0);
+      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 15);
     }
 
-    GrContextFontSet(pContext, &g_sFontNova12b);
+    GrContextFontSet(pContext, &g_sFontGothic18b);
     for(int i = topView; (i < topView + 3) && (i < currentStop); i++)
     {
       if (i == 0)
@@ -62,12 +62,12 @@ static void OnDraw(tContext* pContext)
       if (delta_times[i - 1][0] != 0)
       {
         sprintf(buf, "+%02d:%02d:%02d", delta_times[i - 1][0], delta_times[i - 1][1],delta_times[i - 1][2]);
-        GrStringDraw(pContext, buf, -1, 80, (i - topView) * 20 + NUMBASE +  3, 0);
+        GrStringDraw(pContext, buf, -1, 70, (i - topView) * 20 + NUMBASE +  3, 0);
       }
       else
       {
         sprintf(buf, "+%02d:%02d", delta_times[i - 1][1],delta_times[i - 1][2]);
-        GrStringDraw(pContext, buf, -1, 100, (i - topView) * 20 + NUMBASE + 3, 0);
+        GrStringDraw(pContext, buf, -1, 90, (i - topView) * 20 + NUMBASE + 3, 0);
       }
       
     }

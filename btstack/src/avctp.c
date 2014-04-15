@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "l2cap.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 #include "avctp.h"
@@ -70,7 +70,7 @@ void avctp_init()
   packet_handler = NULL;
   avctp_resp_buf = NULL;
   l2cap_cid = 0;
-  l2cap_register_service_internal(NULL, avctp_packet_handler, PSM_AVCTP, 0xffff);
+  l2cap_register_service_internal(NULL, avctp_packet_handler, PSM_AVCTP, 0xffff, LEVEL_0);
 }
 
 void avctp_connect(bd_addr_t remote_addr)

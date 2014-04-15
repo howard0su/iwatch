@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2011-2012 BlueKitchen GmbH
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@
 //
 // ATT Server Globals
 //
+//#define ENABLE_LOG_INFO
+//#define ENABLE_LOG_DEBUG
 
 #include "att_server.h"
 
@@ -45,7 +47,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
+#include "btstack-config.h"
 
 #include <btstack/run_loop.h>
 #include "debug.h"
@@ -58,25 +60,40 @@
 #include "sm.h"
 #include "att.h"
 #include "att_server.h"
+#include "att_client.h"
 #include "gap_le.h"
 #include "central_device_db.h"
 
+#define MTU 100
+
 static void att_run(void);
+static void att_client_run(void);
+
+static uint16_t att_build_request(att_connection_t *, uint8_t *buffer);
+static void att_handle_response(att_connection_t *, uint8_t*, uint16_t);
+static void att_handle_notification(att_connection_t *conn, uint8_t* buffer, uint16_t length);
+static void att_clear_request();
+
 
 typedef enum {
     ATT_SERVER_IDLE,
     ATT_SERVER_REQUEST_RECEIVED,
     ATT_SERVER_W4_SIGNED_WRITE_VALIDATION,
+    ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED,
+
+    ATT_SERVER_W4_RESPONSE,
+    ATT_SERVER_RESPONSE_RECEIVED,
 } att_server_state_t;
 
 static att_connection_t att_connection;
 static att_server_state_t att_server_state;
+static uint16_t request_type;
 
 static uint8_t   att_client_addr_type;
 static bd_addr_t att_client_address;
 static uint16_t  att_request_handle = 0;
 static uint16_t  att_request_size   = 0;
-static uint8_t   att_request_buffer[28];
+static uint8_t   att_request_buffer[MTU + 20];
 
 static int       att_ir_central_device_db_index = -1;
 static int       att_ir_lookup_active = 0;
@@ -86,8 +103,16 @@ static timer_source_t att_handle_value_indication_timer;
 
 static btstack_packet_handler_t att_client_packet_handler = NULL;
 
+static const uint16_t connection_params[] =
+{
+//  min, max, latency, timeout,
+    20, 600, 0, 200,// normal situation
+    24, 45, 3, 500,// idle situation
+    16, 32, 0, 10,// fast situation
+};
+static uint8_t target_connection_params = 0xff;
 
-static int att_handle_value_indication_notify_client(uint8_t status, uint16_t client_handle, uint16_t attribute_handle){
+static void att_handle_value_indication_notify_client(uint8_t status, uint16_t client_handle, uint16_t attribute_handle){
     uint8_t event[7];
     int pos = 0;
     event[pos++] = ATT_HANDLE_VALUE_INDICATION_COMPLETE;
@@ -102,12 +127,12 @@ static int att_handle_value_indication_notify_client(uint8_t status, uint16_t cl
 
 static void att_handle_value_indication_timeout(timer_source_t *ts){
     uint16_t att_handle = att_handle_value_indication_handle;
-    att_handle_value_indication_handle = 0;    
     att_handle_value_indication_notify_client(ATT_HANDLE_VALUE_INDICATION_TIMEOUT, att_request_handle, att_handle);
 }
 
-static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
-    
+static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){    
+    //printf("type=%x ev:%x\n", packet_type, packet[0]);
+
     switch (packet_type) {
             
         case HCI_EVENT_PACKET:
@@ -125,7 +150,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                         	att_client_addr_type = packet[7];
                             bt_flip_addr(att_client_address, &packet[8]);
                             // reset connection properties
-                            att_connection.mtu = 23;
+                            att_connection.mtu = MTU;
                             att_connection.encryption_key_size = 0;
                             att_connection.authenticated = 0;
 		                	att_connection.authorized = 0;
@@ -144,24 +169,34 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                 	break;
 
                 case HCI_EVENT_DISCONNECTION_COMPLETE:
+                    {
+                        uint16_t handle = READ_BT_16(packet, 3);
+                        if (handle <= 1024)
+                            break;
+                    
                     // restart advertising if we have been connected before
                     // -> avoid sending advertise enable a second time before command complete was received 
                     att_server_state = ATT_SERVER_IDLE;
                     att_request_handle = 0;
+                    att_handle_value_indication_handle = 0; // reset error state
+                    att_clear_transaction_queue();
                     break;
-                    
+                    }
+
                 case SM_IDENTITY_RESOLVING_STARTED:
+                    printf("SM_IDENTITY_RESOLVING_STARTED\n");
                     att_ir_lookup_active = 1;
                     break;
                 case SM_IDENTITY_RESOLVING_SUCCEEDED:
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
-                    att_run();
+                    printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
                     break;
                 case SM_IDENTITY_RESOLVING_FAILED:
+                    printf("SM_IDENTITY_RESOLVING_FAILED\n");
                     att_ir_lookup_active = 0;
                     att_ir_central_device_db_index = -1;
-                    att_run();
+                    printf("SM_IDENTITY_RESOLVING_FAILED--\n");
                     break;
 
                 case SM_AUTHORIZATION_RESULT: {
@@ -169,14 +204,19 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
                     if (event->addr_type != att_client_addr_type) break;
                     if (memcmp(event->address, att_client_address, 6) != 0) break;
                     att_connection.authorized = event->authorization_result;
-                    att_run();
                 	break;
+
+                case SM_BONDING_FINISHED:
+                    printf("pairing finished\n");
+                    att_server_send_gatt_services_request();
+                    break;
                 }
 
                 default:
                     break;
             }
     }
+    
     if (att_client_packet_handler){
         att_client_packet_handler(packet_type, channel, packet, size);
     }
@@ -195,15 +235,14 @@ static void att_signed_write_handle_cmac_result(uint8_t hash[8]){
     // update sequence number
     uint32_t counter_packet = READ_BT_32(att_request_buffer, att_request_size-12);
     central_device_db_counter_set(att_ir_central_device_db_index, counter_packet+1);
-    // just treat signed write command as simple write command after validation
-    att_request_buffer[0] = ATT_WRITE_COMMAND;
-    att_server_state = ATT_SERVER_REQUEST_RECEIVED;
+    att_server_state = ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED;
     att_run();
 }
 
 static void att_run(void){
+    //printf("ATT %d\n", att_server_state);
     switch (att_server_state){
-        case ATT_SERVER_IDLE:
+        case ATT_SERVER_W4_RESPONSE:
         case ATT_SERVER_W4_SIGNED_WRITE_VALIDATION:
             return;
         case ATT_SERVER_REQUEST_RECEIVED:
@@ -242,14 +281,21 @@ static void att_run(void){
                 sm_key_t csrk;
                 central_device_db_csrk(att_ir_central_device_db_index, csrk);
                 att_server_state = ATT_SERVER_W4_SIGNED_WRITE_VALIDATION;
+                printf("Orig Signature: ");
+                hexdump( &att_request_buffer[att_request_size-8], 8);
                 sm_cmac_start(csrk, att_request_size - 8, att_request_buffer, att_signed_write_handle_cmac_result);
                 return;
             } 
+            // NOTE: fall through for regular commands
 
-            if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return;
+        case ATT_SERVER_REQUEST_RECEIVED_AND_VALIDATED:
+        {
+            if (!hci_can_send_packet_now(HCI_LE_DATA_PACKET)) return;
 
-            uint8_t  att_response_buffer[28];
-            uint16_t att_response_size = att_handle_request(&att_connection, att_request_buffer, att_request_size, att_response_buffer);
+            uint8_t  att_response_buffer[MTU + 20];
+            uint16_t att_response_size;
+
+            att_response_size = att_handle_request(&att_connection, att_request_buffer, att_request_size, att_response_buffer);
 
             // intercept "insufficient authorization" for authenticated connections to allow for user authorization
             if (att_response_buffer[0] == ATT_ERROR_RESPONSE
@@ -266,15 +312,78 @@ static void att_run(void){
             	}
             }
 
-            att_server_state = ATT_SERVER_IDLE;
-            if (att_response_size == 0) return;
+            if (att_response_size == 0)
+            {
+                log_error("response size is zero.\n");
+                att_server_state = ATT_SERVER_IDLE;
+                return;
+            }
 
-            l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, att_response_buffer, att_response_size);
+            if (!l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, att_response_buffer, att_response_size))
+            {
+                att_server_state = ATT_SERVER_IDLE;
+            }
             break;
+        }
+        case ATT_SERVER_RESPONSE_RECEIVED:
+            {
+                att_server_state = ATT_SERVER_IDLE;
+                att_handle_response(&att_connection, att_request_buffer, att_request_size);
+            }
+            /* FALL THROUGH */
+        case ATT_SERVER_IDLE:
+            // check if we have anything to send
+            if (!hci_can_send_packet_now(HCI_LE_DATA_PACKET)) return;
+
+            uint8_t  buffer[MTU + 20];
+            uint16_t size = att_build_request(&att_connection, buffer);
+
+            if (size == 0)
+            {
+                if ((target_connection_params != 0xff) && (att_request_handle > 1024))
+                {
+                    printf("try to set connection parameters\n");
+                    int ret;
+                    ret = l2cap_le_request_connection_parameter_update(att_request_handle, 
+                            connection_params[target_connection_params * 4],
+                            connection_params[target_connection_params * 4+1],
+                            connection_params[target_connection_params * 4+2],
+                            connection_params[target_connection_params * 4+3]
+                            );
+                    if (!ret)
+                    {
+                        target_connection_params = 0xff;
+                    }
+                    else
+                    {
+                        printf("with error %x\n", ret);
+                    }
+                }
+
+                return; // no request need sent
+            }
+
+            hexdump(buffer, size);
+
+            if (!l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, buffer, size))
+            {
+                att_server_state = ATT_SERVER_W4_RESPONSE;
+                att_clear_request();
+            }
+            else
+            {
+                printf("fail to send ble packet.\n");
+            }
+
+            break;
+
     }
 }
 
 static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *packet, uint16_t size){
+    //printf("packet data(%d): ", packet_type);
+    //hexdump(packet, size);
+
     if (packet_type != ATT_DATA_PACKET) return;
 
     // handle value indication confirms
@@ -287,13 +396,27 @@ static void att_packet_handler(uint8_t packet_type, uint16_t handle, uint8_t *pa
     }
 
     // check size
-    if (size > sizeof(att_request_buffer)) return;
+    if (size > sizeof(att_request_buffer)) 
+    {
+        log_error("packet is larger than mtu.\n");
+        return;
+    }
 
-    // last request still in processing?
-    if (att_server_state != ATT_SERVER_IDLE) return;
+    if (packet[0] == ATT_HANDLE_VALUE_NOTIFICATION)
+    {
+        att_handle_notification(&att_connection, packet, size);
+        return;
+    }
+    else if (packet[0] & 0x01 == 1)
+    {
+        att_server_state = ATT_SERVER_RESPONSE_RECEIVED;
+    }
+    else
+    {
+        att_server_state = ATT_SERVER_REQUEST_RECEIVED;
+    }
 
-    // store request
-    att_server_state = ATT_SERVER_REQUEST_RECEIVED;
+    // store packet
     att_request_size = size;
     memcpy(att_request_buffer, packet, size);
 
@@ -311,6 +434,7 @@ void att_server_init(uint8_t const * db, att_read_callback_t read_callback, att_
     att_set_read_callback(read_callback);
     att_set_write_callback(write_callback);
 
+    request_type = 0;
 }
 
 void att_server_register_packet_handler(btstack_packet_handler_t handler){
@@ -319,18 +443,25 @@ void att_server_register_packet_handler(btstack_packet_handler_t handler){
 
 int  att_server_can_send(){
 	if (att_request_handle == 0) return 0;
-	return hci_can_send_packet_now(HCI_ACL_DATA_PACKET);
+	return hci_can_send_packet_now(HCI_LE_DATA_PACKET);
 }
 
 int att_server_notify(uint16_t handle, uint8_t *value, uint16_t value_len){
-    uint8_t packet_buffer[32];
+    uint8_t *packet_buffer = malloc(att_connection.mtu);
+    if (packet_buffer == NULL)
+        return BTSTACK_MEMORY_ALLOC_FAILED;
     uint16_t size = att_prepare_handle_value_notification(&att_connection, handle, value, value_len, packet_buffer);
-	return l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+    printf("notify handle:%d data: ", handle);
+    hexdump(value, value_len);
+	int ret = l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+
+    free(packet_buffer);
+    return ret;
 }
 
 int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len){
     if (att_handle_value_indication_handle) return ATT_HANDLE_VALUE_INDICATION_IN_PORGRESS;
-    if (!hci_can_send_packet_now(HCI_ACL_DATA_PACKET)) return BTSTACK_ACL_BUFFERS_FULL;
+    if (!hci_can_send_packet_now(HCI_LE_DATA_PACKET)) return BTSTACK_ACL_BUFFERS_FULL;
 
     // track indication
     att_handle_value_indication_handle = handle;
@@ -338,8 +469,235 @@ int att_server_indicate(uint16_t handle, uint8_t *value, uint16_t value_len){
     run_loop_set_timer(&att_handle_value_indication_timer, ATT_TRANSACTION_TIMEOUT_MS);
     run_loop_add_timer(&att_handle_value_indication_timer);
 
-    uint8_t packet_buffer[32];
+    uint8_t *packet_buffer = malloc(att_connection.mtu);
+    if (packet_buffer == NULL)
+        return BTSTACK_MEMORY_ALLOC_FAILED;
     uint16_t size = att_prepare_handle_value_indication(&att_connection, handle, value, value_len, packet_buffer);
-	l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
-    return 0;
+    int ret = l2cap_send_connectionless(att_request_handle, L2CAP_CID_ATTRIBUTE_PROTOCOL, packet_buffer, size);
+
+    free(packet_buffer);
+    return ret;
+}
+
+
+/**
+ * TODO: move this to seperate file
+*/
+
+static union request_info
+{
+    struct
+    {
+        uint16_t attribute_group_type;
+        uint16_t start_handle;
+        uint16_t end_handle;
+        uint8_t  value[16];
+    }_find_by_type_value;
+    struct
+    {
+        uint16_t attribute_group_type;
+        uint16_t start_handle;
+        uint16_t end_handle;
+    }_read_by_group_type;
+    struct
+    {
+        uint16_t attribute_handle;
+        uint8_t *data;
+        uint8_t length;
+    }_write_attribute;
+}request;
+
+void att_server_query_service(const uint8_t *uuid128)
+{
+    request._find_by_type_value.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
+    request._find_by_type_value.start_handle = 1;
+    request._find_by_type_value.end_handle = 0xffff;
+    swap128(request._find_by_type_value.value, (uint8_t *)uuid128);
+    
+    request_type = ATT_FIND_BY_TYPE_VALUE_REQUEST;
+
+    att_run();
+}
+
+void att_server_send_gatt_services_request()
+{
+    request._read_by_group_type.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
+    request._read_by_group_type.start_handle = 1;
+    request._read_by_group_type.end_handle = 0xffff;
+
+    request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
+
+    att_run();
+}
+
+void att_server_read_gatt_service(uint16_t start_handle, uint16_t end_handle)
+{
+    request._read_by_group_type.attribute_group_type = GATT_CHARACTERISTICS_UUID;
+    request._read_by_group_type.start_handle = start_handle;
+    request._read_by_group_type.end_handle = end_handle;
+
+    request_type = ATT_READ_BY_TYPE_REQUEST;
+
+    att_run();
+}
+
+void att_server_subscribe(uint16_t handle)
+{
+    request._write_attribute.attribute_handle = handle;
+    request._write_attribute.data = malloc(2);
+    if (!request._write_attribute.data)
+    {
+        log_error("Cannot allocate memory.\n");
+        return;
+    }
+    request._write_attribute.length = 2;
+
+    request._write_attribute.data[0] = 0x01;
+    request._write_attribute.data[1] = 0x00;
+
+    request_type = ATT_WRITE_REQUEST;
+
+    att_run();
+}
+
+void att_server_write(uint16_t handle, uint8_t *buffer, uint16_t length)
+{
+    request._write_attribute.attribute_handle = handle;
+    request._write_attribute.data = malloc(length);
+    if (!request._write_attribute.data)
+    {
+        log_error("Cannot allocate memory.\n");
+        return;
+    }
+    request._write_attribute.length = length;
+
+    memcpy(request._write_attribute.data, buffer, length);
+
+    request_type = ATT_WRITE_REQUEST;
+
+    att_run();
+}
+
+static uint16_t att_build_request(att_connection_t *connection, uint8_t *buffer)
+{
+    log_debug("ATT: try to send request\n");
+
+    switch(request_type)
+    {
+        case ATT_FIND_BY_TYPE_VALUE_REQUEST:
+            log_debug("ATT: try to send ATT_FIND_BY_TYPE_VALUE_REQUEST request\n");
+            return att_find_by_type_value_request(buffer,
+                request._find_by_type_value.attribute_group_type,
+                request._find_by_type_value.start_handle, 
+                request._find_by_type_value.end_handle,
+                request._find_by_type_value.value,
+                16);
+        case ATT_READ_BY_GROUP_TYPE_REQUEST:
+            log_debug("ATT: try to send ATT_READ_BY_GROUP_TYPE_REQUEST request\n");
+            return att_read_by_group_request(buffer,
+                request._read_by_group_type.attribute_group_type,
+                request._read_by_group_type.start_handle,
+                request._read_by_group_type.end_handle
+                );
+        case ATT_READ_BY_TYPE_REQUEST:
+            log_debug("ATT: try to send ATT_READ_BY_TYPE_REQUEST request\n");
+             return att_read_by_type_request(buffer,
+                request._read_by_group_type.attribute_group_type,
+                request._read_by_group_type.start_handle,
+                request._read_by_group_type.end_handle
+                );
+        case ATT_WRITE_REQUEST:
+            log_debug("ATT: try to send ATT_WRITE_REQUEST request\n");
+            return att_write_request(buffer,
+                request._write_attribute.attribute_handle,
+                request._write_attribute.data,
+                request._write_attribute.length);
+        case ATT_WRITE_COMMAND:
+            log_debug("ATT: try to send ATT_WRITE_COMMAND request\n");
+            return att_write_command(buffer,
+                request._write_attribute.attribute_handle,
+                request._write_attribute.data,
+                request._write_attribute.length);
+        
+        default:
+            return 0;
+    }
+}
+
+static void att_clear_request()
+{
+    if (request_type == ATT_WRITE_REQUEST)
+    {
+        if (request._write_attribute.data)
+            free(request._write_attribute.data);
+        request._write_attribute.data = NULL;
+    }
+    request_type = 0;
+}
+
+static void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint16_t length)
+{
+    switch(buffer[0])
+    {
+        case ATT_READ_BY_GROUP_TYPE_RESPONSE:
+            uint16_t lasthandle;
+            // check service
+            lasthandle = report_gatt_services(att_connection, buffer, length);
+
+            if (lasthandle != 0xff)
+            {
+                request._read_by_group_type.start_handle = lasthandle + 1;
+
+                request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
+            }
+            break;
+        case ATT_READ_BY_TYPE_RESPONSE:
+            lasthandle = report_service_characters(att_connection, buffer, length);
+            if (lasthandle != 0xff)
+            {
+                request._read_by_group_type.start_handle = lasthandle + 1;
+
+                request_type = ATT_READ_BY_TYPE_REQUEST;
+            }
+            break;
+        case ATT_WRITE_RESPONSE:
+            report_write_done(att_connection, request._write_attribute.attribute_handle);
+            break;
+        case ATT_ERROR_RESPONSE:
+            // done the last step
+            if (buffer[0] == ATT_ERROR_RESPONSE
+                && (
+                    buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHORIZATION
+                    || buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHENTICATION
+                    )
+                && att_connection->authenticated){
+                switch (sm_authorization_state(att_client_addr_type, att_client_address)){
+                    case AUTHORIZATION_UNKNOWN:
+                        sm_request_authorization(att_client_addr_type, att_client_address);
+                        return;
+                    case AUTHORIZATION_PENDING:
+                        return;
+                    default:
+                        break;
+                }
+                att_run();
+            }
+            break;
+    }
+}
+
+static void att_handle_notification(att_connection_t *conn, uint8_t* buffer, uint16_t length)
+{
+    //printf("notification data : ");
+    //hexdump(buffer, length);
+
+    uint16_t handler = READ_BT_16(buffer, 1);
+
+    att_client_notify(handler, buffer + 3, length - 3);
+}
+
+void att_enter_mode(int mode)
+{
+    printf("set mode: %d\n", mode);
+    target_connection_params = mode;   
 }

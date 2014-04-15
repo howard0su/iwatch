@@ -3,6 +3,10 @@
 #include "spiflash.h"
 #include "../grlib.h"
 
+#ifndef CASSERT
+#define CASSERT(exp, name) typedef int dummy##name [(exp) ? 1 : -1];
+#endif
+
 //*****************************************************************************
 //
 // The number of font block headers that we cache when a font is opened.
@@ -25,6 +29,9 @@
 typedef int FILEHANDLE;
 #define BufferRead(pBuffer, ReadAddr, NumByteToRead) \
     SPI_FLASH_BufferRead_Raw(pBuffer, ReadAddr, NumByteToRead)
+
+CASSERT(sizeof(tFontWide) == 8, tFontWide);
+CASSERT(sizeof(tFontBlock) == 12, tFontBlock);
 
 //*****************************************************************************
 //
@@ -538,7 +545,7 @@ CFSFontWrapperLoad()
                     MAX_FONT_BLOCKS * sizeof(tFontBlock) :
                     g_sFontFile.sFontHeader.usNumBlocks * sizeof(tFontBlock);
 
-        BufferRead((uint8_t*)&g_sFontFile.pBlocks,  sizeof(tFontWide), ulToRead);
+        BufferRead((uint8_t*)&g_sFontFile.pBlocks, sizeof(tFontWide), ulToRead);
         {
             //
             // All is well.  Tell the caller the font was opened successfully.

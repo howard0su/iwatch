@@ -24,6 +24,7 @@ extern uint8_t rtc_getmaxday(uint16_t year, uint8_t month);
 extern uint8_t rtc_getweekday(uint16_t year, uint8_t month, uint8_t day);
 extern void rtc_setalarm(uint8_t aday, uint8_t adow, uint8_t ahour, uint8_t aminute);
 extern void rtc_save();
+extern void rtc_restore();
 extern uint32_t calc_timestamp(uint8_t year, uint8_t month, uint8_t day, uint8_t hh, uint8_t mm, uint8_t ss);
 extern void parse_timestamp(uint32_t time, uint8_t* year, uint8_t* month, uint8_t* day, uint8_t* hh, uint8_t* mm, uint8_t* ss);
 

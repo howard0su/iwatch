@@ -113,10 +113,11 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrRectFill(pContext, &client_clip);
       GrContextForegroundSet(pContext, ClrWhite);
       
-      GrContextFontSet(pContext, &g_sFontNova16);
+      GrContextFontSet(pContext, &g_sFontGothic18);
       const char* msg;
+      BATTERY_STATE state = battery_state();
       // draw the state
-      switch(battery_state())
+      switch(state)
       {
       case BATTERY_DISCHARGING:
         msg = "battery is discharging.";
@@ -130,7 +131,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       GrStringDraw(pContext, msg, -1, 10, 20, 0);
       char buf[50];
-      uint8_t level = battery_level();
+      uint8_t level = battery_level(state);
       sprintf(buf, "battery level is %d\n", level);
       GrStringDraw(pContext, buf, -1, 10, 40, 0);
       
@@ -147,7 +148,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
              energest_total_time[ENERGEST_TYPE_IRQ].current,
              energest_total_time[ENERGEST_TYPE_SERIAL].current);
       
-      GrStringDrawWrap(pContext, buf, 0, 55, 100, 15);
+      GrStringDrawWrap(pContext, buf, 0, 55, 100, 1);
 #endif
       
       if (state == RECORDING)
@@ -201,6 +202,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       
     }
+#if 0
     //	hfp_enable_voicerecog();
     else if (lparam == KEY_UP)
     {
@@ -216,7 +218,16 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       state = RECOGNIZE;
       matched = 0;
     }
-  
+  #endif
+    else if (lparam == KEY_UP)
+    {
+      static const uint8_t ancsuuid[] = {
+        0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
+      };
+      //printf("att_server_query_service\n");
+      //att_server_query_service(ancsuuid);
+      att_server_send_gatt_services_request();
+    }
     window_invalid(NULL);
     break;
   case EVENT_WINDOW_CLOSING:

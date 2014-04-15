@@ -10,6 +10,7 @@
 #include "bluetooth.h"
 #include "stlv_client.h"
 #include "stlv_handler.h"
+#include "sportsdata.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,7 +34,7 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Test Buttons", -1, 32, 16, 0);
 
 #if 1
@@ -52,7 +53,7 @@ uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
  		  		GrStringDraw(pContext, buf, -1, 5, 60 + i * 16, 0);
  		  	}
  		  }
- 		  GrContextFontSet(pContext, (tFont*)&g_sFontBaby12);
+ 		  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Long press exit to quit", -1, 2, 120, 0);
 		  break;
 		}
@@ -117,7 +118,7 @@ uint8_t test_motor(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Test Motor", -1, 32, 50, 0);
 
     	  sprintf(buf, "Motor Level: %d", data);
@@ -155,7 +156,7 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Speaker is looping back to mic", -1, 0, 50, 0);
 
   		window_volume(pContext, 30, 125, 8, codec_getvolume());
@@ -231,7 +232,7 @@ uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Test Lights", -1, 32, 50, 0);
 
     	sprintf(buf, "Light Level: %d", data);
@@ -352,7 +353,7 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-  	      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+  	      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
   	      if (onoff)
  		  	GrStringDraw(pContext, "ANT is on", -1, 32, 50, 0);
  		  else
@@ -407,7 +408,7 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 		  GrContextForegroundSet(pContext, ClrWhite);
 
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
 		  if (data == 0)
 		  {
 				GrStringDraw(pContext, "MPU6050 passed self testing", -1, 32, 50, 0);
@@ -499,7 +500,7 @@ uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       switch(onoff)
       {
  		  	case 0:
@@ -672,7 +673,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       switch(onoff)
       {
  		  	case 0:
@@ -769,7 +770,7 @@ uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontBaby16);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       
 	  	GrStringDraw(pContext, "BT DUT mode is on", -1, 32, 50, 0);
  		  break;
@@ -786,5 +787,41 @@ uint8_t test_googlenow(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	if (get_phone_type() == PHONE_TYPE_ANDROID)
 		launch_google_now();
+	return 0;
 }
 
+uint8_t test_cleardata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	clear_data_file();
+	return 0;
+}
+
+uint8_t test_builddata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+
+    printf("test_builddata()\n");
+    uint8_t meta[] = {DATA_COL_STEP, DATA_COL_DIST, DATA_COL_HR};
+    uint32_t data[] = {1234, 5678, 9012};
+
+    create_data_file(12, 11, 28);
+    write_data_line(0x00, 1, 1, meta, data, 3);
+    write_data_line(0x00, 1, 2, meta, data, 3);
+    write_data_line(0x01, 1, 3, meta, data, 3);
+    write_data_line(0x02, 1, 4, meta, data, 3);
+    write_data_line(0x03, 1, 5, meta, data, 3);
+    close_data_file();
+
+    return 0;
+}
+
+uint8_t test_sportsdata(uint8_t ev, uint16_t lparam, void* rparam)
+{
+
+    printf("test_sportsdata()\n");
+    uint8_t meta[] = {1,2,3};
+    uint32_t data[] = {1234, 5678, 9012};
+
+    send_sports_data(0, 0x12, meta, data, 3);
+
+    return 0;
+}

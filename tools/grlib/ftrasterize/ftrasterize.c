@@ -31,6 +31,7 @@
 #include <getopt.h>
 
 #include "../../../grlib/grlib.h"
+#include <stdint.h>
 
 //*****************************************************************************
 //
@@ -99,7 +100,7 @@ typedef struct
     int iYMax;
     unsigned short usCodePage;
     unsigned short usNumBlocks;
-    unsigned long ulNumGlyphs;
+    uint32_t ulNumGlyphs;
 } tFontInfo;
 
 //*****************************************************************************
@@ -110,8 +111,8 @@ typedef struct
 typedef struct _tCodepointBlock
 {
     struct _tCodepointBlock *pNext;
-    unsigned long ulStart;
-    unsigned long ulEnd;
+    uint32_t ulStart;
+    uint32_t ulEnd;
 } tCodepointBlock;
 
 //*****************************************************************************
@@ -122,11 +123,11 @@ typedef struct _tCodepointBlock
 //*****************************************************************************
 typedef struct
 {
-    unsigned long ulValue;
+    uint32_t ulValue;
     const char *pcName;
 } tKeyString;
 
-#define SELF_DESC(x) {(unsigned long)(x), #x}
+#define SELF_DESC(x) {(uint32_t)(x), #x}
 
 const tKeyString g_pEncodingDescs[] =
 {
@@ -195,7 +196,7 @@ SELF_DESC(CODEPAGE_UTF_16) };
 //*****************************************************************************
 typedef struct
 {
-    unsigned long ulFTEncoding;
+    uint32_t ulFTEncoding;
     unsigned short usCodepage;
 } tCodePageMapping;
 
@@ -223,7 +224,7 @@ typedef struct
     //
     // The codepoint (character code) that this glyph represents.
     //
-    unsigned long ulCodePoint;
+    uint32_t ulCodePoint;
 
     //
     // The width of the bitmap representation of this glyph.
@@ -483,7 +484,7 @@ void Usage(char *argv, int bError)
 //
 //*****************************************************************************
 const char *
-GetStringFromValue(unsigned long ulValue, const tKeyString *pTable,
+GetStringFromValue(uint32_t ulValue, const tKeyString *pTable,
         int iNumEntries)
 {
     int iLoop;
@@ -531,7 +532,7 @@ GetCharmapName(struct FT_CharMapRec_ *pCharMap)
 const char *
 GetPlatformName(FT_UShort usPlatform)
 {
-    return (GetStringFromValue((unsigned long) usPlatform, g_pPlatformDescs,
+    return (GetStringFromValue((uint32_t) usPlatform, g_pPlatformDescs,
             NUM_PLATFORM_DESCS));
 }
 
@@ -822,7 +823,7 @@ int ParseCharMapFile(tConversionParameters *pParams, tCodepointBlock *pHead)
     FILE *pFile;
     tCodepointBlock *pBlock, *pNext;
     int iNumBlocks, iNumVals, iLineNum, bError;
-    unsigned long ulStart, ulEnd;
+    uint32_t ulStart, ulEnd;
     char pcBuffer[80];
 
     //
@@ -1131,7 +1132,7 @@ unsigned short CodePageFromEncoding(FT_Encoding eEncoding)
         //
         // Does this table entry refer to the passed encoding?
         //
-        if((unsigned long) eEncoding == g_psCodePageMapping[iLoop].ulFTEncoding)
+        if((uint32_t) eEncoding == g_psCodePageMapping[iLoop].ulFTEncoding)
         {
             //
             // Yes - return the matching codepage identifier.
@@ -1157,7 +1158,7 @@ unsigned short CodePageFromEncoding(FT_Encoding eEncoding)
 //
 //*****************************************************************************
 tBoolean RenderGlyph(tConversionParameters *pParams, FT_Face pFace,
-        unsigned long ulCodePoint, tGlyph *pGlyph, tBoolean bQuiet)
+        uint32_t ulCodePoint, tGlyph *pGlyph, tBoolean bQuiet)
 {
     int iXMin, iXMax, iX, iY;
     unsigned int uiIndex;
@@ -1883,7 +1884,7 @@ tBoolean WriteBinaryBlocks(FILE *pFile, tFontInfo *pFont,
     tCodepointBlock *pBlock;
     tFontBlock sBlock;
     tGlyph *pGlyph, *pGlyphBlockStart;
-    unsigned long ulOffset, ulTemp;
+    uint32_t ulOffset, ulTemp;
     int iGlyph, iCount, iLoop, iX;
 
     //
@@ -2093,7 +2094,7 @@ tBoolean WriteRemappedBinaryBlocks(FILE *pFile, tFontInfo *pFont,
         tGlyph *pGlyphStart, tCodepointBlock *pBlockList)
 {
     tCodepointBlock *pBlock;
-    unsigned long ulOffset, ulTemp;
+    uint32_t ulOffset, ulTemp;
     tFontBlock sBlock;
     int iGlyph, iCount, iLoop;
 
@@ -2191,7 +2192,7 @@ tBoolean WriteBinaryWideFont(tConversionParameters *pParams, tFontInfo *pFont,
     tCodepointBlock *pBlock;
     tGlyph *pGlyph, *pGlyphBlockStart;
     int iX, iOpt, iFontSize, iGlyph, iLoop, iCount;
-    unsigned long ulOffset, ulTemp;
+    uint32_t ulOffset, ulTemp;
     char pucChar[512];
     char pucSize[8];
     char *pcCapFilename;
@@ -2410,6 +2411,8 @@ tBoolean WriteCopyrightBlock(tConversionParameters *pParams, char *pcSize,
         fprintf(pFile, "//********************************************************"
             "*********************\n");
     }
+
+	return 1;
 }
 
 //*****************************************************************************
@@ -2422,7 +2425,7 @@ tBoolean WriteRemappedASCIIBlocks(FILE *pFile, tFontInfo *pFont,
         tGlyph *pGlyphStart, tCodepointBlock *pBlockList)
 {
     tCodepointBlock *pBlock;
-    unsigned long ulOffset;
+    uint32_t ulOffset;
     int iGlyph, iCount, iLoop;
 
     //
@@ -2536,7 +2539,7 @@ tBoolean WriteASCIIBlocks(FILE *pFile, tFontInfo *pFont,
 {
     tCodepointBlock *pBlock;
     tGlyph *pGlyph, *pGlyphBlockStart;
-    unsigned long ulOffset;
+    uint32_t ulOffset;
     int iX, iLoop, iGlyph, iCount;
 
     //
@@ -2771,7 +2774,7 @@ tBoolean WriteASCIIWideFont(tConversionParameters *pParams, tFontInfo *pFont,
     tCodepointBlock *pBlock;
     tGlyph *pGlyph, *pGlyphBlockStart;
     int iX, iOpt, iFontSize, iGlyph, iLoop, iCount;
-    unsigned long ulOffset;
+    uint32_t ulOffset;
     char pucChar[512];
     char pucSize[8];
     char *pcCapFilename;
@@ -3173,7 +3176,7 @@ int ConvertWideFont(tConversionParameters *pParams)
 {
     tCodepointBlock sBlockListHead;
     tCodepointBlock *pBlock;
-    unsigned long ulGlyphIndex, ulCodePoint;
+    uint32_t ulGlyphIndex, ulCodePoint;
     int iRetcode, iXMin, iXMax, iLoop;
     tBoolean bRendered, bRetcode;
     FT_Library pLibrary;
@@ -3233,8 +3236,8 @@ int ConvertWideFont(tConversionParameters *pParams)
         // the command line (or the defaults).
         //
         sBlockListHead.pNext = (tCodepointBlock *) 0;
-        sBlockListHead.ulStart = (unsigned long) pParams->iFirst;
-        sBlockListHead.ulEnd = (unsigned long) pParams->iLast;
+        sBlockListHead.ulStart = (uint32_t) pParams->iFirst;
+        sBlockListHead.ulEnd = (uint32_t) pParams->iLast;
 
         //
         // Make sure we've been passed sensible values.
@@ -3394,6 +3397,7 @@ int ConvertWideFont(tConversionParameters *pParams)
     {
         fprintf(stderr, "%s: Error - can't allocate storage for %d glyphs!\n",
                 pParams->pcAppName, sFontInfo.ulNumGlyphs);
+        return 1;
     }
     else
     {
@@ -3618,7 +3622,7 @@ int ShowFontCharacters(tConversionParameters *pParams)
 {
     tCodepointBlock sBlockListHead;
     tCodepointBlock *pBlock;
-    unsigned long ulGlyphIndex, ulCodePoint;
+    uint32_t ulGlyphIndex, ulCodePoint;
     int iRetcode, iXMin, iXMax, iLoop;
     tBoolean bRendered, bRetcode;
     FT_Library pLibrary;
@@ -3633,6 +3637,8 @@ int ShowFontCharacters(tConversionParameters *pParams)
     {
         printf("Generating wide format output.\n");
     }
+
+    memset(&sFontInfo, 0, sizeof(tFontInfo));
 
     sFontInfo.iWidth = 0;
     sFontInfo.iYMin = 0;
@@ -3678,8 +3684,8 @@ int ShowFontCharacters(tConversionParameters *pParams)
         // the command line (or the defaults).
         //
         sBlockListHead.pNext = (tCodepointBlock *) 0;
-        sBlockListHead.ulStart = (unsigned long) pParams->iFirst;
-        sBlockListHead.ulEnd = (unsigned long) pParams->iLast;
+        sBlockListHead.ulStart = (uint32_t) pParams->iFirst;
+        sBlockListHead.ulEnd = (uint32_t) pParams->iLast;
 
         //
         // Make sure we've been passed sensible values.
@@ -4026,7 +4032,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
         printf("Load pbm file\n");
     }
 
-    unsigned long ulLength, ulWidth, ulHeight, ulMax, ulCount, ulMono, ulBitmap;
+    uint32_t ulLength, ulWidth, ulHeight, ulMax, ulCount, ulMono, ulBitmap;
     unsigned char *pucData;
 
     //
@@ -4130,7 +4136,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
         //
         if(ulCount == 0)
         {
-            if(sscanf(pucData + ulMax, "%lu", &ulWidth) != 1)
+            if(sscanf(pucData + ulMax, "%u", &ulWidth) != 1)
             {
                 fprintf(stderr, "has an invalid width.\n");
                 return(1);
@@ -4138,7 +4144,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
         }
         else if(ulCount == 1)
         {
-            if(sscanf(pucData + ulMax, "%lu", &ulHeight) != 1)
+            if(sscanf(pucData + ulMax, "%u", &ulHeight) != 1)
             {
                 fprintf(stderr, "has an invalid height.\n");
                 return(1);

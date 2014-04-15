@@ -9,10 +9,9 @@ ECHO	= echo
 TARGET_CPU = msp430f5438a
 MEMORY_MODEL = medium
 WARNING_FLAGS = 
-CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
+CFLAGS0  = -g -std=c99 -O2 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections -D__NO_MINGW_LFS
-LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS) -Wl,-gc-sections
-
+LDFLAGS = -g -std=c99 -O2 $(WARNING_FLAGS)
 
 CFLAGS = $(CFLAGS0) 
 # Support LTO, todo later
@@ -21,8 +20,6 @@ CFLAGS = $(CFLAGS0)
 
 ALL_DEFINES = 
 ALL_INCLUDEDIRS = \
-	.
-
 
 SRCS =  TextFileIO.c \
              CRC.c main.c
@@ -58,10 +55,10 @@ $(OBJDIR)/%.d: %.c
 
 # create firmware image from common objects and example source file
 
-all: $(DEPFILES) $(OBJS) CVT.exe
+all: $(DEPFILES) $(OBJS) convert
 
 # if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
-CVT.exe: ${OBJS}
+convert: ${OBJS}
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
 

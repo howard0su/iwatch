@@ -35,6 +35,7 @@
 #include "dev/watchdog.h"
 #include "isr_compat.h"
 #include <stdio.h>
+#include <string.h>
 #include "button.h"
 #include "grlib/grlib.h"
 #include "sys/process.h"
@@ -65,7 +66,7 @@ extern const tRectangle fullscreen_clip;
 
 static void displaystack(uint16_t *ptr)
 {
-  char buf[200] = "";
+  char buf[200] = "Crash Info\n";
   
   for(int i = 0; i < 16; ++i)
   {
@@ -79,9 +80,8 @@ static void displaystack(uint16_t *ptr)
   GrRectFill(&context, &fullscreen_clip);
 
   GrContextForegroundSet(&context, ClrWhite);
-  GrContextFontSet(&context, (tFont*)&g_sFontNova12b);
-  GrStringDrawCentered(&context, "Crash Info", -1, 30, 8, 0);
-  GrStringDrawWrap(&context, buf, 2, 16, 120, 13);
+  GrContextFontSet(&context, (tFont*)&g_sFontBaby12);
+  GrStringDrawWrap(&context, buf, 2, 16, 120, 0);
   
   GrStringDraw(&context, PROCESS_CURRENT()->name, -1, 2, 100, 0);
   //GrFlush(&context);

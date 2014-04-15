@@ -25,7 +25,7 @@ static void onDraw(tContext *pContext)
   GrRectFill(pContext, &client_clip);
   GrContextForegroundSet(pContext, ClrWhite);
   
-  GrContextFontSet(pContext, &g_sFontBaby16);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   if (hfp_getstatus(HFP_CIND_CALL) == HFP_CIND_CALL_ACTIVE)
   {
     GrStringDrawCentered(pContext, "Calling", -1, 72, 60, 0);
@@ -61,7 +61,7 @@ static void onDraw(tContext *pContext)
   }
 
   // draw the phone number
-  GrContextFontSet(pContext, &g_sFontNova16b);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
 }
 
@@ -128,7 +128,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_BT_CIEV:
     if ((lparam >> 8) == HFP_CIND_CALL)
     {
-      if (lparam & 0x0f == 1)
+      if ((lparam & 0x0f) == 1)
       {
         motor_on(100, CLOCK_SECOND/2);
       }
@@ -136,7 +136,7 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     else if ((lparam >> 8) == HFP_CIND_CALLSETUP)
     {
-      if (lparam & 0x0f == 0)
+      if ((lparam & 0x0f) == 0)
       {
         window_close();
       }

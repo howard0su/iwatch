@@ -71,6 +71,10 @@
 #define     SUB_TYPE_ACTIVITY_CAL   'c'
 #define     SUB_TYPE_ACTIVITY_ID    'i'
 
+#define ELEMENT_TYPE_FW_VERSION     'V'
+#define ELEMENT_TYPE_ACTIVITY_DATA  'N'
+#define ELEMENT_TYPE_UNLOCK_WATCH   'U'
+
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;

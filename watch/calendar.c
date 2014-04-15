@@ -19,65 +19,69 @@ static void OnDraw(tContext *pContext)
   // draw table title
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
-  const tRectangle rect = {0, 38, 255, 52};
+  const tRectangle rect = {0, 27, 255, 41};
   GrRectFill(pContext, &rect);
 
   // draw the title bar
-  GrContextFontSet(pContext, &g_sFontNova16);
+  GrContextFontSet(pContext, &g_sFontGothic18b);
   sprintf(buf, "%s %d", month_name[month - 1], year);
-  uint8_t width = GrStringWidthGet(pContext, buf, -1);
-  GrStringDraw(pContext, buf, -1, (LCD_X_SIZE - width) / 2, 20, 0);
+  GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 15, 0);
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
-  GrContextFontSet(pContext, &g_sFontNova12b);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   for(int i = 0; i < 7; i++)
   {
-    width = GrStringWidthGet(pContext, week_shortname[i], 3);
-
-    GrStringDraw( pContext, week_shortname[i], 3, i * 20 + (20 - width) / 2, 40, 0);
+    GrStringDrawCentered( pContext, week_shortname[i], -1, i * 20 + 11, 35, 0);
     // draw line in title bar
-    //GrLineDrawV(pContext, i * 20, 40, 52);
+    GrLineDrawV(pContext, i * 20, 28, 42);
   }
 
+  GrContextFontSet(pContext, &g_sFontGothic18);
   GrContextForegroundSet(pContext, ClrWhite);
   GrContextBackgroundSet(pContext, ClrBlack);
-
 
   // get the start point of this month
   uint8_t weekday = rtc_getweekday(year, month, 1) - 1; // use 0 as index
   uint8_t maxday = rtc_getmaxday(year, month);
-  uint8_t y = 55;
+  uint8_t y = 50;
 
   for(int day = 1; day <= maxday; day++)
   {
     sprintf(buf, "%d", day);
-    width = GrStringWidthGet(pContext, buf, -1);
 
     uint8_t today = now_year == year && now_month == month && now_day == day;
     if (today)
     {
-      const tRectangle rect = {weekday * 20 + 1, y, 20 + weekday * 20 - 1, y + 12};
+      const tRectangle rect = {weekday * 20 + 1, y - 7, 20 + weekday * 20 - 1, y + 7};
       GrRectFill(pContext, &rect);
       GrContextForegroundSet(pContext, ClrBlack);
       GrContextBackgroundSet(pContext, ClrWhite);
     }
-    GrStringDraw( pContext, buf, -1, weekday * 20 + (20 - width) / 2, y, 0);
+    GrStringDrawCentered( pContext, buf, -1, weekday * 20 + 11, y, 0);
     if (today)
     {
+      const tRectangle rect2 = {weekday * 20 + 16, y - 5, weekday * 20 + 17, y - 4};
+      GrRectFill(pContext, &rect2);
+
       GrContextForegroundSet(pContext, ClrWhite);
       GrContextBackgroundSet(pContext, ClrBlack);
     }
 
-    //GrLineDrawV(pContext, weekday * 20, 53, y + 12);
+    if (weekday != 6)
+      GrLineDrawV(pContext, (weekday + 1 ) * 20, 42, y + 7);
 
     weekday++;
     if (weekday == 7)
     {
+      GrLineDrawH(pContext, 0, LCD_X_SIZE, y + 8);
+
       weekday = 0;
-      y += 12;
+      y += 20;
     }
   }
+
+  GrLineDrawH(pContext, 0, weekday * 20, y + 8);
 
   // draw the buttons
   if (month == 1)

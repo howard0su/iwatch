@@ -18,7 +18,7 @@ static void onDraw(tContext *pContext)
   GrRectFill(pContext, &client_clip);
   GrContextForegroundSet(pContext, ClrWhite);
   
-  GrContextFontSet(pContext, &g_sFontBaby16);
+  GrContextFontSet(pContext, &g_sFontGothic18);
   GrStringDrawCentered(pContext, "Voice Command", -1, 72, 80, 0);
   window_button(pContext, KEY_EXIT, "Finish");
 
@@ -69,7 +69,10 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
         }
         case KEY_ENTER:
         {
-          hfp_enable_voicerecog(1);
+          if (get_phone_type() == PHONE_TYPE_ANDROID)
+            launch_google_now();
+          else
+            hfp_enable_voicerecog(1);
           break;
         }
       }

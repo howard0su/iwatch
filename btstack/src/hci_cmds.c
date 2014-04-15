@@ -40,7 +40,7 @@
 #include <string.h>
 
 #include <btstack/sdp_util.h>
-#include "config.h"
+#include "btstack-config.h"
 #include "hci.h"
 
 // calculate combined ogf/ocf value
@@ -59,11 +59,11 @@
  *   S: Service Record (Data Element Sequence)
  */
 uint16_t hci_create_cmd_internal(uint8_t *hci_cmd_buffer, const hci_cmd_t *cmd, va_list argptr){
-
+    
     hci_cmd_buffer[0] = cmd->opcode & 0xff;
     hci_cmd_buffer[1] = cmd->opcode >> 8;
     int pos = 3;
-
+    
     const char *format = cmd->format;
     uint16_t word;
     uint32_t longword;
@@ -81,7 +81,7 @@ uint16_t hci_create_cmd_internal(uint8_t *hci_cmd_buffer, const hci_cmd_t *cmd, 
                     // TODO implement opaque client connection handles
                     //      pass module handle for now
                     hci_cmd_buffer[pos++] = word >> 8;
-                }
+                } 
                 break;
             case '3':
             case '4':
@@ -102,6 +102,11 @@ uint16_t hci_create_cmd_internal(uint8_t *hci_cmd_buffer, const hci_cmd_t *cmd, 
                 hci_cmd_buffer[pos++] = ptr[2];
                 hci_cmd_buffer[pos++] = ptr[1];
                 hci_cmd_buffer[pos++] = ptr[0];
+                break;
+            case 'D': // 8 byte data block
+                ptr = va_arg(argptr, uint8_t *);
+                memcpy(&hci_cmd_buffer[pos], ptr, 8);
+                pos += 8;
                 break;
             case 'E': // Extended Inquiry Information 240 octets
                 ptr = va_arg(argptr, uint8_t *);
@@ -167,7 +172,7 @@ uint16_t hci_create_cmd(uint8_t *hci_cmd_buffer, hci_cmd_t *cmd, ...){
 
 
 /**
- *  Link Control Commands
+ *  Link Control Commands 
  */
 const hci_cmd_t hci_inquiry = {
 OPCODE(OGF_LINK_CONTROL, 0x01), "311"
@@ -214,6 +219,10 @@ const hci_cmd_t hci_pin_code_request_negative_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x0e), "B"
 // BD_ADDR
 };
+const hci_cmd_t hci_change_connection_packet_type = {
+OPCODE(OGF_LINK_CONTROL, 0x0f), "H2"
+// Handle
+};
 const hci_cmd_t hci_authentication_requested = {
 OPCODE(OGF_LINK_CONTROL, 0x11), "H"
 // Handle
@@ -234,24 +243,25 @@ const hci_cmd_t hci_remote_name_request_cancel = {
 OPCODE(OGF_LINK_CONTROL, 0x1A), "B"
 // BD_ADDR
 };
-const hci_cmd_t hci_read_remote_supported_features = {
+const hci_cmd_t hci_read_remote_supported_features_command = {
 OPCODE(OGF_LINK_CONTROL, 0x1B), "H"
 // Handle
 };
 const hci_cmd_t hci_accept_synchronous_connection = {
 OPCODE(OGF_LINK_CONTROL, 0x29), "B442212"
+// BD_ADDR
 };
 const hci_cmd_t hci_io_capability_request_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x2b), "B111"
-//BD_ADDR, IO_Capability, OOB_Data_Present, Authentication_Requirements
+// BD_ADDR, IO_Capability, OOB_Data_Present, Authentication_ Requirements
 };
 const hci_cmd_t hci_user_confirmation_request_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x2c), "B"
-//BD_ADDR
+// BD_ADDR
 };
 const hci_cmd_t hci_user_confirmation_request_negative_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x2d), "B"
-//BD_ADDR
+// BD_ADDR
 };
 const hci_cmd_t hci_user_passkey_request_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x2e), "B4"
@@ -269,8 +279,10 @@ const hci_cmd_t hci_io_capability_request_negative_reply = {
 OPCODE(OGF_LINK_CONTROL, 0x34), "B1"
 // BD_ADDR, Reason - Part D, Error codes
 };
+
+
 /**
- *  Link Policy Commands
+ *  Link Policy Commands 
  */
 const hci_cmd_t hci_sniff_mode = {
 OPCODE(OGF_LINK_POLICY, 0x03), "H2222"
@@ -295,7 +307,7 @@ OPCODE(OGF_LINK_POLICY, 0x0b), "B1"
 };
 const hci_cmd_t hci_read_link_policy_settings = {
 OPCODE(OGF_LINK_POLICY, 0x0c), "H"
-// handle
+// handle 
 };
 const hci_cmd_t hci_write_link_policy_settings = {
 OPCODE(OGF_LINK_POLICY, 0x0d), "H2"
@@ -307,7 +319,7 @@ OPCODE(OGF_LINK_POLICY, 0x11), "H222"
 };
 
 /**
- *  Controller & Baseband Commands
+ *  Controller & Baseband Commands 
  */
 const hci_cmd_t hci_set_event_mask = {
 OPCODE(OGF_CONTROLLER_BASEBAND, 0x01), "44"
@@ -560,7 +572,7 @@ OPCODE(OGF_LE_CONTROLLER, 0x16), "H"
 const hci_cmd_t hci_le_encrypt = {
 OPCODE(OGF_LE_CONTROLLER, 0x17), "PP"
 // param: key (128) for AES-128
-// param: plain text (128)
+// param: plain text (128) 
 // return: status, encrypted data (128)
 };
 const hci_cmd_t hci_le_rand = {
@@ -622,7 +634,7 @@ const hci_cmd_t hci_enable_device_under_test_mode = {
 // BTstack commands
 const hci_cmd_t btstack_get_state = {
 OPCODE(OGF_BTSTACK, BTSTACK_GET_STATE), ""
-// no params ->
+// no params -> 
 };
 
 const hci_cmd_t btstack_set_power_mode = {
@@ -684,12 +696,23 @@ const hci_cmd_t l2cap_decline_connection = {
 OPCODE(OGF_BTSTACK, L2CAP_DECLINE_CONNECTION), "21"
 // @param source cid (16), reason(8)
 };
+
 const hci_cmd_t sdp_register_service_record = {
 OPCODE(OGF_BTSTACK, SDP_REGISTER_SERVICE_RECORD), "S"
 // @param service record handle (DES)
 };
 const hci_cmd_t sdp_unregister_service_record = {
 OPCODE(OGF_BTSTACK, SDP_UNREGISTER_SERVICE_RECORD), "4"
+// @param service record handle (32)
+};
+
+const hci_cmd_t sdp_client_query_rfcomm_services = {
+OPCODE(OGF_BTSTACK, SDP_CLIENT_QUERY_RFCOMM_SERVICES), "BS"
+// @param service record handle (32)
+};
+
+const hci_cmd_t sdp_client_query_services = {
+OPCODE(OGF_BTSTACK, SDP_CLIENT_QUERY_SERVICES), "BSS"
 // @param service record handle (32)
 };
 

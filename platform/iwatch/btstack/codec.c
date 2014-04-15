@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "i2c.h"
 #include "power.h"
+#include "btstack-config.h"
+#include "debug.h"
 
 /*
  * Codec NAU1080 for BT
@@ -122,8 +124,6 @@ void codec_shutdown()
   AUDOUT |= AUDBIT; // output direction, value = H
 
   SMCLKSEL &= ~SMCLKBIT;     // output SMCLK
-
-  PCODECOUT &= ~PCODECBIT;
 }
 
 void codec_suspend()
@@ -136,8 +136,8 @@ void codec_suspend()
   NSPKEN[6]
   PSPKEN[5]
   */
-  SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
   power_unpin(MODULE_CODEC);
+  PCODECOUT |= PCODECBIT;
 
   I2C_addr(CODEC_ADDRESS);
   codec_write(REG_POWER_MANAGEMENT1, 0);
@@ -146,6 +146,8 @@ void codec_suspend()
 
   codec_write(REG_CLK_GEN_CTRL, 0x148);
   I2C_done();
+
+  SMCLKSEL &= ~SMCLKBIT;     // disable SMCLK
 }
 
 uint8_t codec_changevolume(int8_t diff)
@@ -185,6 +187,8 @@ uint8_t codec_getvolume()
 void codec_wakeup()
 {
   SMCLKSEL |= SMCLKBIT;     // output SMCLK
+  PCODECOUT &= ~PCODECBIT;
+
   power_pin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS);
@@ -227,39 +231,39 @@ void codec_init()
     if (config[i] == 0xffff)
       continue;
 #if 0
-    printf("write to %x with 0x%x ", i, config[i]);
+    log_info("write to %x with 0x%x ", i, config[i]);
     uint32_t d = config[i];
     for(int i = 0; i <= 8; i++)
     {
       if (d & 0x01)
-        printf("BIT%d ", i);
+        log_info("BIT%d ", i);
       d = d >> 1;
     }
-    printf("\n");
+    log_info("\n");
 #endif
     if (codec_write(i, config[i]))
     {
       I2C_done();
-      printf("initialize codec failed %d\n", i);
+      log_info("initialize codec failed %d\n", i);
       return;
     }
   }
 
   process_post(ui_process, EVENT_CODEC_STATUS, (void*)BIT0);
-  printf("$$OK CODEC\n");
+  log_info("$$OK CODEC\n");
 
 #if 0
   for(int i = 1; i <= 0x38; i++)
   {
     uint32_t d = codec_read(i);
-    printf("Codec reg: %x = 0x%lx ", i, d);
+    log_info("Codec reg: %x = 0x%lx ", i, d);
     for(int i = 0; i <= 8; i++)
     {
       if (d & 0x01)
-        printf("BIT%d ", i);
+        log_info("BIT%d ", i);
       d = d >> 1;
     }
-    printf("\n");
+    log_info("\n");
   }
 #endif
   I2C_done();

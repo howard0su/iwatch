@@ -25,6 +25,7 @@
 
 #ifndef __GRLIB_H__
 #define __GRLIB_H__
+#include <stdint.h>
 
 //*****************************************************************************
 //
@@ -417,20 +418,20 @@ typedef struct
     //! value depends upon the codepage that the font is using, as defined in
     //! the eCodePage field of the associated tFontWide structure.
     //
-    unsigned long ulStartCodepoint;
+    uint32_t ulStartCodepoint;
 
     //
     //! The number of characters encoded in this block.  The first character
     //! is given by ulStartCodepoint and the last is (ulStartCodepoint +
     //! ulNumBlockChars - 1).
     //
-    unsigned long ulNumCodepoints;
+    uint32_t ulNumCodepoints;
 
     //
     //! The offset from the beginning of the tFontWide header to the glyph
     //! offset table for this block of characters.
     //
-    unsigned long ulGlyphTableOffset;
+    uint32_t ulGlyphTableOffset;
 }
 tFontBlock;
 
@@ -1326,7 +1327,7 @@ extern void GrContextFontSet(tContext *pContext, const tFont *pFnt);
 #define ClrAzure                0x00F0FFFF
 #define ClrBeige                0x00F5F5DC
 #define ClrBisque               0x00FFE4C4
-#define ClrBlack                0x00FFFFFF //0x00000000
+#define ClrBlack                0x00000000
 #define ClrBlanchedAlmond       0x00FFEBCD
 #define ClrBlue                 0x000000FF
 #define ClrBlueViolet           0x008A2BE2
@@ -1455,7 +1456,7 @@ extern void GrContextFontSet(tContext *pContext, const tFont *pFnt);
 #define ClrTurquoise            0x0040E0D0
 #define ClrViolet               0x00EE82EE
 #define ClrWheat                0x00F5DEB3
-#define ClrWhite                0x00000000 // 0x00FFFFFF
+#define ClrWhite                0x00FFFFFF
 #define ClrWhiteSmoke           0x00F5F5F5
 #define ClrYellow               0x00FFFF00
 #define ClrYellowGreen          0x009ACD32
@@ -2279,31 +2280,34 @@ extern unsigned long GrMapWIN1254_Unicode(const char *pcSrcChar,
 #define ASSERT(x) assert(x)
 typedef unsigned char tBoolean;
 
-extern const tFont g_sFontNova12b;
-extern const tFont g_sFontNova13;
-extern const tFont g_sFontNova16;
-extern const tFont g_sFontNova16b;
-extern const tFont g_sFontNova28;
-extern const tFont g_sFontNova28b;
-extern const tFont g_sFontNova38;
-extern const tFont g_sFontNova38b;
-extern const tFont g_sFontNova50b;
-extern const tFont g_sFontRed13;
-extern const tFont g_sFontBaby16;
-extern const tFont g_sFontBaby12;
+//extern const tFont g_sFontBaby12;
+extern const tFont g_sFontDriod28b;
+extern const tFont g_sFontGothamblack30;
+extern const tFont g_sFontGothambold42;
+extern const tFont g_sFontGothamlight42;
+extern const tFontEx g_sFontExGothammedium32;
+extern const tFontEx g_sFontExGothammedium42;
+extern const tFont g_sFontGothic14;
+//extern const tFont g_sFontGothic14b;
+extern const tFont g_sFontGothic18;
+extern const tFont g_sFontGothic18b;
+//extern const tFont g_sFontGothic24;
+extern const tFont g_sFontGothic24b;
+extern const tFont g_sFontGothic28;
+extern const tFont g_sFontGothic28b;
 extern const tFontEx g_sFontExIcon16;
+extern const tFontEx g_sFontExIcon32;
 extern const tFontEx g_sFontExIcon48;
-
-extern const tFontEx g_sFontExDigit44;
-extern const tFontEx g_sFontExDigit44b;
-extern const tFontEx g_sFontExDigit56;
-extern const tFontEx g_sFontExDigit52b;
+extern const tFont g_sFontRobotocondensed18b;
 
 extern const tFontWrapper g_sFontUnicode;
 
+
 extern void GrRectFillRound(const tContext *pContext, const tRectangle *pRect, long lRadius);
 // return 0 when the region is enough, otherwise some text cannot draw due to limit
-extern int GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, long margin);
+#define ALIGN_DEFAULT 0
+#define ALIGN_CENTER  1
+extern int GrStringDrawWrap(const tContext* pContext, const char* text, long startx, long starty, long width, int align);
 extern int NumLeadingZeros(long x);
 
 extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,

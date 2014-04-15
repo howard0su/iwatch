@@ -25,6 +25,7 @@
 #include <btstack/run_loop.h>
 #include <btstack/sdp_util.h>
 
+#include "btstack-config.h"
 #include "hci.h"
 #include "l2cap.h"
 #include "btstack_memory.h"
@@ -32,12 +33,10 @@
 #include "rfcomm.h"
 #include "sdp.h"
 #include "hfp.h"
-#include "config.h"
 #include "avctp.h"
 #include "avrcp.h"
 
 #include "debug.h"
-#define DEVICENAME "Kreyos %02X%02X"
 
 #include "bluetooth.h"
 
@@ -46,7 +45,7 @@ extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
 
 static bd_addr_t currentbd;
-
+static uint8_t running = 0;
 static uint16_t handle_audio = 0;
 
 // Bluetooth logic
@@ -94,36 +93,31 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       }
       break;
     }
-  case HCI_EVENT_PIN_CODE_REQUEST:
-    {
-      // inform about pin code request
-      log_info("Pin code request - using '0000'\n");
-      bt_flip_addr(event_addr, &packet[2]);
-      hci_send_cmd(&hci_pin_code_request_reply, &event_addr, 4, "0000");
-      break;
-    }
-  case HCI_EVENT_IO_CAPABILITY_REQUEST:
-    {
-      log_info("IO_CAPABILITY_REQUEST\n");
-      bt_flip_addr(event_addr, &packet[2]);
-      hci_send_cmd(&hci_io_capability_request_reply, &event_addr, 0x01, 0x00, 0x00);
-      break;
-    }
-  case HCI_EVENT_USER_CONFIRMATION_REQUEST:
-    {
-      bt_flip_addr(event_addr, &packet[2]);
-      uint32_t value = READ_BT_32(packet, 8);
-      log_info("USER_CONFIRMATION_REQUEST %lx\n", value);
-      hci_send_cmd(&hci_user_confirmation_request_reply, &event_addr);
-      break;
-    }
   case HCI_EVENT_LINK_KEY_NOTIFICATION:
     {
       // new device is paired
-      bt_flip_addr(event_addr, &packet[2]);
-      memcpy(&currentbd, event_addr, sizeof(currentbd));
+      //bt_flip_addr(event_addr, &packet[2]);
+      //memcpy(&currentbd, event_addr, sizeof(currentbd));
       //sdpc_open(event_addr);
+      // close bluetooth information page
       break;
+    }
+  case BTSTACK_EVENT_STATE:
+    {
+      if (packet[2] == HCI_STATE_OFF)
+      {
+        // close the connection
+        process_exit(&bluetooth_process);
+        
+        // disable power
+        OECLKOUT |= OECLKBIT;
+        OEHCIOUT |= OEHCIBIT;
+        BTPOWEROUT &= ~BTPOWERBIT;
+
+        // notify UI that we are shutdown
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
+        break;
+      }
     }
   }
 }
@@ -143,6 +137,7 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     // bt stack activated, get started - set local name
     if (packet[2] == HCI_STATE_WORKING) {
       log_info("Start initialize bluetooth chip!\n");
+      running = 1;
       hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
     }
     break;
@@ -156,16 +151,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_codec_config)){
-        char buf[20];
-        uint8_t a, b;
-        bd_addr_t* addr = hci_local_bd_addr();
-        a = (*addr)[4];
-        b = (*addr)[5];
-        sprintf(buf, DEVICENAME, a, b);
-        hci_send_cmd(&hci_write_local_name, buf);
-        break;
-      }
-      else if (COMMAND_COMPLETE_EVENT(packet, hci_write_local_name)) {
         hci_send_cmd(&hci_write_default_link_policy_settings, 0x000F);
         break;
       }
@@ -173,11 +158,11 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_unregister_packet_handler(init_packet_handler);
         l2cap_register_packet_handler(packet_handler);
-        printf("\n$$OK BLUETOOTH\n");
+        log_info("\n$$OK BLUETOOTH\n");
 
         // as testing
         ant_shutdown();
-        printf("\n$$END\n");
+        log_info("\n$$END\n");
       }
       break;
     }
@@ -215,6 +200,7 @@ static void btstack_setup(){
 
   // init RFCOMM
   rfcomm_init();
+  rfcomm_set_required_security_level(LEVEL_1);
 
   // set up BLE
   ble_init();
@@ -232,7 +218,7 @@ static void btstack_setup(){
 
   hfp_init();
 
-  mns_init();
+  //mns_init();
 }
 
 void bluetooth_init()
@@ -256,46 +242,29 @@ void bluetooth_init()
 
 void bluetooth_shutdown()
 {  
-  process_exit(&bluetooth_process);
+//  codec_shutdown();
+
+//  
   
   hci_power_control(HCI_POWER_OFF);
 
-  codec_shutdown();
-
-  BT_SHUTDOWN_OUT &= ~BT_SHUTDOWN_BIT;  // = 1 - Active low
-
-  // disable power
-  OECLKDIR |= OECLKBIT;
-  OECLKOUT |= OECLKBIT;
-
-  OEHCIDIR |= OEHCIBIT;
-  OEHCIOUT |= OEHCIBIT;
-
-  BTPOWERDIR |= BTPOWERBIT;
-  BTPOWEROUT |= BTPOWERBIT;
-
-  // notify UI that we are shutdown
-  process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
+  running = 0;
 }
 
 void bluetooth_discoverable(uint8_t onoff)
 {
   hci_discoverable_control(onoff);
+  ble_advertise(onoff);
 }
 
-uint8_t bluetooth_paired()
+uint8_t bluetooth_running()
 {
-  return 1;
-}
-
-bd_addr_t* bluetooth_paired_addr()
-{
-  return &currentbd;
+  return running;
 }
 
 const char* bluetooth_address()
 {
-  return bd_addr_to_str((const char*)hci_local_bd_addr());
+  return (const char*)hci_local_bd_addr();
 }
 
 static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
@@ -310,17 +279,17 @@ static void dut_packet_handler (void * connection, uint8_t packet_type, uint16_t
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_set_event_filter)){
-        printf("set event filter done. ret=%x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        log_info("set event filter done. ret=%x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
         hci_send_cmd(&hci_write_scan_enable, 0x03);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_scan_enable)){
-        printf("scan enable finish. ret=%x \n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        log_info("scan enable finish. ret=%x \n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
         hci_send_cmd(&hci_enable_device_under_test_mode);
         break;
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_enable_device_under_test_mode)){
-        printf("device is in DUT mode. ret = %x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
+        log_info("device is in DUT mode. ret = %x\n", packet[OFFSET_OF_DATA_IN_COMMAND_COMPLETE]);
       }
     }
   }
@@ -361,17 +330,17 @@ static void contx_packet_handler (void * connection, uint8_t packet_type, uint16
   case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFD84)){
-        printf("HCI_VS_DRPb_Tester_Con_TX_Cmd done.\n");
+        log_info("HCI_VS_DRPb_Tester_Con_TX_Cmd done.\n");
         hci_send_cmd_packet((uint8_t*)HCI_VS_Write_Hardware_Register_Cmd, sizeof(HCI_VS_Write_Hardware_Register_Cmd));
         break;
       }
       else if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFF01)){
-        printf("HCI_VS_Write_Hardware_Register_Cmd done.\n");
+        log_info("HCI_VS_Write_Hardware_Register_Cmd done.\n");
         hci_send_cmd_packet((uint8_t*)HCI_VS_DRPb_Enable_RF_Calibration_Cmd, sizeof(HCI_VS_DRPb_Enable_RF_Calibration_Cmd));
         break;
       }
       else if (COMMAND_COMPLETE_EVENT_RAW(packet, 0xFD80)){
-        printf("HCI_VS_DRPb_Enable_RF_Calibration_Cmd done.\n");
+        log_info("HCI_VS_DRPb_Enable_RF_Calibration_Cmd done.\n");
         break;
       }
     }

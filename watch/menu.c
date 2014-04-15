@@ -22,6 +22,7 @@
 #include <string.h>
 #include "memory.h"
 #include "sportsdata.h"
+#include "system.h"
 
 #include "test.h"
 
@@ -38,7 +39,15 @@
 #define DATA_LEGAL 0xF7
 #define DATA_LIGHT 0xF8
 #define DATA_VOL  0xF9
+#define DATA_FONTCONFIG 0xFA
 #define NO_DATA   0xFF
+
+struct MenuItem
+{
+  unsigned char icon;
+  const char *name;
+  windowproc handler;
+};
 
 static const struct MenuItem SetupMenu[] =
 {
@@ -47,7 +56,9 @@ static const struct MenuItem SetupMenu[] =
   {DATA_LIGHT, "Back Light", &configlight_process},
   {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
-  {NO_DATA, "Upgrade Firmware", &upgrade_process},
+  {DATA_FONTCONFIG, "Font", &configfont_process},
+  {-1,   "Factory Reset", &reset_process},
+  {-1,   "About", &about_process},
 //  {NO_DATA, "Shutdown", &shutdown_process},
   {-1, NULL, NULL}
 };
@@ -65,18 +76,16 @@ static const struct MenuItem AboutMenu[] =
 
 static const struct MenuItem MainMenu[] =
 {
-  {'a', "Today's Activity", &today_process},
-  {'b', "Analog Watch", &analogclock_process},
-  {'c', "Digital Watch", &digitclock_process},
-  {'d', "World Clock", &worldclock_process},
+  {'a', "Activity", &today_process},
+  {'b', "Sports", &sporttype_process},
+  {'c', "Music", &control_process},
+  {'d', "Clock", &worldclock_process},
   {'e', "Calendar", &calendar_process},
-  {'f', "Stop Watch", &stopwatch_process},
-  {'g', "Countdown Timer", &countdown_process},
-  {'k', "Music Control", &control_process},
-  {'h', "Sports Watch", &sporttype_process},
-  {'a', "History", &menu_process},
-  {'l', "Setup", &menu_process},
-  {0,   "About", &menu_process},
+  {'f', "Stopwatch", &stopwatch_process},
+  {'g', "Timer", &countdown_process},
+  {'h', "Digital", &digitclock_process},
+  {'i', "Analog", &analogclock_process},
+  {'j', "Settings", &menu_process},
   {0, NULL, NULL}
 };
 
@@ -91,10 +100,14 @@ static const struct MenuItem TestMenu[] =
   {0, "MPU6050", &test_mpu6050},
   {0, "Bluetooth", &test_bluetooth},
   {0, "GoogleNow", &test_googlenow},
+  {0, "Sleep", &test_sleep},
   {0, "BT DUT", &test_dut},
   {0, "BLE", &test_ble},
   {0, "Codec", &test_codec},
   {0, "Self-test", &selftest_process},
+  {0, "ClearSportsData", &test_cleardata},
+  {0, "BuildSportsData", &test_builddata},
+  {0, "SportsData", &test_sportsdata},
   {0, "Reboot", &test_reboot},
   {0, NULL, NULL}
 };
@@ -108,77 +121,12 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define rows            d.menu.rows
 #define row_count       d.menu.row_count
 
-#define SET_MENU_END(id, menu) menu[id].name = NULL, menu[id].handler = NULL, menu[id].icon = 0
-
-
-static void load_history_menu()
-{
-    row_count = load_history(rows, count_elem(rows) - 1);
-    for (int i = 0; i < row_count; ++i)
-    {
-        if (rows[i].mode == DATA_MODE_TOOMSTONE)
-            continue;
-
-        if (rows[i].mode != DATA_MODE_NORMAL)
-        {
-            sprintf(history_names[i], "%02d/%02d/%02d %02d:%02d",
-                    rows[i].month, rows[i].day, rows[i].year, rows[i].hour, rows[i].minute);
-        }
-        else
-        {
-            sprintf(history_names[i], "%02d/%02d/%02d",
-                    rows[i].month, rows[i].day, rows[i].year);
-        }
-        HistoryActivity[i].handler = &menu_process;
-        HistoryActivity[i].icon    = rows[i].mode == DATA_MODE_RUNNING ? 'h' : 'a';
-        HistoryActivity[i].name    = history_names[i];
-    }
-    SET_MENU_END(row_count, HistoryActivity);
-}
-
-/*
-static uint8_t s_record_pos = 0;
-static uint8_t loadHistoryRecord(char* filename)
-{
-    uint8_t pos = s_record_pos;
-    if (pos >= count_elem(HistoryActivity) - 1)
-    {
-        printf("max history entris reach:%d\n", count_elem(HistoryActivity) - 1);
-        return 0;
-    }
-
-    record_desc_t record;
-    if(get_record_desc(filename, &record) != 0 && !record.is_continue)
-    {
-        printf("load %s\n", filename);
-        strcpy(file_names[pos], filename);
-        if (record.mode != DATA_MODE_NORMAL || record.sec != 0)
-        {
-            sprintf(history_names[pos], "%02d/%02d/%02d %02d:%02d",
-                    record.month, record.day, record.year, record.hour, record.min);
-        }
-        else
-        {
-            sprintf(history_names[pos], "%02d/%02d/%02d",
-                    record.month, record.day, record.year);
-        }
-        HistoryActivity[pos].handler = &menu_process;
-        HistoryActivity[pos].icon    = record.mode == DATA_MODE_RUNNING ? 'h' : 'a';
-        HistoryActivity[pos].name    = history_names[pos];
-
-        s_record_pos++;
-        SET_MENU_END(s_record_pos, HistoryActivity);
-    }
-    return 1;
-}
-*/
-
-#define NUM_MENU_A_PAGE 5
-#define MENU_SPACE 30
+#define NUM_MENU_A_PAGE 3
+#define MAINMENU_SPACE ((168 - 30)/NUM_MENU_A_PAGE)
 
 extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
 
-static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int index, int selected)
+static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPACE, const struct MenuItem *item, int index, int selected)
 {
   if (selected)
   {
@@ -192,7 +140,7 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {8, 17 + index * MENU_SPACE, 134, 9 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 25 + index * MENU_SPACE, LCD_X_SIZE - 2, 20 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -207,26 +155,27 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
     GrContextBackgroundSet(pContext, ClrWhite);
   }
   
-  if (item->icon < 0x80)
+  if (item->icon < 0x80 && item->icon != 0)
   {
-    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, &item->icon, 1, 10, 14 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrContextFontSet(pContext, (tFont*)&g_sFontExIcon32);
+    GrStringDraw(pContext, &item->icon, 1, 4, 13 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
-  GrContextFontSet(pContext, &g_sFontBaby16);
-  if (item->icon < 0x80)
+  GrContextFontSet(pContext, textFont);
+  if (item->icon < 0x80 && item->icon != 0)
   {
-    GrStringDraw(pContext, item->name, -1, 32, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, item->name, -1, 40, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
   else
   {
     char buf[20];
     int width;
     // <= 0
-    GrStringDraw(pContext, item->name, -1, 12, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
-
+    GrStringDraw(pContext, item->name, -1, 5, 17 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrContextFontSet(pContext, &g_sFontGothic18);
     switch(item->icon)
     {
+      case 0:
       case 0xFF:
         return;
       case DATA_DATE:
@@ -254,16 +203,16 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
         break;
       }
       case DATA_BT:
-      sprintf(buf, "%s", "ON");
+      sprintf(buf, "%s", bluetooth_running()?"ON":"OFF");
       break;
       case DATA_ANT:
       sprintf(buf, "%s", "OFF");
       break;
       case DATA_LEGAL:
-      strcpy(buf, "legal.kreyos.com");
+      strcpy(buf, "kreyos.com/legal");
       break;
       case DATA_VERSION:
-      strcpy(buf, "1.0.0.1");
+      strcpy(buf, FWVERSION);
       break;
       case DATA_LIGHT:
       sprintf(buf, "%d", window_readconfig()->light_level);
@@ -273,15 +222,21 @@ static void drawMenuItem(tContext *pContext, const struct MenuItem *item, int in
       break;
       case DATA_BTADDR:
       {
-      sprintf(buf, "%s", bluetooth_address());
-      break;
+        const char* ptr = bluetooth_address();
+        sprintf(buf, "Meteor %02X%02X", ptr[4], ptr[5]);
+        break;
+      }
+      case DATA_FONTCONFIG:
+      {
+        strcpy(buf, fontconfig_name[window_readconfig()->font_config]);
+        break;
       }
       default:
       strcpy(buf, "TODO");
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 16 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 17 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
   }
 }
 
@@ -291,15 +246,17 @@ static uint8_t menuLength;
 
 static void OnDraw(tContext *pContext)
 {
+  const tFont *textfont;
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &client_clip);
 
   struct MenuItem const * item = Items;
 
-  if (currentTop > 0)
-  {
-    // draw some grey area means something in the up
-  }
+  if (item == MainMenu)
+    textfont = &g_sFontGothic28b;
+  else
+    textfont = &g_sFontGothic24b;
+
   item += currentTop;
 
   for(int i = 0; i < NUM_MENU_A_PAGE; i++)
@@ -307,33 +264,30 @@ static void OnDraw(tContext *pContext)
     if (item->name == NULL)
       break;
 
-    drawMenuItem(pContext, item, i, current == currentTop + i);
+    drawMenuItem(pContext, textfont, MAINMENU_SPACE, item, i, current == currentTop + i);
     item++;
   }
 
   if (item->name != NULL)
   {
+    GrContextForegroundSet(pContext, ClrWhite);
     // there is something more
+    for(int i = 0; i < 8; i++)
+    {
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - i);
+    }
+    GrContextForegroundSet(pContext, ClrBlack);
   }
 
-  if (NUM_MENU_A_PAGE < menuLength)
+  if (currentTop > 0)
   {
-    // draw progress bar
-    #define STEPS 128
-    int length = NUM_MENU_A_PAGE * STEPS / menuLength;
-    int start = currentTop * STEPS / menuLength;
-
-    tRectangle rect = {136, 20, 143, 20 + STEPS + 10};
     GrContextForegroundSet(pContext, ClrWhite);
-    GrRectFillRound(pContext, &rect, 3);
+    // draw some grey area means something in the up
+    for(int i = 0; i < 8; i++)
+    {
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  18 + i);
+    }
     GrContextForegroundSet(pContext, ClrBlack);
-
-    rect.sXMin += 2;
-    rect.sXMax -= 2;
-
-    rect.sYMin += 4 + start;
-    rect.sYMax = rect.sYMin + length;
-    GrRectFill(pContext, &rect);
   }
 }
 
@@ -342,6 +296,34 @@ static void getMenuLength()
   menuLength = 0;
   while(Items[menuLength].name != NULL)
     menuLength++;
+}
+
+uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  switch(ev)
+  {
+    case EVENT_WINDOW_PAINT:
+    {
+      tContext *pContext = (tContext*)rparam;
+      GrContextForegroundSet(pContext, ClrBlack);
+      GrRectFill(pContext, &client_clip);
+
+      int i = 0;
+      struct MenuItem const * item = AboutMenu;
+      while(item != NULL)
+      {
+        if (item->name == NULL)
+          break;
+
+        drawMenuItem(pContext, &g_sFontGothic18b, (168 - 30)/5, item, i, 0);
+        i++;
+        item++;
+      }
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -356,21 +338,13 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         Items = (system_testing()==1)?TestMenu:MainMenu;
       }
-      else if (strcmp(rparam, "Watch Setup") == 0)
+      else if (strcmp(rparam, "Settings") == 0)
       {
         Items = SetupMenu;
-      }
-      else if (strcmp(rparam, "About") == 0)
-      {
-        Items = AboutMenu;
       }
       else if (strcmp(rparam, "Test") == 0)
       {
         Items = TestMenu;
-      }
-      else if (strcmp(rparam, "History") == 0)
-      {
-        Items = HistoryActivity;
       }
 
       getMenuLength();
@@ -447,32 +421,13 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else if (lparam == KEY_ENTER)
       {
-        if (Items == HistoryActivity)
-        {
-            window_open(&recordoperation_process, (void*)current);
-        }
-        else if (Items[current].handler)
+        if (Items[current].handler)
         {
           if (Items[current].handler == &menu_process)
           {
             if (current == 9)
             {
-              //s_record_pos = 0;
-              //SET_MENU_END(0, HistoryActivity);
-              //Items = HistoryActivity;
-              //process_post(&filesys_process, PROCESS_EVENT_READ_DIR, NULL);
-
-              load_history_menu();
-              Items = HistoryActivity;
-
-            }
-            else if (current == 10)
-            {
               Items = SetupMenu;
-            }
-            else if (current == 11)
-            {
-              Items = AboutMenu;
             }
             getMenuLength();
             current = currentTop = 0;
@@ -491,23 +446,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       if (Items == SetupMenu)
       {
         Items = MainMenu;
-        currentTop = 6;
-        current = 10;
-        getMenuLength();
-        window_invalid(NULL);
-      }
-      else if (Items == AboutMenu)
-      {
-        Items = MainMenu;
         currentTop = 7;
-        current = 11;
-        getMenuLength();
-        window_invalid(NULL);
-      }
-      else if (Items == HistoryActivity)
-      {
-        Items = MainMenu;
-        currentTop = 5;
         current = 9;
         getMenuLength();
         window_invalid(NULL);
@@ -523,16 +462,6 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       break;
     }
-
-    //case EVENT_FILESYS_LIST_FILE:
-    //  if ((int)rparam != 0 && (int)rparam != -1)
-    //  {
-    //    loadHistoryRecord((char*)rparam);
-    //    process_post(&filesys_process, PROCESS_EVENT_READ_DIR_PROC, NULL);
-    //  }
-    //  else
-    //    window_invalid(NULL);
-    //  break;
 
     default:
       return 0;

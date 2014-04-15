@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <conio.h>
-#include <windows.h>
 
 
 #define OPERATION_SUCCESSFUL 0

@@ -2815,10 +2815,11 @@ GrStringGet(long lIndex, char *pcData, unsigned long ulSize)
     return(ulLen);
 }
 
-int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, long margin)
+int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx, long starty, long width, int align)
 {
-     int start, laststop, iterator, w;
-     unsigned long ulChar, ulSkip;
+    int start, laststop, iterator, w;
+    unsigned long ulChar, ulSkip;
+    int lastwidth, offset;
 
     start = 0;
     for(;;)
@@ -2840,38 +2841,64 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
           if(ulChar == ' ')
           {
               laststop = iterator;
+              lastwidth = w;
           }
-      }while(w < width && ulChar != '\0'&& ulChar != '\n');
+      }while(w <= width && ulChar != '\0' && ulChar != '\n' && ulChar != '\r');
  
-        if (w >= width)
+        if (w > width)
         {
-            if (laststop == -1) 
+            if (laststop == -1)
             {
                 // no way to put this string, then we just wrappt it
                 iterator -= ulSkip; // remove last character
                 laststop = iterator;
+                w = width;
             }
             else
             {
                 iterator = laststop;
+                w = lastwidth;
             }
         }
+
+        if (align & ALIGN_CENTER)
+        {
+            offset = (width - w)/2;
+        }
+        else
+        {
+            offset = 0;
+        }
+
         //printf("start: %d count:%d\n", start, iterator - start);
         // now we need draw
         if (ulChar == '\n')
-            GrStringDraw(pContext, pcString + start, iterator - start - 1, startx, starty, 0);
+            GrStringDraw(pContext, pcString + start, iterator - start - 1, startx + offset, starty, 0);
         else
-            GrStringDraw(pContext, pcString + start, iterator - start, startx, starty, 0);
+            GrStringDraw(pContext, pcString + start, iterator - start, startx + offset, starty, 0);
+
         if (ulChar == '\0')
-            return 0;
+            break;
         start = iterator;
+        starty += GrStringHeightGet(pContext);
         while(*(pcString + start) == '\n' || *(pcString + start) == ' ')
             start++;
-        starty += margin;
 
         if (starty > pContext->sClipRegion.sYMax)
-            return 1;
-   }
+        {
+            return -1;
+        }
+    }
+
+    long nexty = starty + GrStringHeightGet(pContext);
+    if (nexty > 0 && nexty > pContext->sClipRegion.sYMax)
+    {
+        return -1;
+    }
+    else
+    {
+        return nexty;
+    }
 }
 //*****************************************************************************
 //

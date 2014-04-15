@@ -1,7 +1,12 @@
-#include "stlv_client.h"
 
 #include <stdio.h>
+#include <string.h>
+
+#include "stlv_client.h"
+
 #include "stlv.h"
+#include "btstack-config.h"
+#include "debug.h"
 
 void send_echo(uint8_t* data, uint8_t size)
 {
@@ -30,7 +35,7 @@ typedef struct _file_sender_t
     void (*callback)(int);
 }file_sender_t;
 
-#define FILE_SENDER_COUNT 8
+#define FILE_SENDER_COUNT 1
 static uint8_t s_file_senders_status = 0;
 static file_sender_t s_file_senders[FILE_SENDER_COUNT];
 
@@ -71,7 +76,7 @@ static void send_file_data_callback(int para)
 
 static void send_file_end(int para)
 {
-    printf("send end\n");
+    log_info("send end\n");
     stlv_packet p = create_packet();
     if (p == NULL)
         return;
@@ -119,6 +124,7 @@ int send_file_data(int handle, uint8_t* data, uint8_t size, void (*callback)(int
 
     if (s->status == FILESENDER_S_BEGIN)
     {
+        printf("send_begin()\n");
         element_handle name_elm = append_element(p, file_elem, "n", 1);
         element_append_string(p, name_elm, s->name);
         s->status = FILESENDER_S_DATA;
@@ -150,7 +156,7 @@ void end_send_file(int handle)
     }
 }
 
-void send_sports_data(uint8_t id, uint8_t flag, uint32_t data[], uint8_t size)
+void send_sports_data(uint8_t id, uint8_t flag, uint8_t* meta, uint32_t* data, uint8_t size)
 {
     stlv_packet p = create_packet();
     if (p == 0)
@@ -164,8 +170,21 @@ void send_sports_data(uint8_t id, uint8_t flag, uint32_t data[], uint8_t size)
     element_handle elm_flag = append_element(p, h, "f", 1);
     element_append_char(p, elm_flag, flag);
 
+    uint8_t buffer[32] = {0};
+    uint8_t cursor = 0;
+
+    buffer[cursor++] = size; //sports number
+
+    //meta
+    for (int i = 0; i < size; ++i)
+        buffer[cursor++] = meta[i];
+
+    //data
+    memcpy(&buffer[cursor], data, size * sizeof(data[0]));
+    cursor += size * sizeof(data[0]);
+
     element_handle elm_data = append_element(p, h, "d", 1);
-    element_append_data(p, elm_data, (uint8_t*)data, size * sizeof(data[0]));
+    element_append_data(p, elm_data, buffer, cursor);
 
     send_packet(p, NULL, 0);
 }
@@ -215,7 +234,17 @@ void launch_google_now()
     stlv_packet p = create_packet();
     if (p == NULL)
         return;
-    element_handle h = append_element(p, NULL, "*", 1);
-    element_append_char(p, h, '*');
+    element_handle h = append_element(p, NULL, "/", 1);
+    element_append_char(p, h, '/');
+    send_packet(p, NULL, 0);
+}
+
+void send_firmware_version(char* version)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "V", 1);
+    element_append_string(p, h, version);
     send_packet(p, NULL, 0);
 }

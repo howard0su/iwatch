@@ -19,6 +19,7 @@
 #include "hfp.h"
 #include "memory.h"
 #include "gesture/gesture.h"
+#include "icons.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -57,7 +58,7 @@ static void OnDraw(tContext *pContext)
   GrContextBackgroundSet(pContext, ClrWhite);
   GrRectFill(pContext, &client_clip);
 
-  GrContextFontSet(pContext, &g_sFontNova28b);
+  GrContextFontSet(pContext, &g_sFontGothic28b);
   // draw length
   //if (position != 0)
   {
@@ -96,13 +97,11 @@ static void OnDraw(tContext *pContext)
 
   // draw title
   GrContextFontSet(pContext, (tFont*)&g_sFontUnicode);
-  GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
   GrContextForegroundSet(pContext, ClrWhite);
   if (title)
     GrStringDraw(pContext, title, -1, 12, 108, 0);
   if (artist)
     GrStringDraw(pContext, artist, -1, 12, 125, 0);
-  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);   
 
   switch(state)
   {
@@ -185,7 +184,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
       if (!hfp_connected())
       {
-        window_notify("ERROR", "Bluetooth Device is not connected or supported", NOTIFY_OK, 0);
+        window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);
         return 1;
       }
       break;    
@@ -291,6 +290,15 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
       else if (lparam == KEY_ENTER)
       {
         avctp_send_passthrough(BACKWARD_OP);
+      }
+      else if (lparam == KEY_TAP)
+      {
+        uint8_t flag = window_readconfig()->gesture_flag;
+        if (flag & BIT0)
+        {
+          // gesture is enabled
+          gesture_init(0, flag & BIT1);
+        }
       }
       break;
     }

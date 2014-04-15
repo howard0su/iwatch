@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "l2cap.h"
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 #include "sdp.h"

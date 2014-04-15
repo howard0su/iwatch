@@ -6,7 +6,6 @@
 #include "btstack/sdp_util.h"
 
 #include <string.h>
-#include "config.h"
 #include "stlv.h"
 #include "stlv_server.h"
 #include "stlv_transport.h"
@@ -25,6 +24,7 @@ static const uint8_t   spp_service_buffer[100] = {
 
 #define SPP_CHANNEL 1
 uint16_t spp_channel_id = 0;
+static uint16_t spp_connection_handle;
 
 //static char spp_buffer[1024];
 static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
@@ -36,7 +36,7 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
-      set_btstack_type(BTSTACK_TYPE_RFCOMM);
+    set_btstack_type(BTSTACK_TYPE_RFCOMM);
     hexdump(packet, size);
     if (handle_stvl_transport(packet, size) > 0)
     {
@@ -45,6 +45,18 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
     }
     rfcomm_grant_credits(spp_channel_id, 1); // get the next packet
     return;
+  }
+
+  if (packet_type == DAEMON_EVENT_PACKET)
+  {
+      switch (packet[0]){
+        case DAEMON_EVENT_NEW_RFCOMM_CREDITS:
+            tryToSend();
+            break;
+        default:
+            break;
+      }
+      return;
   }
 
   if (packet_type == HCI_EVENT_PACKET)
@@ -79,14 +91,15 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
           spp_channel_id = 0;
         } else {
           spp_channel_id = READ_BT_16(packet, 12);
+          spp_connection_handle = READ_BT_16(packet, 9);
           uint16_t mtu = READ_BT_16(packet, 14);
           log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
           spp_write_ptr = spp_read_ptr = 0;
         }
         break;
       }
-    case DAEMON_EVENT_HCI_PACKET_SENT:
     case RFCOMM_EVENT_CREDITS:
+    case DAEMON_EVENT_HCI_PACKET_SENT:
       {
         tryToSend();
         break;
@@ -193,5 +206,18 @@ void spp_init()
 #endif
   sdp_register_service_internal(NULL, &spp_service_record);
 
-  rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, 100);  // reserved channel, mtu=100
+  rfcomm_register_service_internal(NULL, spp_handler, SPP_CHANNEL, SPP_PACKET_MTU);  // reserved channel, mtu=100
+}
+
+void spp_sniff(int onoff)
+{
+  if (onoff)
+  {
+    // sniff mode on
+    hci_set_sniff_timeout(spp_connection_handle, 3000);
+  }
+  else
+  {
+    hci_exit_sniff(spp_connection_handle);
+  }
 }

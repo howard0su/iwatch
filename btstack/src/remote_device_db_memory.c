@@ -32,11 +32,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <btstack/utils.h>
+
 #include "remote_device_db.h"
 #include "btstack_memory.h"
 #include "debug.h"
 
-#include <btstack/utils.h>
 #include <btstack/linked_list.h>
 
 #include "cfs/cfs.h"
@@ -45,6 +46,7 @@ struct element
 {
   link_key_t link_key;
   char device_name[DEVICE_NAME_LEN];
+  link_key_type_t link_type;
 };
 
 // Device info
@@ -64,7 +66,7 @@ static void formatname(char* filename, bd_addr_t addr)
   sprintf(filename, "_%02x%02x%02x%02x%02x%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 }
 
-static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key) {
+static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key, link_key_type_t *type) {
   log_info("get link key for %s\n", bd_addr_to_str(*bd_addr));
 
   char filename[32];
@@ -78,9 +80,11 @@ static int get_link_key(bd_addr_t *bd_addr, link_key_t *link_key) {
   if (len == sizeof(struct element))
   {
       memcpy(*link_key, entry.link_key, LINK_KEY_LEN);
+      if (type)
+        *type = entry.link_type;
       cfs_close(fd);
       return 1;
-    }
+  }
 
   cfs_close(fd);
   return 0;
@@ -95,7 +99,7 @@ static void delete_link_key(bd_addr_t *bd_addr){
 }
 
 
-static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key){
+static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key, link_key_type_t type){
   log_info("put link key for %s\n", bd_addr_to_str(*bd_addr));
   char filename[32];
   formatname(filename, *bd_addr);
@@ -110,6 +114,7 @@ static void put_link_key(bd_addr_t *bd_addr, link_key_t *link_key){
   fd = cfs_open(filename, CFS_WRITE);
   
   memcpy(entry.link_key, *link_key, LINK_KEY_LEN);
+  entry.link_type = type;
   cfs_write(fd, &entry, sizeof(struct element));
 
   cfs_close(fd);

@@ -43,7 +43,7 @@
  * 
  */
 
-#include "config.h"
+#include "btstack-config.h"
 //#define ENABLE_LOG_INFO
 #include <stdio.h>
 #include <string.h>
@@ -79,7 +79,6 @@ typedef enum {
     TX_W4_HEADER_SENT,
     TX_W4_PACKET_SENT,
     TX_W4_EHCILL_SENT,
-    TX_DONE
 } TX_STATE;
 
 typedef enum {
@@ -123,6 +122,8 @@ static int       read_pos;
 static int       bytes_to_read;
 static uint8_t   hci_packet[HCI_PACKET_BUFFER_SIZE]; // bigger than largest packet
 static  void (*packet_handler)(uint8_t packet_type, uint8_t *packet, uint16_t size) = dummy_handler;
+
+static uint8_t justSent;
 
 // H4: tx state
 static TX_STATE  tx_state;
@@ -294,7 +295,8 @@ static void h4_block_sent(void){
                 hal_uart_dma_send_block(&ehcill_command_to_send, 1);
                 break;
             }
-            tx_state = TX_DONE;
+            tx_state = TX_IDLE;
+            justSent = 1;
             // trigger run loop
             embedded_trigger();
             break;
@@ -304,7 +306,8 @@ static void h4_block_sent(void){
                 hal_uart_dma_set_sleep(1);
             }
             ehcill_command_to_send = 0;
-            tx_state = TX_DONE;
+            tx_state = TX_IDLE;
+            justSent = 1;
             // trigger run loop
             embedded_trigger();
             break;
@@ -327,9 +330,9 @@ static void dump(uint8_t *data, uint16_t len){
 static int h4_process(struct data_source *ds) {
 
     // notify about packet sent
-    if (tx_state == TX_DONE){
+    if (justSent){
         // reset state
-        tx_state = TX_IDLE;
+        justSent = 0;
         uint8_t event[] = {DAEMON_EVENT_HCI_PACKET_SENT, 0};
         packet_handler(HCI_EVENT_PACKET, &event[0], sizeof(event));
     }
@@ -365,7 +368,6 @@ static void ehcill_schedule_ecill_command(uint8_t command){
     ehcill_command_to_send = command;
     switch (tx_state){
         case TX_IDLE:
-        case TX_DONE:
             tx_state = TX_W4_EHCILL_SENT;
             switch(command)
             {

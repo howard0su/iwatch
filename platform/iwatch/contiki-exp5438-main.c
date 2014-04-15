@@ -50,6 +50,7 @@
 #include "btstack/bluetooth.h"
 #include "backlight.h"
 #include "window.h"
+#include "system.h"
 
 #include "ant/ant.h"
 #include "ant/antinterface.h"
@@ -62,6 +63,10 @@
 #else
 #define PRINTF(...)
 #endif
+
+// Function prototypes
+extern int CheckUpgrade(void);
+extern void Upgrade(void);
 
 extern void mpu6050_init();
 extern void button_init();
@@ -100,6 +105,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   
+  rtimer_init();
   ctimer_init();
 
   energest_init();
@@ -126,12 +132,14 @@ main(int argc, char **argv)
 
   motor_on(200, CLOCK_SECOND / 2);
   
-//  if (!bluetooth_paired())
+  if (!system_retail())
   {
     bluetooth_discoverable(1);
   }
 
   ant_init(MODE_HRM);
+
+  system_restore();
 
 //  protocol_init();
 //  protocol_start(1);
@@ -142,6 +150,16 @@ main(int argc, char **argv)
   * This is the scheduler loop.
   */
   msp430_dco_required = 0;
+
+  /*
+    check firmware update
+    */
+  if (CheckUpgrade() == 0)
+  {
+    printf("Start Upgrade\n");
+    Upgrade();
+    // never return if sucessfully upgrade
+  }
 
   watchdog_start();
 
@@ -174,7 +192,8 @@ main(int argc, char **argv)
 
       if (shutdown_mode)
       {
-        system_shutdown(); // never return
+        system_shutdown(1); // never return
+        LPM4;
       }
       
       if (msp430_dco_required)

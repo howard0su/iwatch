@@ -27,9 +27,14 @@ const char * const month_shortname[] = {
 };
 
 const char* const week_shortname[] = {
-  "SU", "MO", "TU", "WE", "TH", "FR", "SA"
+  "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"
 };
 
+const char* const fontconfig_name[] = {
+  "Normal",
+  "Large",
+  "International",
+};
 
 // Only support number less than 100
 const char* toEnglish(uint8_t number, char* buffer)

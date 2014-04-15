@@ -7,6 +7,8 @@ CuSuite* obexGetSuite(void);
 CuSuite* WindowGetSuite(void);
 CuSuite* GestureGetSuite(void);
 CuSuite* StlvProtocalGetSuite(void);
+CuSuite* BleHandlerTestGetSuite(void);
+CuSuite* AttTestGetSuite(void);
 
 void RunAllTests(void)
 {
@@ -18,6 +20,8 @@ void RunAllTests(void)
 	CuSuiteAddSuite(suite, WindowGetSuite());
 	CuSuiteAddSuite(suite, GestureGetSuite());
     CuSuiteAddSuite(suite, StlvProtocalGetSuite());
+    CuSuiteAddSuite(suite, BleHandlerTestGetSuite());
+  	CuSuiteAddSuite(suite, AttTestGetSuite());
 
 	CuSuiteRun(suite);
 	CuSuiteSummary(suite, output);

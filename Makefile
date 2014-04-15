@@ -15,13 +15,14 @@ CFLAGS0  = -g -std=c99 -O0 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections
 LDFLAGS = -g -std=c99 -O0 $(WARNING_FLAGS)
 
+FWVERSION="DEBUG"
 
 CFLAGS = $(CFLAGS0)
 # Support LTO, todo later
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives HAVE_BLE=1
+ALL_DEFINES = AUTOSTART_ENABLE=1 UNITTEST=1 HAVE_ALLOCA_H=0 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 AMX_NATIVETABLE=window_natives HAVE_BLE=1 FWVERSION=\"$(FWVERSION)\"
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -65,30 +66,29 @@ GRLIB0 = \
 	string.c
 
 GRLIB_FONTS = \
-	fontnova13.c \
-	fontnova12b.c \
-	fontnova16.c \
-	fontnova16b.c \
-	fontnova28.c \
-	fontnova28b.c \
-	fontnova38.c \
-	fontnova38b.c \
-	fontnova50b.c \
-	fontred13.c \
-	fontbaby12.c \
-	fontbaby16.c \
-	fontdigit44.c \
-	fontdigit44b.c \
-	fontdigit52b.c \
-	fontdigit56.c \
+	fontdriod28b.c \
+	fontgothamblack30.c \
+	fontgothambold42.c \
+	fontgothamlight42.c \
+	fontgothammedium32.c \
+	fontgothammedium42.c \
+	fontgothic14.c \
+	fontgothic18.c \
+	fontgothic18b.c \
+	fontgothic24b.c \
+	fontgothic28.c \
+	fontgothic28b.c \
 	fonticon16.c \
+	fonticon32.c \
 	fonticon48.c \
+	fontrobotocondensed18b.c \
 	fontunicode.c \
 	logoimg.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 WATCH = \
     watch/analog-watch.c \
+    watch/btconfig.c \
     watch/configtime.c \
     watch/countdown.c \
     watch/controller.c \
@@ -110,18 +110,22 @@ WATCH = \
     watch/worldclock.c \
     watch/host.c \
     watch/today.c \
-    watch/test.c \
+    watch/reset.c \
+    watch/siri.c \
     watch/status.c \
     watch/test.c \
-    watch/siri.c \
-    watch/filesys_proc.c \
-    watch/recordoperation.c \
+    watch/sleep.c \
+    watch/upgrade.c \
+    watch/welcome.c \
     watch/window.c
 
 BTSTACK=btstack/src/obex.c \
 	btstack/src/utils.c \
 	btstack/src/remote_device_db_memory.c \
+	btstack/ble/central_device_db_memory.c \
 	btstack/src/hci_cmds.c \
+	btstack/ble/att.c \
+	platform/iwatch/btstack/ble_file_handler.c \
 	platform/iwatch/btstack/ble_handler.c \
 	platform/iwatch/btstack/stlv.c \
 	platform/iwatch/btstack/stlv_client.c \
@@ -134,10 +138,13 @@ PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amx
 SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
  unittest/CuTest.c \
  unittest/AllTests.c \
+ unittest/attTest.c \
+ unittest/bleHandlerTest.c \
  unittest/cfsTest.c \
  unittest/obexTest.c \
  unittest/windowTest.c \
  unittest/stlvTest.c \
+ unittest/sleepmock.c \
  unittest/gestureTest.c \
  unittest/TestUtility/stlv_test_stub.c \
  unittest/hfpTest.c 

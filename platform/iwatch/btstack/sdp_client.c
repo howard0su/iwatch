@@ -25,7 +25,6 @@
 #include "rfcomm.h"
 #include "sdp.h"
 #include "hfp.h"
-#include "config.h"
 #include "avctp.h"
 #include "avrcp.h"
 #include "debug.h"
@@ -82,7 +81,7 @@ static void sdpc_trysend()
   }
   else
   {
-    printf("sdpc_trysend l2cap_send_internal error: %d\n", err);
+    log_info("sdpc_trysend l2cap_send_internal error: %d\n", err);
   }
 }
 
@@ -165,10 +164,10 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     {
       state = DONE;
       l2cap_close_connection(&current_server);
-//      if (hfp_port != 0)
-//        hfp_open(&addr, hfp_port);
-      if (mas_port != 0)
-        mas_open(&addr, mas_port);
+      if (hfp_port != 0)
+        hfp_open(&addr, hfp_port);
+//      if (mas_port != 0)
+//        mas_open(&addr, mas_port);
     }
     else
     {
@@ -179,7 +178,7 @@ static void sdpc_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 }
 
 
-void sdpc_open(const bd_addr_t remote_addr)
+void sdpc_open(bd_addr_t remote_addr)
 {
   if (l2cap_cid != 0)
     return;

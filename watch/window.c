@@ -11,17 +11,18 @@
 #include "system.h"
 #include "memory.h"
 
-PROCESS(system_process, "System process");
+PROCESS(system_process, "UI process");
 AUTOSTART_PROCESSES(&system_process);
 
 #define WINDOW_FLAGS_REFRESH            1
 #define WINDOW_FLAGS_STATUSUPDATE       2
 
+#define STATUS_UPDATE_INTERVAL          (CLOCK_SECOND * 30)
+
 static uint8_t ui_window_flag = 0;
 static tRectangle current_clip;
 
 extern const unsigned char logoPixel[];
-extern void filesys_init();
 
 union _data d;
 
@@ -43,6 +44,7 @@ union _data d;
 //  uint8_t gesture_flag;
 //  uint8_t gesture_map[4];
 //  uint16_t lap_length;
+//  uint8_t font_config;
 static ui_config ui_config_data =
 {
   UI_CONFIG_SIGNATURE, //signature
@@ -62,7 +64,13 @@ static ui_config ui_config_data =
   60, 170, 82, //profiles
   0x00, { 0, 1, 2, 3, }, //gesture
 
-  8, 8 // default level of volume and light
+  8, 8, // default level of volume and light
+
+  {
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+  },
 };
 
 
@@ -89,7 +97,6 @@ static uint8_t stackptr = 0;
 void window_init()
 {
   backlight_on(255, 5 * CLOCK_SECOND);
-  filesys_init();
 
   current_clip = client_clip;
   memlcd_DriverInit();
@@ -106,7 +113,13 @@ void window_init()
   GrFlush(&context);
   stackptr = 0;
   //window_open(&menu_process, NULL);
-  ui_window = menu_process;
+  if (
+    system_testing())
+    ui_window = menu_process;
+  else if (system_locked())
+    ui_window = welcome_process;
+  else
+    ui_window = menu_process;
   printf("Done\n");
   return;
 }
@@ -145,20 +158,22 @@ static void window_handle_event(uint8_t ev, void* data)
       window_loadconfig();
 
       // continue create menu window
-      ui_window(EVENT_WINDOW_CREATED, 0, NULL);
+      if (ui_window(EVENT_WINDOW_CREATED, 0, NULL) == 0x80)
+        statusflag |= 1 << stackptr;
+      
       ui_window(EVENT_WINDOW_ACTIVE, 0, NULL);
 
       ui_window_flag |= WINDOW_FLAGS_REFRESH;
       status_process(EVENT_WINDOW_CREATED, 0, data);
 
-      etimer_set(&status_timer, CLOCK_SECOND * 10);
+      etimer_set(&status_timer, STATUS_UPDATE_INTERVAL);
     }
     else if (ev == PROCESS_EVENT_TIMER)
     {
       if (data == &status_timer)
       {
         status_process(ev, 0, data);
-        etimer_set(&status_timer, CLOCK_SECOND * 10);
+        etimer_set(&status_timer, STATUS_UPDATE_INTERVAL);
       }
       else
       {
@@ -175,6 +190,15 @@ static void window_handle_event(uint8_t ev, void* data)
       system_ready();
       status_process(ev, (uint16_t)data, NULL);
       ui_window(ev, (uint16_t)data, NULL);
+    }
+    else if (ev == EVENT_FIRMWARE_UPGRADE)
+    {
+      if (window_current() != &upgrade_process)
+      {
+        window_open(&upgrade_process, NULL);
+      }
+
+      ui_window(ev, 0, (void*)data);
     }
     else if (ev == EVENT_BT_CIEV)
     {
@@ -366,19 +390,36 @@ void window_close()
 
 #define WINDOWCONFIG "_uiconfig"
 
+void window_reload()
+{
+   stackptr = 0;
+   statusflag = 0;
+  //window_open(&menu_process, NULL);
+  if (
+    system_testing())
+    ui_window = menu_process;
+  else if (system_locked())
+    ui_window = welcome_process;
+  else
+    ui_window = menu_process;
+
+  process_exit(&system_process);
+  process_start(&system_process, NULL);
+}
+
 void window_loadconfig()
 {
   printf("load config file\n");
   int fd = cfs_open(WINDOWCONFIG, CFS_READ);
   if (fd != -1)
   {
-    uint16_t signature;
-    cfs_read(fd, &signature, 2);
+    uint32_t signature;
+    cfs_read(fd, &signature, 4);
 
     if (signature == UI_CONFIG_SIGNATURE)
     {
       // valid config
-      cfs_read(fd, ((char*)&ui_config_data) + sizeof(uint16_t), sizeof(ui_config) - sizeof(uint16_t));
+      cfs_read(fd, ((char*)&ui_config_data) + sizeof(signature), sizeof(ui_config) - sizeof(signature));
       cfs_close(fd);
     }
     else
@@ -388,6 +429,8 @@ void window_loadconfig()
       window_writeconfig();      
     }
 
+    window_invalid(NULL);
+    status_invalid();
   }
 }
 
@@ -426,4 +469,100 @@ void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
   PROCESS_CONTEXT_BEGIN(&system_process);
   ui_window(event, lparam, rparam);
   PROCESS_CONTEXT_END(&system_process);
+}
+
+static uint8_t messagebox_icon;
+static const char* messagebox_message;
+static uint8_t messagebox_result;
+static uint8_t messagebox_flags;
+static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+  switch(ev)
+  {
+    case EVENT_WINDOW_CREATED:
+    messagebox_result = 0;
+    return 0x0;
+
+    case EVENT_WINDOW_PAINT:
+    {
+      tContext *pContext = (tContext*)rparam;
+
+      GrContextForegroundSet(pContext, ClrWhite);
+      GrRectFill(pContext, &client_clip);
+
+      GrContextForegroundSet(pContext, ClrBlack);
+
+      GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
+      GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 37, 0);
+
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      GrStringDrawWrap(pContext, messagebox_message, 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+
+      if (messagebox_flags & NOTIFY_CONFIRM)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "Confirm");
+      }
+      else if (messagebox_flags & NOTIFY_OK)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "OK");
+      }
+      else if (messagebox_flags & NOTIFY_YESNO)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "YES");
+        window_button(pContext, KEY_DOWN | 0x80, "NO"); 
+      }
+      break;
+    }
+
+    case EVENT_KEY_PRESSED:
+    {
+      if (lparam == KEY_ENTER)
+      {
+        messagebox_result = 1;
+        window_close();
+      }
+      else if (lparam == KEY_DOWN && (messagebox_flags & NOTIFY_YESNO))
+      {
+        messagebox_result = 2;
+        window_close();  
+      }
+      break;
+    }
+    case EVENT_WINDOW_CLOSING:
+      motor_on(0, 0);
+      process_post(ui_process, EVENT_NOTIFY_RESULT, (void*)messagebox_result);
+      break;
+
+    default:
+      return 0;
+  }
+
+  return 1;
+}
+
+void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
+{
+  messagebox_icon = icon;
+  messagebox_message = message;
+  messagebox_flags = flags;
+
+  if (flags & NOTIFY_ALARM)
+  {
+    motor_on(50, 0);
+  }
+  else
+  {
+    motor_on(50, CLOCK_SECOND/2);
+  }
+
+  for (int i = 1; i <= stackptr; i++)
+  {
+    if (stack[i] == &messagebox_process)
+    {
+      window_invalid(NULL);
+      return;
+    }
+  }
+
+  window_open(&messagebox_process, NULL);
 }

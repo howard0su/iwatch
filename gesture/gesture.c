@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <backlight.h>
 
-extern void mpu_gesturemode(int onoff);
+extern void mpu_switchmode(int mode);
 
 #define DEBUG 0
 #if DEBUG
@@ -99,7 +99,7 @@ void gesture_init(int8_t _recording, uint8_t leftorright)
     gestureoffset = 0;
   }
   
-  mpu_gesturemode(1);
+  mpu_switchmode(1);
 }
 
 static uint16_t Dist(const int8_t* p1, const int8_t *p2)
@@ -293,7 +293,7 @@ void gesture_processdata(int16_t *input)
 void gesture_shutdown()
 {
   state = STATE_NONE;
-  mpu_gesturemode(0);
+  mpu_switchmode(0);
 
   if (distances)
   {

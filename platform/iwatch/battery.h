@@ -2,9 +2,9 @@
 #define _BATTRY_H_
 typedef enum 
   {
-    BATTERY_DISCHARGING,
-    BATTERY_CHARGING,
-    BATTERY_FULL
+    BATTERY_STATE_DISCHARGING,
+    BATTERY_STATE_CHARGING,
+    BATTERY_STATE_FULL
   }BATTERY_STATE;
 void battery_init(void);
 
@@ -12,5 +12,5 @@ void battery_init(void);
 BATTERY_STATE battery_state(void);
 
 // battery level
-uint8_t       battery_level(void);
+uint8_t battery_level(BATTERY_STATE state);
 #endif

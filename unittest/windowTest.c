@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "window.h"
+#include "watch/icons.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "sys/timer.h"
@@ -13,19 +14,53 @@
 
 #include "watch/test.h"
 
+#include "bluetooth.h"
+
 static const tFont *fonts[] =
 {
- &g_sFontNova12b,
- &g_sFontNova13,
- &g_sFontNova16,
- &g_sFontNova16b,
- &g_sFontNova38,
- &g_sFontNova38b,
- &g_sFontNova50b,
- //&g_sFontBaby16,
- //&g_sFontBaby12,
- //&g_sFontRed13,
+(const tFont*)&g_sFontUnicode,
+&g_sFontDriod28b,
+&g_sFontGothamblack30,
+&g_sFontGothambold42,
+&g_sFontGothamlight42,
+(const tFont*)&g_sFontExGothammedium32,
+(const tFont*)&g_sFontExGothammedium42,
+//&g_sFontGothic14,
+//&g_sFontGothic14b,
+&g_sFontGothic18,
+&g_sFontGothic18b,
+//&g_sFontGothic24,
+&g_sFontGothic24b,
+&g_sFontGothic28,
+&g_sFontGothic28b,
+(const tFont*)&g_sFontExIcon16,
+(const tFont*)&g_sFontExIcon32,
+(const tFont*)&g_sFontExIcon48,
+&g_sFontRobotocondensed18b,
  NULL
+};
+
+static const char* names[] = 
+{
+  "Unicode",
+  "Driod28b",
+  "Gothamblack30",
+  "Gothambold42",
+  "Gothamlight42",
+  "ExGothammedium32",
+  "ExGothammedium42",
+//  "Gothic14",
+//  "Gothic14b",
+  "Gothic18",
+  "Gothic18b",
+//  "Gothic24",
+  "Gothic24b",
+  "Gothic28",
+  "Gothic28b",
+  "Icon16",
+  "Icon32",
+  "Icon48",
+  "Robotocondensed18b",
 };
 
 struct _event
@@ -42,35 +77,23 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-    // analog watch
+    // sport watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
+//   {1, EVENT_TIME_CHANGED, (void*)0, 0},
+   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
+   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-    // digit watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   
+  // {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
 
    // world clock
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -80,6 +103,7 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
 
    // calendar 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -91,6 +115,7 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+
 
    // stop watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -126,29 +151,45 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
+
+    // digit watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
 
-    // sport watch
+
+    // analog watch
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
-   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
-   {1, EVENT_TIME_CHANGED, (void*)0, 0},
-   {1, EVENT_SPORT_DATA, (void*)87, SPORTS_HEARTRATE},
-   {1, EVENT_SPORT_DATA, (void*)1000, SPORTS_PED_DISTANCE},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0}, 
+
+
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    
    // date config
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},  
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
@@ -156,18 +197,43 @@ static struct _event test_events[] = {
 
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},   
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+
   // timeconfig
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
 
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
-
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+ 
+   {1, EVENT_FIRMWARE_UPGRADE, 0},
+   {1, EVENT_FIRMWARE_UPGRADE, 1024* 10},
+   {1, EVENT_FIRMWARE_UPGRADE, 1024* 60},
+   {1, EVENT_FIRMWARE_UPGRADE, 1024* 190},
+   {1, EVENT_FIRMWARE_UPGRADE, -1},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {-1}
 };
 
@@ -254,17 +320,32 @@ void window_handle_event(uint8_t ev, void* data);
 
 static void run_window_events(windowproc window, struct _event *events)
 {
+  struct _event *ev = events;
+  PROCESS_CONTEXT_BEGIN(ui_process);
+  
+  int ret = window(ev->event, ev->lparam, ev->rparam);
+  
   //GrContextFontSet(&context, (const tFont*)NULL);
-  GrContextClipRegionSet(&context, &client_clip);
-
-  for(struct _event *ev = events; ev->delta != -1; ev++)
+  if (ret != 0x80)
   {
-    window(ev->event, ev->lparam, ev->rparam);  
+    status_process(EVENT_WINDOW_PAINT, 0, &context);
+
+    GrContextClipRegionSet(&context, &client_clip);
+  }
+  else
+    GrContextClipRegionSet(&context, &fullscreen_clip);
+
+  ev++;
+  for(; ev->delta != -1; ev++)
+  {
+    window(ev->event, ev->lparam, ev->rparam);
     if (ev->event == EVENT_WINDOW_PAINT)
     {
-      GrFlush(&context);    
+      GrFlush(&context);
     }
   }
+
+  PROCESS_CONTEXT_END();
 }
 
 extern const tRectangle status_clip;
@@ -278,16 +359,15 @@ static void test_window(windowproc window, void* data)
   };
 
   run_window_events(window, my_events);
-  GrContextClipRegionSet(&context, &status_clip);
-  status_process(EVENT_WINDOW_PAINT, 0, &context);
+ // GrContextClipRegionSet(&context, &status_clip);
+ // status_process(EVENT_WINDOW_PAINT, 0, &context);
 }
 
 static void test_window_stopwatch(windowproc window, void* data)
 {
-  GrContextFontSet(&context, (const tFont*)NULL);
   window(EVENT_WINDOW_CREATED, 0, data);
-  GrContextClipRegionSet(&context, &status_clip);
-  status_process(EVENT_WINDOW_PAINT, 0, &context);
+//  GrContextClipRegionSet(&context, &status_clip);
+//  status_process(EVENT_WINDOW_PAINT, 0, &context);
   for(int i = 3; i >= 0; i--)
     window(EVENT_KEY_PRESSED, KEY_ENTER, (void*)0);
   GrContextClipRegionSet(&context, &client_clip);
@@ -301,7 +381,6 @@ static void test_window_stopwatch(windowproc window, void* data)
 void TestStatus(CuTest* tc)
 {
   struct _event test_events[] = {
-    {1, EVENT_WINDOW_CREATED, NULL, 0},
     {1, EVENT_WINDOW_PAINT, &context, 0},
     {1, PROCESS_EVENT_TIMER, NULL, 0},
     {1, PROCESS_EVENT_TIMER, NULL, 0},
@@ -316,14 +395,26 @@ void TestStatus(CuTest* tc)
   run_window_events(&status_process, test_events);
 }
 
-void TestHistory(CuTest* tc)
+void TestWelcome(CuTest* tc)
 {
   struct _event test_events[] = {
     {1, EVENT_WINDOW_CREATED, NULL, 0},
     {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
+
+  run_window_events(&welcome_process, test_events);
 }
 
 void TestSportWatch(CuTest* tc)
@@ -353,27 +444,13 @@ void TestSportWatch(CuTest* tc)
     {3, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
   };
+  window_readconfig()->sports_grid = 0;
+  run_window_events(&sportswatch_process, test_events);
+  window_readconfig()->sports_grid = 1;
+  run_window_events(&sportswatch_process, test_events);
+  window_readconfig()->sports_grid = 2;
+  run_window_events(&sportswatch_process, test_events);
 
-  for(int i = 0; i < 3; i++)
-  {
-    window_readconfig()->sports_grid = i;
-    run_window_events(&sportswatch_process, test_events);
-
-    int fd = cfs_open("/sports/000.bin", CFS_READ);
-    CuAssert(tc, "file sports/000.bin doesn't find", fd != -1);
-    uint16_t sig;
-    cfs_read(fd, &sig, sizeof(sig));
-    CuAssertIntEquals_Msg(tc, "sport file signautre doesn't match", 0x1517, sig);
-
-    int offset = cfs_seek(fd, 0, CFS_SEEK_END);
-    CuAssertIntEquals(tc, sizeof(uint16_t) +  // signature
-                          sizeof(uint8_t) +   // grid num
-                          (i + 3) * sizeof(uint8_t) +  // grid types
-                          (i + 3 + 1) * sizeof(uint16_t) * 2, // data, 2 copy
-                          offset);
-
-    cfs_close(fd);
-  }
 }
 
 void TestTestButton(CuTest* tc)
@@ -437,16 +514,68 @@ void TestTestLcd(CuTest* tc)
   run_window_events(&test_lcd, test_events);
 }
 
+
+void TestSleep(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+  run_window_events(&test_sleep, test_events);
+}
+
+void TestBtConfig(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, PROCESS_EVENT_TIMER, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {2, EVENT_BT_STATUS, NULL, BT_CONNECTED},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+  run_window_events(&btconfig_process, test_events);
+}
+
+void TestFontConfig(CuTest* tc)
+{
+  struct _event test_events[] = {
+    {1, EVENT_WINDOW_CREATED, NULL, 0},
+    {2, EVENT_WINDOW_PAINT, &context, 0},
+    {3, EVENT_WINDOW_CLOSING, NULL, 0},
+    {-1}
+  };  
+  for(int i = 0; i < 3; i++)
+  {
+    window_readconfig()->font_config = i;
+    run_window_events(&configfont_process, test_events);
+  }
+  window_readconfig()->font_config = 0;
+}
+
 static uint8_t chinesetext[] = {0xE8, 0xB0, 0x88, 0xE4, 0xBD, 0x95, 0xE5, 0xAE, 0xB9, 0xE6, 0x98, 0x93, 0 , 0};
 
 static void* font;
+static const char* name;
 static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
 {
         switch(event)
         {
                 case EVENT_WINDOW_CREATED:
-                font = rparam;
-                break;
+                font = fonts[(int)rparam];
+                name = names[(int)rparam];
+                return 0x80;
+
                 case EVENT_WINDOW_PAINT:
                 {
                   tContext* pContext = (tContext*)rparam;
@@ -456,9 +585,10 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrContextForegroundSet(pContext, ClrWhite);
                   GrContextFontSet(pContext, (const tFont*)font);
 
-                  GrStringDraw(pContext, "01234567890", -1, 0, 15, 0);
-                  GrStringDraw(pContext, "abcdefghijk", -1, 0, 35, 0);
+                  GrStringDraw(pContext, "012345678", -1, 0, 20, 0);
+                  GrStringDraw(pContext, "abcdef", -1, 0, 60, 0);
 
+#if 0
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_16);
                   //GrCodepageMapTableSet(pContext, GrMapUTF8_Unicode, 1);                  
                   GrStringDraw(pContext, L"中文测试", -1, 0, 55, 0);
@@ -466,7 +596,10 @@ static uint8_t testfont(uint8_t event, uint16_t lparam, void* rparam)
                   GrStringDraw(pContext, L"중국어 테스트", -1, 0, 95, 0);
                   GrStringCodepageSet(pContext, CODEPAGE_UTF_8);
                   GrStringDraw(pContext, chinesetext, -1, 0, 105, 0);
-                  GrStringCodepageSet(pContext, CODEPAGE_ISO8859_1);                  
+#endif
+                  GrContextFontSet(pContext, &g_sFontGothic18b);
+
+                  GrStringDraw(pContext, name, -1, 0, 120, 0);
 
                   break;
                 }
@@ -479,15 +612,10 @@ extern void *xmem_test();
 void TestWideFont(CuTest* tc)
 {
     struct _event _events[] = {
-    {1, EVENT_WINDOW_CREATED, &g_sFontUnicode, 0},
+    {1, EVENT_WINDOW_CREATED, 0, 0},
     {2, EVENT_WINDOW_PAINT, &context, 0},
     {-1}
   };
-
-  FILE* fp = fopen("fontunicod16pt.bin", "rb");
-  
-  fread(xmem_test(), 1, 2 * 1024 * 1024, fp); // max 2M
-  fclose(fp);
   
   CFSFontWrapperLoad("fontunicode");
   run_window_events(testfont, _events);
@@ -536,8 +664,9 @@ void TestWindows(CuTest *tc)
   //load_script("script1.amx", rom);
   //test_window(&script_process, rom);
 
-  //for(int i = 0; fonts[i]; i++)
-  //  test_window(&testfont, (void*)fonts[i]);
+  for(int i = 0; fonts[i]; i++)
+    test_window(&testfont, i);
+
   test_window(&worldclock_process, NULL);
 
   test_window(&today_process, NULL);
@@ -623,8 +752,11 @@ const uint8_t chinesedata[] = {
 0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
 0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA
 };
+extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
 void TestNotification(CuTest *tc)
 {
+  GrContextClipRegionSet(&context, &fullscreen_clip);
+
   handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
@@ -646,6 +778,22 @@ void TestNotification(CuTest *tc)
   window_close();
 
   window_notify("SMS", chinesedata, NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_notify_ancs(0, 0, 1, 1);
+  window_notify_ancs(0, 1, 1, 1);
+  window_notify_ancs(0, 2, 1, 1);
+  window_notify_ancs(0, 3, 1, 1);
+  window_notify_ancs(2, 2, 1, 1);
+  window_notify_ancs(1, 1, 1, 1);
+  window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+  window_close();
+
+  window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();
@@ -673,6 +821,11 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestPhoneScreen);
   SUITE_ADD_TEST(suite, TestNotification);
   SUITE_ADD_TEST(suite, TestControl);
+  SUITE_ADD_TEST(suite, TestWelcome);
+  SUITE_ADD_TEST(suite, TestBtConfig);
+  SUITE_ADD_TEST(suite, TestFontConfig);
+
+  SUITE_ADD_TEST(suite, TestSleep);
 
   SUITE_ADD_TEST(suite, TestWindows);
   SUITE_ADD_TEST(suite, SimluateRun);

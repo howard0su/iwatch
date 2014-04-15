@@ -28,14 +28,15 @@ static void drawItem(tContext *pContext,
     ampm = "AM";
 
   GrContextForegroundSet(pContext, ClrWhite);
-  GrLineDrawH(pContext, 0, 144,  y);
+  if (y)
+    GrLineDrawH(pContext, 0, 144,  y);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontNova16);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
   GrStringDraw(pContext, name, -1, 12, y + 10, 0);
 
-  GrContextFontSet(pContext, (tFont*)&g_sFontNova13);
+  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
   sprintf(buf, "%02d:%02d %s", hour, minute, ampm);
-  GrStringDraw(pContext, buf, -1, 12, y + 28, 0);
+  GrStringDraw(pContext, buf, -1, 12, y + 30, 0);
 
   char str[8];
   sprintf(str, "%d/%d", month, day);
@@ -43,11 +44,11 @@ static void drawItem(tContext *pContext,
   int height = GrStringHeightGet(pContext);
   int width = GrStringWidthGet(pContext, str, -1);
   GrContextForegroundSet(pContext, ClrWhite);
-  tRectangle rect = {86, y + 28, 86 + width + 2, y + 28 + height};
+  tRectangle rect = {86, y + 30, 86 + width + 2, y + 30 + height};
   GrRectFillRound(pContext, &rect, 2);
 
   GrContextForegroundSet(pContext, ClrBlack);
-  GrStringDraw(pContext, str, -1, 88, y + 28, 0);
+  GrStringDraw(pContext, str, -1, 88, y + 30, 0);
 }
 
 static void onDraw(tContext *pContext)
@@ -79,14 +80,14 @@ static void onDraw(tContext *pContext)
       hour += 24;
     }
 
-    drawItem(pContext, 16 + i * 50,  window_readconfig()->worldclock_name[i + index],
+    drawItem(pContext, i * 55,  window_readconfig()->worldclock_name[i + index],
              hour, minute, month, day);
 
     GrContextForegroundSet(pContext, ClrWhite);
     for(int i = 0; i < 6; i++)
     {
       if (index)
-        GrLineDrawH(pContext, 130 - i, 130 + i,  25 + i);
+        GrLineDrawH(pContext, 130 - i, 130 + i,  15 + i);
       else
         GrLineDrawH(pContext, 130 - i, 130 + i,  160 - i);
     }

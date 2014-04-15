@@ -11,7 +11,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stddef.h>
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 #define INIT 0

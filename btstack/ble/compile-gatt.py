@@ -64,13 +64,18 @@ property_flags = {
     'ENCRYPTION_KEY_SIZE_14':     0xd000,
     'ENCRYPTION_KEY_SIZE_15':     0xe000,
     'ENCRYPTION_KEY_SIZE_16':     0xf000,
-    # only used by gatt compiler
-    'CLIENT_CONFIGURATION':      0x10000,
+    # only used by gatt compiler >= 0xffff
+    # Extended Properties
+    'RELIABLE_WRITE':             0x10000,
 }
 
 services = dict()
-current_service_uuid = list()
+characteristic_indices = dict()
+presentation_formats = dict()
+current_service_uuid_string = ""
 current_service_start_handle = 0
+current_characteristic_uuid_string = ""
+defines = []
 
 handle = 1
 total_size = 0
@@ -81,6 +86,8 @@ def keyForUUID(uuid):
         keyUUID += "%02x" % i
     return keyUUID
  
+def c_string_for_uuid(uuid):
+    return uuid.replace('-', '_')
 
 def twoByteLEFor(value):
     return [ (value & 0xff), (value >> 8)]
@@ -145,18 +152,20 @@ def is_string(text):
         return False
     return True
 
+def add_client_characteristic_configuration(properties):
+    return properties & (property_flags['NOTIFY'] | property_flags['INDICATE'])
+
 def parseService(fout, parts, service_type):
     global handle
     global total_size
-    global current_service_uuid
+    global current_service_uuid_string
     global current_service_start_handle
     global services
 
-    keyUUID = keyForUUID(current_service_uuid)
-    if keyUUID:
+    if current_service_uuid_string:
         fout.write("\n")
-        # print "append service %s = [%d, %d]\n" % (keyUUID, current_service_start_handle, handle-1)
-        services[keyUUID] = [current_service_start_handle, handle-1]
+        # print "append service %s = [%d, %d]\n" % (current_characteristic_uuid_string, current_service_start_handle, handle-1)
+        services[current_service_uuid_string] = [current_service_start_handle, handle-1]
 
     property = property_flags['READ'];
     
@@ -171,9 +180,6 @@ def parseService(fout, parts, service_type):
     if service_type == 0x2802:
         size += 4
 
-    if uuid_size == 16:
-        property = property | property_flags['LONG_UUID'];
-
     write_indent(fout)
     write_16(fout, size)
     write_16(fout, property)
@@ -182,7 +188,7 @@ def parseService(fout, parts, service_type):
     write_uuid(uuid)
     fout.write("\n")
 
-    current_service_uuid = uuid
+    current_service_uuid_string = keyForUUID(uuid)
     current_service_start_handle = handle
     handle = handle + 1
     total_size = total_size + size
@@ -204,12 +210,11 @@ def parseIncludeService(fout, parts):
 
     uuid = parseUUID(parts[1])
     uuid_size = len(uuid)
+    if uuid_size > 2:
+        uuid_size = 0
     # print "Include Service ", keyForUUID(uuid)
 
-    size = 2 + 2 + 2 + uuid_size + 2 + 4
-
-    if uuid_size == 16:
-        property = property | property_flags['LONG_UUID'];
+    size = 2 + 2 + 2 + 2 + 4 + uuid_size
 
     keyUUID = keyForUUID(uuid)
 
@@ -220,7 +225,8 @@ def parseIncludeService(fout, parts):
     write_16(fout, 0x2802)
     write_16(fout, services[keyUUID][0])
     write_16(fout, services[keyUUID][1])
-    write_uuid(uuid)
+    if uuid_size > 0:
+        write_uuid(uuid)
     fout.write("\n")
 
     handle = handle + 1
@@ -230,13 +236,30 @@ def parseIncludeService(fout, parts):
 def parseCharacteristic(fout, parts):
     global handle
     global total_size
+    global current_characteristic_uuid_string
+    global characteristic_indices
 
     property_read = property_flags['READ'];
+
+    # enumerate characteristics with same UUID, using optional name tag if available
+    current_characteristic_uuid_string = c_string_for_uuid(parts[1]);
+    index = 1
+    if current_characteristic_uuid_string in characteristic_indices:
+        index = characteristic_indices[current_characteristic_uuid_string] + 1
+    characteristic_indices[current_characteristic_uuid_string] = index
+    if len(parts) > 4:
+        current_characteristic_uuid_string += '_' + parts[4].upper().replace(' ','_')
+    else:
+        current_characteristic_uuid_string += ('_%02x' % index)
 
     uuid       = parseUUID(parts[1])
     uuid_size  = len(uuid)
     properties = parseProperties(parts[2])
     value      = parts[3]
+
+    # reliable writes is defined in an extended properties
+    if (properties & property_flags['RELIABLE_WRITE']):
+        properties = properties | property_flags['EXTENDED_PROPERTIES']
 
     write_indent(fout)
     fout.write('// 0x%04x %s\n' % (handle, '-'.join(parts[0:len(parts)-1])))
@@ -264,7 +287,7 @@ def parseCharacteristic(fout, parts):
         properties = properties | property_flags['LONG_UUID'];
 
     write_indent(fout)
-    fout.write('// 0x%04x VALUE-%s\n' % (handle, '-'.join(parts[1:len(parts)])))
+    fout.write('// 0x%04x VALUE-%s\n' % (handle, '-'.join(parts[1:])))
     write_indent(fout)
     write_16(fout, size)
     write_16(fout, properties)
@@ -275,22 +298,142 @@ def parseCharacteristic(fout, parts):
     else:
         write_sequence(fout,value)
     fout.write("\n")
+    defines.append('#define ATT_CHARACTERISTIC_%s_VALUE_HANDLE 0x%04x' % (current_characteristic_uuid_string, handle))
     handle = handle + 1
 
-    if (properties & property_flags['CLIENT_CONFIGURATION']) == 0:
-        return
+    if add_client_characteristic_configuration(properties):
+        size = 2 + 2 + 2 + 2 + 2
+        write_indent(fout)
+        fout.write('// 0x%04x CLIENT_CHARACTERISTIC_CONFIGURATION\n' % (handle))
+        write_indent(fout)
+        write_16(fout, size)
+        write_16(fout, property_flags['READ'] | property_flags['WRITE'] | property_flags['DYNAMIC'])
+        write_16(fout, handle)
+        write_16(fout, 0x2902)
+        write_16(fout, 0)
+        fout.write("\n")
+        defines.append('#define ATT_CHARACTERISTIC_%s_CLIENT_CONFIGURATION_HANDLE 0x%04x' % (current_characteristic_uuid_string, handle))
+        handle = handle + 1
 
-    size = 2 + 2 + 2 + 2 + 2
+    if properties & property_flags['RELIABLE_WRITE']:
+        size = 2 + 2 + 2 + 2 + 2
+        write_indent(fout)
+        fout.write('// 0x%04x CHARACTERISTIC_EXTENDED_PROPERTIES\n' % (handle))
+        write_indent(fout)
+        write_16(fout, size)
+        write_16(fout, property_flags['READ'])
+        write_16(fout, handle)
+        write_16(fout, 0x2900)
+        write_16(fout, 1)   # Reliable Write
+        fout.write("\n")
+        handle = handle + 1
+
+def parseCharacteristicUserDescription(fout, parts):
+    global handle
+    global total_size
+    global current_characteristic_uuid_string
+
+    properties = parseProperties(parts[1])
+    value      = parts[2]
+
+    size = 2 + 2 + 2 + 2
+    if is_string(value):
+        size = size + len(value) - 2
+    else:
+        size = size + len(value.split())
+
     write_indent(fout)
-    fout.write('// 0x%04x CLIENT_CHARACTERISTIC_CONFIGURATION\n' % (handle))
+    fout.write('// 0x%04x CHARACTERISTIC_USER_DESCRIPTION-%s\n' % (handle, '-'.join(parts[1:])))
     write_indent(fout)
     write_16(fout, size)
-    write_16(fout, property_flags['READ'] | property_flags['WRITE'] | property_flags['DYNAMIC'])
+    write_16(fout, properties)
     write_16(fout, handle)
-    write_16(fout, 0x2902)
-    write_16(fout, 0)
+    write_16(fout, 0x2901)
+    if is_string(value):
+        write_string(fout, value)
+    else:
+        write_sequence(fout,value)
+    fout.write("\n")
+    defines.append('#define ATT_CHARACTERISTIC_%s_USER_DESCRIPTION_HANDLE 0x%04x' % (current_characteristic_uuid_string, handle))
+    handle = handle + 1
+
+def parseServerCharacteristicConfiguration(fout, parts):
+    global handle
+    global total_size
+    global current_characteristic_uuid_string
+
+    properties = parseProperties(parts[1])
+    properties = properties | property_flags['DYNAMIC']
+    size = 2 + 2 + 2 + 2
+
+    write_indent(fout)
+    fout.write('// 0x%04x SERVER_CHARACTERISTIC_CONFIGURATION-%s\n' % (handle, '-'.join(parts[1:])))
+    write_indent(fout)
+    write_16(fout, size)
+    write_16(fout, properties)
+    write_16(fout, handle)
+    write_16(fout, 0x2903)
+    fout.write("\n")
+    defines.append('#define ATT_CHARACTERISTIC_%s_SERVER_CONFIGURATION_HANDLE 0x%04x' % (current_characteristic_uuid_string, handle))
+    handle = handle + 1
+
+def parseCharacteristicFormat(fout, parts):
+    global handle
+    global total_size
+
+    property_read = property_flags['READ'];
+
+    identifier = parts[1]
+    presentation_formats[identifier] = handle
+    # print "format '%s' with handle %d\n" % (identifier, handle) 
+
+    format     = parts[2]
+    exponent   = parts[3]
+    unit       = parseUUID(parts[4])
+    name_space = parts[5]
+    description = parseUUID(parts[6])
+
+    size = 2 + 2 + 2 + 2 + 7
+
+    write_indent(fout)
+    fout.write('// 0x%04x CHARACTERISTIC_FORMAT-%s\n' % (handle, '-'.join(parts[1:])))
+    write_indent(fout)
+    write_16(fout, size)
+    write_16(fout, property_read)
+    write_16(fout, handle)
+    write_16(fout, 0x2904)
+    write_sequence(fout, format)
+    write_sequence(fout, exponent)
+    write_uuid(unit)
+    write_sequence(fout, name_space)
+    write_uuid(description)
     fout.write("\n")
     handle = handle + 1
+
+
+def parseCharacteristicAggregateFormat(fout, parts):
+    global handle
+    global total_size
+
+    property_read = property_flags['READ'];
+    size = 2 + 2 + 2 + 2 + (len(parts)-1) * 2
+
+    write_indent(fout)
+    fout.write('// 0x%04x CHARACTERISTIC_AGGREGATE_FORMAT-%s\n' % (handle, '-'.join(parts[1:])))
+    write_indent(fout)
+    write_16(fout, size)
+    write_16(fout, property_read)
+    write_16(fout, handle)
+    write_16(fout, 0x2905)
+    for identifier in parts[1:]:
+        format_handle = presentation_formats[identifier]
+        if format == 0:
+            print "ERROR: identifier '%s' in CHARACTERISTIC_AGGREGATE_FORMAT undefined" % identifier
+            sys.exit(1)
+        write_16(fout, format_handle)
+    fout.write("\n")
+    handle = handle + 1
+
 
 def parse(fname_in, fin, fname_out, fout):
     global handle
@@ -329,6 +472,22 @@ def parse(fname_in, fin, fname_out, fout):
             parseCharacteristic(fout, parts)
             continue
         
+        if parts[0] == 'CHARACTERISTIC_USER_DESCRIPTION':
+            parseCharacteristicUserDescription(fout, parts)
+            continue
+
+        if parts[0] == 'SERVER_CHARACTERISTIC_CONFIGURATION':
+            parseServerCharacteristicConfiguration(fout, parts)
+            continue
+
+        if parts[0] == 'CHARACTERISTIC_FORMAT':
+            parseCharacteristicFormat(fout, parts)
+            continue
+
+        if parts[0] == 'CHARACTERISTIC_AGGREGATE_FORMAT':
+            parseCharacteristicAggregateFormat(fout, parts)
+            continue
+
         print "WARNING: unknown token: %s\n" % (parts[0])
 
     write_indent(fout)
@@ -339,16 +498,27 @@ def parse(fname_in, fin, fname_out, fout):
     total_size = total_size + 2
     
     fout.write("}; // total size %u bytes \n" % total_size);
-    fout.close()
-    print 'Created', fname_out
+
+def listHandles(fout):
+    fout.write('\n\n')
+    fout.write('//\n')
+    fout.write('// list mapping between characteristics and handles\n')
+    fout.write('//\n')
+    for define in defines:
+        fout.write(define)
+        fout.write('\n')
 
 if (len(sys.argv) < 3):
     print usage
     sys.exit(1)
 try:
+    filename = sys.argv[2]
     fin  = open (sys.argv[1], 'r')
-    fout = open (sys.argv[2], 'w')
-    parse(sys.argv[1], fin, sys.argv[2], fout)
+    fout = open (filename, 'w')
+    parse(sys.argv[1], fin, filename, fout)
+    listHandles(fout)    
+    fout.close()
+    print 'Created', filename
 
 except IOError as e:
     print usage

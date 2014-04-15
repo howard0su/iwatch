@@ -9,11 +9,22 @@
 #include "btstack/include/btstack/utils.h"
 #include "rtc.h"
 #include "stlv_handler.h"
+#include "btstack-config.h"
+#include "debug.h"
+#include "watch/sportsdata.h"
+#include "cfs/cfs.h"
+#include "ble_file_handler.h"
+#include "rtc.h"
+#include "system.h"
+
+//
+// list mapping between characteristics and handles
+//
 
 static const ble_handle_t s_ble_handle_table[] = {
     /*     characteristic, name                          type                       size*/
-    DEF_BLE_HANDLE("fff1", BLE_HANDLE_TEST_READ,         BLE_HANDLE_TYPE_INT8_ARR,  1),
-    DEF_BLE_HANDLE("fff2", BLE_HANDLE_TEST_WRITE,        BLE_HANDLE_TYPE_INT8_ARR,  1),
+    DEF_BLE_HANDLE("fff1", BLE_HANDLE_UNLOCK_WATCH,      BLE_HANDLE_TYPE_INT8_ARR,  1),
+    DEF_BLE_HANDLE("fff2", BLE_HANDLE_FW_VERSION,        BLE_HANDLE_TYPE_STRING,    20),
     DEF_BLE_HANDLE("fff3", BLE_HANDLE_DATETIME,          BLE_HANDLE_TYPE_INT8_ARR,  6),
     DEF_BLE_HANDLE("fff4", BLE_HANDLE_ALARM_0,           BLE_HANDLE_TYPE_INT8_ARR,  2),
     DEF_BLE_HANDLE("fff5", BLE_HANDLE_ALARM_1,           BLE_HANDLE_TYPE_INT8_ARR,  2),
@@ -37,8 +48,6 @@ static const ble_handle_t s_ble_handle_table[] = {
     DEF_BLE_HANDLE("ff23", BLE_HANDLE_CONF_USER_PROFILE, BLE_HANDLE_TYPE_INT8_ARR,  3),
 };
 
-static uint8_t s_test = 0;
-
 static uint32_t s_sports_data_buffer[5] = {0};
 static uint32_t s_sports_desc_buffer[2] = {0};
 
@@ -52,9 +61,9 @@ static void att_read_world_clock(uint8_t id, char* buf, uint8_t buf_size)
         return;
 
     sprintf(buf, "%s[%d]", conf->worldclock_name[id], conf->worldclock_offset[id]);
-    printf("Read World clock:\n");
-    printf(buf);
-    printf("\n");
+    log_info("Read World clock:\n");
+    log_info(buf);
+    log_info("\n");
 }
 
 static void att_write_world_clock(uint8_t id, char* buf)
@@ -90,33 +99,58 @@ static void att_write_world_clock(uint8_t id, char* buf)
     window_loadconfig();
 
 }
-
-uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
+static void ble_set_alarm(uint8_t id, uint8_t flag, uint8_t hour, uint8_t minutes, uint8_t att_mode)
 {
-    printf("att_handler(handle=%x, buflen=%d)\n", handle, buffer_size);
+    log_info("Set Alarm()\n");
+    if (att_mode == ATT_HANDLE_MODE_WRITE)
+    {
+        uint8_t alarm_id = id;
+        ui_config* conf = window_readconfig();
+        conf->alarms[alarm_id].flag    = flag;
+        conf->alarms[alarm_id].hour    = hour;
+        conf->alarms[alarm_id].minutes = minutes;
+        window_writeconfig();
+        window_loadconfig();
+    }
+}
+
+static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
+{
     const ble_handle_t* hble = get_ble_handle(handle);
     if (hble == NULL)
     {
-        printf("No correspondent handler\n");
+        log_error("No correspondent handler\n");
         return 0;
     }
 
-    uint16_t actual_size = hble->size * get_type_unit_size(hble->type);
-    if (buffer == 0 || buffer_size < actual_size)
+    log_info("att_handler(handle=%s, buflen=%d, mode=%d)\n", hble->name, buffer_size, mode);
+
+    uint16_t actual_size =  20; //hble->size * get_type_unit_size(hble->type);
+    if (handle == BLE_HANDLE_FILE_DATA && mode == ATT_HANDLE_MODE_WRITE)
+        actual_size = 80;
+    if (buffer == 0)
     {
-        printf("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
+        log_error("Invalid Buffer(size=%d/%d)\n", buffer_size, actual_size);
         return actual_size;
     }
 
     switch (handle)
     {
-        case BLE_HANDLE_TEST_READ:
-        case BLE_HANDLE_TEST_WRITE:
-            printf("BLE Test Characteristic\n");
-            if (mode == ATT_HANDLE_MODE_READ)
-                buffer[0] = s_test;
+        case BLE_HANDLE_UNLOCK_WATCH:
+            if (mode == ATT_HANDLE_MODE_WRITE)
+            {
+                system_unlock();
+            }
             else
-                s_test = buffer[0];
+            {
+                buffer[0] = 0;
+            }
+            break;
+        case BLE_HANDLE_FW_VERSION:
+            if (mode == ATT_HANDLE_MODE_READ)
+            {
+                strcpy((char*)buffer, FWVERSION);
+            }
             break;
 
         case BLE_HANDLE_SPORTS_GRID:
@@ -160,12 +194,17 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
         case BLE_HANDLE_SPORTS_DATA:
             if (mode == ATT_HANDLE_MODE_READ)
             {
-                memcpy(buffer, s_sports_data_buffer, sizeof(s_sports_data_buffer));
-            }
-            else
-            {
-                for (uint8_t i = 0; i < buffer_size / sizeof(uint32_t); ++i)
-                    s_sports_data_buffer[i] = READ_NET_32(&buffer, i * sizeof(uint32_t));
+                memcpy(buffer, s_sports_data_buffer, buffer_size);
+                log_info("SPORTS_DATA(%d): %ld, %ld, %ld, %ld, %ld\n",
+                    buffer_size,
+                    s_sports_data_buffer[0],
+                    s_sports_data_buffer[1],
+                    s_sports_data_buffer[2],
+                    s_sports_data_buffer[3],
+                    s_sports_data_buffer[4]);
+                log_info("SPORTS_DATA[RAW]: %02x %02x %02x %02x, %02x %02x %02x %02x\n",
+                    buffer[0], buffer[1], buffer[2], buffer[3],
+                    buffer[4], buffer[5], buffer[6], buffer[7]);
             }
             break;
 
@@ -173,11 +212,7 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memcpy(buffer, s_sports_desc_buffer, sizeof(s_sports_desc_buffer));
-            }
-            else
-            {
-                for (uint8_t i = 0; i < buffer_size / sizeof(uint32_t); ++i)
-                    s_sports_desc_buffer[i] = READ_NET_32(&buffer, i * sizeof(uint32_t));
+                log_info("SPORTS_DESC[0]=%d\n", buffer[0]);
             }
             break;
 
@@ -197,25 +232,49 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             break;
 
         case BLE_HANDLE_ALARM_0:
+            ble_set_alarm(0, buffer[0], buffer[1], buffer[2], mode);
+            break;
         case BLE_HANDLE_ALARM_1:
+            ble_set_alarm(1, buffer[0], buffer[1], buffer[2], mode);
+            break;
         case BLE_HANDLE_ALARM_2:
-            printf("Set Alarm()\n");
-            if (mode == ATT_HANDLE_MODE_READ)
-            {
-                memset(buffer, 0, buffer_size); //no way read them back so far
-            }
-            else
-            {
-                rtc_setalarm(0, 0, buffer[0] | 0x80, buffer[1] | 0x80);
-            }
+            ble_set_alarm(2, buffer[0], buffer[1], buffer[2], mode);
             break;
 
         case BLE_HANDLE_DEVICE_ID:
-        case BLE_HANDLE_FILE_DESC:
-        case BLE_HANDLE_FILE_DATA:
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memset(buffer, 0, buffer_size);
+            }
+            break;
+
+        case BLE_HANDLE_FILE_DESC:
+            if (mode == ATT_HANDLE_MODE_READ)
+            {
+                log_info("ble_read_file_desc() enter: mode=%x\n", get_file_mode());
+                ble_read_file_desc(buffer, buffer_size);
+                log_info("ble_read_file_desc() leave: mode=%x, cmd=%c,%d,%d [%x %x]\n", 
+                    get_file_mode(), FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer), buffer[2], buffer[3]);
+            }
+            else
+            {
+                log_info("ble_write_file_desc() enter: mode=%x, cmd=%c,%d,%d [%x %x]\n", 
+                    get_file_mode(), FD_GET_COMMAND(buffer), FD_GET_BLOCKSIZE(buffer), FD_GET_BLOCKID(buffer), buffer[2], buffer[3]);
+                ble_write_file_desc(buffer, buffer_size);
+                log_info("ble_write_file_desc() leave: mode=%x\n", get_file_mode());
+            }
+            break;
+
+        case BLE_HANDLE_FILE_DATA:
+            if (mode == ATT_HANDLE_MODE_READ)
+            {
+                log_info("ble_read_file_data() \n");
+                ble_read_file_data(buffer, buffer_size);
+            }
+            else
+            {
+                log_info("ble_write_file_data() \n");
+                ble_write_file_data(buffer, buffer_size);
             }
             break;
 
@@ -355,14 +414,34 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
             break;
 
         case BLE_HANDLE_RESERVED_0:
-        case BLE_HANDLE_RESERVED_1:
+//        case BLE_HANDLE_RESERVED_1:
             if (mode == ATT_HANDLE_MODE_READ)
             {
                 memset(buffer, 0, buffer_size);
             }
             break;
     }
+
     return actual_size;
+}
+
+
+uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size, uint8_t mode)
+{
+    if (mode == ATT_HANDLE_MODE_READ)
+    {
+        return att_handler_internal(handle, offset, buffer, buffer_size, mode);
+    }
+    else
+    {
+        if (buffer == NULL)
+            return att_handler_internal(handle, offset, buffer, buffer_size, mode);
+        else
+        {
+            att_handler_internal(handle, offset, buffer, buffer_size, mode);
+            return 0;
+        }
+    }
 }
 
 uint8_t get_type_unit_size(uint8_t type)
@@ -379,11 +458,6 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
             return &s_ble_handle_table[i];
     }
     return NULL;
-    //uint16_t offset = (handle - s_ble_handle_table[0].handle) / 2;
-    //if (offset < sizeof(s_ble_handle_table) / sizeof(s_ble_handle_table[0]))
-    //    return &s_ble_handle_table[offset];
-    //else
-    //    return NULL;
 }
 
 void ble_start_sync(uint8_t mode)
@@ -391,23 +465,13 @@ void ble_start_sync(uint8_t mode)
     s_sports_desc_buffer[0] = mode;
 }
 
-void ble_send_sports_data(uint32_t time, uint32_t data[], uint8_t size)
+void ble_send_sports_data(uint32_t data[], uint8_t size)
 {
-    s_sports_data_buffer[0] = time;
-    for (uint8_t i = 1; i < size && i < count_elem(s_sports_data_buffer); ++i)
+    for (uint8_t i = 0; i < size && i < 5; ++i)
         s_sports_data_buffer[i] = data[i];
-}
-
-void ble_send_normal_data(uint32_t time, uint32_t steps, uint32_t cals, uint32_t dist)
-{
-    s_sports_data_buffer[0] = time;
-    s_sports_data_buffer[1] = steps;
-    s_sports_data_buffer[2] = steps;
-    s_sports_data_buffer[3] = steps;
 }
 
 void ble_stop_sync()
 {
     s_sports_desc_buffer[0] = 0;
 }
-

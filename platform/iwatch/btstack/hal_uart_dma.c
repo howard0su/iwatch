@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include "contiki.h"
-#include "config.h"
+#include "btstack-config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -99,12 +99,31 @@ In this mode, the maximum USCI baud rate is one-third the UART source clock freq
 int hal_uart_dma_set_baud(uint32_t baud){
   int result = 0;
 
+  while(UCA0STAT & UCBUSY);
   UCA0CTL1 |= UCSWRST;              //Reset State
 
   switch (baud){
 
   case 4000000:
     UCA0BR0 = 2;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
+    break;
+
+  case 2000000:
+    UCA0BR0 = 4;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
+    break;
+
+  case 1000000:
+    UCA0BR0 = 8;
+    UCA0BR1 = 0;
+    UCA0MCTL= 0 << 1;  // + 0.000
+    break;
+
+  case 500000:
+    UCA0BR0 = 16;
     UCA0BR1 = 0;
     UCA0MCTL= 0 << 1;  // + 0.000
     break;
@@ -156,17 +175,20 @@ void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
 * @return none
 **************************************************************************/
 void hal_uart_dma_shutdown(void) {
+  printf("hal_uart_dma_shutdown");
+  
+
   UCA0IE &= ~(UCRXIE | UCTXIE);
   UCA0CTL1 = UCSWRST;                          //Reset State
-
+  
   BT_RXD_SEL &= ~BT_RXD_BIT;
-  BT_TXD_SEL &=  BT_TXD_BIT;
+  BT_TXD_SEL &= ~BT_TXD_BIT;
 
   BT_TXD_DIR |= BT_TXD_BIT;
   BT_RXD_DIR |= BT_RXD_BIT;
 
   BT_TXD_OUT &= ~BT_TXD_BIT;
-  BT_RXD_OUT &=  BT_RXD_BIT;
+  BT_RXD_OUT &= ~BT_RXD_BIT;
 }
 
 int dma_channel_1()
@@ -185,7 +207,7 @@ int dma_channel_1()
 
 void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 
-  //printf("hal_uart_dma_send_block, size %u\n\r", len);
+  //log_info("hal_uart_dma_send_block, size %u\n\r", len);
 
   // UCA0 TXIFG trigger
   DMACTL0 |= DMA1TSEL_17;
@@ -201,9 +223,9 @@ void hal_uart_dma_send_block(const uint8_t * data, uint16_t len){
 // int used to indicate a request for more new data
 void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
 
-  //printf("hal_uart_dma_receive_block, size %u temp_size: %u\n\r", len, rx_temp_size);
+  //log_info("receive_block size %u temp: %u\n", len, rx_temp_size);
 
-  UCA0IE &= ~UCRXIE ;  // disable RX interrupts
+  int x = splhigh();
   if (rx_temp_size)
   {
     *buffer = rx_temp_buffer;
@@ -216,8 +238,6 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
   {
     if (rx_done_handler)
       (*rx_done_handler)();
-
-    UCA0IE |= UCRXIE;    // enable RX interrupts
   }
   else
   {
@@ -228,6 +248,8 @@ void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len){
     // enable send
     BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
   }
+
+  splx(x);
 }
 
 void hal_uart_dma_set_sleep(uint8_t sleep)
@@ -260,30 +282,32 @@ ISR(USCI_A0, usbRxTxISR)
   switch (__even_in_range(UCA0IV, 16)){
 
   case 2: // RXIFG
+    uint8_t data = UCA0RXBUF;
     if (bytes_to_read == 0) {
       BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
-      UCA0IE &= ~UCRXIE;
+      UCA0IE &= ~UCRXIE ;  // disable RX interrupts
 
       // put the data into buffer to avoid race condition
-      rx_temp_buffer = UCA0RXBUF;
-      rx_temp_size = 1;
+      rx_temp_buffer = data;
+      rx_temp_size++;
       return;
     }
-    *rx_buffer_ptr = UCA0RXBUF;
+
+    *rx_buffer_ptr = data;
     ++rx_buffer_ptr;
     --bytes_to_read;
     if (bytes_to_read > 0) {
       break;
     }
     BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
-    UCA0IE &= ~UCRXIE;
 
     if (rx_done_handler)
       (*rx_done_handler)();
-    
+
     if (triggered)
     {
       triggered = 0;
+      UCA0IE &= ~UCRXIE ;  // disable RX interrupts
       LPM4_EXIT;
     }
     break;

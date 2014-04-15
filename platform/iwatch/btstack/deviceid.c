@@ -5,7 +5,7 @@
 #include "btstack/sdp_util.h"
 
 #include <string.h>
-#include "config.h"
+#include "btstack-config.h"
 #include "debug.h"
 
 

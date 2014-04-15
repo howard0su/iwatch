@@ -9,24 +9,25 @@
 
 static const tFont* fonts[] =
 {
-&g_sFontNova12b,
-&g_sFontNova13,
-&g_sFontNova16,
-&g_sFontNova16b,
-&g_sFontNova28,
-&g_sFontNova28b,
-&g_sFontNova38,
-&g_sFontNova38b,
-&g_sFontNova50b,
-&g_sFontRed13,
-&g_sFontBaby16,
-&g_sFontBaby12,
-(tFont*)&g_sFontExIcon16,
-(tFont*)&g_sFontExIcon48,
-(tFont*)&g_sFontExDigit44,
-(tFont*)&g_sFontExDigit44b,
-(tFont*)&g_sFontExDigit56,
-(tFont*)&g_sFontExDigit52b,
+&g_sFontDriod28b,
+&g_sFontGothamblack30,
+&g_sFontGothambold42,
+&g_sFontGothamlight42,
+//&g_sFontGothic14,
+//&g_sFontGothic14b,
+&g_sFontGothic18,
+&g_sFontGothic18b,
+//&g_sFontGothic24,
+&g_sFontGothic24b,
+&g_sFontGothic28,
+&g_sFontGothic28b,
+&g_sFontRobotocondensed18b,
+(const tFont*)&g_sFontExIcon16,
+(const tFont*)&g_sFontExIcon32,
+(const tFont*)&g_sFontExIcon48,
+(const tFont*)&g_sFontExGothammedium32,
+(const tFont*)&g_sFontExGothammedium42,
+(const tFont*)&g_sFontUnicode,
 };
 
 static cell AMX_NATIVE_CALL n_invalid(AMX *amx,const cell *params)
@@ -80,6 +81,38 @@ static cell AMX_NATIVE_CALL n_drawtext(AMX *amx, const cell *params)
   amx_StrParam(amx, params[2], text);
 
   GrStringDraw(context, text, -1, params[3], params[4], params[5]);
+
+  return 0;
+}
+
+// window_drawtext_center(context, string[], x, y, style)
+static cell AMX_NATIVE_CALL n_drawtextcentered(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  char *text;
+
+  amx_StrParam(amx, params[2], text);
+
+  GrStringDrawCentered(context, text, -1, params[3], params[4], params[5]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_setcolor(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  
+  GrContextForegroundSet(context, params[2]);
+  GrContextBackgroundSet(context, params[3]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_filltriagle(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  
+  GrTriagleFill(context, params[3], params[4], params[5], params[6], params[7], params[8]);
 
   return 0;
 }
@@ -145,5 +178,8 @@ AMX_NATIVE const window_natives[] =
   n_strformat,
   n_gettime,
   n_getdate,
-  n_enableclock
+  n_enableclock,
+  n_drawtextcentered,
+  n_filltriagle,
+  n_setcolor
 };

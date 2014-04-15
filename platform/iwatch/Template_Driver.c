@@ -750,6 +750,7 @@ const tDisplay g_memlcd_Driver =
 int dma_channel_0()
 {
   LCDSPIOUT &= ~LCD_SCS;
+  power_unpin(MODULE_LCD);
   state = STATE_NONE;
   if (data.start != 0xff)
   {
@@ -788,7 +789,6 @@ PROCESS_THREAD(lcd_process, ev, d)
       {
         while(UCB0STAT & UCBUSY);
         UCB0CTL1 |= UCSWRST;
-        power_unpin(MODULE_LCD);
       }
     }
     else if (ev == refresh_event)
@@ -824,4 +824,5 @@ PROCESS_THREAD(lcd_process, ev, d)
 void flushlcdsync()
 {
   SPISend(&lines[0], (148 + 1) * sizeof(struct _linebuf) + 2);
+  power_unpin(MODULE_LCD);
 }

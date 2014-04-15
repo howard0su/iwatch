@@ -35,7 +35,7 @@
  *  allow to funnel debug & error messages 
  */
 
-#include "config.h"
+#include "btstack-config.h"
 #include "hci_dump.h"
 
 #include <stdio.h>

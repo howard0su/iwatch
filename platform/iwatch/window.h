@@ -51,10 +51,12 @@ PROCESS_NAME(system_process);
 #define EVENT_FILESYS_LIST_FILE       0xa8 // parameters 0 - end, -1 - error, address - pointer to char*
 #define EVENT_STLV_DATA_SENT          0xa9
 
+#define EVENT_FIRMWARE_UPGRADE        0xaa // parameter is rparameter, offset
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 
 extern void window_init(void);
+extern void window_reload();
 extern void window_open(windowproc proc, void* data);
 extern void window_invalid(const tRectangle *rect);
 extern void status_invalid(void);  // invalid status
@@ -69,10 +71,13 @@ extern void window_button(tContext *pContext, uint8_t key, const char* text);
 extern void window_progress(tContext *pContext, long lY, uint8_t step);
 extern void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected);
 extern void window_volume(tContext *pContext, long lX, long lY, int total, int current);
+extern void window_selecttext(tContext *pContext, const char* pcString, long lLength, long lX, long lY);
 
 #define NOTIFY_OK 0
 #define NOTIFY_YESNO 1
 #define NOTIFY_ACCEPT_REJECT 2
+#define NOTIFY_ALARM  0x10
+#define NOTIFY_CONFIRM 0x20
 
 #define NOTIFY_RESULT_OK 1
 #define NOTIFY_RESULT_YES 1
@@ -80,7 +85,12 @@ extern void window_volume(tContext *pContext, long lX, long lY, int total, int c
 #define NOTIFY_RESULT_ACCEPT 1
 #define NOTIFY_RESULT_REJECT 2
 
+
+extern void window_messagebox(uint8_t icon, const char* message, uint8_t flags);
+extern void window_notify_ancs_init();
 extern void window_notify(const char* title, const char* message, uint8_t buttons, char icon);
+extern void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t category);
+extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
 
 extern const tRectangle client_clip;
 extern const tRectangle fullscreen_clip;
@@ -97,6 +107,7 @@ extern uint8_t watch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t btconfig_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configdate_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t configfont_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t stopwatch_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t calendar_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t selftest_process(uint8_t event, uint16_t lparam, void* rparam);
@@ -104,7 +115,6 @@ extern uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 extern uint8_t worldclock_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t today_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sporttype_process(uint8_t ev, uint16_t lparam, void* rparam);
-extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t script_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t shutdown_process(uint8_t ev, uint16_t lparam, void* rparam);
@@ -112,6 +122,18 @@ extern uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t configvol_process(uint8_t event, uint16_t lparam, void* rparam);
 extern uint8_t configlight_process(uint8_t event, uint16_t lparam, void* rparam);
+extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam);
+
+#define MAX_ALARM_COUNT 3
+typedef struct _alarm_t
+{
+  uint8_t flag;
+  uint8_t hour;
+  uint8_t minutes;
+}alarm_t;
 
 #define UI_CONFIG_SIGNATURE 0xFACE0001
 typedef struct {
@@ -161,6 +183,10 @@ typedef struct {
   uint8_t volume_level;
   uint8_t light_level;
 
+  //alarms
+  alarm_t alarms[MAX_ALARM_COUNT];
+  // config 0 - Normal, 1 - Larger, 2 - CJK
+  uint8_t font_config;
 }ui_config;
 
 extern ui_config* window_readconfig();
@@ -171,6 +197,7 @@ extern void window_loadconfig();
 extern const char * const month_name[];
 extern const char * const month_shortname[];
 extern const char * const week_shortname[];
+extern const char * const fontconfig_name[];
 extern const char* toEnglish(uint8_t number, char* buffer);
 
 // #define EVENT_SPORT_DATA              0x92
@@ -237,13 +264,6 @@ enum SPORTS_GRID
     GRID_LAPTIME_AVG,
 
     GRID_MAX,
-};
-
-struct MenuItem
-{
-  unsigned char icon;
-  const char *name;
-  windowproc handler;
 };
 
 #endif

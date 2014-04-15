@@ -45,7 +45,7 @@
  #include "contiki.h"
  #include "window.h"
 
-#include "config.h"
+#include "btstack-config.h"
 
 #include <btstack/run_loop.h>
 #include "debug.h"
@@ -71,21 +71,33 @@
 ///------
 static int advertisements_enabled = 0;
 
+typedef enum {
+    DISABLE_ADVERTISEMENTS   = 1 << 0,
+    SET_ADVERTISEMENT_PARAMS = 1 << 1,
+    SET_ADVERTISEMENT_DATA   = 1 << 2,
+    SET_SCAN_RESPONSE_DATA   = 1 << 3,
+    ENABLE_ADVERTISEMENTS    = 1 << 4,
+} todo_t;
+static todo_t todos = 0;
+
+static void gap_run();
+
 // write requests
 static int att_write_callback(uint16_t handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size, signature_t * signature){
-    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_WRITE);
+    if (transaction_mode == ATT_TRANSACTION_MODE_CANCEL)
+        return 0;
+    return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_WRITE);
 }
 
 static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size) {
-    att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
+    return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
 }
 
+static const uint8_t ancsuuid[] = {
+    0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
+};
 
 static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
-    
-    uint8_t adv_data[] = { 02, 01, 05,   03, 02, 0xf0, 0xff,
-        17, 0x15,  0x79, 0x05, 0xF4, 0x31, 0xB5, 0xCE, 0x4E, 0x99, 0xA4, 0x0F, 0x4B, 0x1E, 0x12, 0x2D, 0x00, 0xD0}; 
-
     switch (packet_type) {
             
         case HCI_EVENT_PACKET:
@@ -94,18 +106,22 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                 case BTSTACK_EVENT_STATE:
                     // bt stack activated, get started
                     if (packet[2] == HCI_STATE_WORKING) {
-                        printf("SM Init completed\n");
-                        hci_send_cmd(&hci_le_set_advertising_data, 7, adv_data);
+                        log_info("SM Init completed\n");
+                        todos = SET_ADVERTISEMENT_DATA | SET_SCAN_RESPONSE_DATA | ENABLE_ADVERTISEMENTS;
+                        gap_run();
                     }
                     break;
-                
-                case HCI_EVENT_LE_META:
+
+                    case HCI_EVENT_LE_META:
                     switch (packet[2]) {
                         case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
-                            advertisements_enabled = 0;
+                            todos = DISABLE_ADVERTISEMENTS;
 
                             // request connection parameter update - test parameters
-                            // l2cap_le_request_connection_parameter_update(READ_BT_16(packet, 4), 20, 1000, 100, 100);
+                            //l2cap_le_request_connection_parameter_update(READ_BT_16(packet, 4), 20, 1000, 100, 100);
+                            //att_server_query_service(ancsuuid);
+                            //sm_send_security_request();
+                            gap_run();
                             break;
 
                         default:
@@ -113,38 +129,25 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                     }
                     break;
 
-                case HCI_EVENT_DISCONNECTION_COMPLETE:
-                    // restart advertising if we have been connected before
-                    // -> avoid sending advertise enable a second time before command complete was received 
-                    if (advertisements_enabled == 0) {
-                        hci_send_cmd(&hci_le_set_advertise_enable, 1);
-                        advertisements_enabled = 1;
-                    }
-                    break;
-                    
-                case HCI_EVENT_COMMAND_COMPLETE:
-                    if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_advertising_data)){
-                         // only needed for BLE Peripheral
-                       hci_send_cmd(&hci_le_set_scan_response_data, sizeof(adv_data), adv_data);
-                       break;
-                    }
-                    if (COMMAND_COMPLETE_EVENT(packet, hci_le_set_scan_response_data)){
-                         // only needed for BLE Peripheral
-                       hci_send_cmd(&hci_le_set_advertise_enable, 1);
-                       advertisements_enabled = 1;
-                       break;
-                    }
-                    break;
+                    case HCI_EVENT_DISCONNECTION_COMPLETE:
+                        {
+                            uint16_t handle = READ_BT_16(packet, 3);
+                            if (handle < 1024)
+                                break;
+                            todos = ENABLE_ADVERTISEMENTS;
+                            gap_run();
+                            break;
+                        }
 
                 case SM_PASSKEY_DISPLAY_NUMBER: {
                     // display number
                     sm_event_t * event = (sm_event_t *) packet;
-                    printf("%06u\n", event->passkey);
+                    log_error("%06u\n", event->passkey);
                     break;
                 }
 
                 case SM_PASSKEY_DISPLAY_CANCEL: 
-                    printf("GAP Bonding: Display cancel\n");
+                    log_error("GAP Bonding: Display cancel\n");
                     break;
 
                 case SM_AUTHORIZATION_REQUEST: {
@@ -154,25 +157,132 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                     break;
                 }
                 case ATT_HANDLE_VALUE_INDICATION_COMPLETE:
-                    printf("ATT_HANDLE_VALUE_INDICATION_COMPLETE status %u\n", packet[2]);
+                    log_info("ATT_HANDLE_VALUE_INDICATION_COMPLETE status %u\n", packet[2]);
                     break;
 
                 default:
                     break;
             }
     }
+
+    gap_run();
 }
 
+static const uint8_t sm_oob_data[] = "0123456789012345";
+static int get_oob_data_callback(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data){
+    memcpy(oob_data, sm_oob_data, 16);
+    return 1;
+}
+
+static void gap_run(){
+    // make sure we can send one packet
+    if (todos == 0 || !hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
+
+    printf("todo %x\n", todos);
+    if (todos & DISABLE_ADVERTISEMENTS){
+        todos &= ~DISABLE_ADVERTISEMENTS;
+        advertisements_enabled = 0;
+        printf("GAP_RUN: disable advertisements\n");
+        hci_send_cmd(&hci_le_set_advertise_enable, 0);
+        return;
+    }
+
+    if (todos & SET_ADVERTISEMENT_DATA){
+        todos &= ~SET_ADVERTISEMENT_DATA;
+        
+        uint8_t adv_data[] = { 
+            2, 0x1, 0x2,
+            3, 02, 0xf0, 0xff,
+            14, 0x09, 'M','e', 't', 'e', 'o', 'r', 'L', 'E', ' ', 'X','X','X','X','\0'
+        };
+
+        sprintf(&adv_data[18], "%02X%02X", (*hci_local_bd_addr())[4], (*hci_local_bd_addr())[5]);
+        printf("GAP_RUN: set advertisement data\n");
+        hexdump(adv_data, sizeof(adv_data));
+        hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data) - 1, adv_data);
+        return;
+    }    
+
+    if (todos & SET_ADVERTISEMENT_PARAMS){
+        todos &= ~SET_ADVERTISEMENT_PARAMS;
+        uint8_t adv_type;
+        if (advertisements_enabled)
+            adv_type = 0x00;
+        else
+            adv_type = 0x02;
+        bd_addr_t null_addr;
+        memset(null_addr, 0, 6);
+        uint16_t adv_int_min = 0x808;
+        uint16_t adv_int_max = 0x808;
+        switch (adv_type){
+            case 0:
+            case 2:
+            case 3:
+                hci_send_cmd(&hci_le_set_advertising_parameters, adv_int_min, adv_int_max, adv_type, 0, 0, &null_addr, 0x07, 0x00);
+                break;
+        }
+        return;
+    }    
+
+    if (todos & SET_SCAN_RESPONSE_DATA){
+        uint8_t scan_data[] = {
+            2, 0x1, 0x2,
+            2, 0x11, 3,
+            17, 0x15, 0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
+        };
+
+        printf("GAP_RUN: set scan response data\n");
+        todos &= ~SET_SCAN_RESPONSE_DATA;
+
+        hci_send_cmd(&hci_le_set_scan_response_data, sizeof(scan_data), scan_data);
+        return;
+    }    
+
+    if (todos & ENABLE_ADVERTISEMENTS){
+        printf("GAP_RUN: enable advertisements\n");
+        todos &= ~ENABLE_ADVERTISEMENTS;
+        advertisements_enabled = 1;
+        hci_send_cmd(&hci_le_set_advertise_enable, 1);
+        return;
+    }
+}
+
+void ble_advertise(uint8_t onoff)
+{
+    printf("enter %d %d---", onoff, advertisements_enabled);
+    if (onoff && (advertisements_enabled == 0))
+        todos |= ENABLE_ADVERTISEMENTS;
+
+    if ((!onoff) && (advertisements_enabled == 1))
+        todos |= DISABLE_ADVERTISEMENTS;
+
+    printf(" todos: %x---\n", todos);
+    gap_run();
+}
+
+static uint8_t test_irk[] =  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 void ble_init(void){
+
+    advertisements_enabled = 0;
     // setup central device db
     central_device_db_init();
 
-    // setup SM: Display only
     sm_init();
-    sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY);
+//    gap_random_address_set_update_period(300000);
+//    gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);
+
     sm_set_authentication_requirements( SM_AUTHREQ_BONDING | SM_AUTHREQ_MITM_PROTECTION); 
     sm_set_request_security(1);
-    //sm_set_encryption_key_size_range(7,15);
+
+    //strcpy(gap_device_name, "BTstack");
+    sm_set_io_capabilities(IO_CAPABILITY_NO_INPUT_NO_OUTPUT);
+//    sm_register_oob_data_callback(get_oob_data_callback);
+//    sm_set_encryption_key_size_range(7, 16);
+//    sm_test_set_irk(test_irk);
+
+    //gap_random_address_set_update_period(300000);
+    //gap_random_address_set_mode(GAP_RANDOM_ADDRESS_RESOLVABLE);
 
     // setup ATT server
     att_server_init(profile_data, att_read_callback, att_write_callback);
