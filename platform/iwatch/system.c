@@ -185,11 +185,10 @@ void system_shutdown(int shipping)
   system_reset();
 }
 
-void system_getserial(uint8_t *buf)
+const uint8_t * system_getserial()
 {
   const struct system_data *data = (struct system_data *)INFOD;
-  //TODO
-  memcpy(buf, data->serial, 6);
+  return data->serial;
 }
 
 uint8_t system_locked()

@@ -80,7 +80,7 @@ static void displaystack(uint16_t *ptr)
   GrRectFill(&context, &fullscreen_clip);
 
   GrContextForegroundSet(&context, ClrWhite);
-  GrContextFontSet(&context, (tFont*)&g_sFontBaby12);
+  GrContextFontSet(&context, (tFont*)&g_sFontGothic14);
   GrStringDrawWrap(&context, buf, 2, 16, 120, 0);
   
   GrStringDraw(&context, PROCESS_CURRENT()->name, -1, 2, 100, 0);

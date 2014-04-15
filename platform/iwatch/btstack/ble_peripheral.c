@@ -174,6 +174,8 @@ static int get_oob_data_callback(uint8_t addres_type, bd_addr_t * addr, uint8_t 
     return 1;
 }
 
+extern const char* system_getserial();
+
 static void gap_run(){
     // make sure we can send one packet
     if (todos == 0 || !hci_can_send_packet_now(HCI_COMMAND_DATA_PACKET)) return;
@@ -196,7 +198,8 @@ static void gap_run(){
             14, 0x09, 'M','e', 't', 'e', 'o', 'r', 'L', 'E', ' ', 'X','X','X','X','\0'
         };
 
-        sprintf(&adv_data[18], "%02X%02X", (*hci_local_bd_addr())[4], (*hci_local_bd_addr())[5]);
+        const char* addr = system_getserial();
+        sprintf(&adv_data[18], "%02X%02X", addr[4], addr[5]);
         printf("GAP_RUN: set advertisement data\n");
         hexdump(adv_data, sizeof(adv_data));
         hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data) - 1, adv_data);
