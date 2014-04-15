@@ -66,7 +66,6 @@ GRLIB0 = \
 	string.c
 
 GRLIB_FONTS = \
-	fontbaby12.c \
 	fontdriod28b.c \
 	fontgothamblack30.c \
 	fontgothambold42.c \
@@ -74,10 +73,8 @@ GRLIB_FONTS = \
 	fontgothammedium32.c \
 	fontgothammedium42.c \
 	fontgothic14.c \
-	fontgothic14b.c \
 	fontgothic18.c \
 	fontgothic18b.c \
-	fontgothic24.c \
 	fontgothic24b.c \
 	fontgothic28.c \
 	fontgothic28b.c \
