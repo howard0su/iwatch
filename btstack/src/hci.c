@@ -1341,6 +1341,8 @@ bd_addr_t * hci_local_bd_addr(void){
     return &hci_stack->local_bd_addr;
 }
 
+extern const char* system_getserial();
+
 void hci_run(){
         
     hci_connection_t * connection;
@@ -1580,7 +1582,8 @@ void hci_run(){
                     } else {
                         char hostname[30];
 #ifdef EMBEDDED
-                        sprintf(hostname, "Meteor %02X%02X", hci_stack->local_bd_addr[4], hci_stack->local_bd_addr[5]);
+                        const char* addr = system_getserial();
+                        sprintf(hostname, "Meteor %02X%02X", addr[4], addr[5]);
                         printf("---> Name %s\n", hostname);
 #else
                         // hostname for POSIX systems
