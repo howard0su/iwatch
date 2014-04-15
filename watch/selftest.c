@@ -119,13 +119,13 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       // draw the state
       switch(state)
       {
-      case BATTERY_DISCHARGING:
+      case BATTERY_STATE_DISCHARGING:
         msg = "battery is discharging.";
         break;
-      case BATTERY_CHARGING:
+      case BATTERY_STATE_CHARGING:
         msg = "battery is charging.";
         break;
-      case BATTERY_FULL:
+      case BATTERY_STATE_FULL:
         msg = "battery is full. charged stopped.";
         break;
       }
