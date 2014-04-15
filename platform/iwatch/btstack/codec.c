@@ -124,8 +124,6 @@ void codec_shutdown()
   AUDOUT |= AUDBIT; // output direction, value = H
 
   SMCLKSEL &= ~SMCLKBIT;     // output SMCLK
-
-  PCODECOUT &= ~PCODECBIT;
 }
 
 void codec_suspend()
@@ -139,6 +137,7 @@ void codec_suspend()
   PSPKEN[5]
   */
   power_unpin(MODULE_CODEC);
+  PCODECOUT |= PCODECBIT;
 
   I2C_addr(CODEC_ADDRESS);
   codec_write(REG_POWER_MANAGEMENT1, 0);
@@ -188,6 +187,8 @@ uint8_t codec_getvolume()
 void codec_wakeup()
 {
   SMCLKSEL |= SMCLKBIT;     // output SMCLK
+  PCODECOUT &= ~PCODECBIT;
+
   power_pin(MODULE_CODEC);
 
   I2C_addr(CODEC_ADDRESS);
