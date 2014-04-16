@@ -45,7 +45,7 @@ static void onDraw(tContext *pContext)
   if (state == WALK)
   {
     sprintf(buf, "%d", ped_get_steps());
-    drawItem(pContext, 0, ICON_STEPS, "Steps Taken", buf);
+    drawItem(pContext, 0, ICON_STEPS, "Steps", buf);
 
     uint16_t cals = ped_get_calorie();
     sprintf(buf, "%d", cals);
@@ -55,7 +55,7 @@ static void onDraw(tContext *pContext)
     drawItem(pContext, 2, ICON_DISTANCE, "Distance", buf);
 
     sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
-    drawItem(pContext, 3, ICON_TIME, "Active Time", buf);
+    drawItem(pContext, 3, ICON_TIME, "Active", buf);
 
     // draw progress
 
