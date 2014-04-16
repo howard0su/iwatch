@@ -20,6 +20,7 @@ build/Retail
 build/Settings
 build/watchCustomSfr.sfr
 build/*.txt
+objs.efm32/
 objs.msp430/
 objs.native/
 *.sublime-project
