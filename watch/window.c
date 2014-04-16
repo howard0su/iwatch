@@ -115,7 +115,7 @@ void window_init(uint8_t reason)
 
     // draw the text
     GrContextFontSet(&context, &g_sFontGothic18);
-    GrStringDrawWrap(&context, "Installation in progress,\nplease wait", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+    GrStringDrawWrap(&context, "Installation in progress,\nplease wait...", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
   }
   else
   {
