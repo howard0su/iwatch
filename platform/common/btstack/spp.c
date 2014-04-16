@@ -9,6 +9,8 @@
 #include "stlv.h"
 #include "stlv_server.h"
 #include "stlv_transport.h"
+
+#include "btstack-config.h"
 #include "debug.h"
 
 static service_record_item_t spp_service_record;
@@ -31,13 +33,14 @@ static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
+  log_info("spp_handler(%d, %d)\n", packet_type, packet[0]);
     UNUSED_VAR(channel);
   uint16_t rfcomm_id = 0;
 
   if (packet_type == RFCOMM_DATA_PACKET)
   {
     set_btstack_type(BTSTACK_TYPE_RFCOMM);
-    hexdump(packet, size);
+    //hexdump(packet, size);
     if (handle_stvl_transport(packet, size) > 0)
     {
         handle_stlv_packet(get_stlv_transport_buffer());

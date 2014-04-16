@@ -53,7 +53,7 @@ int spp_register_task(uint8_t* buf, int size, void (*callback)(int), int para)
         task->callback    = callback;
         task->para        = para;
         task->status      = SPP_SENDER_READY;
-        while (tryToSend());
+        tryToSend();
         return 0;
     }
     return -1;
@@ -98,9 +98,13 @@ uint8_t tryToSend(void)
             task->buffer + task->sent_size - 1, SPP_PACKET_MTU);
         if (err != 0)
         {
-            log_info("send_internal(%d, %d) = %d err\n", task->sent_size, task->unit_size, err);
+            log_error("send_internal(%d, %d) = %d err\n", task->sent_size, task->unit_size, err);
             s_sendFlag = 0;
             return 0;
+        }
+        else
+        {
+            log_info("send_internal(%d, %d) ok\n", task->sent_size, task->unit_size);
         }
 
         task->sent_size += task->unit_size;
