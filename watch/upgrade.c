@@ -49,7 +49,7 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 		 	{
 		 		if (progress == 100)
 		 		{
-		 			if (!CheckUpgrade())
+		 			if (CheckUpgrade() == 0xff)
 		 				system_reset();
 		 			else
 		 				window_close();
