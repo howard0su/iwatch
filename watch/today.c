@@ -3,6 +3,7 @@
 #include "window.h"
 #include "pedometer/pedometer.h"
 #include <stdio.h>
+#include "icons.h"
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 #include "memory.h"
@@ -44,17 +45,17 @@ static void onDraw(tContext *pContext)
   if (state == WALK)
   {
     sprintf(buf, "%d", ped_get_steps());
-    drawItem(pContext, 0, 'y', "Steps Taken", buf);
-
-    sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
-    drawItem(pContext, 1, 'z', "Active Time", buf);
+    drawItem(pContext, 0, ICON_STEPS, "Steps Taken", buf);
 
     uint16_t cals = ped_get_calorie();
     sprintf(buf, "%d", cals);
-    drawItem(pContext, 2, 'z'+1, "Calories", buf);
+    drawItem(pContext, 1, ICON_CALORIES, "Calories", buf);
 
     sprintf(buf, "%dm", ped_get_distance());
-    drawItem(pContext, 3, 'z'+2, "Distance", buf);
+    drawItem(pContext, 2, ICON_DISTANCE, "Distance", buf);
+
+    sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
+    drawItem(pContext, 3, ICON_TIME, "Active Time", buf);
 
     // draw progress
 

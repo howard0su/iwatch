@@ -5,6 +5,12 @@
 #define ICON_ALARM      'i'
 #define ICON_BT         'j'
 
+#define ICON_STEPS		'y'
+#define ICON_TIME       'z'
+#define ICON_CALORIES 	'z'+1
+#define ICON_DISTANCE   'z'+2
+
+
 #define ICON_BATTERY_FULL 'm'
 #define ICON_BATTERY_MORE 'n'
 #define ICON_BATTERY_LESS 'o'
