@@ -163,10 +163,10 @@ int mpu6050_selftest()
   return 0;
 }
 
- void system_getserial(uint8_t *buf)
+ uint8_t * system_getserial()
  {
-  char fake[6] = {43,44,45,86,97,0xff};
-  memcpy(buf, fake, 6);
+  static char fake[6] = {43,44,45,86,97,0xff};
+  return fake;
  }
 
 

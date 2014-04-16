@@ -101,13 +101,6 @@ static void OnDraw(tContext* pContext)
   char icon;
   int x = CHARGE_X;
 
-  if (status & BATTERY_CHARGING)
-  {
-    icon = ICON_CHARGING;
-    GrStringDraw(pContext, &icon, 1, x, 0, 0);
-    x -= ICONSPACE;
-  }
-
   switch(status & 0x03)
   {
     case BATTERY_EMPTY:
@@ -126,24 +119,29 @@ static void OnDraw(tContext* pContext)
       icon = 0;
   }
 
-  if (icon != 0)
+  if (status & BATTERY_CHARGING)
   {
-    GrStringDraw(pContext, &icon, 1, x, 0, 0);
-    x -= ICONSPACE - 4;
+    GrStringDraw(pContext, &icon, 1, 120, 0, 0);
+    icon = ICON_CHARGING;
+    GrStringDraw(pContext, &icon, 1, 137, 2, 0);
+  }
+  else
+  {
+    GrStringDraw(pContext, &icon, 1, 127, 0, 0);
   }
 
-  //if (status & BLUETOOTH_STATUS)
-  {
-    icon = ICON_BT;
-    GrStringDraw(pContext, &icon, 1, x, 0, 0);
-    x -= ICONSPACE;
-  }
-
-  //if (status & ALARM_STATUS)
+  x = 2;
+  if (status & ALARM_STATUS)
   {
     icon = ICON_ALARM;
     GrStringDraw(pContext, &icon, 1, x, 0, 0);
-    x -= ICONSPACE;
+    x += 15;
+  }
+
+  if (status & BLUETOOTH_STATUS)
+  {
+    icon = ICON_BT;
+    GrStringDraw(pContext, &icon, 1, x, 0, 0);
   }
 
   if (status & MID_STATUS)
@@ -151,13 +149,13 @@ static void OnDraw(tContext* pContext)
     char icon = ICON_RUN;
     // draw activity
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
-    GrStringDraw(pContext, &icon, 1, 0, 0, 0);
+    GrStringDraw(pContext, &icon, 1, 48, 0, 0);
 
     uint16_t part = window_readconfig()->goal_steps / 5;
     uint16_t steps = ped_get_steps();
     for(int i = 0; i < 5; i++)
     {
-      tRectangle rect = {18 + i * 6, 6, 18 + 4 + i * 6, 9};
+      tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
       if (i * part + part / 2 <= steps)
       {
         GrRectFill(pContext, &rect);
@@ -180,7 +178,7 @@ static void OnDraw(tContext* pContext)
     sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
     int width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, 0, 2, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 8, 0);
   }
 }
 
@@ -267,7 +265,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
   switch(event)
   {
   case EVENT_WINDOW_CREATED:
-    status = MID_STATUS;
+    status = 0;
     check_battery();
     status_invalid();
     break;

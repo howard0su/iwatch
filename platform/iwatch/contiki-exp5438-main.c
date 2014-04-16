@@ -112,12 +112,15 @@ main(int argc, char **argv)
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
   backlight_init();
-  window_init();
-
   battery_init();
+  SPI_FLASH_Init();
+
+  int reason = CheckUpgrade();
+
+  window_init(reason);
+
   button_init();
   rtc_init();
-  SPI_FLASH_Init();
   CFSFontWrapperLoad();
 
   system_init(); // check system status and do factor reset if needed
@@ -154,7 +157,7 @@ main(int argc, char **argv)
   /*
     check firmware update
     */
-  if (CheckUpgrade() == 0)
+  if (reason == 0)
   {
     printf("Start Upgrade\n");
     Upgrade();

@@ -5,6 +5,7 @@
 #include <string.h>
 #include "spiflash.h"
 #include "board.h"
+#include "battery.h"
 #include "backlight.h"
 #include <stdio.h>
 
@@ -71,22 +72,26 @@ int CheckUpgrade(void)
   SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE, sizeof(h));
 
   if (h.signature != SIGNATURE)
-    return 1;
+    return 0;
 
   printf("Found firmware, length = %lu\n", h.length);
 
   SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE + h.length + sizeof(h), sizeof(h));
 
   if (h.signature != SIGNATURE)
-    return 2;
+    return 1;
 
   SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE + h.length + 2 * sizeof(h), sizeof(h));
   if (h.signature == SIGNATURE)
-    return 3; // ignore flag
+    return 2; // ignore flag
+
+  if (battery_state() == BATTERY_STATE_DISCHARGING
+    && battery_level(BATTERY_STATE_DISCHARGING) < 4)
+    return 3; // not enough power
 
   // check CRC
 
-  return 0;
+  return 0xff;
 }
 
 //------------------------------------------------------------------------------
