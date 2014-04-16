@@ -1,3 +1,4 @@
+#include "stdio.h"
 #include "contiki.h"
 #include "window.h"
 
@@ -49,7 +50,9 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 		 	{
 		 		if (progress == 100)
 		 		{
-		 			if (CheckUpgrade() == 0xff)
+		 			int ret = CheckUpgrade();
+		 			printf("CheckUpgrade() %d\n", ret);
+		 			if (ret == 0xff)
 		 				system_reset();
 		 			else
 		 				window_close();
