@@ -48,6 +48,32 @@ static const ble_handle_t s_ble_handle_table[] = {
     DEF_BLE_HANDLE("ff23", BLE_HANDLE_CONF_USER_PROFILE, BLE_HANDLE_TYPE_INT8_ARR,  3),
 };
 
+uint16_t BLE_READ_INT16(uint8_t* buf)
+{
+    uint16_t left = buf[1];
+    uint16_t right = buf[0];
+    return left << 8 | right;
+}
+
+void BLE_WRITE_INT16(uint8_t* buf, uint16_t value)
+{
+    memcpy(buf, &value, 2);
+}
+
+uint32_t BLE_READ_INT32(uint8_t* buf)
+{
+    uint32_t v0 = buf[3];
+    uint32_t v1 = buf[2];
+    uint32_t v2 = buf[1];
+    uint32_t v3 = buf[0];
+    return v0 << 24 | v1 << 16 | v2 << 8 | v0;
+}
+
+void BLE_WRITE_INT32(uint8_t* buf, uint32_t value)
+{
+    memcpy(buf, &value, 4);
+}
+
 static uint32_t s_sports_data_buffer[5] = {0};
 static uint32_t s_sports_desc_buffer[2] = {0};
 
@@ -285,9 +311,9 @@ static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t *
             }
             else
             {
-                uint32_t spd  = READ_NET_32(buffer, 0);
-                uint32_t alt  = READ_NET_32(buffer, 4);
-                uint32_t dist = READ_NET_32(buffer, 8);
+                uint32_t spd  = BLE_READ_INT32(&buffer[0]);
+                uint32_t alt  = BLE_READ_INT32(&buffer[4]);
+                uint32_t dist = BLE_READ_INT32(&buffer[8]);
                 handle_gps_info(spd, alt, dist);
             }
             break;
@@ -383,9 +409,9 @@ static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t *
             {
                 ui_config* conf = window_readconfig();
 
-                conf->goal_steps    = READ_NET_16(buffer, 0);
-                conf->goal_distance = READ_NET_16(buffer, 2);
-                conf->goal_calories = READ_NET_16(buffer, 4);
+                conf->goal_steps    = BLE_READ_INT16(&buffer[0]);
+                conf->goal_distance = BLE_READ_INT16(&buffer[2]);
+                conf->goal_calories = BLE_READ_INT16(&buffer[4]);
 
                 window_writeconfig();
                 window_loadconfig();

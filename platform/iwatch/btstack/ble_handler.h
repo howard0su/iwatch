@@ -115,5 +115,8 @@ uint16_t att_handler(uint16_t handle, uint16_t offset, uint8_t * buffer, uint16_
 void ble_start_sync(uint8_t mode);
 void ble_send_sports_data(uint32_t data[], uint8_t size);
 void ble_stop_sync();
+
+uint16_t BLE_READ_INT16(uint8_t* buf);
+void BLE_WRITE_INT16(uint8_t* buf, uint16_t value);
 #endif
 
