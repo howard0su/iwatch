@@ -55,7 +55,7 @@ PROCESS_NAME(system_process);
 
 typedef uint8_t (*windowproc)(uint8_t event, uint16_t lparam, void* rparam);
 
-extern void window_init(void);
+extern void window_init(uint8_t reason);
 extern void window_reload();
 extern void window_open(windowproc proc, void* data);
 extern void window_invalid(const tRectangle *rect);

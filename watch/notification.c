@@ -136,7 +136,7 @@ static void onDraw(tContext *pContext)
       char buf[40];
       convertdate(buf, message_date);
 
-      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
       GrStringDraw(pContext, buf, -1, 30, starty, 0);
     }
 

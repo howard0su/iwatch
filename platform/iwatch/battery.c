@@ -54,7 +54,7 @@ BATTERY_STATE battery_state(void)
   if (BATININ & BATINPIN) // if it is high
   {
     uartattached = 0;
-    return BATTERY_DISCHARGING;
+    return BATTERY_STATE_DISCHARGING;
   }
 
   uartattached = 1;
@@ -64,9 +64,9 @@ BATTERY_STATE battery_state(void)
   setoutputfloat();
 
   if (instate)
-    return BATTERY_FULL;
+    return BATTERY_STATE_FULL;
   else
-    return BATTERY_CHARGING;
+    return BATTERY_STATE_CHARGING;
 }
 
 // map battery level to 0-15 scale
@@ -94,9 +94,9 @@ uint8_t battery_level(BATTERY_STATE state)
 
   switch(state)
   {
-    case BATTERY_FULL:
+    case BATTERY_STATE_FULL:
       return 9;
-    case BATTERY_CHARGING:
+    case BATTERY_STATE_CHARGING:
     {
       for(ret = 1; ret < sizeof(charge_curve); ret++)
       {
@@ -106,7 +106,7 @@ uint8_t battery_level(BATTERY_STATE state)
 
       return 9;
     }
-    case BATTERY_DISCHARGING:
+    case BATTERY_STATE_DISCHARGING:
     {
       for(ret = 1; ret < sizeof(discharge_curve); ret++)
       {

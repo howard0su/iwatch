@@ -22,7 +22,7 @@ void draw_screen(tContext *pContext)
   if (state == BT_ON)
   {
     icon = ICON_LARGE_BT;
-    str = "Bluetooth Paired";
+    str = "Bluetooth is ON";
     window_button(pContext, KEY_UP, "OFF");
     window_button(pContext, KEY_DOWN, "Exit");
   }
@@ -30,13 +30,13 @@ void draw_screen(tContext *pContext)
   {
     icon = ICON_LARGE_NOBT;
     window_button(pContext, KEY_DOWN, "ON");
-    str = "Bluetooth OFF";
+    str = "Bluetooth is OFF";
   }
   else if (state == BT_W4PAIR)
   {
     icon = ICON_LARGE_WAIT1;
     state = BT_W4PAIR2;
-    str = "Wait Pairing";
+    str = "Please wait...";
     window_button(pContext, KEY_UP, "OFF");
   }
   else if (state == BT_W4PAIR2)
@@ -44,13 +44,13 @@ void draw_screen(tContext *pContext)
     icon = ICON_LARGE_WAIT2;
     state = BT_W4PAIR;
     offset = 15;
-    str = "Wait Pairing";
+    str = "Please wait...";
     window_button(pContext, KEY_UP, "OFF");
   }
   else if (state == BT_INITIALING)
   {
     icon = ICON_LARGE_NOBT;
-    str = "Turn ON Bluetooth";
+    str = "Initializing Bluetooth";
   }
   else
   {

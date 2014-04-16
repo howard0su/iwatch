@@ -175,17 +175,20 @@ void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void)){
 * @return none
 **************************************************************************/
 void hal_uart_dma_shutdown(void) {
+  printf("hal_uart_dma_shutdown");
+  
+
   UCA0IE &= ~(UCRXIE | UCTXIE);
   UCA0CTL1 = UCSWRST;                          //Reset State
-
+  
   BT_RXD_SEL &= ~BT_RXD_BIT;
-  BT_TXD_SEL &=  BT_TXD_BIT;
+  BT_TXD_SEL &= ~BT_TXD_BIT;
 
   BT_TXD_DIR |= BT_TXD_BIT;
   BT_RXD_DIR |= BT_RXD_BIT;
 
   BT_TXD_OUT &= ~BT_TXD_BIT;
-  BT_RXD_OUT &=  BT_RXD_BIT;
+  BT_RXD_OUT &= ~BT_RXD_BIT;
 }
 
 int dma_channel_1()

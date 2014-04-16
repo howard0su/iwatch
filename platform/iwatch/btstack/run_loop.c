@@ -110,7 +110,13 @@ PROCESS_THREAD(bluetooth_process, ev, data)
 
   while(1)
   {
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    PROCESS_WAIT_EVENT();
+
+    if (ev == PROCESS_EVENT_EXIT)
+      break;
+
+    if (ev != PROCESS_EVENT_POLL)
+      continue;
 
     // process data sources
     data_source_t *next;
@@ -120,6 +126,9 @@ PROCESS_THREAD(bluetooth_process, ev, data)
       ds->process(ds);
     }
   }
+
+  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
+  printf("bluetooth process exit\n");
 
   PROCESS_END();
 }

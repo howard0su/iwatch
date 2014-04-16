@@ -275,7 +275,7 @@ void SimluateRun(CuTest* tc)
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
-  window_init();  
+  window_init(0xff);  
 
   autostart_start(autostart_processes);
 
@@ -806,7 +806,7 @@ CuSuite* WindowGetSuite(void)
  
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);
-  window_init();
+  window_init(0);
   status_process(EVENT_WINDOW_CREATED, 0, NULL);
 
   SUITE_ADD_TEST(suite, TestScriptEngine);

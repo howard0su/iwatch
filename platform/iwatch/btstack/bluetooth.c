@@ -102,6 +102,23 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       // close bluetooth information page
       break;
     }
+  case BTSTACK_EVENT_STATE:
+    {
+      if (packet[2] == HCI_STATE_OFF)
+      {
+        // close the connection
+        process_exit(&bluetooth_process);
+        
+        // disable power
+        OECLKOUT |= OECLKBIT;
+        OEHCIOUT |= OEHCIBIT;
+        BTPOWEROUT &= ~BTPOWERBIT;
+
+        // notify UI that we are shutdown
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
+        break;
+      }
+    }
   }
 }
 
@@ -225,26 +242,11 @@ void bluetooth_init()
 
 void bluetooth_shutdown()
 {  
-  process_exit(&bluetooth_process);
+//  codec_shutdown();
+
+//  
   
   hci_power_control(HCI_POWER_OFF);
-
-  codec_shutdown();
-
-  BT_SHUTDOWN_OUT &= ~BT_SHUTDOWN_BIT;  // = 1 - Active low
-
-  // disable power
-  OECLKDIR |= OECLKBIT;
-  OECLKOUT |= OECLKBIT;
-
-  OEHCIDIR |= OEHCIBIT;
-  OEHCIOUT |= OEHCIBIT;
-
-  BTPOWERDIR |= BTPOWERBIT;
-  BTPOWEROUT |= BTPOWERBIT;
-
-  // notify UI that we are shutdown
-  process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
 
   running = 0;
 }

@@ -92,8 +92,8 @@ void button_init() {}
 void backlight_init() {}
 void rtimer_arch_init(void) {}
 void rtimer_arch_schedule(rtimer_clock_t t){}
-uint8_t battery_level(BATTERY_STATE state) {return 71;}
-BATTERY_STATE battery_state() {return BATTERY_CHARGING;}
+uint8_t battery_level(BATTERY_STATE state) {return 7;}
+BATTERY_STATE battery_state() {return BATTERY_STATE_CHARGING;}
 void backlight_on(uint8_t level, clock_time_t length) {}
 void mpu6050_init() {}
 
@@ -163,10 +163,10 @@ int mpu6050_selftest()
   return 0;
 }
 
- void system_getserial(uint8_t *buf)
+ uint8_t * system_getserial()
  {
-  char fake[6] = {43,44,45,86,97,0xff};
-  memcpy(buf, fake, 6);
+  static char fake[6] = {43,44,45,86,97,0xff};
+  return fake;
  }
 
 

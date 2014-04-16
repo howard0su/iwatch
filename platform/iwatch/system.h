@@ -13,6 +13,7 @@ void system_shutdown(int shipping);
 uint8_t system_locked();
 void system_resetfactory();
 void system_unlock();
+const uint8_t *system_getserial();
 
 extern struct pesistent_data
 {
