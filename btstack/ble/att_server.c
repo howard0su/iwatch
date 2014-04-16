@@ -637,10 +637,10 @@ static void att_clear_request()
 
 static void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint16_t length)
 {
+    uint16_t lasthandle;
     switch(buffer[0])
     {
         case ATT_READ_BY_GROUP_TYPE_RESPONSE:
-            uint16_t lasthandle;
             // check service
             lasthandle = report_gatt_services(att_connection, buffer, length);
 

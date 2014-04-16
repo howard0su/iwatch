@@ -21,7 +21,8 @@ ALL_INCLUDEDIRS = \
 	cpu/msp430 \
 	ant \
 	platform/iwatch \
-	platform/iwatch/btstack \
+	platform/common/btstack \
+  platform/iwatch/btstack \
 	btstack/src \
 	btstack/ble \
 	btstack/chipset-cc256x \
@@ -103,22 +104,12 @@ GRLIB_FONTS = \
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
-  ble_file_handler.c \
-  ble_handler.c \
-  ble_peripheral.c \
 	bluetooth.c \
 	codec.c \
 	hal.c \
 	hal_compat.c \
 	hal_uart_dma.c \
 	run_loop.c \
-	sdp_client.c \
-	spp.c \
-  stlv.c \
-  stlv_client.c \
-  stlv_handler.c \
-  stlv_server.c \
-  stlv_transport.c
 
 BTSTACK1 = \
 	ble/att.c \
@@ -146,7 +137,19 @@ BTSTACK1 = \
 	src/sdp_util.c \
 	src/utils.c
 
-BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1))
+BTSTACK3 = \
+  ble_file_handler.c \
+  ble_handler.c \
+  ble_peripheral.c \
+    sdp_client.c \
+    spp.c \
+  stlv.c \
+  stlv_client.c \
+  stlv_handler.c \
+  stlv_server.c \
+  stlv_transport.c
+
+BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1)) $(addprefix platform/common/btstack/, $(BTSTACK3))
 
 AMX0 = amx.c amxwindow.c amxstring.c amxcons.c
 AMX = $(addprefix pawnscript/, $(AMX0))

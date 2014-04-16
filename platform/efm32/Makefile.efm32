@@ -1,0 +1,191 @@
+####################################################################
+# Definitions #
+####################################################################
+
+DEVICE = EFM32GG395F1024
+PROJECTNAME = IWATCH_W002
+
+OBJ_DIR = objs
+EXE_DIR = exe
+LST_DIR = lst
+
+####################################################################
+# Definitions of toolchain. #
+# You might need to do changes to match your system setup #
+####################################################################
+TOOLDIR = /home/user/gcc-arm-none-eabi-4_7-2013q3
+
+
+CC      =  $(TOOLDIR)/bin/arm-none-eabi-gcc
+LD 	=  $(TOOLDIR)/bin/arm-none-eabi-ld
+AR 	=  $(TOOLDIR)/bin/arm-none-eabi-ar
+OBJCOPY =  $(TOOLDIR)/bin/arm-none-eabi-objcopy
+DUMP 	=  $(TOOLDIR)/bin/arm-none-eabi-objdump --disassemble
+
+#SIZE    = $(TOOLDIR)/bin/arm-none-eabi-size
+#NM	 = $(TOOLDIR)/bin/arm-none-eabi-nm
+#MAKETXT = tools/srec_cat
+ECHO	= echo
+
+TARGET_CPU = efm32gg395f1024
+
+####################################################################
+# Flags #
+####################################################################
+
+# -MMD : Don't generate dependencies on system header files.
+# -MP : Add phony targets, useful when a h-file is removed from a project.
+# -MF : Specify a file to write the dependencies to.
+DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
+# Add -Wa,-ahlms=$(LST_DIR)/$(@F:.o=.lst) to CFLAGS to produce assembly list files
+CFLAGS += -D$(DEVICE) -mcpu=cortex-m3 -mthumb -Wall $(DEPFLAGS)
+ASMFLAGS += -Ttext 0x0
+LDFLAGS += -Xlinker -Map=$(PROJECTNAME).map -mcpu=cortex-m3 -mthumb -T./platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/efm32g.ld
+LDFLAGS += -L"$(TOOLDIR)/arm-none-eabi/lib/thumb"
+LDFLAGS += -L"$(TOOLDIR)/lib/gcc/arm-none-eabi/4.7.4/thumb"
+#LDFLAGS += -L"$(TOOLDIR)/arm-none-eabi/lib/thumb2"
+#LDFLAGS += -L"$(TOOLDIR)/lib/gcc/arm-none-eabi/$(GCCVERSION)/thumb2"
+LIBS += -lc -lcs3 -lcs3unhosted
+
+#INCLUDEPATHS += \
+#INCLUDEPATHS += -I..
+INCLUDEPATHS += -I/platform/efm32
+INCLUDEPATHS += -I/platform/efm32/CMSIS/Include
+INCLUDEPATHS += -I/platform/efm32/Device/EnergyMicro/EFM32GG
+INCLUDEPATHS += -I/platform/efm32/emlib/inc
+INCLUDEPATHS += -I/platform/efm32/usb/inc
+INCLUDEPATHS += -I/core
+INCLUDEPATHS += -I/core/lib
+INCLUDEPATHS += -I/platform/iwatch/btstack
+INCLUDEPATHS += -I/btstack/src
+INCLUDEPATHS += -I/btstack/ble
+INCLUDEPATHS += -I/btstack/chipset-cc256x
+INCLUDEPATHS += -I/btstack/include
+
+#INCLUDEPATHS += -I/drivers
+
+####################################################################
+# Files #
+####################################################################
+CORE   = \
+    core/sys/autostart.c \
+    core/sys/ctimer.c \
+    core/sys/etimer.c \
+    core/sys/energest.c \
+    core/sys/process.c \
+    core/sys/rtimer.c \
+    core/sys/stimer.c \
+    core/sys/timer.c \
+    core/lib/assert.c \
+    core/lib/list.c
+
+PLATFORM = \
+#	platform/efm32/backlight.c \
+#	platform/efm32/battery.c \
+#	platform/efm32/button-sensor.c \
+	platform/efm32/clock.c \
+	platform/efm32/dvk.c \
+	platform/efm32/dvk_ebi.c \
+	platform/efm32/dvk_spi.c \
+#	platform/efm32/flash.c \
+#	platform/efm32/i2c.c \
+#	platform/efm32/isr.c \
+	platform/efm32/efm32.c \
+#	platform/efm32/rtc.c \
+	platform/efm32/rtimer-arch.c \
+#	platform/efm32/uart1-putchar.c \
+#	platform/efm32/uart1x.c \
+	platform/efm32/watchdog.c \
+#	platform/efm32/Template_Driver.c
+
+S_SRC = platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/startup_efm32.S
+
+SRCS = $(CORE) $(PLATFORM)
+#SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL)
+OBJS0 = $(SRCS:.c=.o)
+OBJS = $(addprefix objs/, $(OBJS0))
+DEPFILES = $(OBJS:.o=.d)    	
+
+####################################################################
+# Rules #
+####################################################################
+
+C_FILES = $(notdir $(SRCS) )
+S_FILES = $(notdir $(S_SRC) )
+#make list of source paths, sort also removes duplicates
+C_PATHS = $(sort $(dir $(SRCS) ) )
+S_PATHS = $(sort $(dir $(S_SRC) ) )
+
+C_OBJS = $(addprefix $(OBJ_DIR)/, $(C_FILES:.c=.o))
+S_OBJS = $(addprefix $(OBJ_DIR)/, $(S_FILES:.s=.o))
+C_DEPS = $(addprefix $(OBJ_DIR)/, $(C_FILES:.c=.d))
+
+vpath %.c $(C_PATHS)
+vpath %.s $(S_PATHS)
+
+# Default build is debug build
+all: debug
+#all: release
+
+debug: CFLAGS += -DDEBUG -g3 -O0
+debug: $(OBJ_DIR) $(LST_DIR) $(EXE_DIR) $(EXE_DIR)/$(PROJECTNAME).bin
+
+release: CFLAGS += -DNDEBUG -O3
+release: $(OBJ_DIR) $(LST_DIR) $(EXE_DIR) $(EXE_DIR)/$(PROJECTNAME).bin
+
+# Create directories
+$(OBJ_DIR):
+	@$(ECHO) "Compiling $<"
+#mkdir $(OBJ_DIR)
+@test -d $(OBJ_DIR) || mkdir -pm 775 $(OBJ_DIR)
+@test -d $(@D) || mkdir -pm 775 $(@D)
+@-$(RM) $@
+@echo "Created build directory."
+
+$(EXE_DIR):
+#mkdir $(EXE_DIR)
+@test -d $(EXE_DIR) || mkdir -pm 775 $(EXE_DIR)
+@test -d $(@D) || mkdir -pm 775 $(@D)
+@-$(RM) $@
+@echo "Created executable directory."
+
+$(LST_DIR):
+#mkdir $(LST_DIR)
+@test -d $(LST_DIR) || mkdir -pm 775 $(LST_DIR)
+@test -d $(@D) || mkdir -pm 775 $(@D)
+@-$(RM) $@
+@echo "Created list directory."
+
+# Create objects from C SRC files
+$(OBJ_DIR)/%.o: %.c
+@echo "Building file: $<"
+$(CC) $(CFLAGS) $(INCLUDEPATHS) -c -o $@ $<
+
+# Assemble .s files
+$(OBJ_DIR)/%.o: %.s
+@echo "Assembling $<"
+$(CC) $(ASMFLAGS) $(INCLUDEPATHS) -c -o $@ $<
+
+# Link
+$(EXE_DIR)/$(PROJECTNAME).out: $(C_OBJS) $(S_OBJS)
+@echo "Linking target: $@"
+$(CC) $(LDFLAGS) $(C_OBJS) $(S_OBJS) $(LIBS) -o $(EXE_DIR)/$(PROJECTNAME).out
+
+# Create binary file
+$(EXE_DIR)/$(PROJECTNAME).bin: $(EXE_DIR)/$(PROJECTNAME).out
+@echo "Creating binary file"
+$(OBJCOPY) -O binary $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).bin
+# Uncomment next line to produce assembly listing of entire program
+# $(DUMP) $(EXE_DIR)/$(PROJECTNAME).out>$(EXE_DIR)/$(PROJECTNAME).lst
+
+clean:
+$(RM) $(OBJ_DIR) $(LST_DIR) $(EXE_DIR)
+
+# include auto-generated dependency files (explicit rules)
+ifneq (clean,$(findstring clean, $(MAKECMDGOALS)))
+-include $(C_DEPS)
+endif
+
+
+
+
