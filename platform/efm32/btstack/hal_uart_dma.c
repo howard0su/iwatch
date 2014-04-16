@@ -1,0 +1,485 @@
+/****************************************************************
+*  Description: Implementation for UART for BTSTack
+*    History:
+*      Jun Su          2013/1/2        Created
+*      Jun Su          2013/1/16       Move ISR to central place
+*
+* Copyright (c) Jun Su, 2013
+*
+* This unpublished material is proprietary to Jun Su.
+* All rights reserved. The methods and
+* techniques described herein are considered trade secrets
+* and/or confidential. Reproduction or distribution, in whole
+* or in part, is forbidden except by express written permission.
+****************************************************************/
+
+#include <stdint.h>
+#include "contiki.h"
+#include "config.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "contiki-conf.h"
+//#include "isr_compat.h"
+#include "sys/clock.h"
+#include "sys/rtimer.h"
+#include "bluetooth.h"
+
+#include "hal_compat.h"
+#include <btstack/hal_uart_dma.h>
+
+//#include "power.h"
+static USART_TypeDef           * uart   = UART1;
+// rx state
+static uint16_t  bytes_to_read = 0;
+static uint8_t * rx_buffer_ptr = 0;
+static uint8_t   triggered;
+
+static uint8_t   rx_temp_buffer;
+static uint8_t   rx_temp_size = 0;
+
+// handlers
+static void (*rx_done_handler)(void) = NULL;
+static void (*tx_done_handler)(void) = NULL;
+static void (*cts_irq_handler)(void) = NULL;
+
+/**
+* @brief  Initializes the serial communications peripheral and GPIO ports
+*         to communicate with the PAN BT .. assuming 16 Mhz CPU
+*
+* @param  none
+*
+* @return none
+*/
+/*
+#define BT_CLK_PORT	gpioPortA
+#define BT_CLK_PIN	1
+#define BT_SHUTD_PORT	gpioPortA
+#define BT_SHUTD_PIN	3
+#define BT_RX_PORT	gpioPortB
+#define BT_RX_PIN	9
+#define BT_TX_PORT	gpioPortB
+#define BT_TX_PIN	10
+#define BT_RTS_PORT	gpioPortB
+#define BT_RTS_PIN	11
+#define BT_CTS_PORT	gpioPortB
+#define BT_CTS_PIN	12
+*/
+/* Setup UART1 in async mode for RS232*/
+//static USART_TypeDef           * uart   = UART1;
+static USART_InitAsync_TypeDef uartInit = USART_INITASYNC_DEFAULT;
+
+int UART_TxTransferComplete()
+{
+  	if (tx_done_handler)
+    		(*tx_done_handler)();
+
+  	if (triggered)
+  	{
+    		triggered = 0;
+    		return 1;
+  	}
+  	else
+    		return 0;
+}
+
+void UART_DMA_CHN_Setup(void)
+{
+	DMA_Init_TypeDef         dmaInit;
+//	DMA_CfgChannel_TypeDef   rxChnlCfg;
+	DMA_CfgChannel_TypeDef   txChnlCfg;
+//	DMA_CfgDescr_TypeDef     rxDescrCfg;
+	DMA_CfgDescr_TypeDef     txDescrCfg;
+	
+	/*** Setting up RX DMA ***/
+	
+	/* Setting up call-back function */  
+#if 0	
+	cb[DMA_CHN_UART_RX].cbFunc  = rxDmaComplete;
+	cb[DMA_CHN_UART_RX].userPtr = NULL;
+
+  	/* Setting up channel */
+  	rxChnlCfg.highPri   = false;
+  	rxChnlCfg.enableInt = true;
+  	rxChnlCfg.select    = DMAREQ_UART1_RXDATAV;
+  	rxChnlCfg.cb        = &(cb[DMA_CHN_UART_RX]);
+  	DMA_CfgChannel(DMA_CHANNEL_RX, &rxChnlCfg);
+
+  	/* Setting up channel descriptor */
+  	rxDescrCfg.dstInc  = dmaDataInc1;
+  	rxDescrCfg.srcInc  = dmaDataIncNone;
+  	rxDescrCfg.size    = dmaDataSize1;
+  	rxDescrCfg.arbRate = dmaArbitrate1;
+  	rxDescrCfg.hprot   = 0;
+  	DMA_CfgDescr(DMA_CHN_UART_RX, true, &rxDescrCfg);
+  	DMA_CfgDescr(DMA_CHN_UART_RX, false, &rxDescrCfg);
+#endif   
+  	/*** Setting up TX DMA ***/
+  
+	/* No callback needed for TX */
+	cb[DMA_CHN_UART_TX].cbFunc  = UART_TxTransferComplete;
+	cb[DMA_CHN_UART_TX].userPtr = NULL;
+	
+	/* Setting up channel */
+	txChnlCfg.highPri   = false;
+	txChnlCfg.enableInt = false;
+	txChnlCfg.select    = DMAREQ_UART1_TXBL;
+	txChnlCfg.cb        = &(cb[DMA_CHN_UART_TX]);
+	DMA_CfgChannel(DMA_CHN_UART_TX, &txChnlCfg);
+	
+	/* Setting up channel descriptor */
+	txDescrCfg.dstInc  = dmaDataIncNone;
+	txDescrCfg.srcInc  = dmaDataInc1;
+	txDescrCfg.size    = dmaDataSize1;
+	txDescrCfg.arbRate = dmaArbitrate1;
+	txDescrCfg.hprot   = 0;
+	DMA_CfgDescr(DMA_CHN_UART_TX, true, &txDescrCfg);
+}
+
+void hal_uart_dma_init(void)
+{
+	USART_InitAsync_TypeDef UART_init = USART_INITASYNC_DEFAULT;
+	//1. Config PB11 be BT_HCI_RTS input and interrupt enable. While BT cc2564 is ready to receive data from host, BT_HCI_RTS would be low
+  	/* Configure button GPIO as input and configure output as high */
+  	GPIO_PinModeSet(BT_RTS_PORT, BT_RTS_PIN, gpioModeInput, 1);
+  	/* Set falling edge interrupt for both ports */
+	GPIO_IntConfig(BT_RTS_PORT, BT_RTS_PIN, false, true, true);
+  	
+  	//2. Config PB12 be BT_HCI_CTS output. While host is ready to receive data from cc2564, it should be set low.
+  	/* Configure button GPIO as input and configure output as high */
+  	GPIO_PinModeSet(BT_CTS_PORT, BT_CTS_PIN, gpioModePushPull, 1);
+	
+	//3. Config PA1 be CMU_CLK1 output. it will output 32.768 KHZ clock
+	/* Pin PA1 is configured to Push-pull */
+	GPIO_PinModeSet(BT_CLK_PORT, BT_CLK_PIN, gpioModePushPull, 1);  	
+  	/* Enable signal CLKOUT1 */
+  	CMU->ROUTE |= CMU_ROUTE_CLKOUT1PEN;
+  	
+  	//4. Config PB9 and PB10 be UART1. UART1_TX be PB9, UART1_RX be PB10
+  	/* Pin PB9 is configured to Push-pull(U1_TX(BT_HCI_RX) ) */
+  	/* To avoid false start, configure output U1_TX(BT_HCI_RX) as high on PB9 */  	
+  	GPIO_PinModeSet(BT_RX_PORT, BT_RX_PIN, gpioModePushPull, 1);  	
+  	/* Pin PB10 is configured to Input enabled */
+  	GPIO_PinModeSet(BT_TX_PORT, BT_TX_PIN, gpioModeInput, 0);  	
+  	
+  	//UART TX use DMA and RX use interrupt
+  	hal_uart_dma_set_baud(115200);
+  	USART_InitAsync(USART1, &UART_init);
+  	
+  	/* Prepare UART Rx and Tx interrupts */
+  	USART_IntClear(uart, _UART_IF_MASK);  	  	
+  	NVIC_ClearPendingIRQ(UART1_RX_IRQn);
+  	NVIC_EnableIRQ(UART1_RX_IRQn);
+  	USART_IntEnable(uart, UART_IF_RXDATAV);
+//  	NVIC_ClearPendingIRQ(UART1_TX_IRQn);
+  	
+//  	NVIC_EnableIRQ(UART1_TX_IRQn);  	
+  
+  	/* Enable clock for UART1 */
+  	CMU_ClockEnable(cmuClock_UART1, true);
+  	
+  	/* Enable I/O pins at UART1 location #2 */
+  	uart->ROUTE = UART_ROUTE_RXPEN | UART_ROUTE_TXPEN | UART_ROUTE_LOCATION_LOC2;
+  	
+  	/* Enable UART */
+  	USART_Enable(uart, usartEnable);
+  	
+	UART_DMA_CHN_Setup();
+}
+
+/**
+
+UART used in low-frequency mode
+In this mode, the maximum USCI baud rate is one-third the UART source clock frequency BRCLK.
+
+16000000 /  576000 = 277.77
+16000000 /  115200 = 138.88
+16000000 /  921600 =  17.36
+16000000 / 1000000 =  16.00
+16000000 / 2000000 =   8.00
+16000000 / 2400000 =   6.66
+16000000 / 3000000 =   3.33
+16000000 / 4000000 =   2.00
+
+*/
+int hal_uart_dma_set_baud(uint32_t baud)
+{
+  	int result = 0;
+	USART_Reset(uart);
+  
+  	uartInit.enable       = usartDisable;   /* Don't enable UART upon intialization */
+  	uartInit.refFreq      = 0;              /* Provide information on reference frequency. When set to 0, the reference frequency is */
+  	uartInit.baudrate     = baud;         /* Baud rate */
+  	uartInit.oversampling = usartOVS16;     /* Oversampling. Range is 4x, 6x, 8x or 16x */
+  	uartInit.databits     = usartDatabits8; /* Number of data bits. Range is 4 to 10 */
+  	uartInit.parity       = usartNoParity;  /* Parity mode */
+  	uartInit.stopbits     = usartStopbits1; /* Number of stop bits. Range is 0 to 2 */
+  	uartInit.mvdis        = false;          /* Disable majority voting */
+  	uartInit.prsRxEnable  = false;          /* Enable USART Rx via Peripheral Reflex System */
+  	uartInit.prsRxCh      = usartPrsRxCh0;  /* Select PRS channel if enabled */  	
+    	
+    	/* Initialize USART with uartInit struct */  	
+  	USART_InitAsync(uart, &uartInit);  
+
+  	return result;
+}
+
+void hal_uart_dma_set_block_received( void (*the_block_handler)(void))
+{
+  	rx_done_handler = the_block_handler;
+}
+
+void hal_uart_dma_set_block_sent( void (*the_block_handler)(void))
+{	
+  	tx_done_handler = the_block_handler;
+}
+
+void hal_uart_dma_set_csr_irq_handler( void (*the_irq_handler)(void))
+{
+  	if (the_irq_handler)
+  	{
+  		//Clear BT_RTS interrupt flag and enabel BT_RTS interrupt
+  		GPIO_IntClear(1<<BT_RTS_PIN);	
+  		GPIO_IntEnable(1<<BT_RTS_PIN);  		
+//    		BT_CTS_IFG  &=  ~BT_CTS_BIT;     // no IRQ pending
+//	    	BT_CTS_IE  |=  BT_CTS_BIT;  // enable IRQ for P1.3
+  	}
+  	else	
+  	{
+  		GPIO_IntDisable(1<<BT_RTS_PIN);
+  		//disable BT_RTS interrupt
+//    		BT_CTS_IE &= ~BT_CTS_BIT;
+  	}
+
+  	cts_irq_handler = the_irq_handler;
+}
+
+/**********************************************************************/
+/**
+* @brief  Disables the serial communications peripheral and clears the GPIO
+*         settings used to communicate with the BT.
+*
+* @param  none
+*
+* @return none
+**************************************************************************/
+void hal_uart_dma_shutdown(void) 
+{
+	USART_Enable(uart, usartDisable);	//0 for disable UART_RX and UART_TX	
+/*
+  	UCA0IE &= ~(UCRXIE | UCTXIE);
+  	UCA0CTL1 = UCSWRST;                          //Reset State
+
+  	BT_RXD_SEL &= ~BT_RXD_BIT;
+  	BT_TXD_SEL &=  BT_TXD_BIT;
+
+  	BT_TXD_DIR |= BT_TXD_BIT;
+  	BT_RXD_DIR |= BT_RXD_BIT;
+
+  	BT_TXD_OUT &= ~BT_TXD_BIT;
+  	BT_RXD_OUT &=  BT_RXD_BIT;
+*/  	
+}
+
+void hal_uart_dma_send_block(const uint8_t * data, uint16_t len)
+{
+  	//printf("hal_uart_dma_send_block, size %u\n\r", len);
+  	/* Wait until channel becomes available */
+  	while(DMA_ChannelEnabled(DMA_CHN_UART_TX));  	
+  	
+  	/* Activate DMA channel for TX */      
+  	DMA_ActivateBasic(DMA_CHN_UART_TX,
+                    	  true,
+                    	  false,
+                    	  (void *)&(UART1->TXDATA),
+                    	  data,
+                    	  len - 1);  	
+
+/*
+  	// UCA0 TXIFG trigger
+  	DMACTL0 |= DMA1TSEL_17;
+  	// Source block address
+  	DMA1SA = (void*)data;
+  	// Destination single address
+  	DMA1DA = (void*)&UCA0TXBUF;
+  	DMA1SZ = len;                                // Block size
+  	DMA1CTL &= ~DMAIFG;
+  	DMA1CTL = DMASRCINCR_3 + DMASBDB + DMALEVEL + DMAIE + DMAEN;  // Repeat, inc src
+*/  	
+}
+
+// int used to indicate a request for more new data
+void hal_uart_dma_receive_block(uint8_t *buffer, uint16_t len)
+{
+  	//printf("hal_uart_dma_receive_block, size %u temp_size: %u\n\r", len, rx_temp_size);
+	USART_IntDisable(uart, UART_IF_RXDATAV);
+//  	UCA0IE &= ~UCRXIE ;  // disable RX interrupts
+  	if (rx_temp_size)
+  	{
+    		*buffer = rx_temp_buffer;
+    		rx_temp_size = 0;
+    		buffer++;
+    		len--;
+  	}
+
+  	if (len == 0)
+  	{
+    		if (rx_done_handler)
+      			(*rx_done_handler)();
+		USART_IntEnable(uart, UART_IF_RXDATAV);
+    		//UCA0IE |= UCRXIE;    // enable RX interrupts
+  	}
+  	else
+  	{
+    		rx_buffer_ptr = buffer;
+    		bytes_to_read = len;
+    		USART_IntEnable(uart, UART_IF_RXDATAV);
+    		//UCA0IE |= UCRXIE;    // enable RX interrupts
+
+    		// enable send
+    		USART_Enable(uart, usartEnableTx);
+    		//BT_RTS_OUT &= ~BT_RTS_BIT;  // = 0 - RTS low -> ok
+  	}
+}
+
+void hal_uart_dma_set_sleep(uint8_t sleep)
+{
+  	if (sleep)
+  	{
+  		USART_Enable(uart, usartDisable);
+    		// wait for last byte sent out
+/*    		
+    		while(UCA0STAT & UCBUSY);
+    		UCA0IE &= ~(UCRXIE | UCTXIE);
+	    	UCA0CTL1 |= UCSWRST;                          //Reset State
+
+    		power_unpin(MODULE_BT);
+*/    		
+  	}
+  	else
+  	{
+  		USART_Enable(uart, usartDisable);
+/*
+    		UCA0IE |= UCRXIE | UCTXIE;
+    		UCA0CTL1 &= ~UCSWRST;                          //Reset State
+    		power_pin(MODULE_BT);
+*/    		
+  	}
+  
+  	triggered = 1;
+}
+
+void UART1_RX_IRQHandler(void)
+{
+	ENERGEST_ON(ENERGEST_TYPE_IRQ);
+	if (uart->STATUS & UART_STATUS_RXDATAV)
+	{
+    		if (bytes_to_read == 0) 
+    		{
+    			GPIO_PinOutSet(BT_CTS_PORT, BT_CTS_PIN);
+    			USART_IntDisable(uart, UART_IF_RXDATAV);
+//     			BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
+//     			UCA0IE &= ~UCRXIE;
+
+      			// put the data into buffer to avoid race condition
+      			rx_temp_buffer = USART_Rx(uart);
+//     			rx_temp_buffer = UCA0RXBUF;
+      			rx_temp_size = 1;
+      			return;
+    		}
+    		*rx_buffer_ptr = USART_Rx(uart);
+//    		*rx_buffer_ptr = UCA0RXBUF;
+    		++rx_buffer_ptr;
+    		--bytes_to_read;
+    		if (bytes_to_read > 0) 
+    		{
+    			ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+    			return;
+//      			break;
+    		}
+    		GPIO_PinOutSet(BT_CTS_PORT, BT_CTS_PIN);
+    		USART_IntDisable(uart, UART_IF_RXDATAV);
+    		//BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
+    		//UCA0IE &= ~UCRXIE;
+
+    		if (rx_done_handler)
+      			(*rx_done_handler)();
+    
+    		if (triggered)
+    		{
+      			triggered = 0;
+//     			LPM4_EXIT;
+    		}		
+    		/* Clear RXDATAV interrupt */
+    		USART_IntClear(UART1, UART_IF_RXDATAV);		
+	}		
+	ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+#if 0
+// block-wise "DMA" RX/TX UART driver
+ISR(USCI_A0, usbRxTxISR)
+{
+  	ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  	// find reason
+  	switch (__even_in_range(UCA0IV, 16))
+  	{
+  	case 2: // RXIFG
+    		if (bytes_to_read == 0) 
+    		{
+      			BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
+      			UCA0IE &= ~UCRXIE;
+
+      			// put the data into buffer to avoid race condition
+      			rx_temp_buffer = UCA0RXBUF;
+      			rx_temp_size = 1;
+      			return;
+    		}
+    		*rx_buffer_ptr = UCA0RXBUF;
+    		++rx_buffer_ptr;
+    		--bytes_to_read;
+    		if (bytes_to_read > 0) 
+    		{
+      			break;
+    		}
+    		BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
+    		UCA0IE &= ~UCRXIE;
+
+    		if (rx_done_handler)
+      			(*rx_done_handler)();
+    
+    		if (triggered)
+    		{
+      			triggered = 0;
+      			LPM4_EXIT;
+    		}
+    		break;
+
+  	default:
+    		break;
+  	}
+  	ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+#endif
+
+// CTS ISR
+int portB_pin11()
+{
+  	if (cts_irq_handler)
+    		(*cts_irq_handler)();
+
+  	if (triggered)
+  	{
+    		triggered = 0;
+    		return 1;
+  	}
+  	else  
+    		return 0;
+}
+
+void embedded_trigger(void)
+{
+  	process_poll(&bluetooth_process);
+  	triggered = 1;
+}
