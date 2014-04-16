@@ -94,7 +94,7 @@ static windowproc stack[MAX_STACK]; // assume 6 is enough
 static uint16_t statusflag = 0; // max 16
 static uint8_t stackptr = 0;
 
-void window_init()
+void window_init(uint8_t reason)
 {
   backlight_on(255, 5 * CLOCK_SECOND);
 
@@ -108,7 +108,19 @@ void window_init()
 
   GrContextForegroundSet(&context, ClrWhite);
   GrContextBackgroundSet(&context, ClrBlack);
-  GrImageDraw(&context, logoPixel, 8, 60);
+
+  if (reason == 0xff)
+  {
+    GrImageDraw(&context, logoPixel, 8, 40);
+
+    // draw the text
+    GrContextFontSet(&context, &g_sFontGothic18);
+    GrStringDrawWrap(&context, "Installation in progress,\nplease wait", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+  }
+  else
+  {
+      GrImageDraw(&context, logoPixel, 8, 60);
+  }
 
   GrFlush(&context);
   stackptr = 0;
