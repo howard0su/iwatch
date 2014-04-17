@@ -558,15 +558,6 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
   messagebox_message = message;
   messagebox_flags = flags;
 
-  if (flags & NOTIFY_ALARM)
-  {
-    motor_on(50, 0);
-  }
-  else
-  {
-    motor_on(50, CLOCK_SECOND/2);
-  }
-
   for (int i = 1; i <= stackptr; i++)
   {
     if (stack[i] == &messagebox_process)
@@ -576,5 +567,14 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
     }
   }
 
+  if (flags & NOTIFY_ALARM)
+  {
+    motor_on(50, 0);
+  }
+  else
+  {
+    motor_on(50, CLOCK_SECOND/2);
+  }
+  
   window_open(&messagebox_process, NULL);
 }
