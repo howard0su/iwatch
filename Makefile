@@ -31,6 +31,7 @@ ALL_INCLUDEDIRS = \
 	platform/iwatch \
 	btstack/include \
 	btstack/src \
+	platform/common/btstack \
 	platform/iwatch/btstack \
 	unittest \
 
@@ -125,13 +126,13 @@ BTSTACK=btstack/src/obex.c \
 	btstack/ble/central_device_db_memory.c \
 	btstack/src/hci_cmds.c \
 	btstack/ble/att.c \
-	platform/iwatch/btstack/ble_file_handler.c \
-	platform/iwatch/btstack/ble_handler.c \
-	platform/iwatch/btstack/stlv.c \
-	platform/iwatch/btstack/stlv_client.c \
-	platform/iwatch/btstack/stlv_server.c \
-	platform/iwatch/btstack/stlv_transport.c \
-	platform/iwatch/btstack/stlv_handler.c
+	platform/common/btstack/ble_file_handler.c \
+	platform/common/btstack/ble_handler.c \
+	platform/common/btstack/stlv.c \
+	platform/common/btstack/stlv_client.c \
+	platform/common/btstack/stlv_server.c \
+	platform/common/btstack/stlv_transport.c \
+	platform/common/btstack/stlv_handler.c
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
