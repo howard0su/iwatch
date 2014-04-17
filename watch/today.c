@@ -47,11 +47,11 @@ static void onDraw(tContext *pContext)
     sprintf(buf, "%d", ped_get_steps());
     drawItem(pContext, 0, ICON_STEPS, "Steps", buf);
 
-    uint16_t cals = ped_get_calorie();
+    uint16_t cals = ped_get_calorie() / 100 / 1000;
     sprintf(buf, "%d", cals);
     drawItem(pContext, 1, ICON_CALORIES, "Calories", buf);
 
-    sprintf(buf, "%dm", ped_get_distance());
+    sprintf(buf, "%dm", ped_get_distance() / 100);
     drawItem(pContext, 2, ICON_DISTANCE, "Distance", buf);
 
     sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);
