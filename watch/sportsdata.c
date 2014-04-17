@@ -415,13 +415,10 @@ char* get_data_file(uint32_t* filesize)
             printf("get_data_file():%s, %d\n", dirent.name, (uint16_t)dirent.size);
             found = 1;
             strcpy(filename, dirent.name);
+            *filesize = dirent.size;
 
             if (!is_active_data_file(dirent.name))
-            {
-                cfs_closedir(&dir);
-                *filesize = dirent.size;
-                return filename;
-            }
+                break;
         }
     }
 
