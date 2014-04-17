@@ -981,7 +981,7 @@ static int rfcomm_multiplexer_hci_event_handler(uint8_t *packet, uint16_t size){
             // testing DMA done code
             rfcomm_run();
 
-#if 0
+#if 1
     // pass this event to every channel
     linked_item_t * next;
     for (linked_item_t * it = (linked_item_t *) rfcomm_channels; it ; it = next){
