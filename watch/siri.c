@@ -7,6 +7,7 @@
 #include "backlight.h"
 #include "hfp.h"
 #include "bluetooth.h"
+#include "icons.h"
 #include <string.h>
 #include <stdio.h>
 #include "stlv_client.h"
