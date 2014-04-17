@@ -36,6 +36,7 @@ uint8_t build_data_line(
     uint8_t hh, uint8_t mm, 
     uint8_t meta[], uint32_t data[],
     uint8_t size);
+uint8_t is_active_data_file(char* filename);
 uint8_t set_mode(uint8_t mode);
 uint8_t get_mode();
 
