@@ -313,7 +313,7 @@ int hci_send_acl_packet(uint8_t *packet, int size){
     
     hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
 
-    if (con_handle < 1024)
+    if (con_handle <= 1024)
         if (!hci_number_free_acl_slots()) return BTSTACK_ACL_BUFFERS_FULL;
     else
         if (!hci_number_free_le_slots()) return BTSTACK_ACL_BUFFERS_FULL;
