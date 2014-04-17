@@ -49,6 +49,7 @@
 
 static uint8_t  s_file_mode        = FS_IDLE;
 static uint8_t  s_file_desc[20]    = {0};
+static char     s_file_name[20]    = "";
 
 static int      s_read_fd          = -1;
 static int      s_write_fd         = -1;
@@ -298,6 +299,7 @@ void ble_read_file_data(uint8_t* buffer, uint8_t buffer_size)
                 s_file_mode = FS_IDLE;
                 return;
             }
+            strcpy(s_file_name, filename);
         }
 
         int read_byte = cfs_read(s_read_fd, buffer, buffer_size);
@@ -311,6 +313,11 @@ void ble_read_file_data(uint8_t* buffer, uint8_t buffer_size)
 
             cfs_close(s_read_fd);
             s_read_fd = -1;
+
+            if (!is_active_data_file(s_file_name))
+            {
+                remove_data_file(s_file_name);
+            }
 
             FD_SET_COMMAND(s_file_desc, FD_END_OF_DATA);
             s_file_mode = FS_IDLE;

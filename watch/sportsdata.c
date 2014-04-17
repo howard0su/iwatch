@@ -218,6 +218,20 @@ static void write_file_head(int fd, uint8_t year, uint8_t month, uint8_t day)
 static int s_data_fd = -1;
 static const char* s_data_dir = "DATA";
 
+uint8_t is_active_data_file(char* filename)
+{
+    uint8_t fyear, fmonth, fday;
+    if (!check_file_name(filename, &fyear, &fmonth, &fday))
+    {
+        return 0;
+    }
+
+    uint16_t year;
+    uint8_t month, day, weekday;
+    rtc_readdate(&year, &month, &day, &weekday);
+    return (year % 100) == fyear && month == fmonth && day == fday;
+}
+
 int create_data_file(uint8_t year, uint8_t month, uint8_t day)
 {
     char filename[32] = "";
