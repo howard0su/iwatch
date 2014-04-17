@@ -5,6 +5,7 @@
 #include "Template_Driver.h"
 #include "icons.h"
 #include <stdio.h>
+#include "system.h"
 
 static void OnDraw(tContext *pContext)
 {
@@ -60,7 +61,7 @@ static void OnDraw(tContext *pContext)
   if (bluetooth_running())
   {
     char buf[20];
-    const char* btaddr = bluetooth_address();
+    const char* btaddr = system_getserial();
     sprintf(buf, "Meteor %02X%02X", btaddr[4], btaddr[5]);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 153, 0);
   }
