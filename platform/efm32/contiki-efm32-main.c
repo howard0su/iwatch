@@ -142,9 +142,9 @@ main(int argc, char **argv)
 	backlight_init();
 	
 	testLCD();
-#ifdef NOTYET	
-	window_init();
-#endif	
+	
+	window_init(0);
+
 #ifdef NOTYET
 	battery_init();
 #endif

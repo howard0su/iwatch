@@ -137,8 +137,8 @@ void WriteFirmware(void* data, uint32_t offset, int size)
 
 void EraseFirmware()
 {
-  long size = 32UL * 1024;
-  for(long i = 0; i < 256UL *1024/SPI_FLASH_PageSize; i+=size)
+  long size = 64UL * 1024;
+  for(long i = 0; i < 256UL *1024; i += size)
   {
     SPI_FLASH_SectorErase(i + FIRMWARE_BASE, size);
   }
