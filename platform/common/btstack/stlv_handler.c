@@ -292,6 +292,11 @@ static void send_file_callback(int para)
     {
         end_send_file(_f_reader.send_fd);
         cfs_close(_f_reader.read_fd);
+
+        if (!is_active_data_file(_f_reader.file_name))
+        {
+            remove_data_file(_f_reader.file_name);
+        }
         return;
     }
 

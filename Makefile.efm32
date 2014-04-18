@@ -305,16 +305,16 @@ $(OBJDIR)/%.o: %.s
 	$(CC) $(ASMFLAGS) $(ALL_INCLUDEDIRS:%=-I%) -c -o $@ $<
 	
 # Link
-$(OBJDIR)/$(PROJECTNAME).out: $(OBJS)
+$(OBJDIR)/$(PROJECTNAME).elf: $(OBJS)
 	@echo "Linking target: $@"
 	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 
 # Create binary file
-$(OBJDIR)/$(PROJECTNAME).bin: $(OBJDIR)/$(PROJECTNAME).out
+$(OBJDIR)/$(PROJECTNAME).bin: $(OBJDIR)/$(PROJECTNAME).elf
 	@echo "Creating binary file"
 	$(OBJCOPY) -O binary $< $@
 # Uncomment next line to produce assembly listing of entire program
-# $(DUMP) $(EXE_DIR)/$(PROJECTNAME).out>$(PROJECTNAME).lst
+# $(DUMP) $(EXE_DIR)/$(PROJECTNAME).elf>$(PROJECTNAME).lst
 
 
 

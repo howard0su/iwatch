@@ -304,8 +304,8 @@ unsigned short ped_get_version(void);
 
 #include <stdint.h>
 uint16_t ped_get_steps();
-uint16_t ped_get_calorie();
+uint32_t ped_get_calorie();
 uint16_t ped_get_time();
-uint16_t ped_get_distance();
+uint32_t ped_get_distance();
 
 #endif

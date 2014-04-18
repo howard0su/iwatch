@@ -13,7 +13,7 @@ uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam)
       return 0;
 
     case EVENT_NOTIFY_RESULT:
-      if ((uint8_t)rparam == 1)
+      if (lparam == 1)
       {
       	system_resetfactory();
       }

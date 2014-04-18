@@ -218,6 +218,20 @@ static void write_file_head(int fd, uint8_t year, uint8_t month, uint8_t day)
 static int s_data_fd = -1;
 static const char* s_data_dir = "DATA";
 
+uint8_t is_active_data_file(char* filename)
+{
+    uint8_t fyear, fmonth, fday;
+    if (!check_file_name(filename, &fyear, &fmonth, &fday))
+    {
+        return 0;
+    }
+
+    uint16_t year;
+    uint8_t month, day, weekday;
+    rtc_readdate(&year, &month, &day, &weekday);
+    return (year % 100) == fyear && month == fmonth && day == fday;
+}
+
 int create_data_file(uint8_t year, uint8_t month, uint8_t day)
 {
     char filename[32] = "";
@@ -386,25 +400,38 @@ char* get_data_file(uint32_t* filesize)
         return 0;
     }
 
+    static char filename[20] = "";
+    uint8_t found = 0;
     while (ret != -1)
     {
-        static struct cfs_dirent dirent;
+        struct cfs_dirent dirent;
         ret = cfs_readdir(&dir, &dirent);
         if (ret != -1)
         {
             uint8_t year, month, day;
-            if (check_file_name(dirent.name, &year, &month, &day))
-            {
-                printf("get_data_file():%s, %d\n", dirent.name, (uint16_t)dirent.size);
-                cfs_closedir(&dir);
-                *filesize = dirent.size;
-                return dirent.name;
-            }
+            if (!check_file_name(dirent.name, &year, &month, &day))
+                continue;
+
+            printf("get_data_file():%s, %d\n", dirent.name, (uint16_t)dirent.size);
+            found = 1;
+            strcpy(filename, dirent.name);
+            *filesize = dirent.size;
+
+            if (!is_active_data_file(dirent.name))
+                break;
         }
     }
 
     cfs_closedir(&dir);
-    return 0;
+
+    if (found)
+    {
+        return filename;
+    }
+    else
+    {
+        return 0;
+    }
 
 }
 
