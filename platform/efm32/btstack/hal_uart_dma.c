@@ -44,6 +44,8 @@ static void (*rx_done_handler)(void) = NULL;
 static void (*tx_done_handler)(void) = NULL;
 static void (*cts_irq_handler)(void) = NULL;
 
+/* DMA callback structure */
+DMA_CB_TypeDef uart_dmaCallback;
 /**
 * @brief  Initializes the serial communications peripheral and GPIO ports
 *         to communicate with the PAN BT .. assuming 16 Mhz CPU
@@ -87,9 +89,7 @@ int UART_TxTransferComplete()
 void UART_DMA_CHN_Setup(void)
 {
 	DMA_Init_TypeDef         dmaInit;
-//	DMA_CfgChannel_TypeDef   rxChnlCfg;
 	DMA_CfgChannel_TypeDef   txChnlCfg;
-//	DMA_CfgDescr_TypeDef     rxDescrCfg;
 	DMA_CfgDescr_TypeDef     txDescrCfg;
 	
 	/*** Setting up RX DMA ***/
@@ -118,14 +118,14 @@ void UART_DMA_CHN_Setup(void)
   	/*** Setting up TX DMA ***/
   
 	/* No callback needed for TX */
-	cb[DMA_CHN_UART_TX].cbFunc  = UART_TxTransferComplete;
-	cb[DMA_CHN_UART_TX].userPtr = NULL;
+	uart_dmaCallback.cbFunc  = UART_TxTransferComplete;
+	uart_dmaCallback.userPtr = NULL;
 	
 	/* Setting up channel */
 	txChnlCfg.highPri   = false;
 	txChnlCfg.enableInt = false;
 	txChnlCfg.select    = DMAREQ_UART1_TXBL;
-	txChnlCfg.cb        = &(cb[DMA_CHN_UART_TX]);
+	txChnlCfg.cb        = &uart_dmaCallback;
 	DMA_CfgChannel(DMA_CHN_UART_TX, &txChnlCfg);
 	
 	/* Setting up channel descriptor */
@@ -139,6 +139,7 @@ void UART_DMA_CHN_Setup(void)
 
 void hal_uart_dma_init(void)
 {
+	printf("UART init...\n");
 	USART_InitAsync_TypeDef UART_init = USART_INITASYNC_DEFAULT;
 	//1. Config PB11 be BT_HCI_RTS input and interrupt enable. While BT cc2564 is ready to receive data from host, BT_HCI_RTS would be low
   	/* Configure button GPIO as input and configure output as high */
@@ -186,6 +187,7 @@ void hal_uart_dma_init(void)
   	USART_Enable(uart, usartEnable);
   	
 	UART_DMA_CHN_Setup();
+	printf("UART init done\n");
 }
 
 /**
