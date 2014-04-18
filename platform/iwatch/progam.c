@@ -103,7 +103,7 @@ void Upgrade(void)
   unsigned char *flash_end_ptr;
   unsigned char *RAM_start_ptr;
 
-  if (CheckUpgrade())
+  if (CheckUpgrade() != 0xff)
     return;
 
   //Initialize flash and ram start and end address
