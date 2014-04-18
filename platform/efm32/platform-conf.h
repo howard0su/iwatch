@@ -116,28 +116,13 @@ typedef struct
 #define DMA_CHN_SFLASH_TX	3
 #define DMA_CHN_SFLASH_RX	4
 #endif
-/* DMA callback structure */
-DMA_CB_TypeDef cb[DMA_CHAN_COUNT];
+
 
 void DMAInit(void);
-//unsigned char ucSPIRxBuffer[SPITXSAMPLES];
-
-#pragma data_alignment=256
-DMA_DESCRIPTOR_TypeDef dmaControlBlock[DMA_CHAN_COUNT * 2];
-
-
-/* CPU target speed in Hz */
-//#define F_CPU 8000000uL // 12MHz by default
-
-/* Our clock resolution, this is the same as Unix HZ. */
-//#define CLOCK_CONF_SECOND 1000
-
-//#define BAUD2UBR(baud) ((F_CPU/baud))
 
 //Definitions for UART ==================================================
 /* Setup UART1 in async mode for RS232*/
-//
-//static USART_InitAsync_TypeDef uartInit = USART_INITASYNC_DEFAULT;
+
 
 #define NO_RX                    0
 #define NO_TX                    NO_RX

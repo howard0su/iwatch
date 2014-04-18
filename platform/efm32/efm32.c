@@ -58,6 +58,26 @@
 /* DMA init structure */
 DMA_Init_TypeDef dmaInit;
 
+#define DMACTRL_CH_CNT      2
+#define DMACTRL_ALIGNMENT   256
+
+/** DMA control block array, requires proper alignment. */
+#if defined (__ICCARM__)
+#pragma data_alignment=DMACTRL_ALIGNMENT
+DMA_DESCRIPTOR_TypeDef dmaControlBlock[DMACTRL_CH_CNT * 2];
+
+#elif defined (__CC_ARM)
+DMA_DESCRIPTOR_TypeDef dmaControlBlock[DMACTRL_CH_CNT * 2] __attribute__ ((aligned(DMACTRL_ALIGNMENT)));
+
+#elif defined (__GNUC__)
+DMA_DESCRIPTOR_TypeDef dmaControlBlock[DMACTRL_CH_CNT * 2] __attribute__ ((aligned(DMACTRL_ALIGNMENT)));
+
+#else
+#error Undefined toolkit, need to define alignment
+#endif
+
+
+
 extern void setup_SPI_DMA(void);
 #define ITM_Port32(n) (*((volatile unsigned int *)(0xE0000000+4*n)))
 

@@ -174,17 +174,18 @@ main(int argc, char **argv)
 #ifdef NOTYET
 	CFSFontWrapperLoad();
 #endif	
+#ifdef NOTYET
 	system_init(); // check system status and do factor reset if needed
-
+#endif
 	I2C_Init_();	
 	mpu3050Init();
-
-	//codec_init();	
-	//ant_init();
-
-#ifdef NOTYET
-	bluetooth_init();
+#ifdef UNUSED
+	codec_init();	
+	ant_init();
 #endif
+	printf("Start bluetooth\n");
+	bluetooth_init();
+	printf("Bluetooth Started\n");
 	motor_on(6, CLOCK_SECOND );	
 #ifdef NOTYET	
 	if (!system_retail())
