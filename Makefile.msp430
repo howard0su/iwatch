@@ -104,7 +104,6 @@ GRLIB_FONTS = \
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
-	bluetooth.c \
 	codec.c \
 	hal.c \
 	hal_compat.c \
@@ -138,11 +137,12 @@ BTSTACK1 = \
 	src/utils.c
 
 BTSTACK3 = \
+  bluetooth.c \
   ble_file_handler.c \
   ble_handler.c \
   ble_peripheral.c \
-    sdp_client.c \
-    spp.c \
+  sdp_client.c \
+  spp.c \
   stlv.c \
   stlv_client.c \
   stlv_handler.c \

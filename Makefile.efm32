@@ -47,7 +47,7 @@ LDFLAGS += -L"$(TOOLDIR)/lib/gcc/arm-none-eabi/4.7.4/thumb"
 
 LIBS += -lc -lgcc -lm -lrdimon
 #LIBS += -lc -lcs3 -lcs3unhosted
-ALL_DEFINES = AUTOSTART_ENABLE=1 $(TARGET_CPU) FWVERSION=$(FWVERSION)
+ALL_DEFINES = AUTOSTART_ENABLE=1 $(TARGET_CPU) FWVERSION=$(FWVERSION) PRODUCT_W002
 
 #INCLUDEPATHS += \
 #INCLUDEPATHS += -I..
@@ -145,7 +145,6 @@ GRLIB_FONTS = \
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
-    bluetooth.c \
     hal.c \
     hal_compat.c \
     hal_uart_dma.c \
@@ -179,11 +178,12 @@ BTSTACK1 = \
     src/utils.c
 
 BTSTACK3 = \
+  bluetooth.c \
   ble_file_handler.c \
   ble_handler.c \
   ble_peripheral.c \
-    sdp_client.c \
-    spp.c \
+  sdp_client.c \
+  spp.c \
   stlv.c \
   stlv_client.c \
   stlv_handler.c \

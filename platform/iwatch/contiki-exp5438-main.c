@@ -47,7 +47,7 @@
 #include "power.h"
 #include "battery.h"
 #include "spiflash.h"
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 #include "backlight.h"
 #include "window.h"
 #include "system.h"

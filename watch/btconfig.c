@@ -4,7 +4,7 @@
 #include "grlib/grlib.h"
 #include "Template_Driver.h"
 
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 
 static enum {BT_ON, BT_OFF, BT_INITIALING, BT_W4PAIR, BT_W4PAIR2} state;
 PROCESS_NAME(bluetooth_process);

@@ -140,5 +140,10 @@ PROCESS_THREAD(bluetooth_process, ev, data)
   BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
   printf("bluetooth process exit\n");
 
+  // disable power
+  OECLKOUT |= OECLKBIT;
+  OEHCIOUT |= OEHCIBIT;
+  BTPOWEROUT &= ~BTPOWERBIT;
+
   PROCESS_END();
 }

@@ -263,7 +263,7 @@ static void TestRecvFile(CuTest* tc)
 static void TestListFiles(CuTest* tc)
 {
     UNUSED_VAR(tc);
-    handle_list_file();
+    handle_list_file("");
     trySendOut();
 }
 

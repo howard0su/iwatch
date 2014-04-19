@@ -9,7 +9,7 @@
 #include "grlib/grlib.h"
 #include "window.h"
 #include "Template_Driver.h"
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 #include "battery.h"
 #include "rtc.h"
 #include "pedometer/pedometer.h"

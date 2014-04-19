@@ -74,6 +74,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       log_info("connection request\n");
       break;
     }
+#ifdef PRODUCT_W001
   case HCI_EVENT_CONNECTION_COMPLETE:
   {
     if (packet[11] == 2)
@@ -93,6 +94,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       }
       break;
     }
+#endif
   case HCI_EVENT_LINK_KEY_NOTIFICATION:
     {
       // new device is paired
@@ -109,11 +111,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         // close the connection
         process_exit(&bluetooth_process);
         
-        // disable power
-        OECLKOUT |= OECLKBIT;
-        OEHCIOUT |= OEHCIBIT;
-        BTPOWEROUT &= ~BTPOWERBIT;
-
         // notify UI that we are shutdown
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
         break;
@@ -215,27 +212,28 @@ static void btstack_setup(){
 
   avctp_init();
   avrcp_init();
-
+  
+#ifdef PRODUCT_W001
   hfp_init();
-
+#endif
   //mns_init();
 }
 
 void bluetooth_init()
 {
   btstack_setup();
-
+#ifdef PRODUCT_W001
   codec_init(); // init codec
-
+#endif
   process_start(&bluetooth_process, NULL);
 }
 
 void bluetooth_shutdown()
-{  
-//  codec_shutdown();
+{
+#ifdef PRODUCT_W001
+  codec_shutdown(); // init codec
+#endif
 
-//  
-  
   hci_power_control(HCI_POWER_OFF);
 
   running = 0;

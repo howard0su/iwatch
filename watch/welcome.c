@@ -1,7 +1,7 @@
 #include "contiki.h"
 #include "grlib/grlib.h"
 #include "window.h"
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 #include "Template_Driver.h"
 #include "icons.h"
 #include <stdio.h>
