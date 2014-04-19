@@ -223,16 +223,6 @@ static void btstack_setup(){
 
 void bluetooth_init()
 {
-  // enable power
-  BTPOWERDIR |= BTPOWERBIT;
-  BTPOWEROUT |= BTPOWERBIT;
-
-  OECLKDIR |= OECLKBIT;
-  OECLKOUT &= ~OECLKBIT;
-
-  OEHCIDIR |= OEHCIBIT;
-  OEHCIOUT &= ~OEHCIBIT;
-
   btstack_setup();
 
   codec_init(); // init codec

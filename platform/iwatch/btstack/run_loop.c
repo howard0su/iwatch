@@ -84,6 +84,16 @@ PROCESS_THREAD(bluetooth_process, ev, data)
   static struct etimer timer;
   PROCESS_BEGIN();
 
+  // enable power
+  BTPOWERDIR |= BTPOWERBIT;
+  BTPOWEROUT |= BTPOWERBIT;
+
+  OECLKDIR |= OECLKBIT;
+  OECLKOUT &= ~OECLKBIT;
+
+  OEHCIDIR |= OEHCIBIT;
+  OEHCIOUT &= ~OEHCIBIT;
+
     // set BT SHUTDOWN to 1 (active low)
   BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
   BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
