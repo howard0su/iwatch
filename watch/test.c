@@ -13,6 +13,7 @@
 #include "sportsdata.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static int8_t data;
 static uint8_t onoff;

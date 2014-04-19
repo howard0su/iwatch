@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "status.h"
 #include "contiki.h"
@@ -177,7 +178,6 @@ static void OnDraw(tContext* pContext)
 
     sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
-    int width = GrStringWidthGet(pContext, buf, -1);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 8, 0);
   }
 }

@@ -40,8 +40,6 @@
 //#define ENABLE_LOG_INFO
 //#define ENABLE_LOG_DEBUG
 
-#include "att_server.h"
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,6 +53,9 @@
 #include "hci.h"
 #include "hci_dump.h"
 
+#include "att.h"
+#include "att_server.h"
+
 #include "l2cap.h"
 
 #include "sm.h"
@@ -67,7 +68,6 @@
 #define MTU 100
 
 static void att_run(void);
-static void att_client_run(void);
 
 static uint16_t att_build_request(att_connection_t *, uint8_t *buffer);
 static void att_handle_response(att_connection_t *, uint8_t*, uint16_t);
@@ -208,7 +208,7 @@ static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uin
 
                 case SM_BONDING_FINISHED:
                     printf("pairing finished\n");
-                    att_server_send_gatt_services_request();
+                    att_server_send_gatt_services_request(1);
                     break;
                 }
 
@@ -519,10 +519,10 @@ void att_server_query_service(const uint8_t *uuid128)
     att_run();
 }
 
-void att_server_send_gatt_services_request()
+void att_server_send_gatt_services_request(uint16_t start_handle)
 {
     request._read_by_group_type.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
-    request._read_by_group_type.start_handle = 1;
+    request._read_by_group_type.start_handle = start_handle;
     request._read_by_group_type.end_handle = 0xffff;
 
     request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;

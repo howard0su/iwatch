@@ -45,6 +45,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "system.h" // system_getserial
+
 #ifndef EMBEDDED
 #include <unistd.h> // gethostbyname
 #include <btstack/version.h>
@@ -1340,8 +1342,6 @@ void hci_connectable_control(uint8_t enable){
 bd_addr_t * hci_local_bd_addr(void){
     return &hci_stack->local_bd_addr;
 }
-
-extern const char* system_getserial();
 
 void hci_run(){
         

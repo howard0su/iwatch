@@ -202,7 +202,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       
     }
-#if 0
+#if 1
     //	hfp_enable_voicerecog();
     else if (lparam == KEY_UP)
     {
@@ -218,7 +218,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       state = RECOGNIZE;
       matched = 0;
     }
-  #endif
+  #else
     else if (lparam == KEY_UP)
     {
       static const uint8_t ancsuuid[] = {
@@ -228,6 +228,7 @@ uint8_t selftest_process(uint8_t ev, uint16_t lparam, void* rparam)
       //att_server_query_service(ancsuuid);
       att_server_send_gatt_services_request();
     }
+    #endif
     window_invalid(NULL);
     break;
   case EVENT_WINDOW_CLOSING:

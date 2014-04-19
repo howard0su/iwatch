@@ -303,6 +303,7 @@ unsigned short ped_step_detect(void);
 unsigned short ped_get_version(void);
 
 #include <stdint.h>
+void ped_reset();
 uint16_t ped_get_steps();
 uint32_t ped_get_calorie();
 uint16_t ped_get_time();

@@ -141,16 +141,16 @@ main(int argc, char **argv)
 	
 	backlight_init();
 	
-	testLCD();
-	
 	window_init(0);
 
 #ifdef NOTYET
 	battery_init();
 #endif
 	button_init();
-	rtc_init();
 
+#ifdef NOTYET
+	rtc_init();
+#endif
 	SPI_FLASH_Init();
 #ifdef UNUSED	
 	//Test SPI flash Read / Write

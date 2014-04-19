@@ -1,6 +1,4 @@
 
-#include "stlv_handler.h"
-
 #include <stdio.h>
 #include <string.h>
 
@@ -10,6 +8,7 @@
 #include "rtc.h"
 #include "cfs/cfs.h"
 #include "stlv_client.h"
+#include "stlv_handler.h"
 #include "btstack/include/btstack/utils.h"
 #include "watch/sportsdata.h"
 #include "btstack-config.h"

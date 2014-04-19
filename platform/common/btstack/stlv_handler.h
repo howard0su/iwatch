@@ -22,7 +22,7 @@ void handle_message(uint8_t msg_type, char* ident, char* message);
 //-----------------------data----------------------
 
 void handle_get_file(char* name);
-void handle_list_file();
+void handle_list_file(char* prefix);
 void handle_remove_file(char* name);
 
 //-----------------------file handlers----------------------

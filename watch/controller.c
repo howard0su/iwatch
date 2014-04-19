@@ -187,7 +187,7 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
         window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);
         return 1;
       }
-      break;    
+      break;
   }
   case EVENT_WINDOW_ACTIVE:
     {

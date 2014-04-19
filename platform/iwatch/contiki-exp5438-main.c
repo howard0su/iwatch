@@ -55,6 +55,7 @@
 #include "ant/ant.h"
 #include "ant/antinterface.h"
 
+#include "system.h"
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
@@ -67,12 +68,13 @@
 // Function prototypes
 extern int CheckUpgrade(void);
 extern void Upgrade(void);
-
+extern void uart_init(char rate);
 extern void mpu6050_init();
 extern void button_init();
 extern void I2C_Init();
 extern void rtc_init();
 extern void battery_init();
+extern unsigned char* CFSFontWrapperLoad();
 
 static uint8_t msp430_dco_required = 0;
 

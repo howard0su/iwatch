@@ -209,28 +209,19 @@ void setup_SPI_DMA(void)
 
 static void SPISend(uint8_t op, uint16_t start , const void* data, unsigned int size)
 {
-
-	/* Enable chip select */
+	  /* Enable chip select */
   	GPIO_PinOutSet( gpioPortB, LCD_SCS);
 	
-	uint16_t cmd = op | (start << 8);
-	/* Enable chip select */
-  	GPIO_PinOutSet( gpioPortB , LCD_SCS );
-  	
   	/* Set number of lines to copy */
   	DMA->RECT0 = (DMA->RECT0 & ~_DMA_RECT0_HEIGHT_MASK) | size;
- 	  	
-  	/* Send the update command */
-  	USART_TxDouble(USART2, cmd);
-  	
+ 	  	  	
   	/* Start the transfer */
   	DMA_ActivateBasic(DMA_CHN_LCD_TX,
                     	true,                               	/* Use primary channel */
                     	false,                              	/* No burst */
                     	(void *)&(USART2->TXDOUBLE),  		/* Write to USART */
-                    	(void *)(data+2),                       /* Start address */
-                    	FRAME_BUFFER_WIDTH/16-1);           	/* Width -1 */    	
-
+                    	(void *)(data),                       /* Start address */
+                    	FRAME_BUFFER_WIDTH/16);           	/* Width -1 */    	
 }
 
 // Initializes the display driver.

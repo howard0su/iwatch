@@ -5,6 +5,8 @@
 #include "dev/watchdog.h"
 #include <stdio.h>
 #include "system.h"
+#include "window.h"
+#include "pedometer/pedometer.h"
 
 struct system_data
 {
@@ -139,6 +141,7 @@ void system_ready()
 
 void system_shutdown(int shipping)
 {
+#if 0
   __delay_cycles(100000);
   
   __disable_interrupt();
@@ -183,6 +186,7 @@ void system_shutdown(int shipping)
   __no_operation();
   
   system_reset();
+#endif
 }
 
 const uint8_t * system_getserial()
