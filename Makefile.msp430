@@ -20,6 +20,7 @@ ALL_INCLUDEDIRS = \
 	core/lib \
 	cpu/msp430 \
 	ant \
+  platform/common \
 	platform/iwatch \
 	platform/common/btstack \
   platform/iwatch/btstack \

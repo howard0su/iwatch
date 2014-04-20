@@ -27,6 +27,7 @@ ALL_INCLUDEDIRS = \
 	. \
 	core \
 	core/lib \
+	platform/common \
 	platform/native \
 	platform/iwatch \
 	btstack/include \

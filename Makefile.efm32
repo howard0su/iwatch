@@ -56,6 +56,7 @@ ALL_INCLUDEDIRS = $(TOOLDIR)/arm-none-eabi/include \
     . \
     ./core \
     ./core/lib \
+    ./platform/common \
     ./platform/efm32 \
     ./platform/efm32/CMSIS/Include \
     ./platform/efm32/Device/EnergyMicro/EFM32GG/Include \
