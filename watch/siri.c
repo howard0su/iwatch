@@ -37,12 +37,8 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CREATED:
     if (!hfp_connected())
     {
-      if (!hfp_connected())
-      {
         window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);
         return 1;
-      }
-      break;
     }
     
     if (rparam)
