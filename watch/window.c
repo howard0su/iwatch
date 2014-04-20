@@ -71,6 +71,7 @@ static ui_config ui_config_data =
     {0, 0, 0},
     {0, 0, 0},
   },
+  0
 };
 
 
@@ -459,7 +460,7 @@ void window_writeconfig()
     printf("error write config\n");
     return;
   }
-  cfs_write(fd, &ui_config_data, sizeof(ui_config_data));
+  cfs_write(fd, &ui_config_data, sizeof(ui_config));
   cfs_close(fd);
 }
 
@@ -483,7 +484,7 @@ void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
   PROCESS_CONTEXT_END(&system_process);
 }
 
-static uint8_t messagebox_icon;
+static char messagebox_icon;
 static const char* messagebox_message;
 static uint8_t messagebox_result;
 static uint8_t messagebox_flags;
