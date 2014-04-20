@@ -181,7 +181,7 @@ static void onDraw(tContext *pContext)
 
 static void push_uid(uint32_t id, uint32_t attribute)
 {
-  if (num_uids < MAX_NOTIFY)
+  if (num_uids < MAX_NOTIFY - 1)
     num_uids++;
 
   for(int i = num_uids; i >= 0; i--)
