@@ -78,11 +78,20 @@ GRLIB_FONTS = \
 	fontgothic18.c \
 	fontgothic18b.c \
 	fontgothic24b.c \
+	fontgothic24b.c \
 	fontgothic28.c \
 	fontgothic28b.c \
 	fonticon16.c \
 	fonticon32.c \
 	fonticon48.c \
+	fontnimbus30.c \
+	fontnimbus38.c \
+	fontnimbus46.c \
+	fontnimbus52.c \
+	fontnimbus34.c \
+	fontnimbus40.c \
+	fontnimbus50.c \
+	fontnimbus91.c \
 	fontrobotocondensed18b.c \
 	fontunicode.c \
 	logoimg.c

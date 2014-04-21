@@ -95,6 +95,14 @@ GRLIB_FONTS = \
   fontgothic24b.c \
   fontgothic28.c \
   fontgothic28b.c \
+  fontnimbus30.c \
+  fontnimbus38.c \
+  fontnimbus46.c \
+  fontnimbus52.c \
+  fontnimbus34.c \
+  fontnimbus40.c \
+  fontnimbus50.c \
+  fontnimbus91.c \
   fonticon16.c \
   fonticon32.c \
   fonticon48.c \
