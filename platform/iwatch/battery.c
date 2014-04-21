@@ -60,7 +60,7 @@ BATTERY_STATE battery_state(void)
   uartattached = 1;
   setoutputhigh();
   __delay_cycles(10);
-  int instate = (BATININ & BATINPIN) == 1; // if it is high
+  int instate = (BATININ & BATINPIN) != 0; // if it is high
   setoutputfloat();
 
   if (instate)
