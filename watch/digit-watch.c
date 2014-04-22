@@ -276,11 +276,15 @@ static void drawClock7(tContext *pContext)
   sprintf(buf, "%02d:%02d", hour, _minute);
   GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 70, 0);
 
+  int width = GrStringWidthGet(pContext, buf, -1);
   GrContextFontSet(pContext, &g_sFontGothic18b);
   if (ampm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
-  GrStringDraw(pContext, buf, 2, 120, 95, 0);
+  GrStringDraw(pContext, buf, 2, LCD_X_SIZE/2+width/2 - 
+    GrStringWidthGet(pContext, buf, 2) - 2
+    , 95, 0);
+
 
   GrContextFontSet(pContext, &g_sFontGothic18);
   sprintf(buf, "%s %d, %d", month_name[month - 1], day, year);
