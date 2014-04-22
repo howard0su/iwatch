@@ -2322,6 +2322,9 @@ extern int NumLeadingZeros(long x);
 extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
                                              long lXB, long lYB,
                                              long lXC, long lYC);
+extern void GrTriagleDraw(const tContext *pContext, long lXA, long lYA,
+                                             long lXB, long lYB,
+                                             long lXC, long lYC);
 
 //*****************************************************************************
 //

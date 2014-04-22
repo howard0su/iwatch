@@ -5,7 +5,7 @@
 
 static void fillFlatSideTriangleInt(const tContext *pContext, long lXA, long lYA,
                                              long lXB, long lYB,
-                                             long lXC, long lYC)
+                                             long lXC, long lYC, int fill)
 {
   long lXStart, lYStart, lXEnd, lYEnd;
   lXStart = lXEnd = lXA;
@@ -47,7 +47,13 @@ static void fillFlatSideTriangleInt(const tContext *pContext, long lXA, long lYA
 
   for (int i = 0; i <= dx1; i++)
   {
-    GrLineDraw(pContext, lXStart, lYStart, lXEnd, lYEnd);
+    if (fill)
+      GrLineDraw(pContext, lXStart, lYStart, lXEnd, lYEnd);
+    else
+    {
+      GrPixelDraw(pContext, lXStart, lYStart);
+      GrPixelDraw(pContext, lXEnd, lYEnd);
+    }
     
     while (e1 >= 0)
     {
@@ -120,18 +126,65 @@ void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
     /* check for trivial case of bottom-flat triangle */
     if (lYB == lYC)
     {
-        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXC, lYC);
+        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXC, lYC, 1);
     }
     /* check for trivial case of top-flat triangle */
     else if (lYA == lYB)
     {
-      fillFlatSideTriangleInt(pContext, lXC, lYC, lXA, lYA, lXB, lYB);
+      fillFlatSideTriangleInt(pContext, lXC, lYC, lXA, lYA, lXB, lYB, 1);
     } 
     else
     {
         /* general case - split the triangle in a topflat and bottom-flat one */
         long lXT = lXA + (lYB - lYA)  * (lXC - lXA) / (lYC - lYA);
-        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXT, lYB);
-        fillFlatSideTriangleInt(pContext, lXC, lYC, lXB, lYB, lXT, lYB);
+        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXT, lYB, 1);
+        fillFlatSideTriangleInt(pContext, lXC, lYC, lXB, lYB, lXT, lYB, 1);
+    }
+}
+
+
+void GrTriagleDraw(const tContext *pContext, long lXA, long lYA,
+                                             long lXB, long lYB,
+                                             long lXC, long lYC)
+{
+  long tmp;
+  // sort A, B , C in Y axis in order
+  if (lYA > lYB)
+  {
+    tmp = lYA; lYA = lYB; lYB = tmp;
+    tmp = lXA; lXA = lXB; lXB = tmp;
+  }
+
+  if (lYB > lYC)
+  {
+    tmp = lYB; lYB = lYC; lYC = tmp;
+    tmp = lXB; lXB = lXC; lXC = tmp;
+
+    if (lYA > lYB)
+    {
+      tmp = lYA; lYA = lYB; lYB = tmp;
+      tmp = lXA; lXA = lXB; lXB = tmp;
+    }
+  }
+
+  assert(lYA <= lYB && lYB <= lYC);
+
+    /* here we know that v1.y <= v2.y <= v3.y */
+    /* check for trivial case of bottom-flat triangle */
+    if (lYB == lYC)
+    {
+        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXC, lYC, 0);
+    }
+    /* check for trivial case of top-flat triangle */
+    else if (lYA == lYB)
+    {
+      fillFlatSideTriangleInt(pContext, lXC, lYC, lXA, lYA, lXB, lYB, 0);
+    } 
+    else
+    {
+        /* general case - split the triangle in a topflat and bottom-flat one */
+        long lXT = lXA + (lYB - lYA)  * (lXC - lXA) / (lYC - lYA);
+        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXT, lYB, 0);
+        fillFlatSideTriangleInt(pContext, lXC, lYC, lXB, lYB, lXT, lYB, 0);
     }
 }
