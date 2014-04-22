@@ -110,16 +110,18 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
   switch(ev)
   {
   case EVENT_WINDOW_CREATED:
-    if (!hfp_connected())
-      window_close();
-    phonenumber[0] = '\0';
-    uint8_t flag = window_readconfig()->gesture_flag;
-    if (flag & BIT0)
     {
-      // gesture is enabled
-      gesture_init(0, flag & BIT1);
+      if (!hfp_connected())
+        window_close();
+      phonenumber[0] = '\0';
+      uint8_t flag = window_readconfig()->gesture_flag;
+      if (flag & BIT0)
+      {
+        // gesture is enabled
+        gesture_init(0, flag & BIT1);
+      }
+      codec_setvolume(window_readconfig()->volume_level);
     }
-    codec_setvolume(window_readconfig()->volume_level);
     break;
   case EVENT_BT_CLIP:
     strcpy(phonenumber, rparam);

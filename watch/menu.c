@@ -158,7 +158,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
   if (item->icon < 0x80 && item->icon != 0)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon32);
-    GrStringDraw(pContext, &item->icon, 1, 4, 13 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, (const char*)&item->icon, 1, 4, 13 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
   GrContextFontSet(pContext, textFont);
@@ -222,7 +222,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       break;
       case DATA_BTADDR:
       {
-        const char* ptr = system_getserial();
+        const char* ptr = (const char*)system_getserial();
         sprintf(buf, "Meteor %02X%02X", ptr[4], ptr[5]);
         break;
       }
