@@ -201,10 +201,10 @@ static void check_battery()
     case 0: case 1:
     status |= BATTERY_EMPTY;
     break;
-    case 2: case 3: case 4:
+    case 2: case 3:
     status |= BATTERY_LESS;
     break;
-    case 5: case 6: case 7:
+    case 4: case 5: case 6:
     status |= BATTERY_MORE;
     break;
     default:
