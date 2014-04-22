@@ -78,7 +78,7 @@ typedef enum {
     SET_SCAN_RESPONSE_DATA   = 1 << 3,
     ENABLE_ADVERTISEMENTS    = 1 << 4,
 } todo_t;
-static todo_t todos = 0;
+static uint16_t todos = 0;
 
 static void gap_run();
 
@@ -93,9 +93,11 @@ static uint16_t att_read_callback(uint16_t handle, uint16_t offset, uint8_t * bu
     return att_handler(handle, offset, buffer, buffer_size, ATT_HANDLE_MODE_READ);
 }
 
+/*
 static const uint8_t ancsuuid[] = {
     0xD0, 0x00, 0x2D, 0x12, 0x1E, 0x4B, 0x0F, 0xA4, 0x99, 0x4E, 0xCE, 0xB5, 0x31, 0xF4, 0x05, 0x79
 };
+*/
 
 static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){
     switch (packet_type) {
@@ -142,7 +144,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
                 case SM_PASSKEY_DISPLAY_NUMBER: {
                     // display number
                     sm_event_t * event = (sm_event_t *) packet;
-                    log_error("%06u\n", event->passkey);
+                    log_error("%06lu\n", event->passkey);
                     break;
                 }
 
@@ -169,10 +171,12 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
 }
 
 static const uint8_t sm_oob_data[] = "0123456789012345";
+/*
 static int get_oob_data_callback(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data){
     memcpy(oob_data, sm_oob_data, 16);
     return 1;
 }
+*/
 
 extern const char* system_getserial();
 
@@ -199,7 +203,7 @@ static void gap_run(){
         };
 
         const char* addr = system_getserial();
-        sprintf(&adv_data[18], "%02X%02X", addr[4], addr[5]);
+        sprintf((char*)&adv_data[18], "%02X%02X", addr[4], addr[5]);
         printf("GAP_RUN: set advertisement data\n");
         hexdump(adv_data, sizeof(adv_data));
         hci_send_cmd(&hci_le_set_advertising_data, sizeof(adv_data) - 1, adv_data);
@@ -263,7 +267,7 @@ void ble_advertise(uint8_t onoff)
     gap_run();
 }
 
-static uint8_t test_irk[] =  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+//static uint8_t test_irk[] =  { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 void ble_init(void){
 

@@ -29,7 +29,7 @@ uint16_t spp_channel_id = 0;
 static uint16_t spp_connection_handle;
 
 //static char spp_buffer[1024];
-static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
+//static uint16_t spp_read_ptr = 0, spp_write_ptr = 0;
 
 static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
@@ -68,13 +68,11 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
     {
     case RFCOMM_EVENT_INCOMING_CONNECTION:
       {
-        uint8_t   rfcomm_channel_nr;
         bd_addr_t event_addr;
         // data: event (8), len(8), address(48), channel (8), rfcomm_cid (16)
         bt_flip_addr(event_addr, &packet[2]);
-        rfcomm_channel_nr = packet[8];
         rfcomm_id = READ_BT_16(packet, 9);
-        log_info("RFCOMM channel %u requested for %s\n", rfcomm_channel_nr, bd_addr_to_str(event_addr));
+        log_info("RFCOMM channel %u requested for %s\n", packet[8], bd_addr_to_str(event_addr));
         if (spp_channel_id == 0)
         {
           rfcomm_accept_connection_internal(rfcomm_id);
@@ -97,7 +95,6 @@ static void spp_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, 
           spp_connection_handle = READ_BT_16(packet, 9);
           uint16_t mtu = READ_BT_16(packet, 14);
           log_info("RFCOMM channel open succeeded. New RFCOMM Channel ID %u, max frame size %u\n", rfcomm_id, mtu);
-          spp_write_ptr = spp_read_ptr = 0;
         }
         break;
       }

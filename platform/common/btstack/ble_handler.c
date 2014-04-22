@@ -66,7 +66,7 @@ uint32_t BLE_READ_INT32(uint8_t* buf)
     uint32_t v1 = buf[2];
     uint32_t v2 = buf[1];
     uint32_t v3 = buf[0];
-    return v0 << 24 | v1 << 16 | v2 << 8 | v0;
+    return v0 << 24 | v1 << 16 | v2 << 8 | v3;
 }
 
 void BLE_WRITE_INT32(uint8_t* buf, uint32_t value)
