@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "system.h"
 #include "window.h"
+#include "bluetooth.h"
 #include "pedometer/pedometer.h"
 
 struct system_data
@@ -191,8 +192,12 @@ void system_shutdown(int shipping)
 
 const uint8_t * system_getserial()
 {
+  #if 0
   const struct system_data *data = (struct system_data *)INFOD;
   return data->serial;
+  #else
+  return bluetooth_address();
+  #endif
 }
 
 uint8_t system_locked()

@@ -2300,6 +2300,15 @@ extern const tFontEx g_sFontExIcon32;
 extern const tFontEx g_sFontExIcon48;
 extern const tFont g_sFontRobotocondensed18b;
 
+extern const tFont g_sFontNimbus30;
+extern const tFont g_sFontNimbus34;
+extern const tFontEx g_sFontExNimbus38;
+extern const tFontEx g_sFontExNimbus40;
+extern const tFontEx g_sFontExNimbus46;
+extern const tFontEx g_sFontExNimbus50;
+extern const tFontEx g_sFontExNimbus52;
+extern const tFontEx g_sFontExNimbus91;
+
 extern const tFontWrapper g_sFontUnicode;
 
 
@@ -2311,6 +2320,9 @@ extern int GrStringDrawWrap(const tContext* pContext, const char* text, long sta
 extern int NumLeadingZeros(long x);
 
 extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
+                                             long lXB, long lYB,
+                                             long lXC, long lYC);
+extern void GrTriagleDraw(const tContext *pContext, long lXA, long lYA,
                                              long lXB, long lYB,
                                              long lXC, long lYC);
 
