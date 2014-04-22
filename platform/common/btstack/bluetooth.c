@@ -43,7 +43,7 @@
 extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
-extern void void ant_shutdown();
+extern void ant_shutdown();
 extern void ble_advertise(uint8_t onoff);
 
 //static bd_addr_t currentbd;

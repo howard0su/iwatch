@@ -177,7 +177,7 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
     return 0;
 }
 
-static int CheckForShake(short *last, short *now, uint16_t threshold)
+static int CheckForShake(int16_t *last, int16_t *now, uint16_t threshold)
 {
   uint16_t deltaX = abs(last[0] - now[0]);
   uint16_t deltaY = abs(last[1] - now[1]);
