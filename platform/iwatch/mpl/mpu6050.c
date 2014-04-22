@@ -16,6 +16,7 @@
 #include "pedometer/pedometer.h"
 #include "pedometer/sleepalgo.h"
 
+extern void ped_init();
 extern void ped_step_detect_run();
 extern void gesture_processdata(int16_t *input);
 
@@ -176,7 +177,7 @@ int read_fifo_all(unsigned short *length, unsigned char *data, unsigned char *mo
     return 0;
 }
 
-static int CheckForShake(short *last, short *now, uint16_t threshold)
+static int CheckForShake(int16_t *last, int16_t *now, uint16_t threshold)
 {
   uint16_t deltaX = abs(last[0] - now[0]);
   uint16_t deltaY = abs(last[1] - now[1]);
@@ -245,8 +246,8 @@ PROCESS_THREAD(mpu6050_process, ev, data)
         unsigned char more = 0;
         do
         {
-          short accel[3];
-          short last[3];
+          int16_t accel[3];
+          int16_t last[3];
           unsigned char data[1020];
           unsigned short length = sizeof(data);
           int result = read_fifo_all(&length, data, &more);

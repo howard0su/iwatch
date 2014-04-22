@@ -44,13 +44,13 @@ static uint16_t s_watch_status = 0;
 uint16_t add_watch_status(uint16_t value)
 {
   uint16_t invalue = get_watch_status() | value;
-  return set_watch_status(value);
+  return set_watch_status(invalue);
 }
 
 uint16_t del_watch_status(uint16_t value)
 {
   uint16_t invalue = get_watch_status() & (~value);
-  return set_watch_status(value);
+  return set_watch_status(invalue);
 }
 
 uint16_t set_watch_status(uint16_t value)

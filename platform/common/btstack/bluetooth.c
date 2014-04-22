@@ -43,15 +43,16 @@
 extern void deviceid_init();
 extern void spp_init();
 extern void sdpc_open(const bd_addr_t remote_addr);
+extern void ant_shutdown();
+extern void ble_advertise(uint8_t onoff);
 
-static bd_addr_t currentbd;
+//static bd_addr_t currentbd;
 static uint8_t running = 0;
 static uint16_t handle_audio = 0;
 
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
-  bd_addr_t event_addr;
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
@@ -97,6 +98,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 #endif
   case HCI_EVENT_LINK_KEY_NOTIFICATION:
     {
+      //bd_addr_t event_addr;
       // new device is paired
       //bt_flip_addr(event_addr, &packet[2]);
       //memcpy(&currentbd, event_addr, sizeof(currentbd));
@@ -121,7 +123,6 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
 
 static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
 {
-  bd_addr_t event_addr;
 
   // handle events, ignore data
   if (packet_type != HCI_EVENT_PACKET)
