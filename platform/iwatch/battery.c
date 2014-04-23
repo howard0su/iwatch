@@ -19,11 +19,11 @@ static void setoutputhigh()
   BATOUTOUT |= BATOUTPIN;
 }
 
-static void setoutputlow()
+/* static void setoutputlow()
 {
   BATOUTDIR |= BATOUTPIN;
   BATOUTOUT |= BATOUTPIN;
-}
+}*/
 
 void battery_init(void)
 {

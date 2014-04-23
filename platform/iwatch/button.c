@@ -13,6 +13,8 @@
 #define PRINTF(...)
 #endif
 
+extern void system_reset();
+
 PROCESS(button_process, "Button Driver");
 
 unsigned long downtime[4];

@@ -91,8 +91,8 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
     uint16_t value_handle;
     int i;        
     for (i = 2; i < size; i += attr_length){
-        uint16_t start_handle = READ_BT_16(packet, i);
-        uint8_t  properties = packet[i+2];
+        //uint16_t start_handle = READ_BT_16(packet, i);
+        //uint8_t  properties = packet[i+2];
         value_handle = READ_BT_16(packet, i+3);
 
         uint8_t uuid128[16];
@@ -171,7 +171,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     if (handle == attribute_handles[NOTIFICATION])
     {
         uint32_t uid =  READ_BT_32(data, 4);
-        uint32_t combine = READ_BT_32(data, 4);
+        //uint32_t combine = READ_BT_32(data, 4);
         log_info("id: %d flags:%d catery:%d count: %d UID:%ld\n",
             data[0], data[1], data[2], data[3],
             uid

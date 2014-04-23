@@ -109,13 +109,13 @@ static int codec_write(uint8_t reg, uint16_t data)
   return I2C_write(reg << 1 | ((data >> 8) & 0x01), (uint8_t)(data & 0Xff));
 }
 
-static uint16_t codec_read(uint8_t reg)
+/* static uint16_t codec_read(uint8_t reg)
 {
   uint8_t data[2];
   I2C_readbytes(reg << 1, data, 2);
   
   return (data[0] << 8) | data[1];
-}
+}*/
 
 void codec_shutdown()
 {

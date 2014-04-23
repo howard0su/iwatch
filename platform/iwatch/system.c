@@ -196,7 +196,7 @@ const uint8_t * system_getserial()
   const struct system_data *data = (struct system_data *)INFOD;
   return data->serial;
   #else
-  return bluetooth_address();
+  return (const uint8_t*)bluetooth_address();
   #endif
 }
 

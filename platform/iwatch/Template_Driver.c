@@ -121,7 +121,7 @@
 static process_event_t refresh_event, clear_event;
 
 static const uint8_t clear_cmd[2] = {MLCD_CM, 0};
-static const uint8_t static_cmd[2] = {MLCD_SM, 0};
+//static const uint8_t static_cmd[2] = {MLCD_SM, 0};
 
 static struct RefreshData
 {

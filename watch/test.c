@@ -20,6 +20,9 @@ static uint8_t onoff;
 static const uint8_t str[] = {
 	45, 78, 135, 101, 75, 109, 213, 139, 198, 48, 185, 48, 200, 48, 0, 0
 };
+
+extern int mpu6050_selftest();
+
 uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
@@ -453,7 +456,6 @@ static const uint8_t HCI_VS_Set_LE_Test_Mode_Parameters[] =
 
 uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
 {
-	uint8_t buf[200];
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:
@@ -757,7 +759,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 
 uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 {
-	uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd)];
+	//uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd)];
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:

@@ -4,6 +4,8 @@
 
 static uint8_t progress;
 extern int CheckUpgrade();
+extern void system_reset();
+
 static void onDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrBlack);
@@ -60,4 +62,5 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 		 	}
 		 	break;
 	}
+	return 1;
 }

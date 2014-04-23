@@ -253,7 +253,7 @@ void SPI_FLASH_BufferWrite(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
 void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 {
   PRINTF("Read from Disk: offset:%lx size:%d\n", ReadAddr, NumByteToRead);
-  u16 n = NumByteToRead;
+  //u16 n = NumByteToRead;
 
    /* 使能片选 */
   SPI_FLASH_CS_LOW();
@@ -281,7 +281,7 @@ void SPI_FLASH_BufferRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 void SPI_FLASH_BufferRead_Raw(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)
 {
   PRINTF("Read from Disk: offset:%lx size:%d\n", ReadAddr, NumByteToRead);
-  u16 n = NumByteToRead;
+  //u16 n = NumByteToRead;
 
    /* 使能片选 */
   SPI_FLASH_CS_LOW();
