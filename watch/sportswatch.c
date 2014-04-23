@@ -691,7 +691,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 
       add_watch_status(WS_SPORTS);
 
-      ble_start_sync(2);
+      ble_start_sync(2, get_mode());
       return 0x80; // disable status
     }
   case EVENT_SPORT_DATA:

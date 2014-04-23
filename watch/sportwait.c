@@ -48,7 +48,7 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_PRE, &stlv_meta, &stlv_data, 1);
 
         //BLE
-        ble_start_sync(1);
+        ble_start_sync(1, 0);
       }
     return 0x80;
   case EVENT_SPORT_DATA:
