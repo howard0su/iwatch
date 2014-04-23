@@ -220,6 +220,7 @@ void system_unlock()
   flash_done();
   
   window_reload();
+  window_invalid(0);
 }
 
 void system_resetfactory()

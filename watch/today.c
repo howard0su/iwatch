@@ -8,7 +8,7 @@
 #include "Template_Driver.h"
 #include "memory.h"
 
-static enum {
+enum {
   WALK = 0,
   SPORT = 1
 };
@@ -51,7 +51,8 @@ static void onDraw(tContext *pContext)
     sprintf(buf, "%d", cals);
     drawItem(pContext, 1, ICON_CALORIES, "Calories", buf);
 
-    sprintf(buf, "%dm", ped_get_distance() / 100);
+    uint16_t dist = ped_get_distance() / 100;
+    sprintf(buf, "%dm", dist);
     drawItem(pContext, 2, ICON_DISTANCE, "Distance", buf);
 
     sprintf(buf, "%02d:%02d", ped_get_time() / 60, ped_get_time() % 60);

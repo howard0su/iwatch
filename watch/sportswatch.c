@@ -106,7 +106,11 @@ static const tRectangle *regions[] =
   region_3grid, region_4grid, region_5grid
 };
 
-static int upload_data_interval = 3;
+static const int upload_data_interval = 3;
+static const int save_data_interval = 60;
+
+static const uint8_t s_meta_running[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
+static const uint8_t s_meta_biking[]  = {DATA_COL_CADN, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
 
 // Find which grid slot contains the specific data
 static int findDataGrid(uint8_t data)
@@ -399,8 +403,8 @@ static uint32_t updateBaseData(uint8_t datatype, uint32_t value)
   if (datatype >= SPORTS_DATA_MAX)
       return 0;
 
-  if (datatype != 0)
-    printf("updateBaseData(%u, %lu)\n", datatype, value);
+//  if (datatype != 0)
+//    printf("updateBaseData(%u, %lu)\n", datatype, value);
 
   uint32_t grids_mask = 0;
   switch (datatype)
@@ -590,8 +594,8 @@ static void updateGridData(uint32_t mask)
         if (slot != -1)
         {
             grid_data[slot] = getGridDataItem(j);
-            if (j != 0)
-                printf("updateGridData(id=%s):%u\n", datapoints[j].name, (uint16_t)grid_data[slot]);
+            //if (j != 0)
+            //    printf("updateGridData(id=%s):%u\n", datapoints[j].name, (uint16_t)grid_data[slot]);
             window_invalid(&regions[config->sports_grid][slot]);
         }
     }
@@ -608,6 +612,45 @@ static uint8_t sports_type = 0;
 static uint32_t s_sports_data[4] = {0};
 
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
+
+static void saveSportsData()
+{
+  uint8_t hour, minute, second;
+  rtc_readtime(&hour, &minute, &second); 
+
+  uint32_t data[4] = {0};
+  const uint8_t* meta = NULL;
+  if (get_mode() == DATA_MODE_RUNNING)
+  {
+    meta = s_meta_running;
+    data[0] = base_data[SPORTS_STEPS]    - s_sports_data[0];
+    data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
+    data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
+    data[3] = base_data[SPORTS_HEARTRATE];
+  }
+  else if (get_mode() == DATA_MODE_BIKING)
+  {
+    meta = s_meta_biking;
+    data[0] = base_data[SPORTS_CADENCE]  - s_sports_data[0];
+    data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
+    data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
+    data[3] = base_data[SPORTS_HEARTRATE];
+  }
+
+  if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0)
+  {
+    printf("no valid data\n");
+    return;
+  }
+
+  printf("save sports data\n");
+  write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
+
+  for (int i = 0; i < sizeof(data) / sizeof(data[0]); ++i)
+  {
+    s_sports_data[i] += data[i];
+  }
+}
 
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
@@ -653,7 +696,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
     }
   case EVENT_SPORT_DATA:
     {
-      printf("got a sport data \n");
+      //printf("got a sport data \n");
       updateData(lparam, (uint32_t)rparam);
       break;
     }
@@ -678,41 +721,10 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 
       }
 
-      uint8_t hour, minute, second;
-      rtc_readtime(&hour, &minute, &second); 
-      if (second <= 10 &&
-          (get_mode() == DATA_MODE_NORMAL || (get_mode() & DATA_MODE_PAUSED) != 0))
+      if (workout_time % save_data_interval == 0 &&
+       (get_mode() & DATA_MODE_PAUSED) != 0)
       {
-        if (get_mode() == DATA_MODE_RUNNING)
-        {
-          uint8_t meta[] = {DATA_COL_STEP, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
-
-          uint32_t data[4] = {0};
-          data[0] = base_data[SPORTS_STEPS]    - s_sports_data[0];
-          data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
-          data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
-          data[3] = base_data[SPORTS_HEARTRATE];
-          write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
-
-          for (int i = 0; i < sizeof(data) / sizeof(data[0]); ++i)
-          {
-            s_sports_data[i] += data[i];
-          }
-        }
-        else if (get_mode() == DATA_MODE_BIKING)
-        {
-          uint8_t meta[] = {DATA_COL_CADN, DATA_COL_CALS, DATA_COL_DIST, DATA_COL_HR};
-          uint32_t data[4] = {0};
-          data[0] = base_data[SPORTS_CADENCE]  - s_sports_data[0];
-          data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
-          data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
-          data[3] = base_data[SPORTS_HEARTRATE];
-          write_data_line(get_mode(), hour, minute, meta, data, sizeof(data) / sizeof(data[0]));
-          for (int i = 0; i < sizeof(data) / sizeof(data[0]); ++i)
-          {
-            s_sports_data[i] += data[i];
-          }
-        }
+        saveSportsData();
       }
 
       break;
@@ -735,6 +747,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       uint32_t dummy_stlv_data = 0;
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, &dummy_stlv_meta, &dummy_stlv_data, 1);
 
+      saveSportsData();
       ble_stop_sync();
       set_mode(DATA_MODE_NORMAL);
       del_watch_status(WS_SPORTS);
