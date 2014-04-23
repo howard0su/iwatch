@@ -29,40 +29,8 @@ volatile uint8_t  Rx_RAW_Flag;
 
 static inline uint8_t SPI_FLASH_SendByte( uint8_t data )
 {
-	PRINTF("$SENDBYTE = %x\n", data);
-	/* Waiting for the usart to be ready */
-	//while (!(spi->STATUS & USART_STATUS_TXBL)) ;	
-	/* Writing data to USART TX reg */
-	spi->TXDATA = data;
-	
-  	/*Waiting for transmission of last byte */
-  	while (!(spi->STATUS & USART_STATUS_TXC)) ;	
-  	/*Data received.*/
-  	return (uint8_t) (spi->RXDATA);	
-}
-
-
-void USART1_RX_IRQHandler(void)
-{
-  	uint8_t       rxdata;
-
-  	if (spi->STATUS & USART_STATUS_RXDATAV)
-  	{
-    		/* Reading out data */
-    		rxdata = (Rx_RAW_Flag==0)?(spi->RXDATA):~(spi->RXDATA);
-
-    		if (masterRxBuffer != 0)
-    		{
-      			/* Store Data */
-      			masterRxBuffer[masterRxBufferIndex] = rxdata;
-      			masterRxBufferIndex++;
-
-      			if (masterRxBufferIndex == masterRxBufferSize)
-      			{
-        			masterRxBuffer = 0;
-      			}
-    		}
-  	}
+	USART_Tx(spi, data);
+	return USART_Rx(spi);
 }
 
 /**************************************************************************//**
@@ -271,7 +239,9 @@ void SPI_FLASH_BufferWrite(uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByt
 *********************************************************************************************/
 void SPI_FLASH_BufferRead(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
 {  	
+#if 0
   	PRINTF("BUFFER Read\n");
+#endif
   	uint16_t n = NumByteToRead;
   	Rx_RAW_Flag = 1;	   	
   	SPI_FLASH_CS_LOW();
@@ -284,7 +254,9 @@ void SPI_FLASH_BufferRead(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteT
   	}
   	Rx_RAW_Flag = 0;
   	SPI_FLASH_CS_HIGH();
+#if 0
 	PRINTF("BUF Read done\n");
+#endif
 #ifdef NOTYET	
   	hexdump(pBuffer - n, n);
 #endif
@@ -476,7 +448,7 @@ void USART1_setup(void)
   	init.databits     = usartDatabits8;
   	init.msbf         = 1;
   	init.master       = 1;
-  	init.clockMode    = usartClockMode0;
+  	init.clockMode    = usartClockMode3;
   	init.prsRxEnable  = 0;
   	init.autoTx       = 0;
 	init.enable 	  = usartEnable;
@@ -485,6 +457,7 @@ void USART1_setup(void)
 
 void SPI_FLASH_Init(void)
 {
+	printf("Init SPIflash\n");
 	/* SPI flash port/pin configuration */
 	/* Pin PD0 is configure to Push-pull as SPI_DO. To avoid false start, configure output as high  */	
   	GPIO_PinModeSet(gpioPortD, SFLASH_DO, gpioModePushPull, 1);  	

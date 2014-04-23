@@ -75,6 +75,13 @@
 #define PRINTF(...)
 #endif
 
+#define TESTUART
+
+#ifdef TESTUART
+extern void hal_uart_dma_init(void);
+extern void hal_uart_dma_send_block(const uint8_t * data, uint16_t len);
+const uint8_t test_uart[16] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48,0x49, 0x4A, 0x4B, 0x4C,0x4D, 0x4E, 0x4F, 0x50};
+#endif
 //extern void mpu6050_init();
 extern void mpu3050Init(void);
 extern void READ_MPU3050(void);
@@ -102,7 +109,8 @@ uint8_t spi_data[8];
 int
 main(int argc, char **argv)
 {
-	uint32_t i;
+	uint8_t i;
+	uint16_t j;
 	/*
 	* Initalize hardware.
 	*/
@@ -118,9 +126,7 @@ main(int argc, char **argv)
 	clock_init();
 	DMAInit();
 	rtimer_init();
-	
 	/* xmem_init(); */
-
 //	PRINTF("iWatch 0.10 build at " __TIME__ " " __DATE__ "\n");
 	
 	/*
@@ -142,10 +148,13 @@ main(int argc, char **argv)
 	backlight_init();
 	
 	window_init(0);
-
+/*
+	testLCD();
+*/	
 #ifdef NOTYET
 	battery_init();
 #endif
+
 	button_init();
 
 #ifdef NOTYET
@@ -184,8 +193,13 @@ main(int argc, char **argv)
 	ant_init();
 #endif
 	printf("Start bluetooth\n");
-	bluetooth_init();
-	printf("Bluetooth Started\n");
+
+//	bluetooth_init();
+#ifdef TESTUART
+	hal_uart_dma_init();
+	hal_uart_dma_send_block((const uint8_t *)test_uart, 16);
+#endif
+	printf("Bluetooth Started\n");	
 	motor_on(6, CLOCK_SECOND );	
 #ifdef NOTYET	
 	if (!system_retail())
