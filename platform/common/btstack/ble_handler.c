@@ -486,9 +486,10 @@ const ble_handle_t* get_ble_handle(uint16_t handle)
     return NULL;
 }
 
-void ble_start_sync(uint8_t mode)
+void ble_start_sync(uint8_t mode, uint8_t sports_type)
 {
     s_sports_desc_buffer[0] = mode;
+    s_sports_desc_buffer[1] = sports_type;
 }
 
 void ble_send_sports_data(uint32_t data[], uint8_t size)
