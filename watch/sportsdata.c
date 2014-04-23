@@ -272,10 +272,12 @@ int create_data_file(uint8_t year, uint8_t month, uint8_t day)
 }
 
 uint8_t build_data_line(
-    uint8_t* buf, uint8_t buf_size,
+    uint8_t* buf,
+    uint8_t buf_size,
     uint8_t mode, 
     uint8_t hh, uint8_t mm, 
-    uint8_t meta[], uint32_t data[],
+    const uint8_t* meta,
+    uint32_t* data,
     uint8_t size)
 {
     uint8_t pos = 0;
@@ -302,7 +304,7 @@ uint8_t build_data_line(
     return pos;
 }
 
-void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, uint8_t meta[], uint32_t data[], uint8_t size)
+void write_data_line(uint8_t mode, uint8_t hh, uint8_t mm, const uint8_t* meta, uint32_t* data, uint8_t size)
 {
     if (s_data_fd == -1)
     {
@@ -440,7 +442,7 @@ void remove_data_file(char* filename)
     cfs_remove(filename);
 }
 
-uint8_t build_data_schema(uint8_t* buf, uint8_t coltype[], uint8_t colcount)
+uint8_t build_data_schema(uint8_t* buf, const uint8_t* coltype, uint8_t colcount)
 {
     uint8_t pos = 0;
     for (uint8_t i = 0; i < colcount; ++i)
