@@ -117,16 +117,7 @@ void mpu6050_init()
   process_start(&mpu6050_process, NULL);
   printf("Done\n");
 
-  //if (mpu6050_selftest() == 0)
-  {
-    printf("\n$$OK MPU6050\n");
-    return;
-  }
-
-  ped_init();
-
-  printf("\n$$FAIL MPU6050\n");
-  process_post(ui_process, EVENT_MPU_STATUS, (void*)0);
+  printf("\n$$OK MPU6050\n");
   return;
 }
 
