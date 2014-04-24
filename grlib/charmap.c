@@ -1755,8 +1755,8 @@ GrMapUnicode_Unicode(const char *pcSrcChar,
         // by the first 4 bytes in the buffer.
         //
         *pulSkip = 4;
-        return(pcSrcChar[0] | (pcSrcChar[1] << 8) | (pcSrcChar[2] << 16) |
-               (pcSrcChar[3] << 24));
+        return(pcSrcChar[0] | (pcSrcChar[1] << 8) | ((unsigned long)pcSrcChar[2] << 16) |
+               ((unsigned long)pcSrcChar[3] << 24));
     }
 }
 
