@@ -306,11 +306,25 @@ int transfer_file(char* filename)
 {
     int fd_read = cfs_open(filename, CFS_READ);
     if (fd_read == -1)
+    {
+        log_error("cfs_open(%s) failed\n", filename); 
         return -1;
+    }
 
-    cfs_offset_t pos = cfs_seek(fd_read, 0, CFS_SEEK_END);
-    if (pos == -1)
+    cfs_offset_t pos = -1;
+    if ((pos = cfs_seek(fd_read, 0, CFS_SEEK_END)) == -1)
+    {
+        log_error("cfs_seek(%s) to file end failed", filename); 
+        cfs_close(fd_read);
         return -1;
+    }
+
+    if ((pos = cfs_seek(fd_read, 0, CFS_SEEK_SET)) == -1)
+    {
+        log_error("cfs_seek(%s) to file begin failed", filename); 
+        cfs_close(fd_read);
+        return -1;
+    }
 
     init_file_reader(&_f_reader);
     strcpy(_f_reader.file_name, filename);
