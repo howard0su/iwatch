@@ -8,8 +8,11 @@
 #define HAVE_EHCILL
 
 #define ENABLE_LOG_ERROR
-//#define ENABLE_LOG_INFO
-//#define ENABLE_LOG_DEBUG
+
+#if UNITTEST == 1
+#	define ENABLE_LOG_INFO
+#	define ENABLE_LOG_DEBUG
+#endif
 
 #define HCI_ACL_PAYLOAD_SIZE 102
 #define HAVE_BLE 1
