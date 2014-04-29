@@ -158,11 +158,11 @@ static void OnDraw(tContext* pContext)
     {
       if (i * part + part / 2 <= steps)
       {
-        GrCircleFill(pContext, 64+i*6, 7, 2);
+        GrCircleFill(pContext, 68 + i*6, 7, 2);
       }
       else
       {
-        GrCircleDraw(pContext, 64+i*6, 7, 2);
+        GrCircleDraw(pContext, 68 + i*6, 7, 2);
       }
     }
   }
