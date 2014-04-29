@@ -54,7 +54,7 @@ static void drawFace0(tContext *pContext)
     sy = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 1);
 
     //tRect rect = {sx, sy, ex, ey};
-    GrLineDraw(pContext, sx, sy, ex, ey);
+    GrLineFill(pContext, sx, sy, ex, ey, 3);
   }
 }
 
@@ -214,7 +214,7 @@ static void drawHand1(tContext *pContext)
   sx = CENTER_X + ((14 * (sin_val >> 8)) >> 7);
   sy = CENTER_Y - ((14 * (cos_val >> 8)) >> 7);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrLineDraw(pContext, sx, sy, ex, ey);
+  GrLineFill(pContext, sx, sy,  ex, ey, 4);
 
   // hour hand 45
   angle = _hour * 30 + _minute / 2;
@@ -224,7 +224,7 @@ static void drawHand1(tContext *pContext)
   sx = CENTER_X + ((14 * (sin_val >> 8)) >> 7);
   sy = CENTER_Y - ((14 * (cos_val >> 8)) >> 7);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrLineDraw(pContext, sx, sy,  ex, ey);
+  GrLineFill(pContext, sx, sy,  ex, ey, 3);
 }
 
 static void drawHand2(tContext *pContext)
@@ -315,18 +315,16 @@ static void drawHand5(tContext *pContext)
   angle = angle - 150;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   sx = CENTER_X + cordic_multipy(sin_val, 13);
-  sy = CENTER_Y - cordic_multipy(cos_val, 7);
+  sy = CENTER_Y - cordic_multipy(cos_val, 13);
 
   angle = angle + 300;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   ex = CENTER_X + cordic_multipy(sin_val, 13);
   ey = CENTER_Y - cordic_multipy(cos_val, 13);
-  // draw a filled triagle
-  GrTriagleDraw(pContext, 
-    ex, ey,
-    sx, sy,
-    mx, my
-    );
+
+  GrLineDraw(pContext, ex, ey, sx, sy);
+  GrLineDraw(pContext, mx, my, sx, sy);
+  GrLineDraw(pContext, ex, ey, mx, my);
 
   // minute hand
   angle = _minute * 6+ _sec /10;
@@ -343,12 +341,10 @@ static void drawHand5(tContext *pContext)
   cordic_sincos(angle, 13, &sin_val, &cos_val);
   ex = CENTER_X + cordic_multipy(sin_val, 12);
   ey = CENTER_Y - cordic_multipy(cos_val, 12);
-  // draw a filled triagle
-  GrTriagleDraw(pContext, 
-    ex, ey,
-    sx, sy,
-    mx, my
-    );
+
+  GrLineDraw(pContext, ex, ey, sx, sy);
+  GrLineDraw(pContext, mx, my, sx, sy);
+  GrLineDraw(pContext, ex, ey, mx, my);
 
   GrPixelDraw(pContext, CENTER_X, CENTER_Y);
 }
