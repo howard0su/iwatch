@@ -28,7 +28,7 @@
 * if get system key in non-suspend state, post event to system.
 */
 #define CENTER_X LCD_X_SIZE/2
-#define CENTER_Y (LCD_Y_SIZE-16)/2 + 16
+#define CENTER_Y LCD_Y_SIZE/2
 
 #define MIN_HAND_LEN 50
 #define HOUR_HAND_LEN 36
@@ -375,12 +375,14 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     else
       selection = (uint8_t)rparam - 0x1;
     rtc_enablechange(MINUTE_CHANGE);
+
+    return 0x80;
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {
     tContext *pContext = (tContext*)rparam;
     GrContextForegroundSet(pContext, ClrBlack);
-    GrRectFill(pContext, &client_clip);
+    GrRectFill(pContext, &fullscreen_clip);
 
     GrContextForegroundSet(pContext, ClrWhite);
 
