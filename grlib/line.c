@@ -630,6 +630,200 @@ GrLineDraw(const tContext *pContext, long lX1, long lY1, long lX2, long lY2)
     }
 }
 
+
+//*****************************************************************************
+//
+//! Draws a line.
+//!
+//! \param pContext is a pointer to the drawing context to use.
+//! \param lX1 is the X coordinate of the start of the line.
+//! \param lY1 is the Y coordinate of the start of the line.
+//! \param lX2 is the X coordinate of the end of the line.
+//! \param lY2 is the Y coordinate of the end of the line.
+//!
+//! This function draws a line, utilizing GrLineDrawH() and GrLineDrawV() to
+//! draw the line as efficiently as possible.  The line is clipped to the
+//! clippping rectangle using the Cohen-Sutherland clipping algorithm, and then
+//! scan converted using Bresenham's line drawing algorithm.
+//!
+//! \return None.
+//
+//*****************************************************************************
+void
+GrLineFill(const tContext *pContext, long lX1, long lY1, long lX2, long lY2, long width)
+{
+    long lError, lDeltaX, lDeltaY, lYStep, bSteep;
+    long lWStart, lWEnd;
+
+    lWEnd = width/2;
+    lWStart = -lWEnd;
+    //
+    // Check the arguments.
+    //
+    ASSERT(pContext);
+
+    GrCircleFill(pContext, lX1, lY1, width/2);
+    GrCircleFill(pContext, lX2, lY2, width/2);
+
+    //
+    // See if this is a vertical line.
+    //
+    if(lX1 == lX2)
+    {
+        //
+        // It is more efficient to avoid Bresenham's algorithm when drawing a
+        // vertical line, so use the vertical line routine to draw this line.
+        //
+        for(long i = lWStart; i <= lWEnd; i++)
+            GrLineDrawV(pContext, lX1 + i, lY1, lY2);
+
+        //
+        // The line has ben drawn, so return.
+        //
+        return;
+    }
+
+    //
+    // See if this is a horizontal line.
+    //
+    if(lY1 == lY2)
+    {
+        //
+        // It is more efficient to avoid Bresenham's algorithm when drawing a
+        // horizontal line, so use the horizontal line routien to draw this
+        // line.
+        //
+        for(long i = lWStart; i <= lWEnd; i++)
+            GrLineDrawH(pContext, lX1, lX2, lY1+i);
+
+        //
+        // The line has ben drawn, so return.
+        //
+        return;
+    }
+
+    //
+    // Clip this line if necessary, and return without drawing anything if the
+    // line does not cross the clipping region.
+    //
+    if(GrLineClip(pContext, &lX1, &lY1, &lX2, &lY2) == 0)
+    {
+        return;
+    }
+
+    //
+    // Determine if the line is steep.  A steep line has more motion in the Y
+    // direction than the X direction.
+    //
+    if(((lY2 > lY1) ? (lY2 - lY1) : (lY1 - lY2)) >
+       ((lX2 > lX1) ? (lX2 - lX1) : (lX1 - lX2)))
+    {
+        bSteep = 1;
+    }
+    else
+    {
+        bSteep = 0;
+    }
+
+    //
+    // If the line is steep, then swap the X and Y coordinates.
+    //
+    if(bSteep)
+    {
+        lError = lX1;
+        lX1 = lY1;
+        lY1 = lError;
+        lError = lX2;
+        lX2 = lY2;
+        lY2 = lError;
+    }
+
+    //
+    // If the starting X coordinate is larger than the ending X coordinate,
+    // then swap the start and end coordinates.
+    //
+    if(lX1 > lX2)
+    {
+        lError = lX1;
+        lX1 = lX2;
+        lX2 = lError;
+        lError = lY1;
+        lY1 = lY2;
+        lY2 = lError;
+    }
+
+    //
+    // Compute the difference between the start and end coordinates in each
+    // axis.
+    //
+    lDeltaX = lX2 - lX1;
+    lDeltaY = (lY2 > lY1) ? (lY2 - lY1) : (lY1 - lY2);
+
+    //
+    // Initialize the error term to negative half the X delta.
+    //
+    lError = -lDeltaX / 2;
+
+    //
+    // Determine the direction to step in the Y axis when required.
+    //
+    if(lY1 < lY2)
+    {
+        lYStep = 1;
+    }
+    else
+    {
+        lYStep = -1;
+    }
+
+    //
+    // Loop through all the points along the X axis of the line.
+    //
+    for(; lX1 <= lX2; lX1++)
+    {
+        //
+        // See if this is a steep line.
+        //
+        if(bSteep)
+        {
+            //
+            // Plot this point of the line, swapping the X and Y coordinates.
+            //
+            //DpyPixelDraw(pContext->pDisplay, lY1, lX1, pContext->ulForeground);
+            GrLineDrawH(pContext, lY1 + lWStart, lY1 + lWEnd, lX1);
+        }
+        else
+        {
+            //
+            // Plot this point of the line, using the coordinates as is.
+            //
+            //DpyPixelDraw(pContext->pDisplay, lX1, lY1, pContext->ulForeground);
+            GrLineDrawV(pContext, lX1, lY1 + lWStart, lY1 + lWEnd);
+        }
+
+        //
+        // Increment the error term by the Y delta.
+        //
+        lError += lDeltaY;
+
+        //
+        // See if the error term is now greater than zero.
+        //
+        if(lError > 0)
+        {
+            //
+            // Take a step in the Y axis.
+            //
+            lY1 += lYStep;
+
+            //
+            // Decrement the error term by the X delta.
+            //
+            lError -= lDeltaX;
+        }
+    }
+}
+
 //*****************************************************************************
 //
 // Close the Doxygen group.

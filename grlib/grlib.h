@@ -2325,6 +2325,9 @@ extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
 extern void GrTriagleDraw(const tContext *pContext, long lXA, long lYA,
                                              long lXB, long lYB,
                                              long lXC, long lYC);
+extern void
+GrLineFill(const tContext *pContext, long lX1, long lY1, long lX2, long lY2, long width);
+
 
 //*****************************************************************************
 //
