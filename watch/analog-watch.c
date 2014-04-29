@@ -48,11 +48,12 @@ static void drawFace0(tContext *pContext)
   for(int angle = 0; angle < 359; angle +=30)
   {
     cordic_sincos(angle, 13, &sin_val, &cos_val);
-    ex = CENTER_X + cordic_multipy(sin_val, 64);
-    ey = CENTER_Y - cordic_multipy(cos_val, 64);
-    sx = CENTER_X + cordic_multipy(sin_val, 52);
-    sy = CENTER_Y - cordic_multipy(cos_val, 52);
+    ex = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 19);
+    ey = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 19);
+    sx = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 1);
+    sy = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 1);
 
+    //tRect rect = {sx, sy, ex, ey};
     GrLineDraw(pContext, sx, sy, ex, ey);
   }
 }
@@ -156,8 +157,8 @@ static void drawFace1(tContext *pContext)
   for(int angle = 0; angle < 359; angle += 6)
   {
     cordic_sincos(angle, 13, &sin_val, &cos_val);
-    x = CENTER_X + ((57 * (sin_val >> 8)) >> 7);
-    y = CENTER_Y - ((57 * (cos_val >> 8)) >> 7);
+    x = CENTER_X + ((69 * (sin_val >> 8)) >> 7);
+    y = CENTER_Y - ((69 * (cos_val >> 8)) >> 7);
 
     if (angle % 30 == 0)
     {
@@ -245,18 +246,18 @@ static void drawHand4(tContext *pContext)
   // hour hand 45
   angle = _hour * 30 + _minute / 2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  mx = CENTER_X + cordic_multipy(sin_val, 35),
-  my = CENTER_Y - cordic_multipy(cos_val, 35),
+  mx = CENTER_X + cordic_multipy(sin_val, 37);
+  my = CENTER_Y - cordic_multipy(cos_val, 37);
 
   angle = angle - 79;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  sx = CENTER_X + cordic_multipy(sin_val, 5),
-  sy = CENTER_Y - cordic_multipy(cos_val, 5),
+  sx = CENTER_X + cordic_multipy(sin_val, 7);
+  sy = CENTER_Y - cordic_multipy(cos_val, 7);
 
   angle = angle + 79*2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  ex = CENTER_X + cordic_multipy(sin_val, 5),
-  ey = CENTER_Y - cordic_multipy(cos_val, 5),
+  ex = CENTER_X + cordic_multipy(sin_val, 7);
+  ey = CENTER_Y - cordic_multipy(cos_val, 7);
   // draw a filled triagle
   GrTriagleFill(pContext, 
     ex, ey,
@@ -266,24 +267,24 @@ static void drawHand4(tContext *pContext)
 
   // draw a black
   GrContextForegroundSet(pContext, ClrBlack);
-  GrCircleFill(pContext, CENTER_X, CENTER_Y, 7);
+  GrCircleFill(pContext, CENTER_X, CENTER_Y, 8);
   GrContextForegroundSet(pContext, ClrWhite);
 
   // minute hand
   angle = _minute * 6+ _sec /10;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  mx = CENTER_X + cordic_multipy(sin_val, 45),
-  my = CENTER_Y - cordic_multipy(cos_val, 45),
+  mx = CENTER_X + cordic_multipy(sin_val, 59);
+  my = CENTER_Y - cordic_multipy(cos_val, 59);
 
   angle = angle - 84;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  sx = CENTER_X + cordic_multipy(sin_val, 5),
-  sy = CENTER_Y - cordic_multipy(cos_val, 5),
+  sx = CENTER_X + cordic_multipy(sin_val, 7);
+  sy = CENTER_Y - cordic_multipy(cos_val, 7);
 
   angle = angle + 84*2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  ex = CENTER_X + cordic_multipy(sin_val, 5),
-  ey = CENTER_Y - cordic_multipy(cos_val, 5),
+  ex = CENTER_X + cordic_multipy(sin_val, 7);
+  ey = CENTER_Y - cordic_multipy(cos_val, 7);
   // draw a filled triagle
   GrTriagleFill(pContext, 
     ex, ey,
@@ -291,7 +292,7 @@ static void drawHand4(tContext *pContext)
     mx, my
     );
 
-  GrCircleFill(pContext, CENTER_X, CENTER_Y, 4);
+  GrCircleFill(pContext, CENTER_X, CENTER_Y, 7);
 }
 
 
@@ -308,18 +309,18 @@ static void drawHand5(tContext *pContext)
   // hour hand 45
   angle = _hour * 30 + _minute / 2;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  mx = CENTER_X + cordic_multipy(sin_val, 35),
-  my = CENTER_Y - cordic_multipy(cos_val, 35),
+  mx = CENTER_X + cordic_multipy(sin_val, 53);
+  my = CENTER_Y - cordic_multipy(cos_val, 53);
 
   angle = angle - 150;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  sx = CENTER_X + cordic_multipy(sin_val, 7),
-  sy = CENTER_Y - cordic_multipy(cos_val, 7),
+  sx = CENTER_X + cordic_multipy(sin_val, 13);
+  sy = CENTER_Y - cordic_multipy(cos_val, 7);
 
   angle = angle + 300;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  ex = CENTER_X + cordic_multipy(sin_val, 7),
-  ey = CENTER_Y - cordic_multipy(cos_val, 7),
+  ex = CENTER_X + cordic_multipy(sin_val, 13);
+  ey = CENTER_Y - cordic_multipy(cos_val, 13);
   // draw a filled triagle
   GrTriagleDraw(pContext, 
     ex, ey,
@@ -330,18 +331,18 @@ static void drawHand5(tContext *pContext)
   // minute hand
   angle = _minute * 6+ _sec /10;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  mx = CENTER_X + cordic_multipy(sin_val, 45),
-  my = CENTER_Y - cordic_multipy(cos_val, 45),
+  mx = CENTER_X + cordic_multipy(sin_val, 65);
+  my = CENTER_Y - cordic_multipy(cos_val, 65);
 
   angle = angle - 150;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  sx = CENTER_X + cordic_multipy(sin_val, 5),
-  sy = CENTER_Y - cordic_multipy(cos_val, 5),
+  sx = CENTER_X + cordic_multipy(sin_val, 12);
+  sy = CENTER_Y - cordic_multipy(cos_val, 12);
 
   angle = angle + 300;
   cordic_sincos(angle, 13, &sin_val, &cos_val);
-  ex = CENTER_X + cordic_multipy(sin_val, 5),
-  ey = CENTER_Y - cordic_multipy(cos_val, 5),
+  ex = CENTER_X + cordic_multipy(sin_val, 12);
+  ey = CENTER_Y - cordic_multipy(cos_val, 12);
   // draw a filled triagle
   GrTriagleDraw(pContext, 
     ex, ey,
