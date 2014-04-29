@@ -320,7 +320,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
           uint8_t ampm;
           adjustAMPM(hour, &hour, &ampm);
           sprintf(alarmtext, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
-          window_messagebox(ICON_LARGE_ALARM, alarmtext, 1);
+          window_messagebox(ICON_LARGE_ALARM, alarmtext, NOTIFY_ALARM);
           break;
         }
       }

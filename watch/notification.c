@@ -327,14 +327,6 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     add_watch_status(WS_NOTIFY);
     return 0x80;
   }
-  case EVENT_WINDOW_ACTIVE:
-  {
-    if ((message_buttons & NOTIFY_ALARM) == NOTIFY_ALARM)
-    {
-      motor_on(50, 0);
-    }
-    break;
-  }
   case EVENT_WINDOW_PAINT:
     {
       onDraw((tContext*)rparam);

@@ -508,12 +508,23 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
       GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 37, 0);
 
-      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      if (messagebox_flags & NOTIFY_ALARM)
+      {
+        GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
+      }
+      else
+      {
+        GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      }
       GrStringDrawWrap(pContext, messagebox_message, 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
 
       if (messagebox_flags & NOTIFY_CONFIRM)
       {
         window_button(pContext, KEY_ENTER | 0x80, "Confirm");
+      }
+      else if (messagebox_flags & NOTIFY_ALARM)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "Dismiss");
       }
       else if (messagebox_flags & NOTIFY_OK)
       {
