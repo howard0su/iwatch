@@ -124,7 +124,7 @@ static void OnDraw(tContext* pContext)
   {
     GrStringDraw(pContext, &icon, 1, 120, 0, 0);
     icon = ICON_CHARGING;
-    GrStringDraw(pContext, &icon, 1, 137, 2, 0);
+    GrStringDraw(pContext, &icon, 1, 137, 0, 0);
   }
   else
   {
