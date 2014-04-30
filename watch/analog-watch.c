@@ -48,13 +48,13 @@ static void drawFace0(tContext *pContext)
   for(int angle = 0; angle < 359; angle +=30)
   {
     cordic_sincos(angle, 13, &sin_val, &cos_val);
-    ex = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 19);
-    ey = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 19);
-    sx = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 1);
-    sy = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 1);
+    ex = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 20);
+    ey = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 20);
+    sx = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 3);
+    sy = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 3);
 
     //tRect rect = {sx, sy, ex, ey};
-    GrLineFill(pContext, sx, sy, ex, ey, 6);
+    GrLineFill(pContext, sx, sy, ex, ey, 5);
   }
 }
 

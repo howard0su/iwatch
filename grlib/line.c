@@ -656,7 +656,7 @@ GrLineFill(const tContext *pContext, long lX1, long lY1, long lX2, long lY2, lon
     long lWStart, lWEnd;
 
     lWEnd = width/2;
-    lWStart = -lWEnd;
+    lWStart = lWEnd - width;
     //
     // Check the arguments.
     //
