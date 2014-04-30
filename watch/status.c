@@ -124,7 +124,7 @@ static void OnDraw(tContext* pContext)
   {
     GrStringDraw(pContext, &icon, 1, 120, 0, 0);
     icon = ICON_CHARGING;
-    GrStringDraw(pContext, &icon, 1, 137, 2, 0);
+    GrStringDraw(pContext, &icon, 1, 137, 0, 0);
   }
   else
   {
@@ -156,14 +156,13 @@ static void OnDraw(tContext* pContext)
     uint16_t steps = ped_get_steps();
     for(int i = 0; i < 5; i++)
     {
-      tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
       if (i * part + part / 2 <= steps)
       {
-        GrRectFill(pContext, &rect);
+        GrCircleFill(pContext, 68 + i*6, 7, 2);
       }
       else
       {
-        GrRectDraw(pContext, &rect);
+        GrCircleDraw(pContext, 68 + i*6, 7, 2);
       }
     }
   }
@@ -176,7 +175,7 @@ static void OnDraw(tContext* pContext)
 
     adjustAMPM(hour, &hour, &ampm);
 
-    sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
+    sprintf(buf, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 8, 0);
   }
@@ -320,7 +319,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
           uint8_t ampm;
           adjustAMPM(hour, &hour, &ampm);
           sprintf(alarmtext, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
-          window_messagebox(ICON_LARGE_ALARM, alarmtext, 1);
+          window_messagebox(ICON_LARGE_ALARM, alarmtext, NOTIFY_ALARM);
           break;
         }
       }
