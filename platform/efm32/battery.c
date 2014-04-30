@@ -9,6 +9,8 @@ uint8_t uartattached = 1;
 #define MSP_OUT		7
 #define MSP_IN		4
 
+extern void __delay_cycles(unsigned long c);
+
 /***************************************************************************//**
 * @brief
 *   Configure ADC usage for this application.
@@ -49,7 +51,7 @@ static void ADCConfig(void)
 static void setoutputfloat()
 {
   	// set high impredence for BAT_OUT
-  	GPIO_PinModeSet(gpioPortD,  MSP_OUT, gpioModeDisabled, 0);  	 
+  	GPIO_PinModeSet(gpioPortD,  MSP_OUT, gpioModeWiredAnd, 0);  	 
  
 }
 
@@ -67,19 +69,44 @@ void battery_init(void)
 
 BATTERY_STATE battery_state(void)
 {
-	return BATTERY_STATE_FULL;
+	setoutputfloat();
+  	__delay_cycles(10);
+  	
+  	if(GPIO_PinInGet(gpioPortD, MSP_IN) !=0)   	
+  	{
+    		uartattached = 0;
+    		return BATTERY_STATE_DISCHARGING;
+  	}
+
+  	uartattached = 1;
+  	setoutputhigh();
+  	__delay_cycles(10);
+  	unsigned int instate = GPIO_PinInGet(gpioPortD, MSP_IN) != 0; // if it is high
+  	setoutputfloat();
+
+  	if (instate)
+    		return BATTERY_STATE_FULL;
+  	else
+    		return BATTERY_STATE_CHARGING;  	
+	
+	
 }
 
 // map battery level to 0-15 scale
-const uint8_t curve[] = 
+static const uint16_t charge_curve[] = 
 {
-  183, 185, 187, 189, 190, 191, 192, 193, 194, 195, 198, 200, 204, 207, 209, 212
+  3038, 3080, 3113, 3131, 3159, 3199, 3251, 3306, 3373, 3447
+};
+
+static const uint16_t discharge_curve[] = 
+{
+  2910, 3011, 3048, 3078, 3109, 3137, 3175, 3233, 3292, 3398
 };
 
 
 uint8_t battery_level(BATTERY_STATE state)
 {
-#if 0
+
   	uint32_t 	sample;
   	uint32_t   	level;	
   	uint8_t 	ret;
@@ -95,14 +122,32 @@ uint8_t battery_level(BATTERY_STATE state)
     	/* Calculate supply voltage relative to 1.25V reference */    	
 	level = (sample * 2500 ) / 4096;    	
 	
-	for(ret = 0; ret< sizeof(curve); ret++)
+	switch(state)
 	{
-		if (level < curve[ret])
-      			return ret - 1;		
-	}
+	case BATTERY_STATE_FULL:
+		return 9;
 	
-	return 15;
-#else 
-	return 14;
-#endif	
+	case BATTERY_STATE_CHARGING:
+	{
+      		for(ret = 1; ret < sizeof(charge_curve); ret++)
+      		{
+        		if (level < charge_curve[ret])
+          		return ret - 1;
+      		}
+
+      		return 9;
+    	}		
+			
+	case BATTERY_STATE_DISCHARGING:
+	{
+      		for(ret = 1; ret < sizeof(discharge_curve); ret++)
+      		{
+        		if (level < discharge_curve[ret])
+          		return ret - 1;
+      		}
+
+      		return 9;    		
+	}	
+	}
+	return 0;
 }

@@ -140,9 +140,7 @@ main(int argc, char **argv)
 */
 	testLCD();
 	
-#ifdef NOTYET
 	battery_init();
-#endif
 
 	button_init();
 
