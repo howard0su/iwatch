@@ -171,6 +171,35 @@ static void drawFace1(tContext *pContext)
   }
 }
 
+static void drawFace5(tContext *pContext)
+{
+  int cos_val, sin_val;
+  uint8_t x, y;
+
+  GrContextFontSet(pContext, &g_sFontNimbus30);
+
+  for(int angle = 60; angle <= 360; angle += 60)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    x = CENTER_X + cordic_multipy(sin_val, 60);
+    y = CENTER_Y - cordic_multipy(cos_val, 60);
+
+    char buf[30];
+    sprintf(buf, "%d", angle/30);
+    GrStringDrawCentered(pContext, buf, -1, x, y, 0);
+  }
+
+  for(int angle = 30; angle <= 360; angle += 60)
+  {
+    cordic_sincos(angle, 13, &sin_val, &cos_val);
+    x = CENTER_X + cordic_multipy(sin_val, 60);
+    y = CENTER_Y - cordic_multipy(cos_val, 60);
+
+    GrCircleFill(pContext, x, y, 3);
+  }
+}
+
+
 // design 3, hand
 static void drawHand0(tContext *pContext)
 {
@@ -354,6 +383,7 @@ struct clock_draw {
   draw_function handDraw;
 }FaceSelections[] =
 {
+  {drawFace5, drawHand4},
   {drawFace0, drawHand4},
   {drawFace1, drawHand5},
   {drawFace3, drawHand2},
