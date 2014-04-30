@@ -54,7 +54,7 @@ static void drawFace0(tContext *pContext)
     sy = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 1);
 
     //tRect rect = {sx, sy, ex, ey};
-    GrLineFill(pContext, sx, sy, ex, ey, 3);
+    GrLineFill(pContext, sx, sy, ex, ey, 6);
   }
 }
 

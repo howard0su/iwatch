@@ -147,12 +147,12 @@ static void drawClock3(tContext *pContext)
 
   buffer = toEnglish(hour, buf);
   tRectangle rect = {5, 32, LCD_X_SIZE - 5, 80};
-  GrRectFillRound(pContext, &rect, 8);
+  GrRectFill(pContext, &rect);
   GrContextForegroundSet(pContext, ClrBlack);
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE/ 2, 56, 0);
   GrContextForegroundSet(pContext, ClrWhite);
   
-  GrContextFontSet(pContext, &g_sFontGothic18);
+  GrContextFontSet(pContext, &g_sFontGothic24b);
   buffer = toEnglish(_minute, buf);
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE / 2, 95, 0);
 
