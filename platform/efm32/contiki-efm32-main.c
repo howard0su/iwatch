@@ -146,9 +146,8 @@ main(int argc, char **argv)
 
 	button_init();
 
-#ifdef NOTYET
 	rtc_init();
-#endif
+
 	SPI_FLASH_Init();
 #ifdef UNUSED	
 	//Test SPI flash Read / Write
