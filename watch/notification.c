@@ -58,7 +58,7 @@ static void onDrawTitleBar(tContext *pContext)
 
   long startx = LCD_X_SIZE/2 - num_uids * 4;
 
-  for(int i = 0; i < num_uids; i++)
+  for(int i = 0; i <= num_uids; i++)
   {
     if (i == selectidx)
       GrCircleFill(pContext, startx + i * 10, 4, 3);
