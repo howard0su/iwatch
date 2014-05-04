@@ -43,6 +43,7 @@
 #include "contiki.h"
 #include "dev/watchdog.h"
 
+#define EFM32_SWO_ENABLE
 
 /***************************************************************************//**
  * @addtogroup SysTick_clock_source
@@ -51,13 +52,11 @@
 #define SysTick_CLKSource_MASK          	((uint32_t)0x00000004)
 #define SysTick_CLKSource_RTC		    	((uint32_t)0x00000000)
 #define SysTick_CLKSource_HFCORECLK		((uint32_t)0x00000004)
-#define IS_SYSTICK_CLK_SOURCE(SOURCE)		(((SOURCE) == SysTick_CLKSource_RTC) || \					
+#define IS_SYSTICK_CLK_SOURCE(SOURCE)		(((SOURCE) == SysTick_CLKSource_RTC) || \
 						((SOURCE) == SysTick_CLKSource_HFCORECLK))
 
-//static volatile clock_time_t msTicks=0;						
 static volatile clock_time_t count=0;
 
-static unsigned int second_countdown = CLOCK_SECOND;										
 static volatile unsigned long seconds;
 
 #define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)										
@@ -121,6 +120,7 @@ static void  SysTick_Configuration(void)
 
 void SysTick_Handler(void)
 {
+  	ENERGEST_ON(ENERGEST_TYPE_IRQ);
     	count++;
     	
     	if(count % CLOCK_CONF_SECOND == 0) 
@@ -141,7 +141,7 @@ void SysTick_Handler(void)
   	}  
   	
   	ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-  	
+
 }
 
 /***************************************************************************//**
@@ -159,19 +159,21 @@ void Swo_Configuration(void)
 	uint32_t *dwt_ctrl = (uint32_t *) 0xE0001000;
 	uint32_t *tpiu_prescaler = (uint32_t *) 0xE0040010;
 	uint32_t *tpiu_protocol = (uint32_t *) 0xE00400F0;
+	uint32_t *tpiu_ffcr = (uint32_t *) 0xE0040304;
 
-    	CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;
-    	/* Enable Serial wire output pin */
-    	GPIO->ROUTE |= GPIO_ROUTE_SWOPEN;
+
+	CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;
+	/* Enable Serial wire output pin */
+	GPIO->ROUTE |= GPIO_ROUTE_SWOPEN;
 #if defined(_EFM32_GIANT_FAMILY)
-    	/* Set location 0 */
-    	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC0;
+	/* Set location 0 */
+	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC0;
 
 	/* Enable output on pin - GPIO Port F, Pin 2 */
 	GPIO->P[5].MODEL &= ~(_GPIO_P_MODEL_MODE2_MASK);
 	GPIO->P[5].MODEL |= GPIO_P_MODEL_MODE2_PUSHPULL;
 #else
-	/* Set location 1 */
+	/* Set location1 */
 	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC1;
 	/* Enable output on pin */
 	GPIO->P[2].MODEH &= ~(_GPIO_P_MODEH_MODE15_MASK);
@@ -186,17 +188,41 @@ void Swo_Configuration(void)
 	CoreDebug->DHCSR |= 1;
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 	
+	/* Enable trace in core debug */
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	ITM->LAR  = 0xC5ACCE55;
+	ITM->TER  = 0x0;
+	ITM->TCR  = 0x0;
+	TPI->SPPR = 2;
+	TPI->ACPR = 0xf;
+	ITM->TPR  = 0x0;
+	DWT->CTRL = 0x400113FF;
+	ITM->TCR  = 0x0001000D;
+	TPI->FFCR = 0x00000100;
+	ITM->TER  = 0x3;
+#if 0
 	/* Enable PC and IRQ sampling output */
 	*dwt_ctrl = 0x400113FF;
-	/* Set TPIU prescaler to 16. */
-	*tpiu_prescaler = 0xf;
+	/* Set TPIU prescaler to 8.  48Mhz/6Mhz = 8*/
+	*tpiu_prescaler = 51;
+	
 	/* Set protocol to NRZ */
 	*tpiu_protocol = 2;
+	*tpiu_ffcr = 0x100;
+
 	/* Unlock ITM and output data */
 	ITM->LAR = 0xC5ACCE55;
 	ITM->TCR = 0x10009;
+
+  	/* ITM Channel 0 is used for UART output */
+  	ITM->TER |= (1UL << 0);
+  
+  	/* ITM Channel 1 is used for a custom debug output in this example. */
+  	ITM->TER |= (1UL << 1);  
+  	#endif
 }		
 #endif
+
 clock_time_t clock_time(void)
 {
 	return count;
@@ -220,41 +246,38 @@ clock_fine(void)
 
 void clock_init(void)
 {
-
 #if defined(EFM32_USING_HFXO)
-        /* Configure external oscillator */
-        SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
+    /* Configure external oscillator */
+    SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
 
-        /* Switching the CPU clock source to HFXO */
-        CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    /* Switching the CPU clock source to HFXO */
+    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
-        /* Turning off the high frequency RC Oscillator (HFRCO) */
-        CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
+    /* Turning off the high frequency RC Oscillator (HFRCO) */
+    CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
 #endif
 
-    CMU_ClockSelectSet(cmuClock_LFA,cmuSelect_LFXO);
+    CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
     CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
 #if defined(EFM32_SWO_ENABLE)
-        /* Enable SWO */
-        Swo_Configuration();
+    /* Enable SWO */
+    Swo_Configuration();
 #endif
 
 
-        /* Enable high frequency peripheral clock */
-        CMU_ClockEnable(cmuClock_HFPER, true);
-        /* Enabling clock to the interface of the low energy modules */
-        CMU_ClockEnable(cmuClock_CORELE, true);
-        /* Enable clock for TIMER0 module */
+    /* Enable high frequency peripheral clock */
+    CMU_ClockEnable(cmuClock_HFPER, true);
+    /* Enabling clock to the interface of the low energy modules */
+    CMU_ClockEnable(cmuClock_CORELE, true);
+    /* Enable clock for TIMER0 module */
   	CMU_ClockEnable(cmuClock_TIMER0, true);
-        /* Enable GPIO clock */
-        CMU_ClockEnable(cmuClock_GPIO, true);
+    /* Enable GPIO clock */
+    CMU_ClockEnable(cmuClock_GPIO, true);
 
-        /* Configure the SysTick */
-        SysTick_Configuration();
-
-	
-}	
+    /* Configure the SysTick */
+    SysTick_Configuration();	
+}
 
 
 /*********************************************************************************************
@@ -303,5 +326,6 @@ unsigned long clock_seconds(void)
 
 rtimer_clock_t clock_counter(void)
 {
+	return count;
 }
 
