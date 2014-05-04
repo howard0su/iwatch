@@ -135,37 +135,17 @@ main(int argc, char **argv)
 	ENERGEST_ON(ENERGEST_TYPE_CPU);
 	
 	backlight_init();
-/*	
+
 	window_init(0);
-*/
-	testLCD();
-	
+
 	battery_init();
 
 	button_init();
 
-	rtc_init();
+//	rtc_init();
 
 	SPI_FLASH_Init();
-#ifdef UNUSED	
-	//Test SPI flash Read / Write
-	printf("SPI init done \n");
-	
-	SPI_FLASH_BufferRead(spi_data, 0x10, 8);
-	printf("SPI data = 0x%x 0x%x 0x%x 0x%x\n", spi_data[0],spi_data[1],spi_data[2],spi_data[3]);
-	if( (spi_data[0] != 0xaa) || (spi_data[1] != 0x55) )
-	{
-		printf("SPI data incorrect\n");
-		SPI_FLASH_SectorErase(0x00, 4096UL);
-		spi_data[0] = 0xaa;
-		spi_data[1] = 0x55;
-		for(i=2;i<8;i++)
-			spi_data[i] = i*2;
-		SPI_FLASH_BufferWrite(spi_data, 0x10, 8);			
-	}	
-	else
-		printf("SPI DATA Correct\n");	
-#endif		
+
 #ifdef NOTYET
 	CFSFontWrapperLoad();
 #endif	
