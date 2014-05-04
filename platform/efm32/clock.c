@@ -156,12 +156,6 @@ void SysTick_Handler(void)
 #if defined(EFM32_SWO_ENABLE)
 void Swo_Configuration(void)
 {
-	uint32_t *dwt_ctrl = (uint32_t *) 0xE0001000;
-	uint32_t *tpiu_prescaler = (uint32_t *) 0xE0040010;
-	uint32_t *tpiu_protocol = (uint32_t *) 0xE00400F0;
-	uint32_t *tpiu_ffcr = (uint32_t *) 0xE0040304;
-
-
 	CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;
 	/* Enable Serial wire output pin */
 	GPIO->ROUTE |= GPIO_ROUTE_SWOPEN;
@@ -200,26 +194,6 @@ void Swo_Configuration(void)
 	ITM->TCR  = 0x0001000D;
 	TPI->FFCR = 0x00000100;
 	ITM->TER  = 0x3;
-#if 0
-	/* Enable PC and IRQ sampling output */
-	*dwt_ctrl = 0x400113FF;
-	/* Set TPIU prescaler to 8.  48Mhz/6Mhz = 8*/
-	*tpiu_prescaler = 51;
-	
-	/* Set protocol to NRZ */
-	*tpiu_protocol = 2;
-	*tpiu_ffcr = 0x100;
-
-	/* Unlock ITM and output data */
-	ITM->LAR = 0xC5ACCE55;
-	ITM->TCR = 0x10009;
-
-  	/* ITM Channel 0 is used for UART output */
-  	ITM->TER |= (1UL << 0);
-  
-  	/* ITM Channel 1 is used for a custom debug output in this example. */
-  	ITM->TER |= (1UL << 1);  
-  	#endif
 }		
 #endif
 
