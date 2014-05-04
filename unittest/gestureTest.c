@@ -521,7 +521,7 @@ void TestGesture(CuTest* tc)
 
 CuSuite* GestureGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("Gesture Test");
+	CuSuite* suite = CuSuiteNew("gesture");
 
   SUITE_ADD_TEST(suite, TestGesture);
 

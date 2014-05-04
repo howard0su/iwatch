@@ -807,7 +807,9 @@ void TestNotification(CuTest *tc)
 
 CuSuite* WindowGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("Window Test");
+	CuSuite* suite = CuSuiteNew("ui");
+  rtc_init();
+
  
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);

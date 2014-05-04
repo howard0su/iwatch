@@ -299,7 +299,7 @@ static void TestBleFirmwareVersion(CuTest* tc)
 
 CuSuite* BleHandlerTestGetSuite(void)
 {
-    CuSuite* suite = CuSuiteNew("BLE Handler Test");
+    CuSuite* suite = CuSuiteNew("ble");
     SUITE_ADD_TEST(suite, TestBleFile);
     SUITE_ADD_TEST(suite, TestBleSportsDataFile);
     SUITE_ADD_TEST(suite, TestBleFile2);

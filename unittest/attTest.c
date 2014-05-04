@@ -19,7 +19,7 @@ void testatt(CuTest* tc)
 
 CuSuite* AttTestGetSuite(void)
 {
-  CuSuite* suite = CuSuiteNew("cfs Test");
+  CuSuite* suite = CuSuiteNew("att");
 
   SUITE_ADD_TEST(suite, testatt);
 
