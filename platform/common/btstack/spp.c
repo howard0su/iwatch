@@ -194,7 +194,7 @@ static void sdp_create_spp_service(uint8_t *service, int service_id, const char 
 }
 */
 
-void spp_init()
+void spp_init(void)
 {
   memset(&spp_service_record, 0, sizeof(spp_service_record));
   spp_service_record.service_record = (uint8_t*)&spp_service_buffer[0];

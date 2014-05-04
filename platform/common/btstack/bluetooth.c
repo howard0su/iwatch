@@ -40,10 +40,11 @@
 
 #include "bluetooth.h"
 
-extern void deviceid_init();
-extern void spp_init();
+extern void ble_init(void);
+extern void deviceid_init(void);
+extern void spp_init(void);
 extern void sdpc_open(const bd_addr_t remote_addr);
-extern void ant_shutdown();
+extern void ant_shutdown(void);
 extern void ble_advertise(uint8_t onoff);
 
 //static bd_addr_t currentbd;
