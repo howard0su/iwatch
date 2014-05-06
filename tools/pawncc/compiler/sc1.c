@@ -65,7 +65,7 @@
 
 #include "lstring.h"
 #include "sc.h"
-#if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__
+#if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__ || defined MACOS
   #include <sclinux.h>
   #include <binreloc.h> /* from BinReloc, see www.autopackage.org */
 #endif
