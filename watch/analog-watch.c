@@ -87,20 +87,22 @@ static void drawFace6(tContext *pContext)
 {
   int cos_val, sin_val;
   uint8_t x, y;
-  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 62);
-  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 63);
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 65);
+  GrCircleDraw(pContext, CENTER_X, CENTER_Y, 66);
 
   for(int angle = 0; angle < 359; angle += 30)
   {
     cordic_sincos(angle, 13, &sin_val, &cos_val);
-    x = CENTER_X + ((57 * (sin_val >> 8)) >> 7);
-    y = CENTER_Y - ((57 * (cos_val >> 8)) >> 7);
+    x = CENTER_X + cordic_multipy(sin_val, 60);
+    y = CENTER_Y - cordic_multipy(cos_val, 60);
 
+#if 0
     if (angle % 90 == 0)
     {
       GrCircleFill(pContext, x, y, 4);
     }
     else
+#endif
     {
       GrCircleFill(pContext, x, y, 2);
     }
@@ -117,8 +119,8 @@ static void drawFace7(tContext *pContext)
   for(int angle = 0; angle < 359; angle += 6)
   {
     cordic_sincos(angle, 13, &sin_val, &cos_val);
-    x = CENTER_X + ((57 * (sin_val >> 8)) >> 7);
-    y = CENTER_Y - ((57 * (cos_val >> 8)) >> 7);
+    x = CENTER_X + cordic_multipy(sin_val, 57);
+    y = CENTER_Y - cordic_multipy(cos_val, 57);
 
     GrCircleFill(pContext, x, y, 1);
   }
@@ -221,7 +223,7 @@ static void drawHand0(tContext *pContext)
   x = CENTER_X + ((HOUR_HAND_LEN * (sin_val >> 8)) >> 7);
   y = CENTER_Y - ((HOUR_HAND_LEN * (cos_val >> 8)) >> 7);
   GrContextForegroundSet(pContext, ClrWhite);
-  GrLineDraw(pContext, CENTER_X, CENTER_Y,  x, y);
+  GrLineFill(pContext, CENTER_X, CENTER_Y,  x, y, 2);
 }
 
 static void drawHand1(tContext *pContext)
@@ -384,12 +386,14 @@ struct clock_draw {
 }FaceSelections[] =
 {
   {drawFace5, drawHand4},
+  {drawFace5, drawHand5},
+  {drawFace5, drawHand0},
   {drawFace0, drawHand4},
-  {drawFace1, drawHand5},
-  {drawFace3, drawHand2},
-  {drawFace4, drawHand0},
-  {drawFace6, drawHand1},
-  {drawFace7, drawHand2},
+  {drawFace0, drawHand5},
+  {drawFace0, drawHand0},
+  {drawFace6, drawHand4},
+  {drawFace6, drawHand5},
+  {drawFace6, drawHand0},
 };
 
 uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
@@ -401,6 +405,9 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
       selection = window_readconfig()->analog_clock;
     else
       selection = (uint8_t)rparam - 0x1;
+    if (selection > sizeof(FaceSelections)/sizeof(struct clock_draw) - 1)
+      selection = sizeof(FaceSelections)/sizeof(struct clock_draw) - 1;
+
     rtc_enablechange(MINUTE_CHANGE);
 
     return 0x80;

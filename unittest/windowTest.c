@@ -691,7 +691,7 @@ void TestWindows(CuTest *tc)
 
   //test_window(&menu_process, 1);
 
-  for (int i = 1; i <= 6; ++i)
+  for (int i = 0; i < 10; ++i)
     {
       test_window(&analogclock_process, (void*)i);
     }
