@@ -58,7 +58,7 @@ static void onDrawTitleBar(tContext *pContext)
 
   long startx = LCD_X_SIZE/2 - num_uids * 4;
 
-  for(int i = 0; i <= num_uids; i++)
+  for(int i = 0; i < num_uids; i++)
   {
     if (i == selectidx)
       GrCircleFill(pContext, startx + i * 10, 4, 3);
@@ -181,10 +181,10 @@ static void onDraw(tContext *pContext)
 
 static void push_uid(uint32_t id, uint32_t attribute)
 {
-  if (num_uids < MAX_NOTIFY - 1)
+  if (num_uids <= MAX_NOTIFY - 1)
     num_uids++;
 
-  for(int i = num_uids; i >= 0; i--)
+  for(int i = num_uids - 1; i >= 0; i--)
   {
     uids[i] = uids[i - 1];
     attributes[i] = attributes[i - 1];
