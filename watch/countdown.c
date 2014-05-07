@@ -133,7 +133,10 @@ static void OnDraw(tContext *pContext)
 
       // display progress bar
       if (totaltime != lefttime)
+      {
+        GrContextForegroundSet(pContext, ClrWhite);
         OnDrawProgress(pContext);
+      }
 
       break;      
     }
@@ -144,6 +147,7 @@ static void OnDraw(tContext *pContext)
       window_button(pContext, KEY_ENTER, "STOP");
 
       // display progress bar
+      GrContextForegroundSet(pContext, ClrWhite);
       OnDrawProgress(pContext);
 
       break;
