@@ -212,25 +212,20 @@ void setup_SPI_DMA(void)
 }
 
 #ifdef SPIDMA 	
-static void SPISend(uint8_t op, uint16_t start , const void* d, unsigned int linenums)
+static void SPISend(const void* d, unsigned int linenums)
 {
 	/* Enable chip select */
   	GPIO_PinOutSet( gpioPortB, LCD_SCS);
   	
   	DMA->RECT0 = (DMA->RECT0 & ~_DMA_RECT0_HEIGHT_MASK) | linenums;
   	
-  	/* Create update command and address of first line */
-  	uint16_t cmd = op | (start << 8); 
-	/* Send the update command */
-  	USART_TxDouble(USART2, cmd);
-  	
   	/* Start the transfer */
   	DMA_ActivateBasic(DMA_CHN_LCD_TX,
                     	true,                               	/* Use primary channel */
                     	false,                              	/* No burst */
                     	(void *)&(USART2->TXDOUBLE),   		/* Write to USART */
-                    	(void *)(d+2),                       	/* Start address */
-                    	FRAME_BUFFER_WIDTH/16 - 1);           	/* Width -1 */    	
+                    	(void *)(d),                       	/* Start address */
+                    	FRAME_BUFFER_WIDTH/16);           	/* Width -1 */    	
 
   	state = STATE_NONE;
   	if (data.start != 0xff)
@@ -239,13 +234,13 @@ static void SPISend(uint8_t op, uint16_t start , const void* d, unsigned int lin
   	}                    			
 }
 #else
-static void SPISend(uint8_t op, uint16_t start , const void* d, unsigned int linenums)
+static void SPISend(const void* d, unsigned int linenums)
 {
 	/* Enable chip select */
   GPIO_PinOutSet( gpioPortB, LCD_SCS);	
 
 	uint16_t* cmd = (uint16_t*)d;
-  uint16_t* end = (uint16_t*)((char*)d + (linenums * sizeof(linebuf) + 2));
+  uint16_t* end = (uint16_t*)((char*)d + (linenums + 1) * sizeof(linebuf) + 2));
 	for(;cmd < end; cmd++)
 	{
 		USART_TxDouble( USART2, *cmd );
@@ -393,7 +388,7 @@ PROCESS_THREAD(lcd_process, ev, d)
        			// if there is an update?
 			if (data.start != 0xff)
 			{
-				SPISend(MLCD_WR, lines[data.start].linenum, &lines[data.start], data.end - data.start);				
+				SPISend(&lines[data.start], data.end - data.start);				
 				dint();			        	
 				data.start = 0xff;
 				eint();
@@ -412,7 +407,7 @@ PROCESS_THREAD(lcd_process, ev, d)
     		{
 			if (state == STATE_NONE)
 			{
-				SPISend(MLCD_WR, lines[data.start].linenum, &lines[data.start], data.end - data.start);				
+				SPISend(&lines[data.start], data.end - data.start);				
 				dint();	
 				data.start = 0xff;
 				eint();
@@ -437,43 +432,5 @@ PROCESS_THREAD(lcd_process, ev, d)
 
 void flushlcdsync()
 {
-#ifdef W002	
-	SPISend(MLCD_WR, lines[0].linenum, &lines[0], 148);
-#else
-	SPISend(MLCD_WR, lines[0].linenum, &lines[0], 108);
-#endif	
-#ifdef UNUSED
-  	SPISend(&lines[0], (148 + 1) * sizeof(struct _linebuf) + 2);
-#endif  	
+  	SPISend(&lines[0], (LCD_X_SIZE + 1) * sizeof(linebuf) + 2);
 }
-
-#if 1
-void testLCD()
-{
-	int i,j;
-	static tContext context;	
-	memlcd_DriverInit();
-	memlcd_Clear();
-	for(i = 0; i < LCD_Y_SIZE; i++)
-	{
-#ifdef W002
-		for(j=0;j<18;j++)
-#else
-		for(j=0;j<16;j++)
-#endif		
-			lines[i].pixels[j] = 0xf0;
-	}
-	
-	SPISend(MLCD_WR, lines[20].linenum, &lines[20], 50);
-#ifdef UNUSED	
-  	GrContextInit(&context, &g_memlcd_Driver); 	  	
-	//pContext = &context;
-	GrContextForegroundSet(&context, ClrWhite);
-  	GrContextBackgroundSet(&context, ClrBlack);
-  	const tRectangle rect = {0, 27, 255, 41};
-  	GrRectFill(&context, &rect);
-	
-	GrFlush(&context);
-#endif	
-}
-#endif
