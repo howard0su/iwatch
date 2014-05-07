@@ -9,12 +9,6 @@
 
 static const tFont* fonts[] =
 {
- &g_sFontDriod28b,
- &g_sFontGothamblack30,
- &g_sFontGothambold42,
- &g_sFontGothamlight42,
-(tFont*)&g_sFontExGothammedium32,
-(tFont*)&g_sFontExGothammedium42,
  &g_sFontGothic14,
  &g_sFontGothic18,
  &g_sFontGothic18b,
@@ -24,7 +18,6 @@ static const tFont* fonts[] =
 (tFont*)&g_sFontExIcon16,
 (tFont*)&g_sFontExIcon32,
 (tFont*)&g_sFontExIcon48,
- &g_sFontRobotocondensed18b,
  &g_sFontNimbus30,
  &g_sFontNimbus34,
 (tFont*)&g_sFontExNimbus38,
@@ -63,7 +56,8 @@ static cell AMX_NATIVE_CALL n_setfont(AMX *amx, const cell *params)
 
   if (font < sizeof(fonts)/sizeof(tFont*))
     GrContextFontSet(context, fonts[font]);
-
+  else
+    GrContextFontSet(context, fonts[0]);
   return 0;
 }
 

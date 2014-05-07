@@ -18,13 +18,7 @@ const color:
 }
 
 const fonts: {
- FontDriod28b = 0,
- FontGothamblack30,
- FontGothambold42,
- FontGothamlight42,
- FontExGothammedium32,
- FontExGothammedium42,
- FontGothic14,
+ FontGothic14 = 0,
  FontGothic18,
  FontGothic18b,
  FontGothic24b,
@@ -33,7 +27,6 @@ const fonts: {
  FontExIcon16,
  FontExIcon32,
  FontExIcon48,
- FontRobotocondensed18b,
  FontNimbus30,
  FontNimbus34,
  FontExNimbus38,

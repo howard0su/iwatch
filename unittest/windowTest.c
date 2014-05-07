@@ -19,12 +19,6 @@
 static const tFont *fonts[] =
 {
 (const tFont*)&g_sFontUnicode,
-&g_sFontDriod28b,
-&g_sFontGothamblack30,
-&g_sFontGothambold42,
-&g_sFontGothamlight42,
-(const tFont*)&g_sFontExGothammedium32,
-(const tFont*)&g_sFontExGothammedium42,
 //&g_sFontGothic14,
 //&g_sFontGothic14b,
 &g_sFontGothic18,
@@ -36,7 +30,6 @@ static const tFont *fonts[] =
 (const tFont*)&g_sFontExIcon16,
 (const tFont*)&g_sFontExIcon32,
 (const tFont*)&g_sFontExIcon48,
-&g_sFontRobotocondensed18b,
  NULL
 };
 
