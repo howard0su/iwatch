@@ -161,7 +161,7 @@ void handle_get_activity()
         log_info("handle_get_activity() no valid data\n");
         return;
     }
-    log_info("handle_get_activity() return $s\n", fn);
+    log_info("handle_get_activity() return %s\n", fn);
 
     transfer_file(fn);
 }

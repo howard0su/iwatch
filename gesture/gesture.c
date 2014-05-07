@@ -73,7 +73,7 @@ void gesture_init(int8_t _recording, uint8_t leftorright)
   if (!distances)
     return;
 
-  memset(distances, 0, sizeof(distances));
+  memset(distances, 0, NUM_GESTURES * MAX_GESTURES * 2);
   memset(data, 0, sizeof(data));
   datap = 0;
   count = 0;
