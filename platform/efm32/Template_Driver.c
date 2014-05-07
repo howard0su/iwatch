@@ -47,14 +47,14 @@
 #else
 #warning "NO USART INPUT RXPRS and TRIGCTL AUTOTXTEX"
 #endif
-   
+
 //#include "power.h"
 
 #define MLCD_WR 0x01					// MLCD write line command
 #define MLCD_CM 0x04					// MLCD clear memory command
 #define MLCD_SM 0x00					// MLCD static mode command
 #define MLCD_VCOM 0x02					// MLCD VCOM bit
- 
+
 #define DEBUG 1
 #if DEBUG
 #include <stdio.h>
@@ -72,11 +72,11 @@
 #define SPIDMA
 */
 #ifdef W002
-  #define FRAME_BUFFER_WIDTH 	160  
+  #define FRAME_BUFFER_WIDTH 	160
   #define FRAME_BUFFER_STRIDE  	160
   #define FRAME_LINEBYTES	10
 #else
-  #define FRAME_BUFFER_WIDTH 	144  
+  #define FRAME_BUFFER_WIDTH 	144
   #define FRAME_BUFFER_STRIDE 	144
   #define FRAME_LINEBYTES	9
 #endif
@@ -108,21 +108,21 @@ static void SPIInit()
 
   	USART_InitSync_TypeDef usartInit = USART_INITSYNC_DEFAULT;
    	TIMER_Init_TypeDef timerInit     = TIMER_INIT_DEFAULT;
-   	
+
    	/* Setup clocks */
-   	CMU_ClockEnable( cmuClock_GPIO, true );   	
+   	CMU_ClockEnable( cmuClock_GPIO, true );
    	CMU_ClockEnable( cmuClock_USART2, true );
 
-	/* Pin PB3 is configure to Push-pull as LCD_TX. To avoid false start, configure output as high  */	
-  	GPIO_PinModeSet(gpioPortB, LCD_OUT, gpioModePushPull, 0);  	
+	/* Pin PB3 is configure to Push-pull as LCD_TX. To avoid false start, configure output as high  */
+  	GPIO_PinModeSet(gpioPortB, LCD_OUT, gpioModePushPull, 0);
   	/* Pin PB5 is configured to Input enabled as LCD_SCLK */
-  	GPIO_PinModeSet(gpioPortB, LCD_SCLK, gpioModePushPull, 0);  	
-  	/* Pin PB6 is configure to Push-pull as LCD_SCS. To avoid false start, configure output as low(IN LCD, LCD_SCSis high chip-select)  */	
-  	GPIO_PinModeSet(gpioPortB, LCD_SCS, gpioModePushPull, 0);  	
-  	
+  	GPIO_PinModeSet(gpioPortB, LCD_SCLK, gpioModePushPull, 0);
+  	/* Pin PB6 is configure to Push-pull as LCD_SCS. To avoid false start, configure output as low(IN LCD, LCD_SCSis high chip-select)  */
+  	GPIO_PinModeSet(gpioPortB, LCD_SCS, gpioModePushPull, 0);
+
   	/* Setup USART */
     	USART_InitSync_TypeDef init = USART_INITSYNC_DEFAULT;
-    
+
     	init.baudrate     = 1000000;
 //    	init.databits     = usartDatabits8;
     	init.databits     = usartDatabits16;
@@ -131,7 +131,7 @@ static void SPIInit()
     	init.clockMode    = usartClockMode0;
     	init.prsRxEnable  = 0;
     	init.autoTx       = 0;
-    
+
     	USART_InitSync(USART2, &init);
     	USART2->ROUTE = (USART_ROUTE_CLKPEN | USART_ROUTE_TXPEN | USART_ROUTE_LOCATION_LOC1);
 }
@@ -141,7 +141,7 @@ void LCDTxTransferComplete(unsigned int channel, bool primary, void *user)
 	/*Set LCD SPI CS be low (unselected)*/
 	printf("lcd tx done\n");
 	GPIO_PortOutClear(gpioPortB, LCD_SCS);
-  	
+
   	state = STATE_NONE;
   	if (data.start != 0xff)
   	{
@@ -155,89 +155,89 @@ void setup_SPI_DMA(void)
 
 	DMA_CfgChannel_TypeDef   channelConfig;
 	DMA_CfgDescr_TypeDef     descriptorConfig;
-	
-		/* Setting callback function */  
+
+		/* Setting callback function */
 	dmaCallback.cbFunc = LCDTxTransferComplete;
 	dmaCallback.userPtr = NULL;
-	
+
 	/* Setting up channel */
 	channelConfig.highPri   = false;                /* No high priority */
 	channelConfig.enableInt = true;                 /* Enable interrupt */
-	
-	channelConfig.select = DMAREQ_USART2_TXBL; 
-	
+
+	channelConfig.select = DMAREQ_USART2_TXBL;
+
 	channelConfig.cb        = &dmaCallback;         /* Callback routine */
-#ifdef SPIDMA  	
+#ifdef SPIDMA
   	DMA_CfgChannel(DMA_CHN_LCD_TX, &channelConfig);
-  	
+
   	/* Configure descriptor */
   	descriptorConfig.dstInc   = dmaDataIncNone;     /* Do not increase destination */
   	descriptorConfig.srcInc   = dmaDataInc2;        /* Increase source by 2 bytes */
   	descriptorConfig.size     = dmaDataSize2;       /* Element size is 2 bytes */
   	descriptorConfig.arbRate  = dmaArbitrate1;      /* Arbiratrate after each transfer */
   	descriptorConfig.hprot    = 0;                  /* Non-privileged access */
-  	
+
   	/* Configure the LOOP0 register for 2D copy */
   	DMA_CfgLoop_TypeDef loopConfig;
   	loopConfig.enable = false;
   	loopConfig.nMinus1 = FRAME_BUFFER_WIDTH/16-1;  /* Number of elements (-1) to transfer */
   	DMA_CfgLoop(DMA_CHN_LCD_TX, &loopConfig);
-  	
+
   	/* Configure the RECT0 register for 2D copy */
   	DMA_CfgRect_TypeDef rectConfig;
   	rectConfig.dstStride = 0;
   	rectConfig.srcStride = FRAME_BUFFER_STRIDE / 8; /* Width of the total frame buffer, in bytes */
 #ifdef W002
     	rectConfig.height = 168;
-#else    	
+#else
 	rectConfig.height = 128;
-#endif	
+#endif
   	DMA_CfgRect(DMA_CHN_LCD_TX, &rectConfig);
-  
+
   	/* Create the descriptor */
-  	DMA_CfgDescr(DMA_CHN_LCD_TX, true, &descriptorConfig);   	  	  	
+  	DMA_CfgDescr(DMA_CHN_LCD_TX, true, &descriptorConfig);
 #else
 	DMA_CfgChannel(DMA_CHN_LCD_TX, &channelConfig);
-	
+
 	/* Configure descriptor */
 	descriptorConfig.dstInc   = dmaDataIncNone;     /* Do not increase destination */
 	descriptorConfig.srcInc   = dmaDataInc1;        /* Increase source by 2 bytes */
 	descriptorConfig.size     = dmaDataSize1;       /* Element size is 2 bytes */
 	descriptorConfig.arbRate  = dmaArbitrate1;      /* Arbiratrate after each transfer */
 	descriptorConfig.hprot    = 0;                  /* Non-privileged access */
-	 
+
 	/* Create the descriptor */
-	DMA_CfgDescr(DMA_CHN_LCD_TX, true, &descriptorConfig);   	  	  	
-#endif  	
+	DMA_CfgDescr(DMA_CHN_LCD_TX, true, &descriptorConfig);
+#endif
 }
 
-#ifdef SPIDMA 	
+#ifdef SPIDMA
 static void SPISend(const void* d, unsigned int linenums)
 {
 	/* Enable chip select */
   	GPIO_PinOutSet( gpioPortB, LCD_SCS);
-  	
+
   	DMA->RECT0 = (DMA->RECT0 & ~_DMA_RECT0_HEIGHT_MASK) | linenums;
-  	
+
   	/* Start the transfer */
   	DMA_ActivateBasic(DMA_CHN_LCD_TX,
                     	true,                               	/* Use primary channel */
                     	false,                              	/* No burst */
                     	(void *)&(USART2->TXDOUBLE),   		/* Write to USART */
                     	(void *)(d),                       	/* Start address */
-                    	FRAME_BUFFER_WIDTH/16);           	/* Width -1 */    	
+                    	FRAME_BUFFER_WIDTH/16);           	/* Width -1 */
 
   	state = STATE_NONE;
   	if (data.start != 0xff)
   	{
       		process_poll(&lcd_process);
-  	}                    			
+  	}
 }
 #else
 static void SPISend(const void* d, unsigned int linenums)
 {
 	/* Enable chip select */
-  GPIO_PinOutSet( gpioPortB, LCD_SCS);	
+  GPIO_PinOutSet( gpioPortB, LCD_SCS);
 
 	uint16_t* cmd = (uint16_t*)d;
   uint16_t* end = (uint16_t*)((char*)d + (linenums + 1) * sizeof(linebuf) + 2));
@@ -247,17 +247,17 @@ static void SPISend(const void* d, unsigned int linenums)
 		/* Wait for transfer to finish */
 		while ( !(USART2->STATUS & USART_STATUS_TXC) );
 	}
-	
+
   	/* SCS hold time: min 2us */
-  	clock_delay(1);     
+  	clock_delay(1);
   	/* Clear SCS */
-  	GPIO_PinOutClear( gpioPortB, LCD_SCS );  	  	  	  	
-	
+  	GPIO_PinOutClear( gpioPortB, LCD_SCS );
+
 	state = STATE_NONE;
 	if (data.start != 0xff)
 	{
     		process_poll(&lcd_process);
-	}  	
+	}
 }
 #endif
 
@@ -273,10 +273,10 @@ void memlcd_DriverInit(void)
   memlcd_InitScreen();
 
 	SPIInit();
-	
+
 	/*SET LCD_EXTCOMIN pin*/
 	GPIO_PinModeSet(gpioPortC,4,gpioModePushPull,0);
-  	
+
   /* enable disply*/
   GPIO_PinModeSet(gpioPortA,4,gpioModePushPull,1);	// GPIOA_4 be DISP, set 1 to active display
 
@@ -284,7 +284,7 @@ void memlcd_DriverInit(void)
   data.end = 0;
   memlcd_Clear();
   process_start(&lcd_process, NULL);
-  printf("Done\n");  	  	
+  printf("Done\n");
 }
 
 void memlcd_DriverShutdown(void)
@@ -295,30 +295,30 @@ void memlcd_DriverShutdown(void)
 void memlcd_Clear(void)
 {
    	uint8_t cmd;
-	
+
    	/* Set SCS */
    	GPIO_PinOutSet( gpioPortB, LCD_SCS );
-   
+
    	/* SCS setup time: min 6us */
    	clock_delay(3);
-   		
+
    	/* Send command */
-#if 1   	
+#if 1
    	cmd = MLCD_CM;
-#else   	
+#else
    	cmd = (MLCD_CM | comPolarity);
-#endif   	
+#endif
    	USART_TxDouble( USART2, cmd );
 
    	/* Wait for transfer to finish */
    	while ( !(USART2->STATUS & USART_STATUS_TXC) );
 
    	/* SCS hold time: min 2us */
-   	clock_delay(1);   	
-   	
+   	clock_delay(1);
+
    	/* Clear SCS */
-   	GPIO_PinOutClear( gpioPortB, LCD_SCS );	
-   	
+   	GPIO_PinOutClear( gpioPortB, LCD_SCS );
+
 }
 
 void halLcdRefresh(int start, int end)
@@ -326,11 +326,11 @@ void halLcdRefresh(int start, int end)
 	dint();
 	if (data.start > start)
     		data.start = start;
-    		
+
     	eint();
     	if (data.end < end)
-    		data.end = end;	
-	
+    		data.end = end;
+
 }
 
 //*****************************************************************************
@@ -388,8 +388,8 @@ PROCESS_THREAD(lcd_process, ev, d)
        			// if there is an update?
 			if (data.start != 0xff)
 			{
-				SPISend(&lines[data.start], data.end - data.start);				
-				dint();			        	
+				SPISend(&lines[data.start], data.end - data.start);
+				dint();
 				data.start = 0xff;
 				eint();
 				data.end = 0;
@@ -407,8 +407,8 @@ PROCESS_THREAD(lcd_process, ev, d)
     		{
 			if (state == STATE_NONE)
 			{
-				SPISend(&lines[data.start], data.end - data.start);				
-				dint();	
+				SPISend(&lines[data.start], data.end - data.start);
+				dint();
 				data.start = 0xff;
 				eint();
 				data.end = 0;
@@ -419,7 +419,7 @@ PROCESS_THREAD(lcd_process, ev, d)
 			if (state == STATE_NONE)
 	      		{
 	      			memlcd_Clear();
-				dint();			
+				dint();
 				data.start = 0xff;
 				eint();
 				data.end = 0;
