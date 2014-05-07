@@ -3,7 +3,7 @@
 #include "window.h"
 
 static uint8_t progress;
-extern int CheckUpgrade();
+extern int CheckUpgrade(void);
 extern void system_reset();
 
 static void onDraw(tContext *pContext)

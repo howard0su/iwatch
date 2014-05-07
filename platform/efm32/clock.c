@@ -126,13 +126,12 @@ void SysTick_Handler(void)
     	if(count % CLOCK_CONF_SECOND == 0) 
 	{
 		++seconds;
-		if((seconds%2) ==0)
-			BSP_LedToggle(1);
+		/* Generate a 1hz square wave for memlcd*/
+		GPIO_PinOutToggle(gpioPortC, 4);
 		energest_flush();
 	}
 	
-	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) 
-  	
+	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS)   	
   	{
     		etimer_request_poll();    		
 #ifdef NOTYET    		
@@ -159,20 +158,14 @@ void Swo_Configuration(void)
 	CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;
 	/* Enable Serial wire output pin */
 	GPIO->ROUTE |= GPIO_ROUTE_SWOPEN;
-#if defined(_EFM32_GIANT_FAMILY)
+
 	/* Set location 0 */
 	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC0;
 
 	/* Enable output on pin - GPIO Port F, Pin 2 */
 	GPIO->P[5].MODEL &= ~(_GPIO_P_MODEL_MODE2_MASK);
 	GPIO->P[5].MODEL |= GPIO_P_MODEL_MODE2_PUSHPULL;
-#else
-	/* Set location1 */
-	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC1;
-	/* Enable output on pin */
-	GPIO->P[2].MODEH &= ~(_GPIO_P_MODEH_MODE15_MASK);
-	GPIO->P[2].MODEH |= GPIO_P_MODEH_MODE15_PUSHPULL;
-#endif
+
 	/* Enable debug clock AUXHFRCO */
 	CMU->OSCENCMD = CMU_OSCENCMD_AUXHFRCOEN;
 	
@@ -215,12 +208,11 @@ clock_fine(void)
   	/* Assign last_tar to local varible that can not be changed by interrupt */
   	t = last_tar;
   	/* perform calc based on t, TAR will not be changed during interrupt */
-  	return (unsigned short) (TIMER0->CNT - t);
+  	return (unsigned short) (SysTick->VAL - t);  	
 }
 
 void clock_init(void)
 {
-#if defined(EFM32_USING_HFXO)
     /* Configure external oscillator */
     SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
 
@@ -229,7 +221,6 @@ void clock_init(void)
 
     /* Turning off the high frequency RC Oscillator (HFRCO) */
     CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
-#endif
 
     CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
     CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
@@ -300,6 +291,6 @@ unsigned long clock_seconds(void)
 
 rtimer_clock_t clock_counter(void)
 {
-	return count;
+	return SysTick->VAL;
 }
 

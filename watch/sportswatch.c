@@ -612,6 +612,8 @@ static uint8_t sports_type = 0;
 static uint32_t s_sports_data[4] = {0};
 
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
+#define _PROC_VALUE(type, index) \
+    data[index] = base_data[type] >= s_sports_data[index] ? base_data[type] - s_sports_data[index] : 0
 
 static void saveSportsData()
 {
@@ -623,17 +625,17 @@ static void saveSportsData()
   if (get_mode() == DATA_MODE_RUNNING)
   {
     meta = s_meta_running;
-    data[0] = base_data[SPORTS_STEPS]    - s_sports_data[0];
-    data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
-    data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
+    _PROC_VALUE(SPORTS_STEPS,    0);
+    _PROC_VALUE(SPORTS_CALS,     1);
+    _PROC_VALUE(SPORTS_DISTANCE, 2);
     data[3] = base_data[SPORTS_HEARTRATE];
   }
   else if (get_mode() == DATA_MODE_BIKING)
   {
     meta = s_meta_biking;
-    data[0] = base_data[SPORTS_CADENCE]  - s_sports_data[0];
-    data[1] = base_data[SPORTS_CALS]     - s_sports_data[1];
-    data[2] = base_data[SPORTS_DISTANCE] - s_sports_data[2];
+    _PROC_VALUE(SPORTS_CADENCE,  0);
+    _PROC_VALUE(SPORTS_CALS,     1);
+    _PROC_VALUE(SPORTS_DISTANCE, 2);
     data[3] = base_data[SPORTS_HEARTRATE];
   }
 
@@ -651,6 +653,23 @@ static void saveSportsData()
     s_sports_data[i] += data[i];
   }
 }
+
+void cleanUpSportsWatchData()
+{
+  for (int i = 0; i < (int)(sizeof(grid_data)/sizeof(grid_data[0])); i++)
+    grid_data[i] = 0;
+
+  for (int i = 0; i < (int)(sizeof(base_data)/sizeof(base_data[0])); i++)
+    base_data[i] = 0;
+
+  base_data[SPORTS_ALT_START] = 2000000; //set to height no possible on earth to indicate invalid data
+
+  memset(&s_sports_data, 0, sizeof(s_sports_data));
+
+  workout_time = 0;
+
+}
+
 
 uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
 {
@@ -675,16 +694,7 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
       }
       rtc_enablechange(SECOND_CHANGE);
 
-      //clear grid data
-      for (int i = 0; i < (int)(sizeof(grid_data)/sizeof(grid_data[0])); i++)
-        grid_data[i] = 0;
-      for (int i = 0; i < (int)(sizeof(base_data)/sizeof(base_data[0])); i++)
-        base_data[i] = 0;
-      base_data[SPORTS_ALT_START] = 2000000; //set to height no possible on earth to indicate invalid data
-
-      memset(&s_sports_data, 0, sizeof(s_sports_data));
-
-      workout_time = 0;
+      cleanUpSportsWatchData();
 
       ui_config* config = window_readconfig();
       sportnum = config->sports_grid + 4;

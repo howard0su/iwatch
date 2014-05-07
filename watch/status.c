@@ -40,6 +40,8 @@ static uint16_t status;
 static char alarmtext[10]; // 12:34 67
 
 extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void cleanUpSportsWatchData();
+
 static uint16_t s_watch_status = 0;
 uint16_t add_watch_status(uint16_t value)
 {
@@ -238,6 +240,9 @@ static void on_midnigth(uint8_t event, uint16_t lparam, void* rparam)
   uint8_t month, day, weekday;
   rtc_readdate(&year, &month, &day, &weekday);
   create_data_file(year - 2000, month, day);
+
+  cleanUpSportsWatchData();
+
 }
 
 static void record_activity_data(uint8_t hour, uint8_t minute)
