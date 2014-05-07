@@ -9,25 +9,31 @@
 
 static const tFont* fonts[] =
 {
-&g_sFontDriod28b,
-&g_sFontGothamblack30,
-&g_sFontGothambold42,
-&g_sFontGothamlight42,
-//&g_sFontGothic14,
-//&g_sFontGothic14b,
-&g_sFontGothic18,
-&g_sFontGothic18b,
-//&g_sFontGothic24,
-&g_sFontGothic24b,
-&g_sFontGothic28,
-&g_sFontGothic28b,
-&g_sFontRobotocondensed18b,
-(const tFont*)&g_sFontExIcon16,
-(const tFont*)&g_sFontExIcon32,
-(const tFont*)&g_sFontExIcon48,
-(const tFont*)&g_sFontExGothammedium32,
-(const tFont*)&g_sFontExGothammedium42,
-(const tFont*)&g_sFontUnicode,
+ &g_sFontDriod28b,
+ &g_sFontGothamblack30,
+ &g_sFontGothambold42,
+ &g_sFontGothamlight42,
+(tFont*)&g_sFontExGothammedium32,
+(tFont*)&g_sFontExGothammedium42,
+ &g_sFontGothic14,
+ &g_sFontGothic18,
+ &g_sFontGothic18b,
+ &g_sFontGothic24b,
+ &g_sFontGothic28,
+ &g_sFontGothic28b,
+(tFont*)&g_sFontExIcon16,
+(tFont*)&g_sFontExIcon32,
+(tFont*)&g_sFontExIcon48,
+ &g_sFontRobotocondensed18b,
+ &g_sFontNimbus30,
+ &g_sFontNimbus34,
+(tFont*)&g_sFontExNimbus38,
+(tFont*)&g_sFontExNimbus40,
+(tFont*)&g_sFontExNimbus46,
+(tFont*)&g_sFontExNimbus50,
+(tFont*)&g_sFontExNimbus52,
+(tFont*)&g_sFontExNimbus91,
+(tFont*)&g_sFontUnicode,
 };
 
 static cell AMX_NATIVE_CALL n_invalid(AMX *amx,const cell *params)
@@ -72,6 +78,14 @@ static cell AMX_NATIVE_CALL n_getwidth(AMX *amx, const cell *params)
   return (cell)GrStringWidthGet(context, text, -1);
 }
 
+//native window_getheight(context)
+static cell AMX_NATIVE_CALL n_getheight(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+
+  return (cell)GrStringHeightGet(context);
+}
+
 // window_drawtext(context, string[], x, y, style)
 static cell AMX_NATIVE_CALL n_drawtext(AMX *amx, const cell *params)
 {
@@ -104,15 +118,6 @@ static cell AMX_NATIVE_CALL n_setcolor(AMX *amx, const cell *params)
   
   GrContextForegroundSet(context, params[2]);
   GrContextBackgroundSet(context, params[3]);
-
-  return 0;
-}
-
-static cell AMX_NATIVE_CALL n_filltriagle(AMX *amx, const cell *params)
-{
-  tContext *context = window_context();
-  
-  GrTriagleFill(context, params[3], params[4], params[5], params[6], params[7], params[8]);
 
   return 0;
 }
@@ -166,20 +171,129 @@ static cell AMX_NATIVE_CALL n_enableclock(AMX *amx, const cell *params)
   return 0;
 }
 
+static cell AMX_NATIVE_CALL n_drawcircle(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrCircleDraw(context, params[1], params[2], params[3]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_fillcircle(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrCircleFill(context, params[1], params[2], params[3]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_drawrect(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  tRectangle rect = {
+    params[1], params[2], params[3], params[4]
+  };
+  GrRectDraw(context, &rect);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_fillrect(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  tRectangle rect = {
+    params[1], params[2], params[3], params[4]
+  };
+  GrRectFill(context, &rect);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_drawpixel(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrPixelDraw(context, params[1], params[2]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_drawline(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrLineDraw(context, params[1], params[2], params[3], params[4]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_fillline(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrLineFill(context, params[1], params[2], params[3], params[4], params[5]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_drawtriagle(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrTriagleDraw(context, params[1], params[2], params[3], params[4], params[5], params[6]);
+
+  return 0;
+}
+
+static cell AMX_NATIVE_CALL n_filltriagle(AMX *amx, const cell *params)
+{
+  tContext *context = window_context();
+  GrTriagleFill(context, params[1], params[2], params[3], params[4], params[5], params[6]);
+
+  return 0;
+}
+
 extern cell AMX_NATIVE_CALL n_strformat(AMX *amx,const cell *params);
 
 AMX_NATIVE const window_natives[] =
 {
-  n_invalid,
-  n_invalid_rect,
-  n_setfont,
-  n_getwidth,
-  n_drawtext,
-  n_strformat,
-  n_gettime,
-  n_getdate,
-  n_enableclock,
-  n_drawtextcentered,
-  n_filltriagle,
-  n_setcolor
+  n_strformat, // -1
+  NULL,
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+
+  n_enableclock, // -10
+  n_gettime, // -11
+  n_getdate, // -12
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+  NULL, 
+
+  n_invalid, // -20
+  n_invalid_rect, // -21
+  n_setfont, // -22
+  n_getwidth, // -23
+  n_getheight, // -24
+  n_setcolor,  // -25
+  n_drawtextcentered, // -26
+  n_drawtext, // -27
+  NULL, 
+  NULL, 
+
+  n_drawpixel, // 30
+  n_drawline, // 31
+  n_fillline, // 32
+  n_drawcircle, // 33
+  n_fillcircle, // 34
+  n_drawtriagle, // 35
+  n_filltriagle, // 36
+  n_drawrect, //37
+  n_fillrect, //38
 };
+
+
