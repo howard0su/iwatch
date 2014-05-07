@@ -242,26 +242,27 @@ static void SPISend(uint8_t op, uint16_t start , const void* d, unsigned int lin
 static void SPISend(uint8_t op, uint16_t start , const void* d, unsigned int linenums)
 {
 	/* Enable chip select */
-  	GPIO_PinOutSet( gpioPortB, LCD_SCS);	
+  GPIO_PinOutSet( gpioPortB, LCD_SCS);	
 
 	uint16_t* cmd = (uint16_t*)d;
-    	for(;cmd < (char*)d + (linenums*FRAME_LINEBYTES+2); cmd++)
-    	{
-    		USART_TxDouble( USART2, *cmd );
-    		/* Wait for transfer to finish */
-    		while ( !(USART2->STATUS & USART_STATUS_TXC) );
-    	}
+  uint16_t* end = (uint16_t*)((char*)d + (linenums * sizeof(linebuf) + 2));
+	for(;cmd < end; cmd++)
+	{
+		USART_TxDouble( USART2, *cmd );
+		/* Wait for transfer to finish */
+		while ( !(USART2->STATUS & USART_STATUS_TXC) );
+	}
 	
-    	/* SCS hold time: min 2us */
-    	clock_delay(1);     
-    	/* Clear SCS */
-    	GPIO_PinOutClear( gpioPortB, LCD_SCS );  	  	  	  	
-  	
-  	state = STATE_NONE;
-  	if (data.start != 0xff)
-  	{
-      		process_poll(&lcd_process);
-  	}  	
+  	/* SCS hold time: min 2us */
+  	clock_delay(1);     
+  	/* Clear SCS */
+  	GPIO_PinOutClear( gpioPortB, LCD_SCS );  	  	  	  	
+	
+	state = STATE_NONE;
+	if (data.start != 0xff)
+	{
+    		process_poll(&lcd_process);
+	}  	
 }
 #endif
 
