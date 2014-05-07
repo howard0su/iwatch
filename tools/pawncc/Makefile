@@ -64,10 +64,10 @@ $(OBJDIR)/%.d: %.c
 
 # create firmware image from common objects and example source file
 
-all: $(DEPFILES) $(OBJS) compile.exe
+all: $(DEPFILES) $(OBJS) pawncc
 
 # if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
-compile.exe: ${OBJS}
+pawncc: ${OBJS}
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
 
