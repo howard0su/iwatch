@@ -64,7 +64,6 @@
 #include <em_timer.h>
 #include <em_usart.h>
 #include <em_wdog.h>
-#include "dvk.h"
 #include <bsp.h>
 #include <bsp_bcp.h>
 #include <bspconfig.h>

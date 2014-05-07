@@ -95,11 +95,8 @@ PLATFORM = \
     platform/efm32/backlight.c \
     platform/efm32/battery.c \
     platform/efm32/button.c \
-    platform/efm32/dvk_ebi.c \
-    platform/efm32/dvk.c \
     platform/efm32/clock.c \
     platform/efm32/Device/EnergyMicro/EFM32GG/Source/system_efm32gg.c \
-    platform/efm32/dvk_spi.c \
     platform/efm32/efm32.c \
     platform/efm32/i2c.c \
     platform/efm32/isr.c \
@@ -155,7 +152,6 @@ GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
 
 BTSTACK0 = \
     hal.c \
-    hal_compat.c \
     hal_uart_dma.c \
     run_loop.c
 
