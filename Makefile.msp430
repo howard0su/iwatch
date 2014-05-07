@@ -234,6 +234,7 @@ buildnum: $(OBJS)
 ifeq ($(OFFICIAL), 1)
 	@echo $$(($$(cat buildnum) + 1)) > buildnum
 	git commit buildnum -m "pump version to $$(cat buildnum)" 
+	git push
 endif
 
 ifeq ($(WINE), )
