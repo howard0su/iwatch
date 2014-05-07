@@ -4,16 +4,17 @@ CC      = $(IARPATH)/bin/icc430.exe
 LINK    = $(IARPATH)/bin/xlink.exe
 ECHO	= echo
 
-FWVERSION ="1.0.0.$$(cat buildnum)"
+BUILDNUM = buildnum
+FWVERSION ="1.0.0.$$(cat $(BUILDNUM))"
 
 IGNORE_WARNINGS=Pa050
 
-CFLAGS  = --debug -D__MSP430F5438A__ -e --double=32 --dlib_config $(IARPATH)/LIB/DLIB/dl430xlfn.h  --core=430X --reduce_stack_usage --data_model=large -Ohs --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --relaxed_fp --silent --diag_suppress $(IGNORE_WARNINGS) --no_wrap_diagnostics
+CFLAGS  = --debug -D__MSP430F5438A__ -e --double=32 --dlib_config $(IARPATH)/LIB/DLIB/dl430xlfn.h  --core=430X --reduce_stack_usage --data_model=large -Ohs --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --relaxed_fp --silent --diag_suppress $(IGNORE_WARNINGS) --no_wrap_diagnostics -DFWVERSION=\"$(FWVERSION)\"
 LDFLAGS = -z -xmsnio -I$(IARPATH)/LIB -f ./build/iwatch-lnk430F5438A.xcl -f $(IARPATH)/config/multiplier32_loc2.xcl -D_STACK_SIZE=900 -r $(IARPATH)/LIB/DLIB/dl430xlfn.r43 -D_DATA16_HEAP_SIZE=F10 -s __program_start -D_DATA20_HEAP_SIZE=E10
 
 LIBS = pedometer/sleepalgo.r43 pedometer/ti_pedometer.r43
 
-ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1 AMX_ANSIONLY=1 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 HAVE_ALLOCA_H=0 PRODUCT_W001 AMX_NATIVETABLE=window_natives FWVERSION=\"$(FWVERSION)\"
+ALL_DEFINES = AUTOSTART_ENABLE=1 HAVE_BLE=1 AMX_ANSIONLY=1 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=16 HAVE_ALLOCA_H=0 PRODUCT_W001 AMX_NATIVETABLE=window_natives
 ALL_INCLUDEDIRS = \
 	. \
 	core \
@@ -215,7 +216,7 @@ endif
 #####################
 # rules to build the object files
 $(OBJDIR)/%.o: %.c
-	@$(ECHO) "Compiling $< $(ALL_DEFINES)"
+	@$(ECHO) "Compiling $<"
 	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
 	@test -d $(@D) || mkdir -pm 775 $(@D)
 	@-$(RM) $@
