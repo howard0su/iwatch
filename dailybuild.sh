@@ -18,7 +18,7 @@ WINEDEBUG=-all;export WINEDEBUG
 # wine /mnt/wine/drive_c/Program\ Files/IAR\ Systems/Embedded\ Workbench\ 6.4\ Evaluation/common/bin/IarBuild.exe x:/build/watch.ewp -build Retail -log all > ${TARGETDIR}/buildlog.log
 cd /home/junsu/iwatch
 rm -Rf objs.*
-gmake -f Makefile.msp430 WINE=wine 1> ${TARGETDIR}/summary.log 2> ${TARGETDIR}/compile.log
+gmake -f Makefile.msp430 WINE=wine OFFICIAL=1 1> ${TARGETDIR}/summary.log 2> ${TARGETDIR}/compile.log
 gmake -f Makefile.efm32 CC=arm-eabi-gcc
  
 cp objs.msp430/watch.txt ${TARGETDIR}

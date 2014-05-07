@@ -223,11 +223,18 @@ $(OBJDIR)/%.o: %.c
 
 # create firmware image from common objects and example source file
 
-all: $(OBJS) $(OBJDIR)/watch.txt
+all: buildnum $(OBJS) $(OBJDIR)/watch.txt
 
 $(OBJDIR)/watch.txt: ${OBJS}
 	@echo "Link $@"
 	$(WINE) ${LINK} $^ $(LIBS) ${LDFLAGS} -Omsp430_txt=$@ -l $(OBJDIR)/watch.map
+
+buildnum: $(OBJS)
+	@echo "Build Number: $$(cat buildnum)"
+ifeq ($(OFFICIAL), 1)
+	@echo $$(($$(cat buildnum) + 1)) > buildnum
+	git commit buildnum -m "pump version to $$(cat buildnum)" 
+endif
 
 ifeq ($(WINE), )
 ifneq ($(MAKECMDGOALS), clean)
