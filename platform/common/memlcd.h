@@ -1,62 +1,7 @@
-/* --COPYRIGHT--,BSD
- * Copyright (c) 2012, Texas Instruments Incorporated
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * --/COPYRIGHT--*/
-//*****************************************************************************
-//
-// Template_Driver.h - Prototypes for the Hitachi138x110 LCD
-//                                     display driver with a HD66753
-//                                     controller.
-//
-// Copyright (c) 2008-2011 Texas Instruments Incorporated.  All rights reserved.
-// Software License Agreement
-//
-// Texas Instruments (TI) is supplying this software for use solely and
-// exclusively on TI's microcontroller products. The software is owned by
-// TI and/or its suppliers, and is protected under applicable copyright
-// laws. You may not combine this software with "viral" open-source
-// software in order to form a larger program.
-//
-// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
-// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
-// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
-// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
-// DAMAGES, FOR ANY REASON WHATSOEVER.
-//
-//
-//*****************************************************************************
-
-#ifndef __Template_Driver_H__
-#define __Template_Driver_H__
-
+#ifndef __MEMLCD_H_
+#define __MEMLCD_H_
+#include <stdint.h>
+#include "grlib/grlib.h"
 //*****************************************************************************
 //
 // Include Files
@@ -70,11 +15,18 @@
 // User Configuration for the LCD Driver
 //
 //*****************************************************************************
-// Number of pixels on LCD X-axis
-#define LCD_X_SIZE 144
-// Number of pixels on LCD Y-axis
-#define LCD_Y_SIZE 168
-// Number of bits required to draw one pixel on the LCD screen
+#ifdef PRODUCT_W003
+  // Number of pixels on LCD X-axis
+  #define LCD_X_SIZE 128
+  // Number of pixels on LCD Y-axis
+  #define LCD_Y_SIZE 128
+#else
+  // Number of pixels on LCD X-axis
+  #define LCD_X_SIZE 144
+  // Number of pixels on LCD Y-axis
+  #define LCD_Y_SIZE 168
+#endif
+
 #define BPP 1
 
 // Define LCD Screen Orientation Here
@@ -194,7 +146,29 @@ and could also include Set_Address(), Write_Data(), etc. */
 // Prototypes for the globals exported by this driver.
 //
 //*****************************************************************************
+extern void memlcd_InitScreen(void);
+
+// need define in driver
+extern void halLcdRefresh(int start, int end);
+extern void Template_DriverFlush(void *pvDisplayData);
 extern void memlcd_DriverInit(void);
+
+#pragma pack(push, 1)
+typedef struct
+{
+  uint8_t opcode;
+  uint8_t linenum;
+  uint8_t pixels[LCD_X_SIZE/8];
+}linebuf;
+#pragma pack(pop)
+
+#define MLCD_WR 0x01          // MLCD write line command
+#define MLCD_CM 0x04          // MLCD clear memory command
+#define MLCD_SM 0x00          // MLCD static mode command
+#define MLCD_VCOM 0x02          // MLCD VCOM bit
+
+extern linebuf lines[LCD_Y_SIZE];
+
 extern const tDisplay g_memlcd_Driver;
 
-#endif // __Template_Driver_H__
+#endif

@@ -64,7 +64,6 @@
 #include <em_timer.h>
 #include <em_usart.h>
 #include <em_wdog.h>
-#include "dvk.h"
 #include <bsp.h>
 #include <bsp_bcp.h>
 #include <bspconfig.h>
@@ -184,7 +183,7 @@ void uartPutData(uint8_t * dataPtr, uint32_t dataLen);
 uint32_t uartGetData(uint8_t * dataPtr, uint32_t dataLen);
 void    uartPutChar(uint8_t charPtr);
 uint8_t uartGetChar(void);
-
+uint16_t __swap_bytes(uint16_t s);
 
 #define HAVE_STDINT_H 1
 //#define MSP430_MEMCPY_WORKAROUND 1

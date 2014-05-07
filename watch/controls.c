@@ -2,7 +2,7 @@
 
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 
 
 void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selected)

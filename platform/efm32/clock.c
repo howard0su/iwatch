@@ -43,6 +43,7 @@
 #include "contiki.h"
 #include "dev/watchdog.h"
 
+#define EFM32_SWO_ENABLE
 
 /***************************************************************************//**
  * @addtogroup SysTick_clock_source
@@ -51,13 +52,11 @@
 #define SysTick_CLKSource_MASK          	((uint32_t)0x00000004)
 #define SysTick_CLKSource_RTC		    	((uint32_t)0x00000000)
 #define SysTick_CLKSource_HFCORECLK		((uint32_t)0x00000004)
-#define IS_SYSTICK_CLK_SOURCE(SOURCE)		(((SOURCE) == SysTick_CLKSource_RTC) || \					
+#define IS_SYSTICK_CLK_SOURCE(SOURCE)		(((SOURCE) == SysTick_CLKSource_RTC) || \
 						((SOURCE) == SysTick_CLKSource_HFCORECLK))
 
-//static volatile clock_time_t msTicks=0;						
 static volatile clock_time_t count=0;
 
-static unsigned int second_countdown = CLOCK_SECOND;										
 static volatile unsigned long seconds;
 
 #define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)										
@@ -121,18 +120,18 @@ static void  SysTick_Configuration(void)
 
 void SysTick_Handler(void)
 {
+  	ENERGEST_ON(ENERGEST_TYPE_IRQ);
     	count++;
     	
     	if(count % CLOCK_CONF_SECOND == 0) 
 	{
 		++seconds;
-		if((seconds%2) ==0)
-			BSP_LedToggle(1);
+		/* Generate a 1hz square wave for memlcd*/
+		GPIO_PinOutToggle(gpioPortC, 4);
 		energest_flush();
 	}
 	
-	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) 
-  	
+	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS)   	
   	{
     		etimer_request_poll();    		
 #ifdef NOTYET    		
@@ -141,7 +140,7 @@ void SysTick_Handler(void)
   	}  
   	
   	ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-  	
+
 }
 
 /***************************************************************************//**
@@ -156,27 +155,17 @@ void SysTick_Handler(void)
 #if defined(EFM32_SWO_ENABLE)
 void Swo_Configuration(void)
 {
-	uint32_t *dwt_ctrl = (uint32_t *) 0xE0001000;
-	uint32_t *tpiu_prescaler = (uint32_t *) 0xE0040010;
-	uint32_t *tpiu_protocol = (uint32_t *) 0xE00400F0;
+	CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;
+	/* Enable Serial wire output pin */
+	GPIO->ROUTE |= GPIO_ROUTE_SWOPEN;
 
-    	CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;
-    	/* Enable Serial wire output pin */
-    	GPIO->ROUTE |= GPIO_ROUTE_SWOPEN;
-#if defined(_EFM32_GIANT_FAMILY)
-    	/* Set location 0 */
-    	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC0;
+	/* Set location 0 */
+	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC0;
 
 	/* Enable output on pin - GPIO Port F, Pin 2 */
 	GPIO->P[5].MODEL &= ~(_GPIO_P_MODEL_MODE2_MASK);
 	GPIO->P[5].MODEL |= GPIO_P_MODEL_MODE2_PUSHPULL;
-#else
-	/* Set location 1 */
-	GPIO->ROUTE = (GPIO->ROUTE & ~(_GPIO_ROUTE_SWLOCATION_MASK)) | GPIO_ROUTE_SWLOCATION_LOC1;
-	/* Enable output on pin */
-	GPIO->P[2].MODEH &= ~(_GPIO_P_MODEH_MODE15_MASK);
-	GPIO->P[2].MODEH |= GPIO_P_MODEH_MODE15_PUSHPULL;
-#endif
+
 	/* Enable debug clock AUXHFRCO */
 	CMU->OSCENCMD = CMU_OSCENCMD_AUXHFRCOEN;
 	
@@ -186,17 +175,21 @@ void Swo_Configuration(void)
 	CoreDebug->DHCSR |= 1;
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 	
-	/* Enable PC and IRQ sampling output */
-	*dwt_ctrl = 0x400113FF;
-	/* Set TPIU prescaler to 16. */
-	*tpiu_prescaler = 0xf;
-	/* Set protocol to NRZ */
-	*tpiu_protocol = 2;
-	/* Unlock ITM and output data */
-	ITM->LAR = 0xC5ACCE55;
-	ITM->TCR = 0x10009;
+	/* Enable trace in core debug */
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	ITM->LAR  = 0xC5ACCE55;
+	ITM->TER  = 0x0;
+	ITM->TCR  = 0x0;
+	TPI->SPPR = 2;
+	TPI->ACPR = 0xf;
+	ITM->TPR  = 0x0;
+	DWT->CTRL = 0x400113FF;
+	ITM->TCR  = 0x0001000D;
+	TPI->FFCR = 0x00000100;
+	ITM->TER  = 0x3;
 }		
 #endif
+
 clock_time_t clock_time(void)
 {
 	return count;
@@ -215,46 +208,41 @@ clock_fine(void)
   	/* Assign last_tar to local varible that can not be changed by interrupt */
   	t = last_tar;
   	/* perform calc based on t, TAR will not be changed during interrupt */
-  	return (unsigned short) (TIMER0->CNT - t);
+  	return (unsigned short) (SysTick->VAL - t);  	
 }
 
 void clock_init(void)
 {
+    /* Configure external oscillator */
+    SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
 
-#if defined(EFM32_USING_HFXO)
-        /* Configure external oscillator */
-        SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
+    /* Switching the CPU clock source to HFXO */
+    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
-        /* Switching the CPU clock source to HFXO */
-        CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    /* Turning off the high frequency RC Oscillator (HFRCO) */
+    CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
 
-        /* Turning off the high frequency RC Oscillator (HFRCO) */
-        CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
-#endif
-
-    CMU_ClockSelectSet(cmuClock_LFA,cmuSelect_LFXO);
+    CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
     CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
 #if defined(EFM32_SWO_ENABLE)
-        /* Enable SWO */
-        Swo_Configuration();
+    /* Enable SWO */
+    Swo_Configuration();
 #endif
 
 
-        /* Enable high frequency peripheral clock */
-        CMU_ClockEnable(cmuClock_HFPER, true);
-        /* Enabling clock to the interface of the low energy modules */
-        CMU_ClockEnable(cmuClock_CORELE, true);
-        /* Enable clock for TIMER0 module */
+    /* Enable high frequency peripheral clock */
+    CMU_ClockEnable(cmuClock_HFPER, true);
+    /* Enabling clock to the interface of the low energy modules */
+    CMU_ClockEnable(cmuClock_CORELE, true);
+    /* Enable clock for TIMER0 module */
   	CMU_ClockEnable(cmuClock_TIMER0, true);
-        /* Enable GPIO clock */
-        CMU_ClockEnable(cmuClock_GPIO, true);
+    /* Enable GPIO clock */
+    CMU_ClockEnable(cmuClock_GPIO, true);
 
-        /* Configure the SysTick */
-        SysTick_Configuration();
-
-	
-}	
+    /* Configure the SysTick */
+    SysTick_Configuration();	
+}
 
 
 /*********************************************************************************************
@@ -303,5 +291,6 @@ unsigned long clock_seconds(void)
 
 rtimer_clock_t clock_counter(void)
 {
+	return SysTick->VAL;
 }
 

@@ -2,7 +2,7 @@
 #include "window.h"
 #include "test.h"
 #include "system.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "backlight.h"
 #include "ant/ant.h"
 #include "ant/antinterface.h"
@@ -313,11 +313,13 @@ uint8_t test_reboot(uint8_t ev, uint16_t lparam, void* rparam)
 	return 1;
 }
 
+static int rate;
 uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:
+		rate = -1;
 		onoff = 0;
 		break;
 
@@ -351,6 +353,15 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 			window_invalid(NULL);
 			break;
 		}
+		case EVENT_SPORT_DATA:
+		{
+			if (lparam == SPORTS_HEARTRATE)
+			{
+				rate = (int)rparam;
+			}
+			window_invalid(NULL);
+			break;
+		}
 		case EVENT_WINDOW_PAINT:
 		{
 		  tContext *pContext = (tContext*)rparam;
@@ -367,6 +378,12 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
  		  char buf[32];
 		  sprintf(buf, "Tx Power Level: %d", data);
  		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
+
+ 		  if (rate != -1)
+ 		  {
+ 		  	sprintf(buf, "heartrate: %d", rate);
+			GrStringDraw(pContext, buf, -1, 5, 90, 0);
+ 		  }
 
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");

@@ -34,6 +34,8 @@ PROCESS(bluetooth_process, "Bluetooth process");
 #include "sdp.h"
 #include "config.h"
 
+extern void __delay_cycles(unsigned long c);
+
 static void callback(void *ptr)
 {
   	timer_source_t *timer = (timer_source_t *)ptr;

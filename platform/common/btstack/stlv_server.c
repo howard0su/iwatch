@@ -246,7 +246,7 @@ static void print_stlv_string(unsigned char* data, int len)
 {
     unsigned char back = data[len];
     data[len] = '\0';
-    log_info((char*)data);
+    log_info("%s\n", (char*)data);
     data[len] = back;
 }
 

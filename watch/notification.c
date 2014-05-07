@@ -1,7 +1,7 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "backlight.h"
 #include "status.h"
 
@@ -58,7 +58,7 @@ static void onDrawTitleBar(tContext *pContext)
 
   long startx = LCD_X_SIZE/2 - num_uids * 4;
 
-  for(int i = 0; i < num_uids; i++)
+  for(int i = 0; i <= num_uids; i++)
   {
     if (i == selectidx)
       GrCircleFill(pContext, startx + i * 10, 4, 3);
@@ -326,14 +326,6 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     state |= STATE_ACTIVE;
     add_watch_status(WS_NOTIFY);
     return 0x80;
-  }
-  case EVENT_WINDOW_ACTIVE:
-  {
-    if ((message_buttons & NOTIFY_ALARM) == NOTIFY_ALARM)
-    {
-      motor_on(50, 0);
-    }
-    break;
   }
   case EVENT_WINDOW_PAINT:
     {

@@ -5,7 +5,7 @@
 #include "window.h"
 #include "watch/icons.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "sys/timer.h"
 #include "sys/etimer.h"
 
@@ -19,12 +19,6 @@
 static const tFont *fonts[] =
 {
 (const tFont*)&g_sFontUnicode,
-&g_sFontDriod28b,
-&g_sFontGothamblack30,
-&g_sFontGothambold42,
-&g_sFontGothamlight42,
-(const tFont*)&g_sFontExGothammedium32,
-(const tFont*)&g_sFontExGothammedium42,
 //&g_sFontGothic14,
 //&g_sFontGothic14b,
 &g_sFontGothic18,
@@ -36,7 +30,6 @@ static const tFont *fonts[] =
 (const tFont*)&g_sFontExIcon16,
 (const tFont*)&g_sFontExIcon32,
 (const tFont*)&g_sFontExIcon48,
-&g_sFontRobotocondensed18b,
  NULL
 };
 
@@ -691,7 +684,7 @@ void TestWindows(CuTest *tc)
 
   //test_window(&menu_process, 1);
 
-  for (int i = 1; i <= 6; ++i)
+  for (int i = 0; i < 10; ++i)
     {
       test_window(&analogclock_process, (void*)i);
     }
@@ -807,7 +800,9 @@ void TestNotification(CuTest *tc)
 
 CuSuite* WindowGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("Window Test");
+	CuSuite* suite = CuSuiteNew("ui");
+  rtc_init();
+
  
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);

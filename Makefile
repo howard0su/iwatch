@@ -51,6 +51,9 @@ CORE   = \
     core/lib/assert.c \
     core/lib/list.c
 
+COMMON = \
+	platform/common/memlcd.c
+
 PLATFORM = \
 	platform/native/clock.c \
 	platform/native/notimpl.c \
@@ -68,12 +71,6 @@ GRLIB0 = \
 	string.c
 
 GRLIB_FONTS = \
-	fontdriod28b.c \
-	fontgothamblack30.c \
-	fontgothambold42.c \
-	fontgothamlight42.c \
-	fontgothammedium32.c \
-	fontgothammedium42.c \
 	fontgothic14.c \
 	fontgothic18.c \
 	fontgothic18b.c \
@@ -92,7 +89,6 @@ GRLIB_FONTS = \
 	fontnimbus40.c \
 	fontnimbus50.c \
 	fontnimbus91.c \
-	fontrobotocondensed18b.c \
 	fontunicode.c \
 	logoimg.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
@@ -146,7 +142,7 @@ BTSTACK=btstack/src/obex.c \
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
-SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
+SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) $(COMMON) \
  unittest/CuTest.c \
  unittest/AllTests.c \
  unittest/attTest.c \

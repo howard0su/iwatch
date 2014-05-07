@@ -54,3 +54,5 @@ const char* toEnglish(uint8_t number, char* buffer)
 
   return buffer;
 }
+
+const char* PairingWarning = "Please Pair your smartphone to the Meteor.";

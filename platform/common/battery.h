@@ -1,5 +1,5 @@
 #ifndef _BATTERY_H_
-#define _BATTRY_H_
+#define _BATTERY_H_
 typedef enum 
   {
     BATTERY_STATE_DISCHARGING,

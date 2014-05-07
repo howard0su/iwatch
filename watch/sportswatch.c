@@ -5,7 +5,7 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "platform/iwatch/rtc.h"
 #include "ant/ant.h"
 #include "stlv.h"

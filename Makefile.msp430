@@ -43,6 +43,9 @@ CORE   = \
     core/lib/assert.c \
     core/lib/list.c
 
+COMMON = \
+  platform/common/memlcd.c
+
 PLATFORM = \
 	platform/iwatch/backlight.c \
 	platform/iwatch/battery.c \
@@ -83,12 +86,6 @@ GRLIB0 = \
   string.c
 
 GRLIB_FONTS = \
-  fontdriod28b.c \
-  fontgothamblack30.c \
-  fontgothambold42.c \
-  fontgothamlight42.c \
-  fontgothammedium32.c \
-  fontgothammedium42.c \
   fontgothic14.c \
   fontgothic18.c \
   fontgothic18b.c \
@@ -106,7 +103,6 @@ GRLIB_FONTS = \
   fonticon16.c \
   fonticon32.c \
   fonticon48.c \
-  fontrobotocondensed18b.c \
   fontunicode.c \
   logoimg.c
 
@@ -208,7 +204,7 @@ SERVICES= \
 #  pedometer/pedometer_msp430.c \
 
 OBJDIR = objs.msp430
-SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL) $(SERVICES) $(AMX)
+SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL) $(SERVICES) $(AMX) $(COMMON)
 OBJS0 = $(SRCS:.c=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
 

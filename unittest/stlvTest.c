@@ -380,7 +380,7 @@ static void TestSportsFile(CuTest* tc)
 
 CuSuite* StlvProtocalGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("STLV Test");
+	CuSuite* suite = CuSuiteNew("stlv");
     SUITE_ADD_TEST(suite, TestSendEcho);
     SUITE_ADD_TEST(suite, TestRecvEcho);
     SUITE_ADD_TEST(suite, TestSendFile);

@@ -247,7 +247,7 @@ void msgparser(CuTest* tc)
 
 CuSuite* obexGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("obex Test");
+	CuSuite* suite = CuSuiteNew("obex");
 
 	SUITE_ADD_TEST(suite, testobex);
   SUITE_ADD_TEST(suite, msgparser);

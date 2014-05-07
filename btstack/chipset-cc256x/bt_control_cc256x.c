@@ -61,7 +61,6 @@
 #endif
 
 #if defined(__GNUC__) && defined(EFM32GG395F1024)
-#include "hal_compat.h"
 #define __data20
 #endif
 

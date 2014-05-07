@@ -121,6 +121,7 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
         attribute_handles[2] != -1)
     {
         // subscribe event
+        window_notify_ancs_init();
         log_info("sub to %d\n", attribute_handles[NOTIFICATION]);
         write_handle = attribute_handles[NOTIFICATION] + 1;
         att_server_subscribe(attribute_handles[NOTIFICATION] + 1); // write to CCC
@@ -142,7 +143,6 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     {
         printf("subscribe to ANCS finished.\n");
         att_enter_mode(MODE_SLEEP);
-        window_notify_ancs_init();
     }
 }
 

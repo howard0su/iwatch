@@ -198,7 +198,8 @@ extern const char * const month_name[];
 extern const char * const month_shortname[];
 extern const char * const week_shortname[];
 extern const char * const fontconfig_name[];
-extern const char* toEnglish(uint8_t number, char* buffer);
+extern const char * toEnglish(uint8_t number, char* buffer);
+extern const char * PairingWarning;
 
 // #define EVENT_SPORT_DATA              0x92
 // lparam defined as below

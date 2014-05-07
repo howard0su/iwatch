@@ -16,17 +16,18 @@ PROCESS_NAME(system_process);
 __no_init static struct datetime now;
 __no_init static uint16_t checksum;
 
+
 static uint8_t source;
+static uint8_t RTC_CTL;
 ////////////////////////////////////////////////////////////
 /* Calendar struct */
 static struct tm calendar;
 static time_t startTime;
-
 /* Declare variables for time keeping */
 static uint32_t  burtcCount = 0;
 static uint32_t  burtcOverflowCounter = 0;
 static uint32_t  burtcOverflowIntervalRem;
-// static uint32_t  burtcOverflowInterval;
+static uint32_t  burtcOverflowInterval;
 static uint32_t  burtcTimestamp;
 static time_t    currentTime;
 /* Time defines */
@@ -42,8 +43,7 @@ static time_t rtcStartTime = 0;
 /* Clock defines */
 #define LFXO_FREQUENCY 32768
 #define BURTC_PRESCALING 128
-#define UPDATE_INTERVAL 60
-//#define UPDATE_INTERVAL 1
+#define UPDATE_INTERVAL 1
 #define COUNTS_PER_SEC (LFXO_FREQUENCY/BURTC_PRESCALING)
 #define COUNTS_BETWEEN_UPDATE (UPDATE_INTERVAL*COUNTS_PER_SEC)
 
@@ -89,6 +89,9 @@ void rtc_init()
   	/* Configure Backup Domain */
   	budSetup();  	
   	
+  	/* Start LFXO and wait until it is stable */
+  	CMU_OscillatorEnable(cmuOsc_LFXO, true, true);
+
   	/* Setting up a structure to initialize the calendar
      	   for January 1 2012 12:00:00
      	   The struct tm is declared in time.h
@@ -107,11 +110,11 @@ void rtc_init()
   	clockInit(&initialCalendar);  	
   	
   	/* Compute overflow interval (integer) and remainder */
-  	// burtcOverflowInterval  =  ((uint64_t)UINT32_MAX+1)/COUNTS_BETWEEN_UPDATE; /* in seconds */
+  	burtcOverflowInterval  =  ((uint64_t)UINT32_MAX+1)/COUNTS_BETWEEN_UPDATE; /* in seconds */
   	burtcOverflowIntervalRem = ((uint64_t)UINT32_MAX+1)%COUNTS_BETWEEN_UPDATE;
 
   	// burtcSetComp( COUNTS_BETWEEN_UPDATE );
-  	BURTC_CompareSet(0, COUNTS_BETWEEN_UPDATE );  	
+  	BURTC_CompareSet(0, COUNTS_BETWEEN_UPDATE*60 );  	
   	alarmEnable = 0;
   	/* If waking from backup mode, restore time from retention registers */
   	if ( !(resetcause & RMU_RSTCAUSE_BUBODBUVIN) && (resetcause & RMU_RSTCAUSE_BUMODERST) )
@@ -158,6 +161,40 @@ void rtc_init()
 
 }
 
+/* Set up RTC to generate an interrupt every second */
+void initRTC(uint16_t RTC_clkdiv)
+{
+  	RTC_Init_TypeDef rtcInit = RTC_INIT_DEFAULT;
+
+  	/* Enable LE domain registers */
+  	CMU_ClockEnable(cmuClock_CORELE, true);
+
+  	/* Enable LFRCO as LFACLK in CMU to use for the RTC */
+  	CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFRCO);
+
+  	/* Enable RTC clock */
+  	CMU_ClockEnable(cmuClock_RTC, true);
+  
+  	/* Set RTC prescaling */
+  	CMU_ClockDivSet(cmuClock_RTC, RTC_clkdiv);
+
+  	/* Initialize RTC */
+  	rtcInit.enable   = false;  /* Do not start RTC after initialization is complete. */
+  	rtcInit.debugRun = false;  /* Halt RTC when debugging. */
+  	rtcInit.comp0Top = true;   /* Wrap around on COMP0 match. */
+  	RTC_Init(&rtcInit);
+
+  	/* Interrupt every second */
+  	RTC_CompareSet(0, 1);
+	
+  	/* Enable interrupt */
+  	NVIC_EnableIRQ(RTC_IRQn);
+  	RTC_IntEnable(RTC_IEN_COMP0);
+	
+  	/* Start counter */
+  	RTC_Enable(true);
+}
+
 PROCESS_THREAD(rtc_process, ev, data)
 {
   	PROCESS_BEGIN();
@@ -166,15 +203,9 @@ PROCESS_THREAD(rtc_process, ev, data)
   	{
     		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
     		if (source == 0)
-    		{
-      			checksum = getChecksum();
+    		{      			
       			process_post(ui_process, EVENT_TIME_CHANGED, &now);
-    		}
-    		else
-    		{
-      			// notification of alarm
-      			window_notify("Alarm", "Alarm triggered.", NOTIFY_OK, 0);
-    		}
+    		}	
   	}
   	PROCESS_END();
 }
@@ -411,36 +442,40 @@ uint32_t rtc_readtime32()
 }
 
 void rtc_enablechange(uint8_t changes)
-{
-
-/*  	
+{  
+  	
   	if (changes & MINUTE_CHANGE)
   	{
-    		RTCCTL01 |= RTCTEV__MIN + RTCTEVIFG + RTCTEVIE;
+  		RTC_CTL |= MINUTE_CHANGE;    		
   	}
   	else
   	{
-    		RTCCTL01 &= ~(RTCTEV__MIN + RTCTEVIE);
+  		RTC_CTL &= ~MINUTE_CHANGE;    		
   	}
 
   	if (changes & SECOND_CHANGE)
   	{
-    		RTCCTL01 |= RTCRDYIE + RTCRDYIFG;
+  		RTC_CTL |= SECOND_CHANGE;    
+  		initRTC(cmuClkDiv_32768);
   	}
   	else
   	{
-    		RTCCTL01 &= ~RTCRDYIE;
+  		RTC_CTL &= ~SECOND_CHANGE;
+  		RTC_Enable(false);
+  		
   	}
 
   	if (changes & TENMSECOND_CHANGE)
   	{
-    		RTCPS1CTL = RT1PSIE | RT1IP1;
+  		RTC_CTL |= TENMSECOND_CHANGE;
+  		initRTC(cmuClkDiv_32768);
   	}
   	else
   	{
-    		RTCPS1CTL &= ~RT1PSIE;
+  		RTC_CTL &= ~TENMSECOND_CHANGE;
+  		RTC_Enable(false);
   	}
-*/  	
+  	
 }
 
 /**************************************************************************//**
@@ -710,8 +745,23 @@ void BURTC_IRQHandler(void)
    	/*   update TFT display            	*/
   	if ( irq & BURTC_IF_COMP0 )
   	{
-    		BURTC_CompareSet(0, BURTC->COMP0 + COUNTS_BETWEEN_UPDATE );
-    		process_poll(&rtc_process);
+    		BURTC_CompareSet(0, BURTC->COMP0 + (COUNTS_BETWEEN_UPDATE*60) );
+    		
+    		if(RTC_CTL&MINUTE_CHANGE)
+    		{	
+    			currentTime = time( NULL );
+    			calendar = *localtime( &currentTime );	
+    			
+    			now.hour = calendar.tm_hour;
+			now.minute = calendar.tm_min;
+			now.second = calendar.tm_sec;
+			now.year = calendar.tm_year;
+			now.month = calendar.tm_mon;
+			now.day = calendar.tm_mday;
+    			
+    			source = 0;
+    			process_poll(&rtc_process);
+    		}	
   	}
 
   	/* Interrupt source: counter overflow 	*/
@@ -722,4 +772,33 @@ void BURTC_IRQHandler(void)
     		clockOverflow( );
     		clockBackup();
   	}  	
+}
+
+/* This interrupt is triggered every second by the RTC */
+void RTC_IRQHandler(void)
+{
+  	uint32_t tmp;
+
+  	/* Store enabled interrupts in temp variable. */
+  	tmp = RTC->IEN;
+
+  	/* Check if COMP0 interrupt is enabled and set. */
+  	if (RTC_IF_COMP0 & (tmp & RTC_IntGet()))
+  	{
+  		/* 1sec or 10 msec RTC interrupt
+  		*/
+    		/* Timer has fired, clear interrupt flag... */
+    		RTC_IntClear(RTC_IFC_COMP0);
+    		source = 0;
+    		process_poll(&rtc_process);
+/*    		
+    		LPM4_EXIT;    		
+*/    		
+  	}	
+/*  	
+  	if(RTC_IF_OF& (tmp & RTC_IntGet()))
+  	{
+  		RTC_IntClear(RTC_IF_OF);
+  	}	
+*/  	   	  	
 }
