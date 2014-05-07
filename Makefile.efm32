@@ -90,6 +90,9 @@ CORE   = \
     core/lib/assert.c \
     core/lib/list.c
 
+COMMON = \
+    platform/common/memlcd.c
+
 PLATFORM = \
     platform/efm32/contiki-efm32-main.c \
     platform/efm32/backlight.c \
@@ -269,7 +272,7 @@ CPUPATH = \
 
 S_SRC = platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/startup_efm32gg.s
 
-SRCS = $(CORE) $(WATCH) $(PLATFORM) $(CPUPATH) $(BTSTACK) $(GRLIB) $(MPL) $(AMX)
+SRCS = $(CORE) $(WATCH) $(PLATFORM) $(CPUPATH) $(BTSTACK) $(GRLIB) $(MPL) $(AMX) $(COMMON)
 #SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL)
 OBJS0 = $(SRCS:.c=.o) $(S_SRC:.s=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))

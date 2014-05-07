@@ -274,7 +274,12 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
 
       if (lparam == KEY_UP)
       {
+        printf("MC State=%d\n", state);
         if (state == AVRCP_PLAY_STATUS_PLAYING)
+        {
+          avctp_send_passthrough(PAUSE_OP);
+        }
+        else if (state == AVRCP_PLAY_STATUS_PAUSED)
         {
           avctp_send_passthrough(PAUSE_OP);
         }

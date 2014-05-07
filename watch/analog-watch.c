@@ -16,7 +16,7 @@
 #include "window.h"
 #include "rtc.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "cordic.h"
 #include <stdio.h>
 #include <string.h>

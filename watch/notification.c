@@ -1,7 +1,7 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "backlight.h"
 #include "status.h"
 

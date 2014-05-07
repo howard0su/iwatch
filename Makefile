@@ -51,6 +51,9 @@ CORE   = \
     core/lib/assert.c \
     core/lib/list.c
 
+COMMON = \
+	platform/common/memlcd.c
+
 PLATFORM = \
 	platform/native/clock.c \
 	platform/native/notimpl.c \
@@ -139,7 +142,7 @@ BTSTACK=btstack/src/obex.c \
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
-SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
+SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) $(COMMON) \
  unittest/CuTest.c \
  unittest/AllTests.c \
  unittest/attTest.c \
