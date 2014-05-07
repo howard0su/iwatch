@@ -170,7 +170,7 @@ static void app_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *
     gap_run();
 }
 
-static const uint8_t sm_oob_data[] = "0123456789012345";
+//static const uint8_t sm_oob_data[] = "0123456789012345";
 /*
 static int get_oob_data_callback(uint8_t addres_type, bd_addr_t * addr, uint8_t * oob_data){
     memcpy(oob_data, sm_oob_data, 16);
@@ -178,7 +178,7 @@ static int get_oob_data_callback(uint8_t addres_type, bd_addr_t * addr, uint8_t 
 }
 */
 
-extern const char* system_getserial();
+extern const uint8_t* system_getserial();
 
 static void gap_run(){
     // make sure we can send one packet
@@ -202,7 +202,7 @@ static void gap_run(){
             14, 0x09, 'M','e', 't', 'e', 'o', 'r', 'L', 'E', ' ', 'X','X','X','X','\0'
         };
 
-        const char* addr = system_getserial();
+        const char* addr = (const char*)system_getserial();
         sprintf((char*)&adv_data[18], "%02X%02X", addr[4], addr[5]);
         printf("GAP_RUN: set advertisement data\n");
         hexdump(adv_data, sizeof(adv_data));
