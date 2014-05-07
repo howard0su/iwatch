@@ -21,12 +21,10 @@
 #include <string.h>
 
 #include "contiki-conf.h"
-//#include "isr_compat.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
 #include "bluetooth.h"
 
-#include "hal_compat.h"
 #include <btstack/hal_uart_dma.h>
 /*Define for test UART Tx Rx */
 
