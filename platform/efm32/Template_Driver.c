@@ -240,7 +240,7 @@ static void SPISend(const void* d, unsigned int linenums)
   GPIO_PinOutSet( gpioPortB, LCD_SCS);
 
 	uint16_t* cmd = (uint16_t*)d;
-  uint16_t* end = (uint16_t*)((char*)d + (linenums + 1) * sizeof(linebuf) + 2));
+  uint16_t* end = (uint16_t*)((char*)d + (linenums + 1) * sizeof(linebuf) + 2);
 	for(;cmd < end; cmd++)
 	{
 		USART_TxDouble( USART2, *cmd );

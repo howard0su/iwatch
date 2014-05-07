@@ -319,7 +319,10 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       ui_config* uiconf = window_readconfig();
       for (int i = 0; i < sizeof(uiconf->alarms) / sizeof(uiconf->alarms[0]); ++i)
       {
-        if (uiconf->alarms[i].flag != 0 && uiconf->alarms[i].hour == hour && uiconf->alarms[i].minutes == minute)
+        if (uiconf->alarms[i].flag != 0 &&
+            uiconf->alarms[i].hour    == hour &&
+            uiconf->alarms[i].minutes == minute &&
+            second <= 30)
         {
           uint8_t ampm;
           adjustAMPM(hour, &hour, &ampm);
