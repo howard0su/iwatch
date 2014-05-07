@@ -375,7 +375,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     else if (lparam == KEY_ENTER)
     {
-      if (selectidx < num_uids)
+      if (selectidx < num_uids - 1)
       {
         selectidx++;
         fetch_content();
