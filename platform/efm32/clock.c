@@ -131,8 +131,7 @@ void SysTick_Handler(void)
 		energest_flush();
 	}
 	
-	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) 
-  	
+	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS)   	
   	{
     		etimer_request_poll();    		
 #ifdef NOTYET    		
@@ -209,7 +208,7 @@ clock_fine(void)
   	/* Assign last_tar to local varible that can not be changed by interrupt */
   	t = last_tar;
   	/* perform calc based on t, TAR will not be changed during interrupt */
-  	return (unsigned short) (TIMER0->CNT - t);
+  	return (unsigned short) (SysTick->VAL - t);  	
 }
 
 void clock_init(void)
@@ -292,6 +291,6 @@ unsigned long clock_seconds(void)
 
 rtimer_clock_t clock_counter(void)
 {
-	return count;
+	return SysTick->VAL;
 }
 
