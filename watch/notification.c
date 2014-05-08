@@ -4,10 +4,12 @@
 #include "memlcd.h"
 #include "backlight.h"
 #include "status.h"
-
+#include "rtc.h"
 #include "btstack/ble/att_client.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const char* message_title;
 static const char* message_subtitle;
@@ -96,16 +98,36 @@ static const tFont *get_contentfont()
   
 }
 
-static void convertdate(char *buf, const char* date)
+
+static const char* parse_date(char* date)
 {
-  // date is in format YYYYMMDDTHHMM
-  int month;
-  int day;
+  // date in the format of yyyyMMdd'T'HHmmSS
+  //                       01234567 8 9abcde
+  uint8_t event_second, event_minute, event_hour;
+  uint8_t event_day, event_month;
+  uint16_t event_year;
 
-  month = (date[4] - '0') * 10 + (date[5] - '0');
-  day = (date[6] - '0') * 10 + (date[7] - '0');
+  event_second = atoi(&date[0x0d]); date[0x0d] = '\0';
+  event_minute = atoi(&date[0x0b]); date[0x0b] = '\0';
+  event_hour   = atoi(&date[0x09]); date[0x08] = '\0';
 
-  sprintf(buf, "%d %s, %c%c%c%c", day, month_shortname[month - 1], date[0], date[1], date[2], date[3]);
+  event_day    = atoi(&date[0x06]); date[0x06] = '\0';
+  event_month  = atoi(&date[0x04]); date[0x04] = '\0';
+  event_second = atoi(&date[0x00]);
+
+  uint32_t event_timestamp = calc_timestamp(event_year - 2000, event_month, event_day, event_hour, event_minute, event_second);
+  uint32_t now_timestamp = rtc_readtime32();
+
+  if (event_timestamp > now_timestamp)
+  {
+    // event happen later than now, this should not happen, adjust rtc
+    rtc_settime(event_hour, event_minute, event_second);
+    rtc_setdate(event_year, event_month, event_day);
+
+    now_timestamp = event_timestamp;
+  }
+  
+  return toEnglishPeriod(now_timestamp - event_timestamp, date);
 }
 
 static void onDraw(tContext *pContext)
@@ -133,11 +155,11 @@ static void onDraw(tContext *pContext)
 
     if (message_date)
     {
-      char buf[40];
-      convertdate(buf, message_date);
+      char buffer[20];
 
+      strcpy(buffer, message_date);
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
-      GrStringDraw(pContext, buf, -1, 30, starty, 0);
+      GrStringDraw(pContext, parse_date(buffer), -1, 30, starty, 0);
     }
 
     starty += 16;
