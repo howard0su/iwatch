@@ -101,6 +101,7 @@ PLATFORM = \
     platform/efm32/clock.c \
     platform/efm32/Device/EnergyMicro/EFM32GG/Source/system_efm32gg.c \
     platform/efm32/efm32.c \
+    platform/efm32/flash.c \
     platform/efm32/i2c.c \
     platform/efm32/isr.c \
     platform/efm32/rtc.c \
@@ -262,6 +263,7 @@ CPUPATH = \
     platform/efm32/emlib/src/em_i2c.c \
     platform/efm32/emlib/src/em_int.c \
     platform/efm32/emlib/src/em_letimer.c \
+    platform/efm32/emlib/src/em_msc.c \
     platform/efm32/emlib/src/em_rmu.c \
     platform/efm32/emlib/src/em_rtc.c \
     platform/efm32/emlib/src/em_system.c \
