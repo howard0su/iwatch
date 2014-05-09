@@ -126,6 +126,7 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam);
 
 #define MAX_ALARM_COUNT 3
 typedef struct _alarm_t

@@ -23,7 +23,7 @@
 #include "memory.h"
 #include "sportsdata.h"
 #include "system.h"
-
+#include "battery.h"
 #include "test.h"
 
 /*
@@ -326,6 +326,22 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
   return 0;
 }
 
+static void menu_timeout()
+{
+  if (battery_state() == BATTERY_STATE_DISCHARGING)
+  {
+    // check analog or digit
+    if (!window_readconfig()->default_clock)
+      window_open(&analogclock_process, NULL);
+    else
+      window_open(&digitclock_process, NULL);
+  }
+  else
+  {
+    window_open(&charging_process, NULL);
+  }
+}
+
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   static struct etimer timer;
@@ -367,11 +383,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (rparam == &timer)
       {
-        // check analog or digit
-        if (!window_readconfig()->default_clock)
-          window_open(&analogclock_process, NULL);
-        else
-          window_open(&digitclock_process, NULL);
+        menu_timeout();
       }
       break;
     }
@@ -453,12 +465,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else
       {
-        // this is main menu
-        // check analog or digit
-        if (!window_readconfig()->default_clock)
-          window_open(&analogclock_process, NULL);
-        else
-          window_open(&digitclock_process, NULL);
+        menu_timeout();
       }
       break;
     }

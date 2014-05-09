@@ -100,6 +100,7 @@ WATCH = \
     watch/countdown.c \
     watch/controller.c \
     watch/controls.c \
+    watch/charging.c \
     watch/digit-watch.c \
     watch/stopwatch.c \
     watch/names.c \
