@@ -110,9 +110,9 @@ main(int argc, char **argv)
 	/* If first word of user data page is non-zero, enable eA Profiler trace */
   	//BSP_TraceProfilerSetup();       
   		
-	efm32_cpu_init();  
-	printf("CPU init done\n");
+	efm32_cpu_init();  	
 	clock_init();
+	printf("CPU init done\n");
 	DMAInit();
 	rtimer_init();
 	/* xmem_init(); */
@@ -149,9 +149,9 @@ main(int argc, char **argv)
 #ifdef NOTYET
 	CFSFontWrapperLoad();
 #endif	
-#ifdef NOTYET
+
 	system_init(); // check system status and do factor reset if needed
-#endif
+
 	I2C_Init_();	
 	mpu3050Init();
 #ifdef UNUSED

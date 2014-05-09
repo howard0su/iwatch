@@ -59,6 +59,7 @@
 #include <em_int.h>
 #include <em_letimer.h>
 #include <em_leuart.h>
+#include <em_msc.h>
 #include <em_rmu.h>
 #include <em_rtc.h>
 #include <em_timer.h>
