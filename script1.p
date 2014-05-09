@@ -38,9 +38,9 @@ refreshdata()
 
 	window_setfont context, FontGothic14
 	if (ampm)
-		window_drawtext context, "AM", 105, 105, 0
-	else
 		window_drawtext context, "PM", 105, 105, 0
+	else
+		window_drawtext context, "AM", 105, 105, 0
 
 	window_setfont context, FontGothic14
 	strformat command, _, true, "%d %d, %d", month, day, year

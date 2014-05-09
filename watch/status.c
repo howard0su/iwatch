@@ -39,7 +39,7 @@ extern void ped_reset();
 static uint16_t status;
 static char alarmtext[10]; // 12:34 67
 
-extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 extern void cleanUpSportsWatchData();
 
 static uint16_t s_watch_status = 0;
@@ -89,7 +89,7 @@ uint16_t check_idle_time()
   return now - s_last_act_timehash;
 }
 
-void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 
 static void OnDraw(tContext* pContext)
 {
@@ -172,12 +172,12 @@ static void OnDraw(tContext* pContext)
   {
     uint8_t hour, minute;
     char buf[20];
-    uint8_t ampm;
+    uint8_t ispm;
     rtc_readtime(&hour, &minute, NULL);
 
-    adjustAMPM(hour, &hour, &ampm);
+    adjustAMPM(hour, &hour, &ispm);
 
-    sprintf(buf, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
+    sprintf(buf, "%02d:%02d %s", hour, minute, ispm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 8, 0);
   }
@@ -324,9 +324,9 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
             uiconf->alarms[i].minutes == minute &&
             second <= 30)
         {
-          uint8_t ampm;
-          adjustAMPM(hour, &hour, &ampm);
-          sprintf(alarmtext, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
+          uint8_t ispm;
+          adjustAMPM(hour, &hour, &ispm);
+          sprintf(alarmtext, "%02d:%02d %s", hour, minute, ispm?"PM":"AM");
           window_messagebox(ICON_LARGE_ALARM, alarmtext, NOTIFY_ALARM);
           break;
         }

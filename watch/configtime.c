@@ -33,7 +33,7 @@ enum _statedate{
   STATE_CONFIG_DAY,
 };
 
-extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 
 static void OnDrawTime(tContext *pContext)
 {
@@ -72,9 +72,9 @@ static void OnDrawTime(tContext *pContext)
   GrContextFontSet(pContext, &g_sFontGothic18b);
   // draw AM/PM
   uint8_t out;
-  uint8_t ampm;
-  adjustAMPM(HOUR, &out, &ampm);
-  if (ampm)
+  uint8_t ispm;
+  adjustAMPM(HOUR, &out, &ispm);
+  if (ispm)
     GrStringDraw(pContext, "PM", 2, 120, 105, 0);
   else
     GrStringDraw(pContext, "AM", 2, 120, 105, 0);
