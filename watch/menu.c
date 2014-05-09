@@ -124,7 +124,7 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define NUM_MENU_A_PAGE 3
 #define MAINMENU_SPACE ((168 - 30)/NUM_MENU_A_PAGE)
 
-extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 
 static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPACE, const struct MenuItem *item, int index, int selected)
 {
@@ -190,12 +190,12 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       {
         uint8_t hour, minute;
         char buf0[2];
-        uint8_t ampm = 0;
+        uint8_t ispm = 0;
         rtc_readtime(&hour, &minute, NULL);
           // draw time
-        adjustAMPM(hour, &hour, &ampm);
+        adjustAMPM(hour, &hour, &ispm);
 
-        if (ampm) buf0[0] = 'P';
+        if (ispm) buf0[0] = 'P';
           else buf0[0] = 'A';
         buf0[1] = 'M';
 

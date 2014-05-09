@@ -29,16 +29,16 @@ static uint8_t _selection;
 
 typedef void (*draw_function)(tContext *pContext);
 
-void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm)
+void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm)
 {
   if (hour > 12) // 12 - 23
   {
-    *ampm = 1;
+    *ispm = 1;
     *outhour -= 12;
   }
   else if (hour == 12)
   {
-    *ampm = 1;
+    *ispm = 1;
   }
   else if (hour == 0)
   {
@@ -51,13 +51,13 @@ static void drawClock0(tContext *pContext)
   uint16_t year;
   uint8_t hour = _hour0;
   uint8_t month, day;
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   char buf[20];
 
   rtc_readdate(&year, &month, &day, NULL);
 
   // draw time
-  adjustAMPM(hour, &hour, &ampm);
+  adjustAMPM(hour, &hour, &ispm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExNimbus38);
 
@@ -66,7 +66,7 @@ static void drawClock0(tContext *pContext)
 
   int width = GrStringWidthGet(pContext, buf, -1);
   GrContextFontSet(pContext, &g_sFontGothic18);
-  if (ampm) buf[0] = 'P';
+  if (ispm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, LCD_X_SIZE/2+width/2 - 
@@ -80,12 +80,12 @@ static void drawClock0(tContext *pContext)
 
 static void drawClock1(tContext *pContext)
 {
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   uint8_t hour = _hour0;
   char buf[20];
 
   // draw time
-  adjustAMPM(hour, &hour, &ampm);
+  adjustAMPM(hour, &hour, &ispm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExNimbus52);
 
@@ -97,7 +97,7 @@ static void drawClock1(tContext *pContext)
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 100, 0);
 
   GrContextFontSet(pContext, &g_sFontGothic18b);
-  if (ampm) buf[0] = 'P';
+  if (ispm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDrawCentered(pContext, buf, 2, LCD_X_SIZE / 2, 132, 0);
@@ -105,13 +105,13 @@ static void drawClock1(tContext *pContext)
 
 static void drawClock2(tContext *pContext)
 {
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   uint8_t hour = _hour0;
   char buf[20];
   const char* buffer;
 
   // draw time
-  adjustAMPM(hour, &hour, &ampm);
+  adjustAMPM(hour, &hour, &ispm);
 
   GrContextFontSet(pContext, &g_sFontNimbus34);
   buffer = toEnglish(hour, buf);
@@ -122,7 +122,7 @@ static void drawClock2(tContext *pContext)
   GrStringDraw(pContext, buffer, -1, 5, 88, 0);
 
   GrContextFontSet(pContext, &g_sFontGothic18);
-  if (ampm)
+  if (ispm)
   {
     GrStringDraw(pContext, "In the PM", -1, 5, 120, 0);
   }
@@ -135,13 +135,13 @@ static void drawClock2(tContext *pContext)
 
 static void drawClock3(tContext *pContext)
 {
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   uint8_t hour = _hour0;
   char buf[20];
   const char* buffer;
 
   // draw time
-  adjustAMPM(hour, &hour, &ampm);
+  adjustAMPM(hour, &hour, &ispm);
 
   GrContextFontSet(pContext, &g_sFontNimbus34);
 
@@ -157,7 +157,7 @@ static void drawClock3(tContext *pContext)
   GrStringDrawCentered(pContext, buffer, -1, LCD_X_SIZE / 2, 95, 0);
 
   GrContextFontSet(pContext, &g_sFontGothic18);
-  if (ampm)
+  if (ispm)
   {
     GrStringDrawCentered(pContext, "In the PM", -1, LCD_X_SIZE / 2, 120, 0);
   }
@@ -203,13 +203,13 @@ static void drawClock5(tContext *pContext)
   uint16_t year;
   uint8_t hour = _hour0;
   uint8_t month, day;
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   char buf[20];
 
   rtc_readdate(&year, &month, &day, NULL);
 
   // draw time
-  adjustAMPM(hour, &hour, &ampm);
+  adjustAMPM(hour, &hour, &ispm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExNimbus46);
 
@@ -218,7 +218,7 @@ static void drawClock5(tContext *pContext)
 
   int width = GrStringWidthGet(pContext, buf, -1);
   GrContextFontSet(pContext, &g_sFontGothic18b);
-  if (ampm) buf[0] = 'P';
+  if (ispm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, LCD_X_SIZE/2+width/2 - 
@@ -263,13 +263,13 @@ static void drawClock7(tContext *pContext)
   uint16_t year;
   uint8_t hour = _hour0;
   uint8_t month, day;
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   char buf[20];
 
   rtc_readdate(&year, &month, &day, NULL);
 
   // draw time
-  adjustAMPM(hour, &hour, &ampm);
+  adjustAMPM(hour, &hour, &ispm);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExNimbus52);
 
@@ -278,7 +278,7 @@ static void drawClock7(tContext *pContext)
 
   int width = GrStringWidthGet(pContext, buf, -1);
   GrContextFontSet(pContext, &g_sFontGothic18b);
-  if (ampm) buf[0] = 'P';
+  if (ispm) buf[0] = 'P';
     else buf[0] = 'A';
   buf[1] = 'M';
   GrStringDraw(pContext, buf, 2, LCD_X_SIZE/2+width/2 - 
@@ -296,7 +296,7 @@ static void drawClock9(tContext *pContext)
   uint16_t year;
   uint8_t hour = _hour0;
   uint8_t month, day;
-  uint8_t ampm = 0;
+  uint8_t ispm = 0;
   char buf[20];
 
   rtc_readdate(&year, &month, &day, NULL);
