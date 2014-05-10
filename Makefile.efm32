@@ -26,7 +26,8 @@ DUMP 	=  $(TOOLDIR)/bin/arm-none-eabi-objdump --disassemble
 #MAKETXT = tools/srec_cat
 ECHO	= echo
 
-FWVERSION ="0.9.0.$$(cat $(BUILDNUM))"
+#FWVERSION ="0.9.0.$$(cat $(BUILDNUM))"
+FWVERSION="DEBUG"
 
 ####################################################################
 # Flags #
@@ -37,7 +38,7 @@ FWVERSION ="0.9.0.$$(cat $(BUILDNUM))"
 # -MF : Specify a file to write the dependencies to.
 DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
 # Add -Wa,-ahlms=$(OBJDIR)/$(@F:.o=.lst) to CFLAGS to produce assembly list files
-CFLAGS += -D$(TARGET_CPU) -mcpu=cortex-m3 -mthumb -Wall $(DEPFLAGS) -std=gnu99  FWVERSION=$(FWVERSION)
+CFLAGS += -D$(TARGET_CPU) -mcpu=cortex-m3 -mthumb -Wall $(DEPFLAGS) -std=gnu99 -DFWVERSION=\"$(FWVERSION)\"
 ASMFLAGS += -Ttext 0x0
 LDFLAGS += -Xlinker -Map=$(OBJDIR)/$(PROJECTNAME).map -mcpu=cortex-m3 -mthumb -T./platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/efm32gg.ld
 LDFLAGS += -L"$(TOOLDIR)/arm-none-eabi/lib/thumb"
