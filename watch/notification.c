@@ -113,7 +113,7 @@ static const char* parse_date(char* date)
 
   event_day    = atoi(&date[0x06]); date[0x06] = '\0';
   event_month  = atoi(&date[0x04]); date[0x04] = '\0';
-  event_second = atoi(&date[0x00]);
+  event_year   = atoi(&date[0x00]);
 
   uint32_t event_timestamp = calc_timestamp(event_year - 2000, event_month, event_day, event_hour, event_minute, event_second);
   uint32_t now_timestamp = rtc_readtime32();
