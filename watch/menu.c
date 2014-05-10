@@ -140,7 +140,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 25 + index * MENU_SPACE, LCD_X_SIZE - 2, 20 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_X_SIZE - 2, 15 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -274,7 +274,7 @@ static void OnDraw(tContext *pContext)
     // there is something more
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - i);
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - 5 - i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }
