@@ -61,8 +61,7 @@ BATTERY_STATE battery_state(void)
   setoutputhigh();
   __delay_cycles(10);
   int instate = (BATININ & BATINPIN) != 0; // if it is high
-  setoutputfloat();
-
+ 
   if (instate)
     return BATTERY_STATE_FULL;
   else
