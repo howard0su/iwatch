@@ -214,7 +214,7 @@ static void check_battery()
 
   if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
   {
-      window_messagebox(ICON_LARGE_LOWBATTERY, "LOW BATTERY\nConnect charger now.", 0);
+      window_open(&charging_process, 0);
       return;
   }
 

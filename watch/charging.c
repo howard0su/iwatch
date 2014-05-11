@@ -14,7 +14,7 @@ uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam)
   	case EVENT_WINDOW_ACTIVE:
   	{
   		state = 0;
-  		window_timer(1);
+  		window_timer(CLOCK_SECOND);
   		break;
 	}
 
@@ -24,8 +24,17 @@ uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam)
 		switch(battery_state())
 		{
 			case BATTERY_STATE_DISCHARGING:
-			window_close();
-			return 1;
+			if (battery_level(BATTERY_STATE_DISCHARGING) == 0)
+			{
+				state = 6;
+				window_invalid(NULL);
+			}
+			else
+			{
+				window_close();
+				return 1;
+			}
+			break;
 			case BATTERY_STATE_CHARGING:
 			state++;
 			if (state >= 4)
@@ -37,7 +46,7 @@ uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam)
 			window_invalid(NULL);
 			break;
 		}
-		window_timer(1);
+		window_timer(CLOCK_SECOND);
 		break;
 	}
 
@@ -61,6 +70,14 @@ uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam)
 
 	  	GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
 	  	GrStringDrawWrap(pContext, "Battery is fully charged.", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+	  }
+	  else if (state == 6)
+	  {
+	  	char icon = ICON_LARGE_LOWBATTERY;
+	  	GrStringDrawCentered(pContext, &icon, 1, LCD_X_SIZE/2, 37, 0);
+
+	  	GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
+	  	GrStringDrawWrap(pContext, "LOW BATTERY\nConnect charger now.", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);	  	
 	  }
 	  else
 	  {
