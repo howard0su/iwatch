@@ -412,6 +412,10 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
 
     return 0x80;
   }
+  else if (ev == EVENT_WINDOW_ACTIVE)
+  {
+    rtc_readtime(&_hour, &_minute, &_sec);
+  }
   else if (ev == EVENT_WINDOW_PAINT)
   {
     tContext *pContext = (tContext*)rparam;
