@@ -14,8 +14,7 @@ uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam)
   	case EVENT_WINDOW_ACTIVE:
   	{
   		state = 0;
-  		window_timer(CLOCK_SECOND);
-  		break;
+  		// Fallthrough
 	}
 
 	case PROCESS_EVENT_TIMER:
