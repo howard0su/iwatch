@@ -65,11 +65,10 @@ void burtcSetup(void);
 void clockRestore(uint32_t burtcCountAtWakeup);
 uint32_t clockGetOverflowCounter(void);
 time_t clockGetStartTime(void);
-void clockSetStartTime(time_t offset);
 void clockSetOverflowCounter(uint32_t of);
-void clockSetCal(struct tm * timeptr);
+void clockInit(struct datetime * timeptr);
+void clockSetCal(struct datetime * timeptr);
 
-void clockInit(struct tm * timeptr);
 void clockBackup(void);
 
 static uint16_t getChecksum()
@@ -96,19 +95,14 @@ void rtc_init()
      	   for January 1 2012 12:00:00
      	   The struct tm is declared in time.h
      	   More information for time.h library in http://en.wikipedia.org/wiki/Time.h */
-  	initialCalendar.tm_sec    = 0;   /* 0 seconds (0-60, 60 = leap second)*/
-  	initialCalendar.tm_min    = 0;   /* 0 minutes (0-59) */
-  	initialCalendar.tm_hour   = 12;  /* 6 hours (0-23) */
-  	initialCalendar.tm_mday   = 1;   /* 1st day of the month (1 - 31) */
-  	initialCalendar.tm_mon    = 0;   /* January (0 - 11, 0 = January) */
-  	initialCalendar.tm_year   = 114; /* Year 2012 (year since 1900) */
-  	initialCalendar.tm_wday   = 0;   /* Sunday (0 - 6, 0 = Sunday) */
-  	initialCalendar.tm_yday   = 0;   /* 1st day of the year (0-365) */
-  	initialCalendar.tm_isdst  = -1;  /* Daylight saving time; enabled (>0), disabled (=0) or unknown (<0) */
-  	
-	/* Set the calendar */
-  	clockInit(&initialCalendar);  	
-  	
+	now.year   = 114;
+	now.month  = 1;
+	now.day    = 1;
+	now.hour   = 12;
+	now.minute = 0;
+	now.second = 0;
+	clockInit(&now);  	
+
   	/* Compute overflow interval (integer) and remainder */
   	burtcOverflowInterval  =  ((uint64_t)UINT32_MAX+1)/COUNTS_BETWEEN_UPDATE; /* in seconds */
   	burtcOverflowIntervalRem = ((uint64_t)UINT32_MAX+1)%COUNTS_BETWEEN_UPDATE;
@@ -147,10 +141,7 @@ void rtc_init()
     		burtcSetup();
 
     		/* Backup initial calendar (also to initialize retention registers) */
-    		clockBackup();
-
-    		/* Update display if necessary */
-    		//clockAppDisplay();
+    		clockBackup();    		    		
   	}  	
   	
   	/* Enable BURTC interrupts */
@@ -235,13 +226,13 @@ void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
   	uint8_t weekday;
 
 	startTime = clockGetStartTime( );
-	calendar = *localtime( &startTime );
-	now.year = calendar.tm_year = year;
-	now.month = calendar.tm_mon = month;
-	now.day = calendar.tm_mday = day;
+	parse_timestamp(startTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);
+	now.year  = year;
+	now.month = month;
+	now.day   = day;
 	
-	/* Set new epoch offset */
-  	startTime = mktime(&calendar);
+	startTime = calc_timestamp(now.year,now.month,now.day,now.hour,now.minute,now.second);
+
   	clockSetStartTime( startTime );
   	clockBackup( );	
   	process_post(ui_process, EVENT_TIME_CHANGED, &now);
@@ -250,13 +241,12 @@ void rtc_setdate(uint16_t year, uint8_t month, uint8_t day)
 void rtc_settime(uint8_t hour, uint8_t min, uint8_t sec)
 {
 	startTime = clockGetStartTime( );
-	calendar = *localtime( &startTime );
-	now.hour = calendar.tm_hour = hour;
-	now.minute = calendar.tm_min = min;
-	now.second = calendar.tm_sec = sec;
+	parse_timestamp(startTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);
+	now.hour   = hour;
+	now.minute = min;
+	now.second = sec;
 	
-	/* Set new epoch offset */
-  	startTime = mktime(&calendar);
+	startTime = calc_timestamp(now.year,now.month,now.day,now.hour,now.minute,now.second);
   	clockSetStartTime( startTime );
   	clockBackup( );		
   	process_post(ui_process, EVENT_TIME_CHANGED, &now);
@@ -323,32 +313,27 @@ void rtc_readtime(uint8_t *hour, uint8_t *min, uint8_t *sec)
 {
 	
    	currentTime = time( NULL );
-    	calendar = *localtime( &currentTime );	
-
-  	if (hour) 
-  		*hour = calendar.tm_hour;
+   	parse_timestamp(currentTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);
+   	if (hour) 
+  		*hour = now.hour;
   	if (min) 
-  		*min = calendar.tm_min;
+  		*min = now.minute;
   	if (sec) 
-  		*sec = calendar.tm_sec;
-  		    	
-  		
+  		*sec = now.second;  	  		
 }
 
 void rtc_readdate(uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *weekday)
 {
     	currentTime = time( NULL );
-    	calendar = *localtime( &currentTime );	
-    	
-  	if (year) 
-  		*year = calendar.tm_year;
+    	parse_timestamp(currentTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);
+    	if (year) 
+  		*year = now.year;
   	if (month) 
-  		*month = calendar.tm_mon;
+  		*month = now.month;
   	if (day) 
-  		*day = calendar.tm_mday;
+  		*day = now.day;
   	if (weekday) 
-  		*weekday = calendar.tm_wday;
-  		
+  		*weekday = rtc_getweekday(now.year, now.month, now.day);
 }
 
 static const uint8_t month_day_map[] = {
@@ -543,7 +528,8 @@ void clockBackup(void)
  *   Calendar struct that is used to set the start time of the counter.
  *
  ******************************************************************************/
-void clockInit(struct tm * timeptr)
+
+void clockInit(struct datetime * timeptr)
 {
   	/* Reset variables */
   	rtcOverflowCounter = 0;
@@ -565,9 +551,9 @@ void clockInit(struct tm * timeptr)
  *   offset
  *
  ******************************************************************************/
-void clockSetCal(struct tm * timeptr)
+void clockSetCal(struct datetime * timeptr)
 {
-  	rtcStartTime = mktime(timeptr);
+	rtcStartTime = calc_timestamp(timeptr->year, timeptr->month, timeptr->day, timeptr->hour, timeptr->minute, timeptr->second);
 }
 
 /***************************************************************************//**
@@ -750,15 +736,7 @@ void BURTC_IRQHandler(void)
     		if(RTC_CTL&MINUTE_CHANGE)
     		{	
     			currentTime = time( NULL );
-    			calendar = *localtime( &currentTime );	
-    			
-    			now.hour = calendar.tm_hour;
-			now.minute = calendar.tm_min;
-			now.second = calendar.tm_sec;
-			now.year = calendar.tm_year;
-			now.month = calendar.tm_mon;
-			now.day = calendar.tm_mday;
-    			
+			parse_timestamp(startTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);    			
     			source = 0;
     			process_poll(&rtc_process);
     		}	
@@ -791,9 +769,9 @@ void RTC_IRQHandler(void)
     		RTC_IntClear(RTC_IFC_COMP0);
     		source = 0;
     		process_poll(&rtc_process);
-/*    		
+#ifdef NOTYET    		
     		LPM4_EXIT;    		
-*/    		
+#endif
   	}	
 /*  	
   	if(RTC_IF_OF& (tmp & RTC_IntGet()))
