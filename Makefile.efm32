@@ -26,7 +26,8 @@ DUMP 	=  $(TOOLDIR)/bin/arm-none-eabi-objdump --disassemble
 #MAKETXT = tools/srec_cat
 ECHO	= echo
 
-FWVERSION=DEBUG
+#FWVERSION ="0.9.0.$$(cat $(BUILDNUM))"
+FWVERSION="DEBUG"
 
 ####################################################################
 # Flags #
@@ -37,7 +38,7 @@ FWVERSION=DEBUG
 # -MF : Specify a file to write the dependencies to.
 DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
 # Add -Wa,-ahlms=$(OBJDIR)/$(@F:.o=.lst) to CFLAGS to produce assembly list files
-CFLAGS += -D$(TARGET_CPU) -mcpu=cortex-m3 -mthumb -Wall $(DEPFLAGS) -std=gnu99
+CFLAGS += -D$(TARGET_CPU) -mcpu=cortex-m3 -mthumb -Wall $(DEPFLAGS) -std=gnu99 -DFWVERSION=\"$(FWVERSION)\"
 ASMFLAGS += -Ttext 0x0
 LDFLAGS += -Xlinker -Map=$(OBJDIR)/$(PROJECTNAME).map -mcpu=cortex-m3 -mthumb -T./platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/efm32gg.ld
 LDFLAGS += -L"$(TOOLDIR)/arm-none-eabi/lib/thumb"
@@ -47,7 +48,7 @@ LDFLAGS += -L"$(TOOLDIR)/lib/gcc/arm-none-eabi/4.7.4/thumb"
 
 LIBS += -lc -lgcc -lm -lrdimon
 #LIBS += -lc -lcs3 -lcs3unhosted
-ALL_DEFINES = AUTOSTART_ENABLE=1 $(TARGET_CPU) FWVERSION=$(FWVERSION) PRODUCT_W002
+ALL_DEFINES = AUTOSTART_ENABLE=1 $(TARGET_CPU) AMX_ANSIONLY=1 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=32 HAVE_ALLOCA_H=0 PRODUCT_W002
 
 #INCLUDEPATHS += \
 #INCLUDEPATHS += -I..
@@ -213,6 +214,7 @@ WATCH = \
     watch/countdown.c \
     watch/controller.c \
     watch/controls.c \
+    watch/charging.c \
     watch/digit-watch.c \
     watch/stopwatch.c \
     watch/names.c \

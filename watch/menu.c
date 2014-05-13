@@ -23,7 +23,7 @@
 #include "memory.h"
 #include "sportsdata.h"
 #include "system.h"
-
+#include "battery.h"
 #include "test.h"
 
 /*
@@ -140,7 +140,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 25 + index * MENU_SPACE, LCD_X_SIZE - 2, 20 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_X_SIZE - 2, 15 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -274,7 +274,7 @@ static void OnDraw(tContext *pContext)
     // there is something more
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - i);
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - 5 - i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }
@@ -326,6 +326,22 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
   return 0;
 }
 
+static void menu_timeout()
+{
+  if (battery_state() == BATTERY_STATE_DISCHARGING)
+  {
+    // check analog or digit
+    if (!window_readconfig()->default_clock)
+      window_open(&analogclock_process, NULL);
+    else
+      window_open(&digitclock_process, NULL);
+  }
+  else
+  {
+    window_open(&charging_process, NULL);
+  }
+}
+
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   static struct etimer timer;
@@ -367,11 +383,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (rparam == &timer)
       {
-        // check analog or digit
-        if (!window_readconfig()->default_clock)
-          window_open(&analogclock_process, NULL);
-        else
-          window_open(&digitclock_process, NULL);
+        menu_timeout();
       }
       break;
     }
@@ -453,12 +465,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else
       {
-        // this is main menu
-        // check analog or digit
-        if (!window_readconfig()->default_clock)
-          window_open(&analogclock_process, NULL);
-        else
-          window_open(&digitclock_process, NULL);
+        menu_timeout();
       }
       break;
     }

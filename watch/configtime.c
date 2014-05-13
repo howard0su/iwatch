@@ -70,6 +70,7 @@ static void OnDrawTime(tContext *pContext)
   }
 
   GrContextFontSet(pContext, &g_sFontGothic18b);
+  #if 0
   // draw AM/PM
   uint8_t out;
   uint8_t ispm;
@@ -78,6 +79,7 @@ static void OnDrawTime(tContext *pContext)
     GrStringDraw(pContext, "PM", 2, 120, 105, 0);
   else
     GrStringDraw(pContext, "AM", 2, 120, 105, 0);
+  #endif
 
   if (state != STATE_CONFIG_READY)
   {

@@ -296,7 +296,6 @@ static void drawClock9(tContext *pContext)
   uint16_t year;
   uint8_t hour = _hour0;
   uint8_t month, day;
-  uint8_t ispm = 0;
   char buf[20];
 
   rtc_readdate(&year, &month, &day, NULL);
@@ -343,6 +342,10 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     rtc_enablechange(MINUTE_CHANGE);
 
     return 0x80;
+  }
+  else if (ev == EVENT_WINDOW_ACTIVE)
+  {
+    rtc_readtime(&_hour0, &_minute, NULL);
   }
   else if (ev == EVENT_WINDOW_PAINT)
   {

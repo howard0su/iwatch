@@ -68,10 +68,8 @@ void watchdog_start(void)
 	counter--;
 	if(counter == 0)
 	{	
-		/* Enabling watchdog, since it was not enabled during initialization */
-#ifdef NOTYET		
+		/* Enabling watchdog, since it was not enabled during initialization */	
   		WDOG_Enable(true);
-#endif  		
   	}	
 }
 void watchdog_periodic(void)
@@ -83,15 +81,15 @@ void watchdog_stop(void)
 	counter++;
 	if(counter == 1)
 	{	
-		/* Disabling watchdog, False to disable watchdog. */
-#ifdef NOTYET				
+		/* Disabling watchdog, False to disable watchdog. */	
   		WDOG_Enable(false);
-#endif  		
   	}		
 }
 
 void watchdog_reboot(void)
 {
+	watchdog_start();
+	while(1);
 } 
  
  
