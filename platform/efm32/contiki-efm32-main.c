@@ -142,7 +142,7 @@ main(int argc, char **argv)
 
 	button_init();
 
-//	rtc_init();
+	rtc_init();
 
 	SPI_FLASH_Init();
 
