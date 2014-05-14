@@ -913,7 +913,7 @@ void getPDUName(char** name_string, uint8_t *pdu, uint8_t in)
         strcpy(name_string, "Invalid HCI Testing Command");
       }
       break;
-    case 8: /* LE commands */
+    case OGF_LE_CONTROLLER: /* LE commands */
       switch(pdu[0])
       {
         case 0x01:
@@ -962,10 +962,19 @@ void getPDUName(char** name_string, uint8_t *pdu, uint8_t in)
         case 0x19:
           strcpy(name_string, "LE Start Encryption");
           break;
-
+        case 0x1e:
+          strcpy(name_string, "LE Start Transmitter Test Command");
+          break;
         default:
           strcpy(name_string, "Invalid LE command");
           break;
+      }
+      break;
+
+      case OGF_VENDOR:
+      {
+        strcpy(name_string, "Vendor HCI Commands");
+        break;
       }
 
     default:

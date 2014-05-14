@@ -160,7 +160,7 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      	  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Speaker is looping back to mic", -1, 0, 50, 0);
 
   		window_volume(pContext, 30, 125, 8, codec_getvolume());
@@ -437,7 +437,7 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 		  }
 		  else
 		  {
-		  	GrStringDraw(pContext, "MPUT6050 failed self testing", -1, 32, 50, 0);
+		  	GrStringDraw(pContext, "MPU6050 failed self testing", -1, 32, 50, 0);
 		  }
 
 		  GrStringDraw(pContext, "watch face up", -1, 32, 70, 0);
@@ -471,7 +471,7 @@ static const uint8_t HCI_VS_Set_LE_Test_Mode_Parameters[] =
 	, 0x00 //(En_Traces)
 	, 0x00, 0x00, 0x00, 0x00
 };
-
+extern void ble_advertise(uint8_t onoff);
 uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
@@ -479,6 +479,7 @@ uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
 		case EVENT_WINDOW_CREATED:
 		onoff = 0;
 		data = 0;
+		ble_advertise(0);
 		hci_send_cmd_packet((uint8_t*)HCI_VS_Set_LE_Test_Mode_Parameters, sizeof(HCI_VS_Set_LE_Test_Mode_Parameters));
 		break;
 
