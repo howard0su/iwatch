@@ -110,7 +110,7 @@ retry:
 				}                    			
 				for(x=0;x<len-1;x++)
 				{
-					if(i<dv[10-len-x])
+					if(i<dv[10-len+x])
 					{
 				    		*output='0';
 				    		output++;	
@@ -186,6 +186,7 @@ retry:
                     		break;
                 	
                 	case 0: 
+                        *output = 0;
                     		return 0;
                 	default: 
                     		if (c > '0' && c <= '9')
@@ -206,5 +207,6 @@ bad_fmt:
     	}
     	va_end(a);
 
+    *output = 0;
 	return 0;
 }
