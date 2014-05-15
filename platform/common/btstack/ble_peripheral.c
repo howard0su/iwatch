@@ -198,7 +198,7 @@ static void gap_run(){
         
         uint8_t adv_data[] = { 
             2, 0x1, 0x2,
-            3, 02, 0xf0, 0xff,
+            3, 0x03, 0xf0, 0xff,
             14, 0x09, 'M','e', 't', 'e', 'o', 'r', 'L', 'E', ' ', 'X','X','X','X','\0'
         };
 
