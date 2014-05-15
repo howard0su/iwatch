@@ -45,8 +45,7 @@ CORE   = \
     core/lib/list.c
 
 COMMON = \
-  platform/common/memlcd.c \
-  platform/common/sprintf.c \
+  platform/common/memlcd.c
 
 PLATFORM = \
 	platform/iwatch/backlight.c \
