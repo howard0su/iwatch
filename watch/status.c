@@ -214,7 +214,6 @@ static void check_battery()
 
   if (window_current() != &charging_process)
   {
-    printf("battery state = %d\n", state);
     if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
     {
       window_open(&charging_process, 0);
