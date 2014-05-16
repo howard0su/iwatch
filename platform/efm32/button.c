@@ -21,16 +21,15 @@ static uint32_t downtime[4] = {0,0,0,0};
 static uint32_t eventtime[4]={0,0,0,0};
 struct etimer button_timer;
 
+#define W002_GPIO_BUTTONARRAY_INIT {{gpioPortF,6},{gpioPortF,8},{gpioPortF,7},{gpioPortF,3}}
 
+static const uint16_t BUTTON_MASK[4] = {0x40, 0x100, 0x80, 0x08};
 
 static const GPIOMapping ButtonArray[ MAX_BUTTONS ] = W002_GPIO_BUTTONARRAY_INIT;
 
 static inline uint16_t getmask(int i)
 {
-	if (i == 0)
-    		return 1 << 3;
-  	else
-    		return 1 << (i+5);
+	return BUTTON_MASK[i];	
 }
 
 void button_init()
@@ -83,11 +82,9 @@ PROCESS_THREAD(button_process, ev, data)
 
           				if( (GPIO_PinInGet(ButtonArray[i].port, ButtonArray[i].pin) ==0) && ((GPIO->EXTIFALL&mask)!= 0) )
           				{	/*Check the GPIO pin of the button is low and int trigger is triggered by falling edge.
-            					 key is down */
-            					
+            					 key is down */            					
             					//process_post(ui_process, EVENT_KEY_DOWN, (void*)i);
-            					downtime[i] = eventtime[i]; 
-            					printf("key[%d] press \n", i);            					
+            					downtime[i] = eventtime[i];             					
             					if (etimer_expired(&button_timer))
             					{
               						// first button
@@ -99,29 +96,20 @@ PROCESS_THREAD(button_process, ev, data)
           				}          				
           				else if( (GPIO_PinInGet(ButtonArray[i].port, ButtonArray[i].pin) ==1) && ((GPIO->EXTIRISE&mask)!=0) )
           				{	
-          					/*Check the GPIO pin of the button is high and int trigger is triggered by rising edge.*/
-          					printf("key [%d] release \n", i);
-
+          					/*Check the GPIO pin of the button is high and int trigger is triggered by rising edge.*/          					
             					//process_post(ui_process, EVENT_KEY_UP, (void*)i);
             					if (downtime[i] > 0)
             					{
-            						if (eventtime[i] - downtime[i] > 3000)              					
-              							printf("button long press\n");
-#ifdef NOTYET              							
-                						process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);
-#endif                						
-              						else
-              							printf("button short press\n");
-#ifdef NOTYET      
-                						process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
-#endif                						
+            						if (eventtime[i] - downtime[i] > 3000)              					            							              							
+              							process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);               													
+              						else	              							
+              							process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
             					}
             					downtime[i] = 0;            					
             					GPIO_IntConfig(ButtonArray[i].port, ButtonArray[i].pin, false, true, true);
           				}          				
           				else if( (GPIO_PinInGet(ButtonArray[i].port, ButtonArray[i].pin) ==0) && ((GPIO->EXTIRISE&mask)!=0) )
-          				{	/*Check the GPIO pin of the button is low and int trigger is triggered by rising edge.*/         
-          					printf("key hold press\n"); 					
+          				{	/*Check the GPIO pin of the button is low and int trigger is triggered by rising edge.*/                   					
             					if (etimer_expired(&button_timer))
             					{
               						// first button
@@ -153,11 +141,8 @@ PROCESS_THREAD(button_process, ev, data)
             					reboot++;
 					if (downtime[i] < clock_time() - RTIMER_SECOND)
           				{
-            					// check if we need fire another event
-            					printf("button PRESS\n");
-#ifdef NOTYET
+            					// check if we need fire another event            					
             					process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
-#endif
             					needquick++;
           				}
         			}
@@ -194,21 +179,21 @@ static inline int portF_button(int i)
 }
 
 int portF_pin3()
-{
-	return portF_button(0);
+{	
+	return portF_button(3);
 }
 
 int portF_pin6()
 {
-	return portF_button(1);
+	return portF_button(0);
 }
 
 int portF_pin7()
-{
-	return portF_button(2);
+{	
+	return portF_button(2);	
 }
 
 int portF_pin8()
-{
-	return portF_button(3);
+{	
+	return portF_button(1);
 }

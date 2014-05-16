@@ -46,19 +46,13 @@ void GPIO_ODD_IRQHandler(void)
 			
 		}	
 #endif		
-		
-		
-		
 	}	
 
 	if(intX & 0x2000)
 	{	
 		/*GPIOx_pin13 INT_XL_MAG/INT2 : LSM303C INT_XL_MAG*/
-		GPIO_IntClear(0x2000);
-		
-	}		
-
-	
+		GPIO_IntClear(0x2000);		
+	}			
 	ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
@@ -78,12 +72,10 @@ void GPIO_EVEN_IRQHandler(void)
 		/*GPIOx_pin6 int : button2*/
 		GPIO_IntClear(0x0040);
       		if (portF_pin6())
-      		{	
-      			printf("$PIOF 6\n");
+      		{	      			
 #ifdef NOTYET			
         		LPM4_EXIT;		
 #endif								      			
-
 		}
 	}		
 	if(intX & 0x0100)
@@ -91,8 +83,7 @@ void GPIO_EVEN_IRQHandler(void)
 		/*GPIOx_pin8 int : button4*/
 		GPIO_IntClear(0x0100);
       		if (portF_pin8())
-		{      			
-			printf("$PIOF 8\n");
+		{      					
 #ifdef NOTYET			
         		LPM4_EXIT;		
 #endif								
@@ -102,8 +93,7 @@ void GPIO_EVEN_IRQHandler(void)
 	if(intX & 0x1000)
 	{	
 		/*GPIOx_pin12 DRDY_MAG/INT1 : LSM303C DRDY_MAG*/
-		GPIO_IntClear(0x1000);
-		
+		GPIO_IntClear(0x1000);		
 	}		
 
 	ENERGEST_OFF(ENERGEST_TYPE_IRQ);

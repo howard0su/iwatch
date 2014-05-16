@@ -152,15 +152,6 @@ __STATIC_INLINE void BT_START(void)
 
 #define BT_CLK_START()	CMU_CalibrateStart()
 #define BT_CLK_STOP()	CMU_CalibrateStop()
-
-//=============== Button define ===============
-#define MAX_BUTTONS	4
-
-//static unsigned int button_IES = 0x01C8;	//0000 0001 1100 1000	
-
-#define W002_GPIO_BUTTONARRAY_INIT {{gpioPortF,3},{gpioPortF,6},{gpioPortF,7},{gpioPortF,8}}
-
-
 //=============== Sensor define ================
 
 
