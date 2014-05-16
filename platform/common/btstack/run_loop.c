@@ -20,18 +20,9 @@ PROCESS(bluetooth_process, "Bluetooth process");
 #include <stdio.h> /* For log_info() */
 #include <string.h>
 
-#include "bt_control_cc256x.h"
-
-#include <btstack/hci_cmds.h>
 #include <btstack/run_loop.h>
-#include <btstack/sdp_util.h>
 
 #include "hci.h"
-#include "l2cap.h"
-#include "btstack_memory.h"
-#include "remote_device_db.h"
-#include "rfcomm.h"
-#include "sdp.h"
 
 static void callback(void *ptr)
 {
@@ -78,41 +69,16 @@ int  run_loop_remove_data_source(data_source_t *ds)
   return linked_list_remove(&data_sources, (linked_item_t *) ds);
 }
 
-
 PROCESS_THREAD(bluetooth_process, ev, data)
 {
   static struct etimer timer;
   PROCESS_BEGIN();
 
-  // enable power
-  BTPOWERDIR |= BTPOWERBIT;
-  BTPOWEROUT |= BTPOWERBIT;
-
-  OECLKDIR |= OECLKBIT;
-  OECLKOUT &= ~OECLKBIT;
-
-  OEHCIDIR |= OEHCIBIT;
-  OEHCIOUT &= ~OEHCIBIT;
-
-    // set BT SHUTDOWN to 1 (active low)
-  BT_SHUTDOWN_SEL &= ~BT_SHUTDOWN_BIT;  // = 0 - I/O
-  BT_SHUTDOWN_DIR |=  BT_SHUTDOWN_BIT;  // = 1 - Output
-  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
-
-  // Enable ACLK to provide 32 kHz clock to Bluetooth module
-  BT_ACLK_SEL |= BT_ACLK_BIT;
-  BT_ACLK_DIR |= BT_ACLK_BIT;
-
-  // wait clock stable
-  __delay_cycles(1000);
-
-  BT_SHUTDOWN_OUT |=  BT_SHUTDOWN_BIT;  // = 1
-
   // wait RTS of BT pull down to 0
   //BUSYWAIT_UNTIL(0, RTIMER_SECOND);
 
   // wait about 100ms for bluetooth to start
-  etimer_set(&timer, CLOCK_SECOND / 10);
+  etimer_set(&timer, CLOCK_SECOND/10);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
 
   // turn on!
@@ -121,9 +87,6 @@ PROCESS_THREAD(bluetooth_process, ev, data)
   while(1)
   {
     PROCESS_WAIT_EVENT();
-
-    if (ev == PROCESS_EVENT_EXIT)
-      break;
 
     if (ev != PROCESS_EVENT_POLL)
       continue;
@@ -136,14 +99,6 @@ PROCESS_THREAD(bluetooth_process, ev, data)
       ds->process(ds);
     }
   }
-
-  BT_SHUTDOWN_OUT &=  ~BT_SHUTDOWN_BIT;  // = 0
-  printf("bluetooth process exit\n");
-
-  // disable power
-  OECLKOUT |= OECLKBIT;
-  OEHCIOUT |= OEHCIBIT;
-  BTPOWEROUT &= ~BTPOWERBIT;
 
   PROCESS_END();
 }

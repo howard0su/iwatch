@@ -24,4 +24,6 @@ extern void codec_suspend();
 
 PROCESS_NAME(bluetooth_process);
 
+extern void bluetooth_platform_init(void);
+extern void bluetooth_platform_shutdown(void);
 #endif

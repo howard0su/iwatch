@@ -114,7 +114,7 @@ BTSTACK0 = \
 	hal.c \
 	hal_compat.c \
 	hal_uart_dma.c \
-	run_loop.c \
+  bt_init.c
 
 BTSTACK1 = \
 	ble/att.c \
@@ -153,7 +153,8 @@ BTSTACK3 = \
   stlv_client.c \
   stlv_handler.c \
   stlv_server.c \
-  stlv_transport.c
+  stlv_transport.c \
+  run_loop.c \
 
 BTSTACK = $(addprefix platform/iwatch/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1)) $(addprefix platform/common/btstack/, $(BTSTACK3))
 

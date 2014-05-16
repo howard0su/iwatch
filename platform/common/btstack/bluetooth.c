@@ -114,6 +114,8 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
         // close the connection
         process_exit(&bluetooth_process);
         
+        bluetooth_platform_shutdown();
+
         // notify UI that we are shutdown
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
         break;
@@ -219,6 +221,7 @@ static void btstack_setup(){
   hfp_init();
 #endif
   //mns_init();
+  bluetooth_platform_init();
 }
 
 void bluetooth_init()
