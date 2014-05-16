@@ -93,7 +93,9 @@ CORE   = \
 
 COMMON = \
     platform/common/memlcd.c \
-    platform/common/sprintf.c	
+    platform/common/sprintf.c \
+    platform/common/printf.c
+    
     
 PLATFORM = \
     platform/efm32/contiki-efm32-main.c \

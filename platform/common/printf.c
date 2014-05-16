@@ -1,8 +1,9 @@
 #include "stdarg.h"
 #include <stdio.h>
 #include <stdint.h>
-
-const unsigned long dv[] = {
+extern const unsigned long dv[];
+/*
+static const unsigned long dv[] = {
 //  4294967296      // 32 bit unsigned max
     1000000000,     // +0
      100000000,     // +1
@@ -16,12 +17,22 @@ const unsigned long dv[] = {
             10,     // +8
              1,     // +9
 };
+*/
+int puts(const char* s)
+{
+  	while(*s != '\0')
+  	{
+    		putchar(*s);
+    		s++;
+  	}
 
-static unsigned int xtobuf(char *output, unsigned long x, const unsigned long *dp)
+  	return 0;
+}
+
+static void xtoa(unsigned long x, const unsigned long *dp)
 {
     	char c;
     	unsigned long d;
-    	unsigned int len=0;
     	if(x) 
     	{
         	while(x < *dp) ++dp;
@@ -29,42 +40,34 @@ static unsigned int xtobuf(char *output, unsigned long x, const unsigned long *d
             		d = *dp++;
             		c = '0';
             		while(x >= d) ++c, x -= d;
-            		*output = c;
-            		output++;  
-            		len++;           		
+            		putchar(c);
         	} while(!(d & 1));
     	} 
     	else
-    	{	
-		*output = '0';
-            	output++; 
-            	len++;
-        }	
-        return len;
+        	putchar('0');
 }
 
-static void puthtobuf(char *output, unsigned n, unsigned char format)
+static void puth(unsigned n, unsigned char format)
 {
 	static const char hexl[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
     	static const char hex[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
     	if (format == 'x')
-    	{	
-    		*output = hexl[n & 15];
-      	}	
+      		putchar(hexl[n & 15]);
     	else
-    	{	
-    		*output = hex[n & 15];
-      	}	      	
+      		putchar(hex[n & 15]);
 }
 
-int sprintf(char *output, const char *format, ...)
+int printf(const char *format, ...)
 {
     	char c;
-    	int i,x;
+    	int i;
     	long n;
-    	int len,templen;
-        char* tempstr;
+    	int len;
 
+#ifdef MSP430        
+    	if (!uartattached)
+        	return 0;
+#endif
     	va_list a;
     	va_start(a, format);
     	while(c = *format++) 
@@ -72,8 +75,7 @@ int sprintf(char *output, const char *format, ...)
         	len = 0;
         	if(c == '%') 
         	{
-retry:
-     			templen=0;
+retry:     			
             		switch(c = *format++) 
             		{
                 	case '0':
@@ -85,45 +87,23 @@ retry:
                     		}
                 	
                 	case 's':                       // String
-                		tempstr = va_arg(a, char*);
-				while(*tempstr != '\0')
-  				{
-  					*output = *tempstr;
-    					tempstr++;
-    					output++;
-  				}
+                    		puts(va_arg(a, char*));
                     		break;
                 	
                 	case 'c':                       // Char
-                		*output=va_arg(a, char);
-                		output++;                    		
+                    		putchar(va_arg(a, char));
                     		break;
                 	
                 	case 'd':
                 	case 'i':                       // 16 bit Integer
                     		i = va_arg(a, int);
-                    		if(i < 0) 
-                    		{	
-                    			i = -i;
-                    			*output = '-';
-                    			output++;
-				}                    			
-				for(x=0;x<len-1;x++)
-				{
-					if(i<dv[10-len-x])
-					{
-				    		*output='0';
-				    		output++;	
-					}
-				}
-                    		templen = xtobuf(output, (unsigned)i, dv + 5);
-                    		output+=templen;
+                    		if(i < 0) i = -i, putchar('-');
+                    		xtoa((unsigned)i, dv + 5);
                     		break;
                 	
                 	case 'u':                       // 16 bit Unsigned
                     		i = va_arg(a, unsigned int);
-                    		templen = xtobuf(output, (unsigned)i, dv + 5);
-                    		output+=templen;
+                    		xtoa((unsigned)i, dv + 5);
                     		break;
                 	
                 	case 'l':                       // 32 bit Long
@@ -135,34 +115,18 @@ retry:
                 	
                 	case 'n':                       // 32 bit uNsigned loNg
                     		n = va_arg(a, long);
-                    		if(c == 'l' &&  n < 0)
-                    		{
-                    			n = -n, 
-                    			*output = '-';
-                    			output++;                    			
-                    		}	
-                    		templen = xtobuf(output, (unsigned long)n, dv);
-                    		output+=templen;
+                    		if(c == 'l' &&  n < 0) n = -n, putchar('-');
+                    		xtoa((unsigned long)n, dv);
                     		break;
                 
                 	case 'p':
                     		n = va_arg(a, long);
                     		// 20bit pointer
-                    		puthtobuf(output, n >> 16, c); 
-                    		output++;
-                    		puthtobuf(output, n >> 12, c);
-                    		output++;
-                    		puthtobuf(output, n >> 8, c);
-                    		output++;
-                    		puthtobuf(output, n >> 4, c);
-                    		output++;
-                    		puthtobuf(output, n , c);
-                    		output++;
-//                    		puth(n >> 16, c);
-//                    		puth(n >> 12, c);
-//                    		puth(n >> 8, c);
-//                    		puth(n >> 4, c);
-//                    		puth(n, c);
+                    		puth(n >> 16, c);
+                    		puth(n >> 12, c);
+                    		puth(n >> 8, c);
+                    		puth(n >> 4, c);
+                    		puth(n, c);
                     		break;
                 	
                 	case 'X':
@@ -170,19 +134,11 @@ retry:
                     		i = va_arg(a, int);
                     		if (len == 4 || len == 0)
                     		{
-                    			puthtobuf(output, i >> 12, c);
-                    			output++;
-                    			puthtobuf(output, i >> 8, c);                    			
-                    			output++;
-//                      			puth(i >> 12, c);
-//                      			puth(i >> 8, c);
+                      			puth(i >> 12, c);
+                      			puth(i >> 8, c);
                     		}
-               			puthtobuf(output, i >> 4, c);
-               			output++;
-               			puthtobuf(output, i , c);                    			                    		
-               			output++;
-//                    		puth(i >> 4, c);
-//                    		puth(i, c);
+                    		puth(i >> 4, c);
+                    		puth(i, c);
                     		break;
                 	
                 	case 0: 
@@ -199,9 +155,7 @@ retry:
         	else
         	{	
 bad_fmt:    
-			*output=c;
-                	output++;
-			//putchar(c);
+			putchar(c);
 		}
     	}
     	va_end(a);
