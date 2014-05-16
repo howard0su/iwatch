@@ -49,7 +49,9 @@ extern void ble_advertise(uint8_t onoff);
 
 //static bd_addr_t currentbd;
 static uint8_t running = 0;
+#ifdef PRODUCT_W001
 static uint16_t handle_audio = 0;
+#endif
 
 // Bluetooth logic
 static void packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
