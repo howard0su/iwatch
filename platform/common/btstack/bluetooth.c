@@ -157,11 +157,11 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
         l2cap_unregister_packet_handler(init_packet_handler);
         l2cap_register_packet_handler(packet_handler);
-        log_info("\n$$OK BLUETOOTH\n");
+        printf("\n$$OK BLUETOOTH\n");
 
         // as testing
         ant_shutdown();
-        log_info("\n$$END\n");
+        printf("\n$$END\n");
       }
       break;
     }

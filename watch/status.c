@@ -212,10 +212,22 @@ static void check_battery()
     status |= BATTERY_FULL;
   }
 
-  if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
+  if (window_current() != &charging_process)
   {
+    if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
+    {
       window_open(&charging_process, 0);
-      return;
+    }
+  }
+
+  if (window_current() == &menu_process ||
+    window_current() == &analogclock_process ||
+    window_current() == &digitclock_process)
+  {
+    if (state != BATTERY_STATE_DISCHARGING)
+    {
+      window_open(&charging_process, 0); 
+    }
   }
 
   if (state == BATTERY_STATE_CHARGING)

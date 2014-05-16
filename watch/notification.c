@@ -159,7 +159,9 @@ static void onDraw(tContext *pContext)
 
       strcpy(buffer, message_date);
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
-      GrStringDraw(pContext, parse_date(buffer), -1, 30, starty, 0);
+      const char* text = parse_date(buffer);
+      int16_t width = GrStringWidthGet(pContext, text, -1);
+      GrStringDraw(pContext, text, -1, LCD_X_SIZE - 10 - width, starty, 0);
     }
 
     starty += 16;
@@ -244,6 +246,7 @@ void fetch_content()
   uint32_t attribute;
   message_title = NULL;
   message = NULL;
+  message_subtitle = NULL;
 
   uid = uids[selectidx];
   attribute = attributes[selectidx];
@@ -311,6 +314,9 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
       if (uids[i] == uid)
         break;
     }
+
+    if (i == num_uids)
+      return;
 
     for (int j = i ; j < num_uids; j++)
     {

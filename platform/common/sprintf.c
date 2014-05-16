@@ -17,6 +17,21 @@ const unsigned long dv[] = {
              1,     // +9
 };
 
+static const unsigned long hv[] = {
+//  4294967296      // 32 bit unsigned max   
+   0xFFFFFFFFF,     // +0
+    0xFFFFFFFF,     // +1
+     0xFFFFFFF,     // +2
+      0xFFFFFF,     // +3
+       0xFFFFF,     // +4
+        0xFFFF,     // +5
+         0xFFF,     // +6
+          0xFF,     // +7
+           0xF,     // +8
+             0,     // +9
+};
+
+
 static unsigned int xtobuf(char *output, unsigned long x, const unsigned long *dp)
 {
     	char c;
@@ -107,15 +122,15 @@ retry:
                     			i = -i;
                     			*output = '-';
                     			output++;
-				}                    			
-				for(x=0;x<len-1;x++)
-				{
-					if(i<dv[10-len-x])
-					{
-				    		*output='0';
-				    		output++;	
-					}
-				}
+            				}                    			
+            				for(x=0;x<len-1;x++)
+            				{
+            					if(i<dv[10-len+x])
+            					{
+            				    		*output='0';
+            				    		output++;	
+            					}
+            				}
                     		templen = xtobuf(output, (unsigned)i, dv + 5);
                     		output+=templen;
                     		break;
@@ -168,6 +183,14 @@ retry:
                 	case 'X':
                 	case 'x':                       // 16 bit heXadecimal
                     		i = va_arg(a, int);
+                            for(x=0;x<len-1;x++)
+                            {
+                                if(i<hv[10-len+x])
+                                {
+                                        *output='0';
+                                        output++;   
+                                }
+                            }
                     		if (len == 4 || len == 0)
                     		{
                     			puthtobuf(output, i >> 12, c);
@@ -186,6 +209,7 @@ retry:
                     		break;
                 	
                 	case 0: 
+                        *output = 0;
                     		return 0;
                 	default: 
                     		if (c > '0' && c <= '9')
@@ -206,5 +230,6 @@ bad_fmt:
     	}
     	va_end(a);
 
+    *output = 0;
 	return 0;
 }
