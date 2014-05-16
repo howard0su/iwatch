@@ -37,7 +37,7 @@ namespace FactoryTest
 
         void InitializControlForRun()
         {
-            foreach (var c in groupBox1.Controls)
+            foreach (Control c in groupBox1.Controls)
             {
                 CheckBox cb = c as CheckBox;
                 if (cb == null) continue;
@@ -173,10 +173,15 @@ namespace FactoryTest
             return false;
         }
 
+        delegate void OutputDataReceivedCallback(object sender, DataReceivedEventArgs e);
+
         void process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (this.InvokeRequired)
-                this.Invoke(new MethodInvoker(() => { process_OutputDataReceived(sender, e); }));
+            {
+                OutputDataReceivedCallback d = new OutputDataReceivedCallback(process_OutputDataReceived);
+                this.Invoke(d, new object[]{sender, e});
+            }
             else
                 AddNewLine(e.Data);
         }
@@ -184,7 +189,10 @@ namespace FactoryTest
         void process_OutputDataReceived2(object sender, DataReceivedEventArgs e)
         {
             if (this.InvokeRequired)
-                this.Invoke(new MethodInvoker(() => { process_OutputDataReceived2(sender, e); }));
+            {
+                OutputDataReceivedCallback d = new OutputDataReceivedCallback(process_OutputDataReceived2);
+                this.Invoke(d, new object[]{sender, e});
+            }
             else
             {
                 AddNewLine(e.Data);
@@ -203,7 +211,7 @@ namespace FactoryTest
                     else if (msg.StartsWith("$$OK "))
                     {
                         // populate the passed item
-                        foreach (var c in groupBox1.Controls)
+                        foreach (Control c in groupBox1.Controls)
                         {
                             CheckBox cb = c as CheckBox;
                             if (cb == null) continue;
@@ -221,7 +229,7 @@ namespace FactoryTest
                         process.Kill();
                         // check every item is passed
                         bool sucessful = true;
-                        foreach (var c in groupBox1.Controls)
+                        foreach (Control c in groupBox1.Controls)
                         {
                             CheckBox cb = c as CheckBox;
                             if (cb == null) continue;
@@ -241,10 +249,14 @@ namespace FactoryTest
             }
         }
 
+        delegate void ProcessExitedCallback(object sender, EventArgs e);
         void process_Exited(object sender, EventArgs e)
         {
             if (this.InvokeRequired)
-                this.Invoke(new MethodInvoker(() => {process_Exited(sender, e);}));
+            {
+                ProcessExitedCallback d = new ProcessExitedCallback(process_Exited);
+                this.Invoke(d, new object[]{sender, e});
+            }
             else
                 OnFinished(currentstatus);
         }
