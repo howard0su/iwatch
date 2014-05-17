@@ -266,10 +266,13 @@ namespace FactoryTest
             if (line == null)
                 return;
 
+            if (currentstatus == Status.TestFinish)
+            {
             // flush to textbox and file
             fs.Write(line + "\n");
             LogTextBox.AppendText(line);
             LogTextBox.AppendText("\n");
+            }
         }
 
         private void OnFinished(Status status)
@@ -296,6 +299,7 @@ namespace FactoryTest
             }
             else if (status != Status.Done)
             {
+                currentstatus = Status.Done;
                 if (status == Status.Fail)
                 {
                     // warning 
@@ -319,7 +323,6 @@ namespace FactoryTest
                 MacAddrTextBox.Focus();
                 MacAddrTextBox.SelectAll();
                 LogTextBox.Clear();
-                currentstatus = Status.Done;
             }
         }
 
