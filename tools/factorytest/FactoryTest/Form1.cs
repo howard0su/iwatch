@@ -99,7 +99,7 @@ namespace FactoryTest
             using (fs = new StreamWriter(File.OpenWrite("mac.txt")))
             {
                 fs.WriteLine("@1800");
-                fs.WriteLine(String.Format("01 00 01 {0:X2} {1:X2} {2:X2} {3:X2} {4:X2} {5:X2}",
+                fs.WriteLine(String.Format("01 00 01 01 {0:X2} {1:X2} {2:X2} {3:X2} {4:X2} {5:X2}\r\nq",
                     addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]));
             }
 
