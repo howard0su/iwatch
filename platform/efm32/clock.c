@@ -250,17 +250,16 @@ Clock Libery function
 *********************************************************************************************/
 
 /**
- * Delay the CPU for a multiple of 2.83 us.
+ * Delay the CPU for a multiple of 2.8 us.
  */
-//void clock_delay(uint32_t dlyTicks) 
-void clock_delay(unsigned int dlyTicks)
+void clock_delay(unsigned int dlyTicks) 
 {
- 	uint32_t curTicks;
-
-  	curTicks = count;
-  	while ((count - curTicks) < dlyTicks) ;
-
+	unsigned int i;
+	dlyTicks *=12;
+	for(i=0;i<dlyTicks;i++)
+	{}
 }
+/*About 60 ns delay*/
 void __delay_cycles(unsigned long c)
 {
 	unsigned long i;
@@ -269,7 +268,7 @@ void __delay_cycles(unsigned long c)
 	{}
 }
 /**
- * Wait for a multiple of 10 ms.
+ * Wait for a multiple of 1 ms.
  *
  */
 void clock_wait(clock_time_t i)
