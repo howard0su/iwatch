@@ -582,7 +582,7 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
 
   if (flags & NOTIFY_ALARM)
   {
-    motor_on(50, 0);
+    motor_on(50, CLOCK_SECOND * 180);
   }
   else
   {
