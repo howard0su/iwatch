@@ -220,6 +220,7 @@ static void check_battery()
     }
   }
 
+#ifndef UNITTEST
   if (window_current() == &menu_process ||
     window_current() == &analogclock_process ||
     window_current() == &digitclock_process)
@@ -229,6 +230,7 @@ static void check_battery()
       window_open(&charging_process, 0); 
     }
   }
+#endif
 
   if (state == BATTERY_STATE_CHARGING)
   {
