@@ -161,7 +161,7 @@ void initRTC(uint16_t RTC_clkdiv)
   	CMU_ClockEnable(cmuClock_CORELE, true);
 
   	/* Enable LFRCO as LFACLK in CMU to use for the RTC */
-  	CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFRCO);
+  	CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
 
   	/* Enable RTC clock */
   	CMU_ClockEnable(cmuClock_RTC, true);
@@ -176,7 +176,10 @@ void initRTC(uint16_t RTC_clkdiv)
   	RTC_Init(&rtcInit);
 
   	/* Interrupt every second */
-  	RTC_CompareSet(0, 1);
+  	if(RTC_CTL & TENMSECOND_CHANGE)
+  		RTC_CompareSet(0, 31);
+  	else	
+  		RTC_CompareSet(0, 1);
 	
   	/* Enable interrupt */
   	NVIC_EnableIRQ(RTC_IRQn);
@@ -453,7 +456,7 @@ void rtc_enablechange(uint8_t changes)
   	if (changes & TENMSECOND_CHANGE)
   	{
   		RTC_CTL |= TENMSECOND_CHANGE;
-  		initRTC(cmuClkDiv_32768);
+  		initRTC(cmuClkDiv_64);
   	}
   	else
   	{
@@ -736,7 +739,7 @@ void BURTC_IRQHandler(void)
     		if(RTC_CTL&MINUTE_CHANGE)
     		{	
     			currentTime = time( NULL );
-			parse_timestamp(startTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);    			
+			parse_timestamp(currentTime, &now.year, &now.month, &now.day, &now.hour, &now.minute, &now.second);    			
     			source = 0;
     			process_poll(&rtc_process);
     		}	
@@ -766,17 +769,11 @@ void RTC_IRQHandler(void)
   		/* 1sec or 10 msec RTC interrupt
   		*/
     		/* Timer has fired, clear interrupt flag... */
-    		RTC_IntClear(RTC_IFC_COMP0);
+    		RTC_IntClear(RTC_IFC_COMP0);    		
     		source = 0;
     		process_poll(&rtc_process);
 #ifdef NOTYET    		
     		LPM4_EXIT;    		
 #endif
   	}	
-/*  	
-  	if(RTC_IF_OF& (tmp & RTC_IntGet()))
-  	{
-  		RTC_IntClear(RTC_IF_OF);
-  	}	
-*/  	   	  	
 }
