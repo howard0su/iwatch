@@ -47,8 +47,8 @@ static uint32_t workout_time;
 struct _datapoints
 {
   const char *name; // use \t to seperate the string
-  const char *unit;
   const char *unit_uk;
+  const char *unit;
   const uint8_t format;
 };
 
