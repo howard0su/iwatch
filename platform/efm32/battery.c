@@ -51,8 +51,7 @@ static void ADCConfig(void)
 static void setoutputfloat()
 {
   	// set high impredence for BAT_OUT
-  	GPIO_PinModeSet(gpioPortD,  MSP_OUT, gpioModeWiredAnd, 0);  	 
- 
+  	GPIO->P[3].MODEL = (GPIO->P[3].MODEL & ~_GPIO_P_MODEL_MODE7_MASK) | GPIO_P_MODEL_MODE7_INPUT;  	 
 }
 
 static void setoutputhigh()
@@ -74,15 +73,13 @@ BATTERY_STATE battery_state(void)
   	
   	if(GPIO_PinInGet(gpioPortD, MSP_IN) !=0)   	
   	{
-    		uartattached = 0;
+    		uartattached = 0;    		
     		return BATTERY_STATE_DISCHARGING;
-  	}
-
+  	}	
   	uartattached = 1;
   	setoutputhigh();
   	__delay_cycles(10);
-  	unsigned int instate = GPIO_PinInGet(gpioPortD, MSP_IN) != 0; // if it is high
-  	setoutputfloat();
+  	unsigned int instate = GPIO_PinInGet(gpioPortD, MSP_IN) != 0; // if it is high  	
 
   	if (instate)
     		return BATTERY_STATE_FULL;
@@ -117,10 +114,9 @@ uint8_t battery_level(BATTERY_STATE state)
     	while (ADC0->STATUS & ADC_STATUS_SINGLEACT) ;
 
     	/* Get ADC result */
-    	sample = ADC_DataSingleGet(ADC0);
-    	
+    	sample = ADC_DataSingleGet(ADC0);	
     	/* Calculate supply voltage relative to 1.25V reference */    	
-	level = (sample * 2500 ) / 4096;    	
+	level = (sample * 2500 *2 ) / 4096;    	
 	
 	switch(state)
 	{
