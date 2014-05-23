@@ -41,7 +41,9 @@ void button_init()
   	for(i=0;i<MAX_BUTTONS;i++)
   	{
   		/* Configure button GPIO as input and configure output as high */
-  		GPIO_PinModeSet(ButtonArray[i].port, ButtonArray[i].pin, gpioModeInput, 1);
+  		/* Input enabled with filter. DOUT determines pull direction, 1 be pull high */
+  		/* Filter for Glitch suppression */
+  		GPIO_PinModeSet(ButtonArray[i].port, ButtonArray[i].pin, gpioModeInputPullFilter, 1);  		
   		/* Set falling edge interrupt for both ports */
 		GPIO_IntConfig(ButtonArray[i].port, ButtonArray[i].pin, false, true, true);
   	
@@ -84,7 +86,7 @@ PROCESS_THREAD(button_process, ev, data)
           				{	/*Check the GPIO pin of the button is low and int trigger is triggered by falling edge.
             					 key is down */            					
             					//process_post(ui_process, EVENT_KEY_DOWN, (void*)i);
-            					downtime[i] = eventtime[i];             					
+            					downtime[i] = eventtime[i];                 					
             					if (etimer_expired(&button_timer))
             					{
               						// first button
@@ -99,11 +101,11 @@ PROCESS_THREAD(button_process, ev, data)
           					/*Check the GPIO pin of the button is high and int trigger is triggered by rising edge.*/          					
             					//process_post(ui_process, EVENT_KEY_UP, (void*)i);
             					if (downtime[i] > 0)
-            					{
-            						if (eventtime[i] - downtime[i] > 3000)              					            							              							
+            					{            						            						
+            						if (eventtime[i] - downtime[i] > CLOCK_CONF_SECOND)              					            							              							
               							process_post(ui_process, EVENT_KEY_LONGPRESSED, (void*)i);               													
               						else	              							
-              							process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
+              							process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);              							
             					}
             					downtime[i] = 0;            					
             					GPIO_IntConfig(ButtonArray[i].port, ButtonArray[i].pin, false, true, true);
@@ -137,9 +139,9 @@ PROCESS_THREAD(button_process, ev, data)
         			if (downtime[i] > 0)
         			{
           				downbutton++;
-          				if (downtime[i] < clock_time() - RTIMER_SECOND * 3)
+          				if (downtime[i] < clock_time() - CLOCK_CONF_SECOND * 3)
             					reboot++;
-					if (downtime[i] < clock_time() - RTIMER_SECOND)
+					if (downtime[i] < clock_time() - CLOCK_CONF_SECOND)
           				{
             					// check if we need fire another event            					
             					process_post(ui_process, EVENT_KEY_PRESSED, (void*)i);
@@ -172,7 +174,7 @@ PROCESS_THREAD(button_process, ev, data)
 static inline int portF_button(int i)
 {
 	GPIO_IntDisable(getmask(i));	//disable pin_i interrupt
-	GPIO_IntClear(getmask(i));	//Clear interrupt flag
+	GPIO_IntClear(getmask(i));	//Clear interrupt flag	
   	eventtime[i] = clock_time();
   	process_poll(&button_process);
   	return 1;
