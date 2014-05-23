@@ -50,11 +50,11 @@ static void OnDrawTime(tContext *pContext)
   sprintf(buf, "%02d", HOUR);
   if (state == STATE_CONFIG_HOUR)
   {
-    window_selecttext(pContext, buf, -1, 10, 70);
+    window_selecttext(pContext, buf, 2, 10, 70);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 10, 70, 0);
+    GrStringDraw(pContext, buf, 2, 10, 70, 0);
   }
 
   GrStringDraw(pContext, ":", 1, 63, 70, 0);
@@ -62,11 +62,11 @@ static void OnDrawTime(tContext *pContext)
   sprintf(buf, "%02d", MINUTE);
   if (state == STATE_CONFIG_MINUTE)
   {
-    window_selecttext(pContext, buf, -1, 75, 70);
+    window_selecttext(pContext, buf, 2, 75, 70);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 75, 70, 0);
+    GrStringDraw(pContext, buf, 2, 75, 70, 0);
   }
 
   GrContextFontSet(pContext, &g_sFontGothic18b);
@@ -106,31 +106,31 @@ static void OnDrawDate(tContext *pContext)
   int width = GrStringWidthGet(pContext, buf, -1);
   if (state == STATE_CONFIG_YEAR)
   {
-    window_selecttext(pContext, buf, -1, LCD_X_SIZE/2 - width/2, 100);
+    window_selecttext(pContext, buf, 4, LCD_X_SIZE/2 - width/2, 100);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE/2 - width/2, 100, 0);
+    GrStringDraw(pContext, buf, 4, LCD_X_SIZE/2 - width/2, 100, 0);
   }
 
   sprintf(buf, "%s", month_shortname[MONTH - 1]);
   if (state == STATE_CONFIG_MONTH)
   {
-    window_selecttext(pContext, buf, -1, 25, 60);
+    window_selecttext(pContext, buf, 3, 25, 60);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 25, 60, 0);
+    GrStringDraw(pContext, buf, 3, 25, 60, 0);
   }
 
   sprintf(buf, "%02d", DAY);
   if (state == STATE_CONFIG_DAY)
   {
-    window_selecttext(pContext, buf, -1, 90, 60);
+    window_selecttext(pContext, buf, 2, 90, 60);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 90, 60, 0);
+    GrStringDraw(pContext, buf, 2, 90, 60, 0);
   }
 
   if (state != STATE_CONFIG_READY)
