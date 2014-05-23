@@ -5,7 +5,7 @@
 
 static struct ctimer light_timer;
 static struct ctimer motor_timer;
-
+static uint8_t LIGHTLEVEL;
 #define TOP 1000       //TOP Set PWM cycle
 #define HIGHPULSE  800   
 #define PWM_FREQ 10000
@@ -23,14 +23,6 @@ void TIMER2_IRQHandler(void)
   	
   	TIMER_CompareBufSet(TIMER2, 0, TIMER_CaptureGet(TIMER2, 0));
   	TIMER_CompareBufSet(TIMER2, 1, TIMER_CaptureGet(TIMER2, 1));
-#if 0
-	compareValue = TIMER_CaptureGet(TIMER2, 0);  	
-  	/* increment duty-cycle or reset if reached TOP value */
-  	if( compareValue == TIMER_TopGet(TIMER2))
-    		TIMER_CompareBufSet(TIMER2, 0, 0);
-  	else
-    		TIMER_CompareBufSet(TIMER2, 0, ++compareValue);  	
-#endif
 }
 
 void backlight_init()
@@ -40,8 +32,7 @@ void backlight_init()
   	CMU_ClockEnable(cmuClock_TIMER2, true);
   	/* Set  location 4 pin (PD7) as output */
   	GPIO_PinModeSet(gpioPortA, 8, gpioModePushPull, 0);
-  	GPIO_PinModeSet(gpioPortA, 9, gpioModePushPull, 0);
-  	
+  	GPIO_PinModeSet(gpioPortA, 9, gpioModePushPull, 0);  	
 
   	/*PA8 PA9 at TIMER2 Location0 CC0(PA8) and CC1(PA9)*/
   	/* Select CC channel parameters */
@@ -76,7 +67,7 @@ void backlight_init()
   	TIMER_CompareBufSet(TIMER2, 0, 0);
   	TIMER_CompareBufSet(TIMER2, 1, 0);
 	  	
-	  	/* Select timer parameters */  
+	/* Select timer parameters */  
   	TIMER_Init_TypeDef timerInit =
   	{
     	.enable     = true,
@@ -100,7 +91,8 @@ void backlight_init()
   	
   	/* Configure timer */
   	TIMER_Init(TIMER2, &timerInit);  	
-
+	
+	LIGHTLEVEL = 0;
 }
 
 void backlight_shutdown()
@@ -111,8 +103,17 @@ void backlight_shutdown()
 
 void light_stop(void *ptr)
 {
-  	TIMER_CompareBufSet(TIMER2, 1, 0);	
-  	GPIO_PinOutClear(gpioPortA, 9);		
+	if (LIGHTLEVEL > 2)
+  	{
+    		LIGHTLEVEL--;
+    		clock_time_t length = (clock_time_t)ptr;
+    		ctimer_set(&light_timer, length, light_stop, (void*)length);
+  	}
+  	else
+  	{	
+  		TIMER_CompareBufSet(TIMER2, 1, 0);	  	
+  		GPIO_PinOutClear(gpioPortA, 9);		
+  	}	
 }
 
 void backlight_on(uint8_t level, clock_time_t length)
@@ -125,9 +126,10 @@ void backlight_on(uint8_t level, clock_time_t length)
   	}
   	else
   	{
-  		TIMER_CompareBufSet(TIMER2, 1, ( level * 400));	
+  		LIGHTLEVEL = level * 2;
+  		TIMER_CompareBufSet(TIMER2, 1, ( LIGHTLEVEL * 100));	
     		if (length > 0)
-      			ctimer_set(&light_timer, length, light_stop, NULL);
+      			ctimer_set(&light_timer, length, light_stop, (void*)(CLOCK_SECOND/8));
   	}
 }
 
