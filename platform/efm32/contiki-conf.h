@@ -14,12 +14,8 @@
 #include <inttypes.h>
 #include <string.h>  // For memcpm().
 
-
-#define CLOCK_CONF_SECOND 	1000
+#define CLOCK_CONF_SECOND 	8
 #define TICK_PER_SECOND		(CLOCK_CONF_SECOND)
-#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
-
-typedef unsigned long rtimer_clock_t;
 
 #define CCIF
 #define CLIF
