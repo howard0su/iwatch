@@ -63,22 +63,16 @@ a pointer to the declared timer.
 #define PRINTF(...)
 #endif
 
-/* 13761 Hz -> 14Mhz (clock frequency) / 1024 (prescaler)
-   Setting TOP to 27342 results in an overflow each 2 seconds */
-#define TOP 27342
-
-static uint32_t time_h = 0;  // Most significant bits of the current time.
-
-// time of the next rtimer event. Initially is set to the max value.
-static rtimer_clock_t next_rtimer_time = 0;
+/* 46875 Hz -> 48Mhz (clock frequency) / 1024 (prescaler)
+   Setting TOP to 5860 results in an overflow each 1/8 seconds */
+#define TOP 5859
 
 /*---------------------------------------------------------------------------*/
 void TIMER1_IRQHandler(void)
 {   
 	
   	if (TIMER1->IF & TIMER_IF_OF)
-  	{  	// Overflow event.         		    
-  		time_h++;
+  	{  	// Overflow event.         		      		
   		/* Clear flag for TIMER0 overflow interrupt */
   		TIMER_IntClear(TIMER1, TIMER_IF_OF);
   		
@@ -155,6 +149,7 @@ void rtimer_arch_enable_irq(void)
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t rtimer_arch_now(void)
 {
+	
 	return (rtimer_clock_t)TIMER_CounterGet(TIMER1);
 }
 

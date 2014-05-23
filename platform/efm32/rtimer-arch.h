@@ -44,7 +44,15 @@
 #include "contiki-conf.h"
 #include "sys/clock.h"
 
+#ifdef RTIMER_CONF_SECOND
+#define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
+#else
+#define RTIMER_ARCH_SECOND (5859U*8)
+#endif
 
+rtimer_clock_t rtimer_arch_now(void);
+
+#if 0
 //#define RT_RESOLUTION RES_85US
 #ifdef RT_CONF_RESOLUTION
 #define RT_RESOLUTION RT_CONF_RESOLUTION
@@ -79,5 +87,5 @@ rtimer_clock_t rtimer_arch_now(void);
 
 void rtimer_arch_disable_irq(void);
 void rtimer_arch_enable_irq(void);
-
+#endif
 #endif /* __RTIMER_ARCH_H__ */
