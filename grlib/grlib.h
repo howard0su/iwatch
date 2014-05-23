@@ -2317,6 +2317,8 @@ extern void GrTriagleDraw(const tContext *pContext, long lXA, long lYA,
                                              long lXC, long lYC);
 extern void
 GrLineFill(const tContext *pContext, long lX1, long lY1, long lX2, long lY2, long width);
+extern long
+GrStringLengthGet(const tContext *pContext, const char *pcString);
 
 
 //*****************************************************************************

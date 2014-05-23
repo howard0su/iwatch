@@ -139,14 +139,27 @@ void window_button(tContext *pContext, uint8_t key, const char* text)
 void window_selecttext(tContext *pContext, const char* pcString, long lLength, long lX, long lY)
 {
   int height = GrStringHeightGet(pContext);
-  int width = GrStringWidthGet(pContext, pcString, lLength);
+
+  int width, textwidth;
+
+  if (lLength == -1)
+  {
+    width = GrStringWidthGet(pContext, pcString, lLength);
+    textwidth = width;
+  }
+  else
+  {
+    char data = '8';
+    width = GrStringWidthGet(pContext, &data, 1) * lLength;
+    textwidth = GrStringWidthGet(pContext, pcString, lLength);
+  }
 
   tRectangle rect = {lX - 2, lY - 2, lX + width + 2, lY + height + 2};
   GrContextForegroundSet(pContext, ClrWhite);
   GrRectFillRound(pContext, &rect, 3);
   GrContextForegroundSet(pContext, ClrBlack);
 
-  GrStringDraw(pContext, pcString, lLength, lX, lY, 0);
+  GrStringDraw(pContext, pcString, lLength, lX + (width - textwidth)/2, lY, 0);
 
   GrContextForegroundSet(pContext, ClrWhite);
 
