@@ -110,7 +110,7 @@ retry:
                     		break;
                 	
                 	case 'c':                       // Char
-                		*output=va_arg(a, char);
+                		*output=(char)va_arg(a, int);                		
                 		output++;                    		
                     		break;
                 	
@@ -173,11 +173,6 @@ retry:
                     		output++;
                     		puthtobuf(output, n , c);
                     		output++;
-//                    		puth(n >> 16, c);
-//                    		puth(n >> 12, c);
-//                    		puth(n >> 8, c);
-//                    		puth(n >> 4, c);
-//                    		puth(n, c);
                     		break;
                 	
                 	case 'X':
@@ -197,15 +192,11 @@ retry:
                     			output++;
                     			puthtobuf(output, i >> 8, c);                    			
                     			output++;
-//                      			puth(i >> 12, c);
-//                      			puth(i >> 8, c);
                     		}
                			puthtobuf(output, i >> 4, c);
                			output++;
                			puthtobuf(output, i , c);                    			                    		
                			output++;
-//                    		puth(i >> 4, c);
-//                    		puth(i, c);
                     		break;
                 	
                 	case 0: 
@@ -224,12 +215,11 @@ retry:
         	{	
 bad_fmt:    
 			*output=c;
-                	output++;
-			//putchar(c);
+                	output++;			
 		}
     	}
     	va_end(a);
 
-    *output = 0;
+    	*output = 0;
 	return 0;
 }

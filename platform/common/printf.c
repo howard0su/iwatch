@@ -91,7 +91,7 @@ retry:
                     		break;
                 	
                 	case 'c':                       // Char
-                    		putchar(va_arg(a, char));
+                		putchar((char)va_arg(a, int));                    		
                     		break;
                 	
                 	case 'd':
