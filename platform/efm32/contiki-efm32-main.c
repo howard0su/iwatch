@@ -88,33 +88,21 @@ extern void clock_delay(unsigned int dlyTicks);
 
 
 uint8_t shutdown_mode = 0;
-
-/* Declare some strings */
-const char     welcomeString[]  = "Viewcooper RS-232 - Please press a key\n";
-const char     overflowString[] = "\n---RX OVERFLOW---\n";
-const uint32_t welLen           = sizeof(welcomeString) - 1;
-const uint32_t ofsLen           = sizeof(overflowString) - 1;
-
-uint8_t spi_data[8];
-
 /*--------------------------------------------------------------------------*/
 
 int
 main(int argc, char **argv)
-{
+{	
 	/*
 	* Initalize hardware.
 	*/
  
 	/* Enable code view */	        
-	/* If first word of user data page is non-zero, enable eA Profiler trace */
-  	//BSP_TraceProfilerSetup();       
-  		
+	/* If first word of user data page is non-zero, enable eA Profiler trace */  	
 	efm32_cpu_init();  	
 	clock_init();
-	printf("CPU init done\n");
-	DMAInit();
-	rtimer_init();
+	printf("CPU init done\n");	
+	DMAInit();	
 	/* xmem_init(); */
 //	PRINTF("iWatch 0.10 build at " __TIME__ " " __DATE__ "\n");
 	
@@ -129,26 +117,24 @@ main(int argc, char **argv)
 	process_init();
 	process_start(&etimer_process, NULL);
 	
+	rtimer_init();	
 	ctimer_init();
 
 	energest_init();
 	ENERGEST_ON(ENERGEST_TYPE_CPU);
 	
 	backlight_init();
-
-	window_init(0);
-
 	battery_init();
-
+	SPI_FLASH_Init();
+	
+	int reason = CheckUpgrade();	
+	window_init(reason);	
+	
 	button_init();
 
 	rtc_init();
 
-	SPI_FLASH_Init();
-
-#ifdef NOTYET
 	CFSFontWrapperLoad();
-#endif	
 
 	system_init(); // check system status and do factor reset if needed
 
@@ -162,7 +148,7 @@ main(int argc, char **argv)
 	bluetooth_init();
 
 	printf("Bluetooth Started\n");	
-	motor_on(6, CLOCK_SECOND );	
+	motor_on(6, CLOCK_SECOND );		
 	
 #ifdef NOTYET	
 	if (!system_retail())
