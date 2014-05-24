@@ -280,6 +280,7 @@ namespace FactoryTest
 
         public void Stop()
         {
+            device.stopRead();
             device.Disconnect();
         }
     }

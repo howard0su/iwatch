@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FactoryTest.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,7 +15,8 @@ namespace FactoryTest
     public partial class MainForm : Form
     {
         StreamWriter fs;
-        Process process;
+        Process process, resetprocess;
+        Victor70C device;
 
         enum Status
         {
@@ -26,11 +28,11 @@ namespace FactoryTest
 
         Status currentstatus;
 
-
         public MainForm()
         {
             InitializeComponent();
-
+            device = new Victor70C();
+            device.Start();
             OutputPathTextBox.Text = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             InitializControlForRun();
         }
@@ -42,6 +44,9 @@ namespace FactoryTest
                 CheckBox cb = c as CheckBox;
                 if (cb == null) continue;
 
+                int index = cb.Text.IndexOf(' ');
+                if (index != -1)
+                    cb.Text = cb.Text.Substring(0, index);
                 cb.ForeColor = Color.Red;
             }
         }
@@ -89,6 +94,17 @@ namespace FactoryTest
             BoardIdTextBox.ReadOnly = true;
             MacAddrTextBox.ReadOnly = true;
             OperatorTextBox.ReadOnly = true;
+            InitializControlForRun();
+
+            foreach (Control c in groupBox1.Controls)
+            {
+                CheckBox cb = c as CheckBox;
+                if (cb == null) continue;
+
+                cb.Checked = false;
+                cb.ForeColor = SystemColors.ControlText;
+            }
+
 
             // enable status textbox
             label3.Text = "刷机";
@@ -110,20 +126,24 @@ namespace FactoryTest
 
             ProcessStartInfo startInfo = new ProcessStartInfo("bsl.exe");
             startInfo.Arguments = "prog";
+            startInfo.CreateNoWindow = true;
             startInfo.RedirectStandardOutput = true;
             startInfo.WindowStyle = ProcessWindowStyle.Minimized;
             //startInfo.RedirectStandardError = true;
             //startInfo.RedirectStandardInput = true;
+            //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
             startInfo.UseShellExecute = false;
 
             currentstatus = Status.BurnFinish;
-
             
             process = Process.Start(startInfo);
             process.EnableRaisingEvents = true;
             process.Exited += process_Exited;
             process.OutputDataReceived += process_OutputDataReceived;
             process.BeginOutputReadLine();
+
+            // check current for flashing
+            float current = device.Current;
         }
 
         // return true if parse sucessfully
@@ -205,28 +225,18 @@ namespace FactoryTest
                     string msg = e.Data;
                     if (msg.StartsWith("$$FAIL"))
                     {
-                        process.Kill();
+                        resetprocess.Kill();
+                        resetprocess = null;
                         OnFinished(Status.Fail);
                     }
                     else if (msg.StartsWith("$$OK "))
                     {
-                        // populate the passed item
-                        foreach (Control c in groupBox1.Controls)
-                        {
-                            CheckBox cb = c as CheckBox;
-                            if (cb == null) continue;
-
-                            if (cb.Text == msg.Substring(5))
-                            {
-                                cb.Checked = true;
-                                cb.ForeColor = SystemColors.ControlText;
-                            }
-                        }
-
+                        ValidateCurrent(msg);
                     }
                     else if (msg.StartsWith("$$END"))
                     {
-                        process.Kill();
+                        resetprocess.Kill();
+                        resetprocess = null;
                         // check every item is passed
                         bool sucessful = true;
                         foreach (Control c in groupBox1.Controls)
@@ -249,16 +259,50 @@ namespace FactoryTest
             }
         }
 
+        private void ValidateCurrent(string msg)
+        {
+            float current = device.Current;
+            AddNewLine(String.Format("Current: {0}mA", current));
+            // populate the passed item
+            foreach (Control c in groupBox1.Controls)
+            {
+                CheckBox cb = c as CheckBox;
+                if (cb == null) continue;
+
+                if (cb.Text == msg.Substring(5))
+                {
+                    // fetch the current
+                    object v = Settings.Default[cb.Text];
+                    cb.Text += " " + current.ToString() + "mA";
+                    if (v == null
+                        || (float)v == 0
+                        || (Math.Abs((float)v - current) < ((float)v * 0.1f))
+                        )
+                    {
+                        cb.Checked = true;
+                        cb.ForeColor = Color.Green;
+                    }
+                    else
+                    {
+                        cb.Checked = false;
+                        cb.ForeColor = Color.Red;
+                    }
+                }
+            }
+        }
+
         delegate void ProcessExitedCallback(object sender, EventArgs e);
         void process_Exited(object sender, EventArgs e)
         {
             if (this.InvokeRequired)
             {
                 ProcessExitedCallback d = new ProcessExitedCallback(process_Exited);
-                this.Invoke(d, new object[]{sender, e});
+                this.Invoke(d, new object[] { sender, e });
             }
             else
+            {
                 OnFinished(currentstatus);
+            }
         }
 
         private void AddNewLine(string line)
@@ -268,10 +312,10 @@ namespace FactoryTest
 
             if (currentstatus == Status.TestFinish)
             {
-            // flush to textbox and file
-            fs.Write(line + "\n");
-            LogTextBox.AppendText(line);
-            LogTextBox.AppendText("\n");
+                // flush to textbox and file
+                fs.Write(line + "\n");
+                LogTextBox.AppendText(line);
+                LogTextBox.AppendText("\n");
             }
         }
 
@@ -282,6 +326,9 @@ namespace FactoryTest
                 // continue next step
                 currentstatus = Status.TestFinish;
                 label3.Text = "测试";
+                process = null;
+
+                ValidateCurrent("$$OK FLASHING");
 
                 ProcessStartInfo startInfo = new ProcessStartInfo("bsl.exe");
                 startInfo.Arguments = "reset";
@@ -290,12 +337,14 @@ namespace FactoryTest
                 //startInfo.RedirectStandardError = true;
                 //startInfo.RedirectStandardInput = true;
                 startInfo.UseShellExecute = false;
+                startInfo.CreateNoWindow = true;
+                //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
-                process = Process.Start(startInfo);
-                process.EnableRaisingEvents = true;
-                process.Exited += process_Exited;
-                process.OutputDataReceived += process_OutputDataReceived2;
-                process.BeginOutputReadLine();
+                resetprocess = Process.Start(startInfo);
+                resetprocess.EnableRaisingEvents = true;
+                resetprocess.Exited += process_Exited;
+                resetprocess.OutputDataReceived += process_OutputDataReceived2;
+                resetprocess.BeginOutputReadLine();
             }
             else if (status != Status.Done)
             {
@@ -319,7 +368,6 @@ namespace FactoryTest
                 MacAddrTextBox.ReadOnly = false;
                 label3.Text = "测试通过，下一个";
 
-                InitializControlForRun();
                 MacAddrTextBox.Focus();
                 MacAddrTextBox.SelectAll();
                 LogTextBox.Clear();
@@ -355,6 +403,17 @@ namespace FactoryTest
                 }
 
             }
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            device.Stop();
+
+            if (resetprocess != null)
+                resetprocess.Kill();
+
+            if (process != null)
+                process.Kill();
         }
     }
 }
