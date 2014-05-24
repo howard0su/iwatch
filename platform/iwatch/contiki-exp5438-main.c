@@ -117,6 +117,34 @@ main(int argc, char **argv)
   battery_init();
   SPI_FLASH_Init();
 
+  if (system_testing())
+  {
+    clock_time_t t;
+
+    backlight_on(200, 0);
+    t = clock_seconds();
+    // sleep 1
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    printf("$$OK BACKLIGHT\n");
+    t = clock_seconds();
+    // sleep 1s
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    backlight_on(0, 0);
+
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 2);
+
+    motor_on(200, 0);
+    // sleep 1s
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    printf("$$OK MOTOR\n");
+    // sleep 1s
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    motor_on(0, 0);
+  }
+
   int reason = CheckUpgrade();
 
   window_init(reason);
@@ -135,7 +163,7 @@ main(int argc, char **argv)
 
   mpu6050_init();
 
-  motor_on(200, CLOCK_SECOND / 2);
+ // motor_on(200, CLOCK_SECOND / 2);
   
   if (!system_retail())
   {
