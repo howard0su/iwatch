@@ -134,7 +134,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
         else if (state == BT_OFF)
         {
           state = BT_INITIALING;
-          bluetooth_init();
+          bluetooth_start();
         }
         window_invalid(NULL);
         return 1;

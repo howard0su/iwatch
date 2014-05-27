@@ -9,6 +9,7 @@
 #define BT_SHUTDOWN     5
 
 extern void bluetooth_init();
+extern void bluetooth_start();
 extern void bluetooth_shutdown();
 extern void bluetooth_discoverable(uint8_t onoff);
 extern uint8_t bluetooth_running();

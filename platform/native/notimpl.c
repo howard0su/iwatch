@@ -362,3 +362,5 @@ void ble_advertise(uint8_t onoff)
 {
 
 }
+void bluetooth_start(void)
+{}

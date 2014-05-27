@@ -246,6 +246,13 @@ void bluetooth_shutdown()
   running = 0;
 }
 
+void bluetooth_start()
+{
+  bluetooth_platform_init();
+
+  process_start(&bluetooth_process, NULL);
+}
+
 void bluetooth_discoverable(uint8_t onoff)
 {
   hci_discoverable_control(onoff);
