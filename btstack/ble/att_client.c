@@ -91,8 +91,10 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
     uint16_t value_handle;
     int i;        
     for (i = 2; i < size; i += attr_length){
-        //uint16_t start_handle = READ_BT_16(packet, i);
-        //uint8_t  properties = packet[i+2];
+#ifdef ENABLE_LOG_INFO
+        uint16_t start_handle = READ_BT_16(packet, i);
+        uint8_t  properties = packet[i+2];
+#endif
         value_handle = READ_BT_16(packet, i+3);
 
         uint8_t uuid128[16];
