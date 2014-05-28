@@ -56,6 +56,8 @@
             this.label5 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.ResultLabel = new System.Windows.Forms.Label();
+            this.currentLabel = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -219,10 +221,22 @@
             resources.ApplyResources(this.ResultLabel, "ResultLabel");
             this.ResultLabel.Name = "ResultLabel";
             // 
+            // currentLabel
+            // 
+            resources.ApplyResources(this.currentLabel, "currentLabel");
+            this.currentLabel.Name = "currentLabel";
+            // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.currentLabel);
             this.Controls.Add(this.ResultLabel);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
@@ -276,6 +290,8 @@
         private System.Windows.Forms.CheckBox checkBox10;
         private System.Windows.Forms.CheckBox checkBox9;
         private System.Windows.Forms.CheckBox checkBox8;
+        private System.Windows.Forms.Label currentLabel;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 
