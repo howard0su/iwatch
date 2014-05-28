@@ -39,13 +39,14 @@
 #include "button.h"
 #include "grlib/grlib.h"
 #include "sys/process.h"
+#include "backlight.h"
 
 extern void flushlcdsync();
 extern void rtc_save();
 
 static int counter = 0;
 
-#define PRINT_STACK_ON_REBOOT 2
+#define PRINT_STACK_ON_REBOOT 0
 
 #if PRINT_STACK_ON_REBOOT == 1
 static void printstack(uint16_t *ptr)
@@ -100,7 +101,7 @@ ISR(WDT, watchdog_interrupt)
 {
   uint16_t dummy;
 
-  motor_on(0);
+  motor_on(0, 0);
 #if PRINT_STACK_ON_REBOOT == 1
   printstack(&dummy);
 #endif
