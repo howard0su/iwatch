@@ -170,7 +170,8 @@ main(int argc, char **argv)
     bluetooth_discoverable(1);
   }
 
-  ant_init(MODE_HRM);
+  if (system_testing())
+    ant_init(MODE_HRM);
 
   system_restore();
 
