@@ -14,6 +14,7 @@
 #include "btstack-config.h"
 #include "system.h"
 #include "debug.h"
+#include "pedometer/pedometer.h"
 
 extern void spp_sniff(int onoff);
 
@@ -471,4 +472,14 @@ void handle_set_watch_config(ui_config* new_config)
 void handle_unlock_watch()
 {
     system_unlock();
+}
+
+void handle_daily_activity()
+{
+    send_daily_activity(
+        ped_get_time(),
+        ped_get_steps(),
+        ped_get_calorie(),
+        ped_get_distance()
+        );
 }

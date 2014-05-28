@@ -16,6 +16,7 @@
 #include "ble_file_handler.h"
 #include "rtc.h"
 #include "system.h"
+#include "pedometer/pedometer.h"
 
 //
 // list mapping between characteristics and handles
@@ -46,6 +47,8 @@ static const ble_handle_t s_ble_handle_table[] = {
     DEF_BLE_HANDLE("ff21", BLE_HANDLE_CONF_WATCHFACE,    BLE_HANDLE_TYPE_INT8_ARR,  1),
     DEF_BLE_HANDLE("ff22", BLE_HANDLE_CONF_GOALS,        BLE_HANDLE_TYPE_INT16_ARR, 3),
     DEF_BLE_HANDLE("ff23", BLE_HANDLE_CONF_USER_PROFILE, BLE_HANDLE_TYPE_INT8_ARR,  3),
+    DEF_BLE_HANDLE("ff24", BLE_HANDLE_TODAY_ACTIVITY,    BLE_HANDLE_TYPE_INT32_ARR, 4),
+    DEF_BLE_HANDLE("ff25", BLE_HANDLE_CONF_USER_PROFILE, BLE_HANDLE_TYPE_INT8_ARR,  3),
 };
 
 uint16_t BLE_READ_INT16(uint8_t* buf)
@@ -439,11 +442,13 @@ static uint16_t att_handler_internal(uint16_t handle, uint16_t offset, uint8_t *
             }
             break;
 
-        case BLE_HANDLE_RESERVED_0:
-//        case BLE_HANDLE_RESERVED_1:
+        case BLE_HANDLE_TODAY_ACTIVITY:
             if (mode == ATT_HANDLE_MODE_READ)
             {
-                memset(buffer, 0, buffer_size);
+                BLE_WRITE_INT32(&buffer[0],  (uint32_t)ped_get_time());
+                BLE_WRITE_INT32(&buffer[4],  (uint32_t)ped_get_steps());
+                BLE_WRITE_INT32(&buffer[8],  (uint32_t)ped_get_calorie());
+                BLE_WRITE_INT32(&buffer[12], (uint32_t)ped_get_distance());
             }
             break;
     }

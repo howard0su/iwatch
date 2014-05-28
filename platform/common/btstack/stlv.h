@@ -75,6 +75,12 @@
 #define ELEMENT_TYPE_ACTIVITY_DATA  'N'
 #define ELEMENT_TYPE_UNLOCK_WATCH   'U'
 
+#define ELEMENT_TYPE_DAILY_ACTIVITY '0'
+#define 	SUB_TYPE_TODAY_ATIME '1'
+#define 	SUB_TYPE_TODAY_STEPS '2'
+#define 	SUB_TYPE_TODAY_CAL   '3'
+#define 	SUB_TYPE_TODAY_DIST  '4'
+
 
 typedef unsigned char* element_handle;
 typedef unsigned char* stlv_packet;
@@ -124,6 +130,7 @@ element_handle append_element(stlv_packet p, element_handle parent /* = STLV_INV
 int element_append_char  (stlv_packet p, element_handle h, char  data);
 int element_append_short (stlv_packet p, element_handle h, short data);
 int element_append_int   (stlv_packet p, element_handle h, int   data);
+int element_append_long  (stlv_packet p, element_handle h, long  data);
 int element_append_data  (stlv_packet p, element_handle h, uint8_t* data_buf, int buf_len);
 int element_append_string(stlv_packet p, element_handle h, char* data);
 
