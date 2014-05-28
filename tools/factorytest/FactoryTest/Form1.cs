@@ -415,5 +415,10 @@ namespace FactoryTest
             if (process != null)
                 process.Kill();
         }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            currentLabel.Text = String.Format("{0}mA", device.Current);
+        }
     }
 }

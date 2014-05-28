@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="BLUETOOTH" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">34.7</Value>
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="FLASHING" Type="System.Single" Scope="User">
       <Value Profile="(Default)">18</Value>
