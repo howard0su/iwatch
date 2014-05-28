@@ -142,5 +142,17 @@ namespace FactoryTest.Properties {
                 this["MOTOR"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public float MIC {
+            get {
+                return ((float)(this["MIC"]));
+            }
+            set {
+                this["MIC"] = value;
+            }
+        }
     }
 }

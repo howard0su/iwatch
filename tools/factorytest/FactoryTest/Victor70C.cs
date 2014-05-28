@@ -270,7 +270,7 @@ namespace FactoryTest
             device = new USBInterface("vid_1244", "pid_d237");
 
             if (!device.Connect())
-                throw new Exception("Device Cannot be found");
+                throw new Exception("Victor 70C Multimeter cannot be found");
 
             device.enableUsbBufferEvent(new System.EventHandler(myEventCacher));
 
