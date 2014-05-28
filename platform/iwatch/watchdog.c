@@ -39,6 +39,7 @@
 #include "button.h"
 #include "grlib/grlib.h"
 #include "sys/process.h"
+#include "backlight.h"
 
 extern void flushlcdsync();
 extern void rtc_save();
@@ -100,7 +101,7 @@ ISR(WDT, watchdog_interrupt)
 {
   uint16_t dummy;
 
-  motor_on(0);
+  motor_on(0, 0);
 #if PRINT_STACK_ON_REBOOT == 1
   printstack(&dummy);
 #endif
