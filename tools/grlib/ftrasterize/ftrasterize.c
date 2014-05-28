@@ -4026,6 +4026,7 @@ int ConvertRasterFont(tConversionParameters *pParams)
     FILE *pFile;
     tBoolean bRetcode;
 
+    iNewStruct = 1;
 
     if(pParams->bVerbose)
     {

@@ -2,7 +2,7 @@
 #include "window.h"
 #include "test.h"
 #include "system.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "backlight.h"
 #include "ant/ant.h"
 #include "ant/antinterface.h"
@@ -13,12 +13,16 @@
 #include "sportsdata.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static int8_t data;
 static uint8_t onoff;
 static const uint8_t str[] = {
 	45, 78, 135, 101, 75, 109, 213, 139, 198, 48, 185, 48, 200, 48, 0, 0
 };
+
+extern int mpu6050_selftest();
+
 uint8_t test_button(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
@@ -156,7 +160,7 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 		  GrRectFill(pContext, &client_clip);
 
 		  GrContextForegroundSet(pContext, ClrWhite);
-      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      	  GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
  		  GrStringDraw(pContext, "Speaker is looping back to mic", -1, 0, 50, 0);
 
   		window_volume(pContext, 30, 125, 8, codec_getvolume());
@@ -306,13 +310,16 @@ uint8_t test_lcd(uint8_t ev, uint16_t lparam, void* rparam)
 uint8_t test_reboot(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	system_rebootToNormal();
+	return 1;
 }
 
+static int rate;
 uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:
+		rate = -1;
 		onoff = 0;
 		break;
 
@@ -346,6 +353,15 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 			window_invalid(NULL);
 			break;
 		}
+		case EVENT_SPORT_DATA:
+		{
+			if (lparam == SPORTS_HEARTRATE)
+			{
+				rate = (int)rparam;
+			}
+			window_invalid(NULL);
+			break;
+		}
 		case EVENT_WINDOW_PAINT:
 		{
 		  tContext *pContext = (tContext*)rparam;
@@ -362,6 +378,12 @@ uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
  		  char buf[32];
 		  sprintf(buf, "Tx Power Level: %d", data);
  		  GrStringDraw(pContext, buf, -1, 5, 70, 0);
+
+ 		  if (rate != -1)
+ 		  {
+ 		  	sprintf(buf, "heartrate: %d", rate);
+			GrStringDraw(pContext, buf, -1, 5, 90, 0);
+ 		  }
 
  		  window_button(pContext, KEY_UP, "+");
  		  window_button(pContext, KEY_DOWN, "-");
@@ -415,7 +437,7 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 		  }
 		  else
 		  {
-		  	GrStringDraw(pContext, "MPUT6050 failed self testing", -1, 32, 50, 0);
+		  	GrStringDraw(pContext, "MPU6050 failed self testing", -1, 32, 50, 0);
 		  }
 
 		  GrStringDraw(pContext, "watch face up", -1, 32, 70, 0);
@@ -449,15 +471,15 @@ static const uint8_t HCI_VS_Set_LE_Test_Mode_Parameters[] =
 	, 0x00 //(En_Traces)
 	, 0x00, 0x00, 0x00, 0x00
 };
-
+extern void ble_advertise(uint8_t onoff);
 uint8_t test_ble(uint8_t ev, uint16_t lparam, void* rparam)
 {
-	uint8_t buf[200];
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:
 		onoff = 0;
 		data = 0;
+		ble_advertise(0);
 		hci_send_cmd_packet((uint8_t*)HCI_VS_Set_LE_Test_Mode_Parameters, sizeof(HCI_VS_Set_LE_Test_Mode_Parameters));
 		break;
 
@@ -756,7 +778,7 @@ uint8_t test_bluetooth(uint8_t ev, uint16_t lparam, void* rparam)
 
 uint8_t test_dut(uint8_t ev, uint16_t lparam, void* rparam)
 {
-	uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd)];
+	//uint8_t buf[sizeof(HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd)];
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:

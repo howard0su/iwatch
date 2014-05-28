@@ -1,17 +1,15 @@
 #include "contiki.h"
 #include "window.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "ant/ant.h"
 #include "stlv_client.h"
 #include "ble_handler.h"
 
 static uint8_t selection;
-static uint8_t okflags;
 static uint8_t sports_type = 0;
 
 static void onDraw(tContext *pContext)
 {
-  int width;
   GrContextForegroundSet(pContext, ClrBlack);
   GrRectFill(pContext, &fullscreen_clip);
 
@@ -45,13 +43,12 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         uint8_t stlv_meta = 0;
         uint32_t stlv_data = 0;
-        uint8_t ble_data_buf[5] = {0};
 
         //STLV over RFCOMM
         send_sports_data(0, sports_type | SPORTS_DATA_FLAG_PRE, &stlv_meta, &stlv_data, 1);
 
         //BLE
-        ble_start_sync(1);
+        ble_start_sync(1, 0);
       }
     return 0x80;
   case EVENT_SPORT_DATA:

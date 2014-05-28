@@ -60,7 +60,7 @@ xmem_pwrite(const void *buf, int size, unsigned long offset)
   //memcpy(&xmem[offset], buf, size);
   for(int i = 0; i < size; i++)
   {
-    xmem[offset + i] = ~((char*)buf)[i];
+    xmem[offset + i] &= ~((char*)buf)[i];
   }
 
   return size;

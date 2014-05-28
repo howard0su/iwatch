@@ -52,7 +52,7 @@ int putchar(int data)
 
     int parity_mask = 0x200;
     char bitCount = 0xB;                    // Load Bit counter, 8data + ST/SP +parity
-    int flag;
+    //int flag;
     //while (TA0CCTL0 & CCIE);                                    // Ensure last char got TX'd
 
     TA0CCR0 = TA0R;                       // Current state of TA counter

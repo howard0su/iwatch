@@ -45,6 +45,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "system.h" // system_getserial
+
 #ifndef EMBEDDED
 #include <unistd.h> // gethostbyname
 #include <btstack/version.h>
@@ -313,7 +315,7 @@ int hci_send_acl_packet(uint8_t *packet, int size){
     
     hci_con_handle_t con_handle = READ_ACL_CONNECTION_HANDLE(packet);
 
-    if (con_handle < 1024)
+    if (con_handle <= 1024)
         if (!hci_number_free_acl_slots()) return BTSTACK_ACL_BUFFERS_FULL;
     else
         if (!hci_number_free_le_slots()) return BTSTACK_ACL_BUFFERS_FULL;
@@ -1340,8 +1342,6 @@ void hci_connectable_control(uint8_t enable){
 bd_addr_t * hci_local_bd_addr(void){
     return &hci_stack->local_bd_addr;
 }
-
-extern const char* system_getserial();
 
 void hci_run(){
         

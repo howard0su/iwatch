@@ -1,14 +1,15 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "status.h"
 #include "contiki.h"
 #include "sys/ctimer.h"
 #include "grlib/grlib.h"
 #include "window.h"
-#include "Template_Driver.h"
-#include "btstack/bluetooth.h"
+#include "memlcd.h"
+#include "bluetooth.h"
 #include "battery.h"
 #include "rtc.h"
 #include "pedometer/pedometer.h"
@@ -38,18 +39,20 @@ extern void ped_reset();
 static uint16_t status;
 static char alarmtext[10]; // 12:34 67
 
-extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
+extern void cleanUpSportsWatchData();
+
 static uint16_t s_watch_status = 0;
 uint16_t add_watch_status(uint16_t value)
 {
   uint16_t invalue = get_watch_status() | value;
-  return set_watch_status(value);
+  return set_watch_status(invalue);
 }
 
 uint16_t del_watch_status(uint16_t value)
 {
   uint16_t invalue = get_watch_status() & (~value);
-  return set_watch_status(value);
+  return set_watch_status(invalue);
 }
 
 uint16_t set_watch_status(uint16_t value)
@@ -86,7 +89,7 @@ uint16_t check_idle_time()
   return now - s_last_act_timehash;
 }
 
-void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 
 static void OnDraw(tContext* pContext)
 {
@@ -123,7 +126,7 @@ static void OnDraw(tContext* pContext)
   {
     GrStringDraw(pContext, &icon, 1, 120, 0, 0);
     icon = ICON_CHARGING;
-    GrStringDraw(pContext, &icon, 1, 137, 2, 0);
+    GrStringDraw(pContext, &icon, 1, 137, 0, 0);
   }
   else
   {
@@ -155,14 +158,13 @@ static void OnDraw(tContext* pContext)
     uint16_t steps = ped_get_steps();
     for(int i = 0; i < 5; i++)
     {
-      tRectangle rect = {64 + i * 6, 6, 68 + i * 6, 9};
       if (i * part + part / 2 <= steps)
       {
-        GrRectFill(pContext, &rect);
+        GrCircleFill(pContext, 68 + i*6, 7, 2);
       }
       else
       {
-        GrRectDraw(pContext, &rect);
+        GrCircleDraw(pContext, 68 + i*6, 7, 2);
       }
     }
   }
@@ -170,14 +172,13 @@ static void OnDraw(tContext* pContext)
   {
     uint8_t hour, minute;
     char buf[20];
-    uint8_t ampm;
+    uint8_t ispm;
     rtc_readtime(&hour, &minute, NULL);
 
-    adjustAMPM(hour, &hour, &ampm);
+    adjustAMPM(hour, &hour, &ispm);
 
-    sprintf(buf, "%02d:%02d%s", hour, minute, ampm?"PM":"AM");
+    sprintf(buf, "%02d:%02d %s", hour, minute, ispm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
-    int width = GrStringWidthGet(pContext, buf, -1);
     GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 8, 0);
   }
 }
@@ -201,21 +202,35 @@ static void check_battery()
     case 0: case 1:
     status |= BATTERY_EMPTY;
     break;
-    case 2: case 3: case 4:
+    case 2: case 3:
     status |= BATTERY_LESS;
     break;
-    case 5: case 6: case 7:
+    case 4: case 5: case 6:
     status |= BATTERY_MORE;
     break;
     default:
     status |= BATTERY_FULL;
   }
 
-  if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
+  if (window_current() != &charging_process)
   {
-      window_messagebox(ICON_LARGE_LOWBATTERY, "LOW BATTERY\nConnect charger now.", 0);
-      return;
+    if ((level == 0) && (state == BATTERY_STATE_DISCHARGING))
+    {
+      window_open(&charging_process, 0);
+    }
   }
+
+#ifndef UNITTEST
+  if (window_current() == &menu_process ||
+    window_current() == &analogclock_process ||
+    window_current() == &digitclock_process)
+  {
+    if (state != BATTERY_STATE_DISCHARGING)
+    {
+      window_open(&charging_process, 0); 
+    }
+  }
+#endif
 
   if (state == BATTERY_STATE_CHARGING)
   {
@@ -239,6 +254,9 @@ static void on_midnigth(uint8_t event, uint16_t lparam, void* rparam)
   uint8_t month, day, weekday;
   rtc_readdate(&year, &month, &day, &weekday);
   create_data_file(year - 2000, month, day);
+
+  cleanUpSportsWatchData();
+
 }
 
 static void record_activity_data(uint8_t hour, uint8_t minute)
@@ -315,12 +333,15 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
       ui_config* uiconf = window_readconfig();
       for (int i = 0; i < sizeof(uiconf->alarms) / sizeof(uiconf->alarms[0]); ++i)
       {
-        if (uiconf->alarms[i].flag != 0 && uiconf->alarms[i].hour == hour && uiconf->alarms[i].minutes == minute)
+        if (uiconf->alarms[i].flag != 0 &&
+            uiconf->alarms[i].hour    == hour &&
+            uiconf->alarms[i].minutes == minute &&
+            second <= 30)
         {
-          uint8_t ampm;
-          adjustAMPM(hour, &hour, &ampm);
-          sprintf(alarmtext, "%02d:%02d %s", hour, minute, ampm?"PM":"AM");
-          window_messagebox(ICON_LARGE_ALARM, alarmtext, 1);
+          uint8_t ispm;
+          adjustAMPM(hour, &hour, &ispm);
+          sprintf(alarmtext, "%02d:%02d %s", hour, minute, ispm?"PM":"AM");
+          window_messagebox(ICON_LARGE_ALARM, alarmtext, NOTIFY_ALARM);
           break;
         }
       }

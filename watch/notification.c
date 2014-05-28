@@ -1,13 +1,15 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "backlight.h"
 #include "status.h"
-
+#include "rtc.h"
 #include "btstack/ble/att_client.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const char* message_title;
 static const char* message_subtitle;
@@ -96,16 +98,36 @@ static const tFont *get_contentfont()
   
 }
 
-static void convertdate(char *buf, const char* date)
+
+static const char* parse_date(char* date)
 {
-  // date is in format YYYYMMDDTHHMM
-  int month;
-  int day;
+  // date in the format of yyyyMMdd'T'HHmmSS
+  //                       01234567 8 9abcde
+  uint8_t event_second, event_minute, event_hour;
+  uint8_t event_day, event_month;
+  uint16_t event_year;
 
-  month = (date[4] - '0') * 10 + (date[5] - '0');
-  day = (date[6] - '0') * 10 + (date[7] - '0');
+  event_second = atoi(&date[0x0d]); date[0x0d] = '\0';
+  event_minute = atoi(&date[0x0b]); date[0x0b] = '\0';
+  event_hour   = atoi(&date[0x09]); date[0x08] = '\0';
 
-  sprintf(buf, "%d %s, %c%c%c%c", day, month_shortname[month - 1], date[0], date[1], date[2], date[3]);
+  event_day    = atoi(&date[0x06]); date[0x06] = '\0';
+  event_month  = atoi(&date[0x04]); date[0x04] = '\0';
+  event_year   = atoi(&date[0x00]);
+
+  uint32_t event_timestamp = calc_timestamp(event_year - 2000, event_month, event_day, event_hour, event_minute, event_second);
+  uint32_t now_timestamp = rtc_readtime32();
+
+  if (event_timestamp > now_timestamp)
+  {
+    // event happen later than now, this should not happen, adjust rtc
+    rtc_settime(event_hour, event_minute, event_second);
+    rtc_setdate(event_year, event_month, event_day);
+
+    now_timestamp = event_timestamp;
+  }
+  
+  return toEnglishPeriod(now_timestamp - event_timestamp, date);
 }
 
 static void onDraw(tContext *pContext)
@@ -133,11 +155,13 @@ static void onDraw(tContext *pContext)
 
     if (message_date)
     {
-      char buf[40];
-      convertdate(buf, message_date);
+      char buffer[20];
 
+      strcpy(buffer, message_date);
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
-      GrStringDraw(pContext, buf, -1, 30, starty, 0);
+      const char* text = parse_date(buffer);
+      int16_t width = GrStringWidthGet(pContext, text, -1);
+      GrStringDraw(pContext, text, -1, LCD_X_SIZE - 10 - width, starty, 0);
     }
 
     starty += 16;
@@ -181,10 +205,10 @@ static void onDraw(tContext *pContext)
 
 static void push_uid(uint32_t id, uint32_t attribute)
 {
-  if (num_uids < MAX_NOTIFY)
+  if (num_uids <= MAX_NOTIFY - 1)
     num_uids++;
 
-  for(int i = num_uids; i >= 0; i--)
+  for(int i = num_uids - 1; i >= 0; i--)
   {
     uids[i] = uids[i - 1];
     attributes[i] = attributes[i - 1];
@@ -222,6 +246,7 @@ void fetch_content()
   uint32_t attribute;
   message_title = NULL;
   message = NULL;
+  message_subtitle = NULL;
 
   uid = uids[selectidx];
   attribute = attributes[selectidx];
@@ -290,6 +315,9 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
         break;
     }
 
+    if (i == num_uids)
+      return;
+
     for (int j = i ; j < num_uids; j++)
     {
       uids[j] = uids[j+1];
@@ -326,14 +354,6 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     state |= STATE_ACTIVE;
     add_watch_status(WS_NOTIFY);
     return 0x80;
-  }
-  case EVENT_WINDOW_ACTIVE:
-  {
-    if ((message_buttons & NOTIFY_ALARM) == NOTIFY_ALARM)
-    {
-      motor_on(50, 0);
-    }
-    break;
   }
   case EVENT_WINDOW_PAINT:
     {
@@ -383,7 +403,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     else if (lparam == KEY_ENTER)
     {
-      if (selectidx < num_uids)
+      if (selectidx < num_uids - 1)
       {
         selectidx++;
         fetch_content();

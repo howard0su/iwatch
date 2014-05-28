@@ -31,18 +31,18 @@ refreshdata()
 		hour = hour - 12;
 	}
 
-	window_setfont context, FontDigit44b
+	window_setfont context, FontExNimbus46
 	strformat command, _, true, "%02d:%02d", hour, minute
 	width = window_getwidth(context, command)
 	window_drawtext context, command, (LCD_WIDTH - width)/2, 70, 0
 
-	window_setfont context, FontNova16b
+	window_setfont context, FontGothic14
 	if (ampm)
-		window_drawtext context, "AM", 105, 105, 0
-	else
 		window_drawtext context, "PM", 105, 105, 0
+	else
+		window_drawtext context, "AM", 105, 105, 0
 
-	window_setfont context, FontNova13
+	window_setfont context, FontGothic14
 	strformat command, _, true, "%d %d, %d", month, day, year
 	width = window_getwidth(context, command)
 	window_drawtext context, command, (LCD_WIDTH - width)/2, 35, 0

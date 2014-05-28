@@ -20,7 +20,7 @@
 
 #include "memory.h"
 
-static enum _state{
+enum _state{
   STATE_CONFIG_HOUR,
   STATE_CONFIG_MINUTE,
   STATE_CONFIG_SECOND,
@@ -42,11 +42,11 @@ static enum _state{
 #define INNER_R 16
 #define OUTER_R 32
 
-static const tRectangle progress_range = 
+/* static const tRectangle progress_range = 
 {
   CENTER_X - OUTER_R, CENTER_Y - OUTER_R,
   CENTER_X + OUTER_R, CENTER_Y + OUTER_R,
-};
+};*/
 
 static void OnDrawProgress(tContext *pContext)
 {
@@ -133,7 +133,10 @@ static void OnDraw(tContext *pContext)
 
       // display progress bar
       if (totaltime != lefttime)
+      {
+        GrContextForegroundSet(pContext, ClrWhite);
         OnDrawProgress(pContext);
+      }
 
       break;      
     }
@@ -144,6 +147,7 @@ static void OnDraw(tContext *pContext)
       window_button(pContext, KEY_ENTER, "STOP");
 
       // display progress bar
+      GrContextForegroundSet(pContext, ClrWhite);
       OnDrawProgress(pContext);
 
       break;

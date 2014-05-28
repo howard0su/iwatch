@@ -1,6 +1,7 @@
 #include "contiki.h"
 #include "window.h"
 #include <string.h>
+#include <stdio.h>
 
 const char * const month_name[] =
 {
@@ -54,3 +55,39 @@ const char* toEnglish(uint8_t number, char* buffer)
 
   return buffer;
 }
+
+const char* toEnglishPeriod(uint32_t seconds, char* buffer)
+{
+  if (seconds < 60)
+  {
+    return "now";
+  }
+
+  if (seconds < 120)
+  {
+    return "1m ago";
+  }
+
+  if (seconds < 3600)
+  {
+    // how many minutes
+    sprintf(buffer, "%dm ago", seconds/60);
+    return buffer;
+  }
+
+  if (seconds < 3600 * 24)
+  {
+    sprintf(buffer, "%dh ago", seconds/3600);
+    return buffer;
+  }
+
+  if (seconds < 3600 * 24 * 5) // 5days max
+  {
+    sprintf(buffer, "%dd ago", seconds/(3600*24));
+    return buffer;    
+  }
+
+  return "a long while ago";
+}
+
+const char* PairingWarning = "Please Pair your smartphone to the Meteor.";

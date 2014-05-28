@@ -47,7 +47,7 @@
 #include "power.h"
 #include "battery.h"
 #include "spiflash.h"
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 #include "backlight.h"
 #include "window.h"
 #include "system.h"
@@ -55,6 +55,7 @@
 #include "ant/ant.h"
 #include "ant/antinterface.h"
 
+#include "system.h"
 /*--------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
@@ -67,12 +68,13 @@
 // Function prototypes
 extern int CheckUpgrade(void);
 extern void Upgrade(void);
-
+extern void uart_init(char rate);
 extern void mpu6050_init();
 extern void button_init();
 extern void I2C_Init();
 extern void rtc_init();
 extern void battery_init();
+extern unsigned char* CFSFontWrapperLoad();
 
 static uint8_t msp430_dco_required = 0;
 
@@ -115,6 +117,34 @@ main(int argc, char **argv)
   battery_init();
   SPI_FLASH_Init();
 
+  if (system_testing())
+  {
+    clock_time_t t;
+
+    backlight_on(200, 0);
+    t = clock_seconds();
+    // sleep 1
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    printf("$$OK BACKLIGHT\n");
+    t = clock_seconds();
+    // sleep 1s
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    backlight_on(0, 0);
+
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 2);
+
+    motor_on(200, 0);
+    // sleep 1s
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    printf("$$OK MOTOR\n");
+    // sleep 1s
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    motor_on(0, 0);
+  }
+
   int reason = CheckUpgrade();
 
   window_init(reason);
@@ -133,7 +163,7 @@ main(int argc, char **argv)
 
   mpu6050_init();
 
-  motor_on(200, CLOCK_SECOND / 2);
+ // motor_on(200, CLOCK_SECOND / 2);
   
   if (!system_retail())
   {
@@ -157,7 +187,7 @@ main(int argc, char **argv)
   /*
     check firmware update
     */
-  if (reason == 0)
+  if (reason == 0xff)
   {
     printf("Start Upgrade\n");
     Upgrade();

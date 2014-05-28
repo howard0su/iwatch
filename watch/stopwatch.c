@@ -1,7 +1,7 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "rtc.h"
 #include <stdio.h>
 
@@ -16,7 +16,7 @@
 #define  saved_times d.stop.saved_times
 #define delta_times d.stop.delta_times 
 
-static enum
+enum _STATE
 {
   STATE_RUNNING = 0,
   STATE_STOP,

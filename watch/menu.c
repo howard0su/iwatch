@@ -15,15 +15,15 @@
 #include "contiki.h"
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "rtc.h"
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 #include <stdio.h>
 #include <string.h>
 #include "memory.h"
 #include "sportsdata.h"
 #include "system.h"
-
+#include "battery.h"
 #include "test.h"
 
 /*
@@ -124,7 +124,7 @@ extern uint8_t recordoperation_process(uint8_t ev, uint16_t lparam, void* rparam
 #define NUM_MENU_A_PAGE 3
 #define MAINMENU_SPACE ((168 - 30)/NUM_MENU_A_PAGE)
 
-extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 
 static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPACE, const struct MenuItem *item, int index, int selected)
 {
@@ -140,7 +140,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 25 + index * MENU_SPACE, LCD_X_SIZE - 2, 20 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_X_SIZE - 2, 15 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -158,7 +158,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
   if (item->icon < 0x80 && item->icon != 0)
   {
     GrContextFontSet(pContext, (tFont*)&g_sFontExIcon32);
-    GrStringDraw(pContext, &item->icon, 1, 4, 13 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, (const char*)&item->icon, 1, 4, 13 + (MENU_SPACE - 16) /2 + index * MENU_SPACE, 0);
   }
 
   GrContextFontSet(pContext, textFont);
@@ -190,12 +190,12 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       {
         uint8_t hour, minute;
         char buf0[2];
-        uint8_t ampm = 0;
+        uint8_t ispm = 0;
         rtc_readtime(&hour, &minute, NULL);
           // draw time
-        adjustAMPM(hour, &hour, &ampm);
+        adjustAMPM(hour, &hour, &ispm);
 
-        if (ampm) buf0[0] = 'P';
+        if (ispm) buf0[0] = 'P';
           else buf0[0] = 'A';
         buf0[1] = 'M';
 
@@ -222,7 +222,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       break;
       case DATA_BTADDR:
       {
-        const char* ptr = system_getserial();
+        const char* ptr = (const char*)system_getserial();
         sprintf(buf, "Meteor %02X%02X", ptr[4], ptr[5]);
         break;
       }
@@ -274,7 +274,7 @@ static void OnDraw(tContext *pContext)
     // there is something more
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - i);
+        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - 5 - i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }
@@ -326,6 +326,22 @@ uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam)
   return 0;
 }
 
+static void menu_timeout()
+{
+  if (battery_state() == BATTERY_STATE_DISCHARGING)
+  {
+    // check analog or digit
+    if (!window_readconfig()->default_clock)
+      window_open(&analogclock_process, NULL);
+    else
+      window_open(&digitclock_process, NULL);
+  }
+  else
+  {
+    window_open(&charging_process, NULL);
+  }
+}
+
 uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
   static struct etimer timer;
@@ -367,11 +383,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (rparam == &timer)
       {
-        // check analog or digit
-        if (!window_readconfig()->default_clock)
-          window_open(&analogclock_process, NULL);
-        else
-          window_open(&digitclock_process, NULL);
+        menu_timeout();
       }
       break;
     }
@@ -453,12 +465,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
       }
       else
       {
-        // this is main menu
-        // check analog or digit
-        if (!window_readconfig()->default_clock)
-          window_open(&analogclock_process, NULL);
-        else
-          window_open(&digitclock_process, NULL);
+        menu_timeout();
       }
       break;
     }

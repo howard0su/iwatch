@@ -1,6 +1,6 @@
 #include "contiki.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "window.h"
 #include "pedometer/sleepalgo.h"
 

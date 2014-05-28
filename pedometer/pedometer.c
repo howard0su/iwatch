@@ -307,7 +307,7 @@ unsigned short ped_get_version(void)
 * @param[in] *p_data
 * @return result
 **/
-char ped_update_sample(short* p_data)
+char ped_update_sample(signed short* p_data)
 {
   // WE COME HERE ON EVERY ACCEL SAMPLE
   static unsigned int sample_index = 0;

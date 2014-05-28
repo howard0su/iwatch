@@ -9,7 +9,7 @@ ECHO	= echo
 WARNING_FLAGS = 
 CFLAGS0  = -g -O2 $(WARNING_FLAGS)\
 	-ffunction-sections -fdata-sections -D__NO_MINGW_LFS
-LDFLAGS = -g -O2 $(WARNING_FLAGS) -Wl,-gc-sections
+LDFLAGS = -g -O2 $(WARNING_FLAGS)
 
 
 CFLAGS = $(CFLAGS0) 
@@ -17,8 +17,17 @@ CFLAGS = $(CFLAGS0)
 # -flto
 #LDFLAGS += -flto
 
-ALL_DEFINES = HAVE_ALLOCA_H=0 AMX_ANSIONLY=1 PAWN_CELL_SIZE=16 PAWN_LIGHT __WIN32__
+ALL_DEFINES = HAVE_ALLOCA_H=0 AMX_ANSIONLY=1 PAWN_CELL_SIZE=16 PAWN_LIGHT
+ifeq ($(OS),Windows_NT)
+ ALL_DEFINES += __WIN32__
+else
+ UNAME_S := $(shell uname -s)
+ ifeq ($(UNAME_S),Darwin)
+   ALL_DEFINES += PAWN_NO_CODEPAGE __BYTE_ORDER=1234 MACOS HAVE_SAFESTR
+ endif
+endif
 ALL_INCLUDEDIRS = \
+	linux \
 	.
 
 
@@ -55,10 +64,10 @@ $(OBJDIR)/%.d: %.c
 
 # create firmware image from common objects and example source file
 
-all: $(DEPFILES) $(OBJS) compile.exe
+all: $(DEPFILES) $(OBJS) pawncc
 
 # if need support loader  $(OBJDIR)/$(OBJDIR)/symbols.o
-compile.exe: ${OBJS}
+pawncc: ${OBJS}
 	@$(ECHO) "Linking $@ second pass"
 	@${CC} $^ ${LDFLAGS} -o $@
 

@@ -39,7 +39,7 @@ void cordic_sincos(int,
                    int *,
                    int *);
 
-#define cordic_multipy(sincos, value) ((value *(sincos >> 8)) >> 7)
+#define cordic_multipy(sincos, value) (((value) *(sincos >> 8)) >> 7)
 /*
   how to use this function
     int cos_val, sin_val;

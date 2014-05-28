@@ -2280,25 +2280,24 @@ extern unsigned long GrMapWIN1254_Unicode(const char *pcSrcChar,
 #define ASSERT(x) assert(x)
 typedef unsigned char tBoolean;
 
-//extern const tFont g_sFontBaby12;
-extern const tFont g_sFontDriod28b;
-extern const tFont g_sFontGothamblack30;
-extern const tFont g_sFontGothambold42;
-extern const tFont g_sFontGothamlight42;
-extern const tFontEx g_sFontExGothammedium32;
-extern const tFontEx g_sFontExGothammedium42;
 extern const tFont g_sFontGothic14;
-//extern const tFont g_sFontGothic14b;
 extern const tFont g_sFontGothic18;
 extern const tFont g_sFontGothic18b;
-//extern const tFont g_sFontGothic24;
 extern const tFont g_sFontGothic24b;
 extern const tFont g_sFontGothic28;
 extern const tFont g_sFontGothic28b;
 extern const tFontEx g_sFontExIcon16;
 extern const tFontEx g_sFontExIcon32;
 extern const tFontEx g_sFontExIcon48;
-extern const tFont g_sFontRobotocondensed18b;
+
+extern const tFont g_sFontNimbus30;
+extern const tFont g_sFontNimbus34;
+extern const tFontEx g_sFontExNimbus38;
+extern const tFontEx g_sFontExNimbus40;
+extern const tFontEx g_sFontExNimbus46;
+extern const tFontEx g_sFontExNimbus50;
+extern const tFontEx g_sFontExNimbus52;
+extern const tFontEx g_sFontExNimbus91;
 
 extern const tFontWrapper g_sFontUnicode;
 
@@ -2313,6 +2312,14 @@ extern int NumLeadingZeros(long x);
 extern void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
                                              long lXB, long lYB,
                                              long lXC, long lYC);
+extern void GrTriagleDraw(const tContext *pContext, long lXA, long lYA,
+                                             long lXB, long lYB,
+                                             long lXC, long lYC);
+extern void
+GrLineFill(const tContext *pContext, long lX1, long lY1, long lX2, long lY2, long width);
+extern long
+GrStringLengthGet(const tContext *pContext, const char *pcString);
+
 
 //*****************************************************************************
 //

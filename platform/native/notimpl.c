@@ -357,3 +357,10 @@ uint8_t hci_le_data_packet_length()
 }
 void att_fetch_next(uint32_t uid, uint32_t combine)
 {}
+
+void ble_advertise(uint8_t onoff)
+{
+
+}
+void bluetooth_start(void)
+{}

@@ -15,14 +15,17 @@ rm -Rf *.c
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 28    "RasterGothic28Cond.otf"
 ../grlib/ftrasterize/ftrasterize -f Gothic -s 28 -b "RasterGothic28CondBold.otf"
 ../grlib/ftrasterize/ftrasterize -f Driod -s 28 -b DroidSerif-Bold.ttf
-../grlib/ftrasterize/ftrasterize -f GothamBlack -s 30 Gotham-Black.otf
-../grlib/ftrasterize/ftrasterize -f GothamBold  -s 42  Gotham-Bold.otf
-../grlib/ftrasterize/ftrasterize -f GothamLight -s 42 Gotham-Light.otf
 
 echo "Generate digit numbers"
-../grlib/ftrasterize/ftrasterize -f GothamMedium -s 32 -v -n -p 48 -e 58 Gotham-Medium.otf
-../grlib/ftrasterize/ftrasterize -f GothamMedium -s 42 -v -n -p 48 -e 58 Gotham-Medium.otf
-../grlib/ftrasterize/ftrasterize -f Roboto -b -s 49 -v -n -p 48 -e 58 Roboto-Bold.otf
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 30 -v "URW++ - NimbusSanNov-Hea.otf"
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 34 -v "URW++ - NimbusSanNov-Hea.otf"
+
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 38 -v -n -p 48 -e 58 "URW++ - NimbusSanNov-Hea.otf"
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 40 -v -n -p 48 -e 58 "URW++ - NimbusSanNov-Hea.otf"
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 46 -v -n -p 48 -e 58 "URW++ - NimbusSanNov-Hea.otf"
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 50 -v -n -p 48 -e 58 "URW++ - NimbusSanNov-Hea.otf"
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 52 -v -n -p 48 -e 58 "URW++ - NimbusSanNov-Hea.otf"
+../grlib/ftrasterize/ftrasterize -f Nimbus -s 91 -v -n -p 48 -e 58 "URW++ - NimbusSanNov-Hea.otf"
 
 ../grlib/ftrasterize/ftrasterize -f Icon -s 16 -v icons_16x16_all.pbm
 ../grlib/ftrasterize/ftrasterize -f Icon -s 32 -v icons_32x32_all.pbm

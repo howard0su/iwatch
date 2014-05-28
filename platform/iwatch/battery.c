@@ -19,11 +19,11 @@ static void setoutputhigh()
   BATOUTOUT |= BATOUTPIN;
 }
 
-static void setoutputlow()
+/* static void setoutputlow()
 {
   BATOUTDIR |= BATOUTPIN;
   BATOUTOUT |= BATOUTPIN;
-}
+}*/
 
 void battery_init(void)
 {
@@ -60,9 +60,8 @@ BATTERY_STATE battery_state(void)
   uartattached = 1;
   setoutputhigh();
   __delay_cycles(10);
-  int instate = (BATININ & BATINPIN) == 1; // if it is high
-  setoutputfloat();
-
+  int instate = (BATININ & BATINPIN) != 0; // if it is high
+ 
   if (instate)
     return BATTERY_STATE_FULL;
   else

@@ -103,7 +103,7 @@ void Upgrade(void)
   unsigned char *flash_end_ptr;
   unsigned char *RAM_start_ptr;
 
-  if (CheckUpgrade())
+  if (CheckUpgrade() != 0xff)
     return;
 
   //Initialize flash and ram start and end address
@@ -115,15 +115,14 @@ void Upgrade(void)
   unsigned long function_size = (unsigned long)(flash_end_ptr) - (unsigned long)(flash_start_ptr);
 
   // Copy flash function to RAM
-  printf("Copy From %x to %x size=%x\n", flash_start_ptr, RAM_start_ptr, function_size);
+  printf("Copy From %p to %p size=%ld\n", flash_start_ptr, RAM_start_ptr, function_size);
   memcpy(RAM_start_ptr,flash_start_ptr,function_size);
 
   motor_on(0, 0);
-  printf("Jump to %x\n", FlashFirmware);
+  printf("Jump to %p\n", FlashFirmware);
 
   // remove the flag of firmware
   struct _header h;
-  int length;
   SPI_FLASH_BufferRead((void*)&h, FIRMWARE_BASE, sizeof(h));
   SPI_FLASH_BufferWrite((void*)&h, FIRMWARE_BASE + h.length + 2 * sizeof(h), sizeof(h));
 
@@ -137,8 +136,8 @@ void WriteFirmware(void* data, uint32_t offset, int size)
 
 void EraseFirmware()
 {
-  long size = 32UL * 1024;
-  for(long i = 0; i < 256UL *1024/SPI_FLASH_PageSize; i+=size)
+  long size = 64UL * 1024;
+  for(long i = 0; i < 256UL *1024; i += size)
   {
     SPI_FLASH_SectorErase(i + FIRMWARE_BASE, size);
   }

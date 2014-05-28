@@ -263,7 +263,7 @@ static void TestRecvFile(CuTest* tc)
 static void TestListFiles(CuTest* tc)
 {
     UNUSED_VAR(tc);
-    handle_list_file();
+    handle_list_file("");
     trySendOut();
 }
 
@@ -272,7 +272,7 @@ static void TestGetFile(CuTest* tc)
     handle_get_file(TEST_FILE_NAME);
     trySendOut();
 
-    CuAssertIntEquals(tc, 18,  get_send_pack_stub_count());
+    CuAssertIntEquals(tc, 5,  get_send_pack_stub_count());
     send_pack_stub_t* node = get_send_pack_stub();
     CuAssertIntEquals(tc, 64, node->len);
     CuAssertIntEquals(tc, 0,  handle_stvl_transport(node->data, node->len));
@@ -380,7 +380,7 @@ static void TestSportsFile(CuTest* tc)
 
 CuSuite* StlvProtocalGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("STLV Test");
+	CuSuite* suite = CuSuiteNew("stlv");
     SUITE_ADD_TEST(suite, TestSendEcho);
     SUITE_ADD_TEST(suite, TestRecvEcho);
     SUITE_ADD_TEST(suite, TestSendFile);

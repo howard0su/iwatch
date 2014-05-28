@@ -15,9 +15,9 @@ uint16_t ped_get_steps()
   return globaldata.step_count;
 }
 
-uint16_t ped_get_calorie()
+uint32_t ped_get_calorie()
 {
-  return (uint16_t)(globaldata.step_cal / 100 / 1000);
+  return globaldata.step_cal;
 }
 
 uint16_t ped_get_time()
@@ -25,9 +25,9 @@ uint16_t ped_get_time()
   return (uint16_t)(globaldata.step_time / SAMPLE_HZ / 60);
 }
 
-uint16_t ped_get_distance()
+uint32_t ped_get_distance()
 {
-  return (uint16_t)(globaldata.step_dist / 100);
+  return globaldata.step_dist;
 }
 
 void ped_init()

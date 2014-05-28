@@ -20,7 +20,7 @@
 
 static AMX *amx;
 static int idxOnCreate, idxOnPaint, idxOnClose, idxOnClock;
-static enum {RUNNING, ERROR, DONE};
+enum {RUNNING, ERROR, DONE};
 
 #define state d.host.state
 static char* mem;

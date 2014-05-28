@@ -39,6 +39,8 @@ int TestReadBleFile(CuTest* tc, char* filename, int unitsize)
     att_handler(BLE_HANDLE_FILE_DESC, 0, s_test_buffer_in, sizeof(s_test_buffer_in), ATT_HANDLE_MODE_WRITE);
         //read process
     uint8_t read_block_id = 0;
+    uint16_t read_block_size = 0;
+    int read_cursor = 0;
 
     //write command "Investigation"
     printf("write FILE_DESC:I\n"); 
@@ -49,11 +51,14 @@ int TestReadBleFile(CuTest* tc, char* filename, int unitsize)
     printf("read FILE_DESC:\n");
     att_handler(BLE_HANDLE_FILE_DESC, 0, s_test_buffer_out, sizeof(s_test_buffer_out), ATT_HANDLE_MODE_READ);
     dumpBuffer(s_test_buffer_out, sizeof(s_test_buffer_out));
+
     CuAssertIntEquals(tc, 'F', s_test_buffer_out[0]);
     CuAssertStrEquals(tc, filename, (char*)&s_test_buffer_out[4]);
 
     while (1)
     {
+        printf("read_block_id=%d, block_size=%d\n", read_block_id, read_block_size);
+
         //write command "Read"
         printf("write FILE_DESC:R, %d, %d\n", 0, read_block_id);
         memcpy(s_test_buffer_in, s_test_buffer_out, 20);
@@ -65,31 +70,24 @@ int TestReadBleFile(CuTest* tc, char* filename, int unitsize)
         printf("read FILE_DESC:\n");
         att_handler(BLE_HANDLE_FILE_DESC, 0, s_test_buffer_out, sizeof(s_test_buffer_out), ATT_HANDLE_MODE_READ);
         dumpBuffer(s_test_buffer_out, sizeof(s_test_buffer_out));
+
         if (s_test_buffer_out[0] == 'D')
         {
-            //CuAssertStrEquals(tc, filename, (char*)&s_test_buffer_out[4]);
-            CuAssertIntEquals(tc, read_block_id, s_test_buffer_out[1]);
-            uint8_t size = s_test_buffer_out[1];
+            read_block_id = s_test_buffer_out[1];
+            read_block_size = *((uint16_t*)(&s_test_buffer_out[2]));
+            printf("blockid=%d, size=%d\n", read_block_id, read_block_size);
 
-            /*
-            if (FILE_SIZE > read_block_id * 20)
-            {
-                if (FILE_SIZE - read_block_id * 20 >= 20)
-                {
-                    CuAssertIntEquals(tc, 20, size);
-                }
-                else
-                {
-                    uint8_t lsize = FILE_SIZE - read_block_id * 20;
-                    CuAssertIntEquals(tc, lsize, size);
-                }
-            }
-            */
+            CuAssertIntEquals(tc, read_block_id, s_test_buffer_out[1]);
 
             //read back data
-            att_handler(BLE_HANDLE_FILE_DATA, 0, s_test_buffer_out, sizeof(s_test_buffer_out), ATT_HANDLE_MODE_READ);
-            printf("read FILE_DATA:\n");
-            dumpBuffer(s_test_buffer_out, sizeof(s_test_buffer_out));
+            int readpos = 0;
+            while (readpos < read_block_size)
+            {
+                printf("read FILE_DATA:\n");
+                att_handler(BLE_HANDLE_FILE_DATA, 0, s_test_buffer_out, sizeof(s_test_buffer_out), ATT_HANDLE_MODE_READ);
+                dumpBuffer(s_test_buffer_out, sizeof(s_test_buffer_out));
+                readpos += 20;
+            }
 
             read_block_id++;
         }
@@ -97,12 +95,16 @@ int TestReadBleFile(CuTest* tc, char* filename, int unitsize)
         {
             return read_block_id;
         }
+        else if (s_test_buffer_out[0] == 'O')
+        {
+            read_block_id++;
+            break;
+        }
         else
         {
             CuAssertTrue(tc, 0);
             return -1;
         }
-
     }
 
     return -1;
@@ -186,7 +188,7 @@ static void TestBleSportsDataFile(CuTest* tc)
     close_data_file();
 
     int ret = TestReadBleFile(tc, "/DATA/12-07-09", 0);
-    CuAssertIntEquals(tc, 6, ret);
+    CuAssertIntEquals(tc, 1, ret);
 }
 
 static void TestBleFile2(CuTest* tc)
@@ -266,7 +268,7 @@ static void TestBleSportsData(CuTest* tc)
     for (int i = 0; i < 10; ++i)
     {
         printf("turn %d\n", i);
-        ble_start_sync(i);
+        ble_start_sync(i, 0);
         att_handler(BLE_HANDLE_SPORTS_DESC, 0, buffer, sizeof(buffer), ATT_HANDLE_MODE_READ);
         CuAssertIntEquals(tc, i, buffer[0]);
 
@@ -297,7 +299,7 @@ static void TestBleFirmwareVersion(CuTest* tc)
 
 CuSuite* BleHandlerTestGetSuite(void)
 {
-    CuSuite* suite = CuSuiteNew("BLE Handler Test");
+    CuSuite* suite = CuSuiteNew("ble");
     SUITE_ADD_TEST(suite, TestBleFile);
     SUITE_ADD_TEST(suite, TestBleSportsDataFile);
     SUITE_ADD_TEST(suite, TestBleFile2);

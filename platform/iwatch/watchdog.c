@@ -40,16 +40,20 @@
 #include "grlib/grlib.h"
 #include "sys/process.h"
 
+extern void flushlcdsync();
+extern void rtc_save();
+
 static int counter = 0;
 
 #define PRINT_STACK_ON_REBOOT 2
 
+#if PRINT_STACK_ON_REBOOT == 1
 static void printstack(uint16_t *ptr)
 {
   int i;
 
   printf("Watchdog reset");
-  printf("\nStack at 0x%x:\n", ptr);
+  printf("\nStack at 0x%p:\n", ptr);
 
   for(i = 0; i < 32; ++i) {
     printf("%x", ptr[i]);
@@ -60,6 +64,7 @@ static void printstack(uint16_t *ptr)
   }
   putchar('\n');
 }
+#endif
 
 extern tContext context;
 extern const tRectangle fullscreen_clip;

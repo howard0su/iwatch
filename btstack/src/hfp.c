@@ -62,7 +62,7 @@ static int hfp_try_respond(uint16_t rfcomm_channel_id){
     if ((error = rfcomm_send_internal(rfcomm_channel_id, hfp_response_buffer, size)) != 0)
     {
       // if error, we need retry
-      log_error("HFP: send failed. %x %s\n", error, hfp_response_buffer);
+      log_error("HFP: send failed. %x %s\n", error, (char*)hfp_response_buffer);
       hfp_response_size = size;
 
       return error;

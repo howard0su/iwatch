@@ -5,6 +5,9 @@
 #include "dev/watchdog.h"
 #include <stdio.h>
 #include "system.h"
+#include "window.h"
+#include "bluetooth.h"
+#include "pedometer/pedometer.h"
 
 struct system_data
 {
@@ -139,6 +142,7 @@ void system_ready()
 
 void system_shutdown(int shipping)
 {
+#if 0
   __delay_cycles(100000);
   
   __disable_interrupt();
@@ -183,12 +187,17 @@ void system_shutdown(int shipping)
   __no_operation();
   
   system_reset();
+#endif
 }
 
 const uint8_t * system_getserial()
 {
+  #if 0
   const struct system_data *data = (struct system_data *)INFOD;
   return data->serial;
+  #else
+  return (const uint8_t*)bluetooth_address();
+  #endif
 }
 
 uint8_t system_locked()
@@ -211,6 +220,7 @@ void system_unlock()
   flash_done();
   
   window_reload();
+  window_invalid(0);
 }
 
 void system_resetfactory()

@@ -2900,6 +2900,73 @@ int GrStringDrawWrap(const tContext* pContext, const char* pcString, long startx
         return nexty;
     }
 }
+
+#ifdef GRLIB_REMOVE_WIDE_FONT_SUPPORT
+long
+GrStringLengthGet(const tContext *pContext, const char *pcString)
+{
+    long lLength;
+
+    //
+    // Loop through the characters in the string.
+    //
+    for(lLength = 0; *pcString; pcString++, lLength++);
+
+    //
+    // Return the width of the string.
+    //
+    return(lLength);
+}
+#else
+long
+GrStringLengthGet(const tContext *pContext, const char *pcString)
+{
+    unsigned long ulChar, ulSkip;
+    long lLength;
+
+    lLength = 0;
+    //
+    // Check the arguments.
+    //
+    ASSERT(pContext);
+    ASSERT(pcString);
+
+    //
+    // Loop through each character in the string.
+    //
+    while(-1)
+    {
+        //
+        // Get the next character to render.
+        //
+        ulChar = GrStringNextCharGet(pContext, pcString, -1, &ulSkip);
+
+        //
+        // If we ran out of characters to render, drop out of the loop.
+        //
+        if(!ulChar)
+        {
+            break;
+        }
+
+        //
+        // Increment our string length.
+        //
+        lLength++;
+
+        //
+        // Move on to the next character.
+        //
+        pcString += ulSkip;
+    }
+
+    //
+    // Return the width of the string.
+    //
+    return(lLength);
+}
+#endif
+
 //*****************************************************************************
 //
 // Close the Doxygen group.

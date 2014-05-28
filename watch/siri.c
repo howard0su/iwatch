@@ -7,6 +7,7 @@
 #include "backlight.h"
 #include "hfp.h"
 #include "bluetooth.h"
+#include "icons.h"
 #include <string.h>
 #include <stdio.h>
 #include "stlv_client.h"
@@ -35,7 +36,10 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
   {
   case EVENT_WINDOW_CREATED:
     if (!hfp_connected())
-      window_close();
+    {
+        window_messagebox(ICON_LARGE_WARNING, PairingWarning, 0);
+        return 1;
+    }
     
     if (rparam)
     {
@@ -81,7 +85,9 @@ uint8_t siri_process(uint8_t ev, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_PAINT:
     onDraw((tContext*)rparam);
     break;
-
+  case EVENT_NOTIFY_RESULT:
+    window_close();
+    break;
   case EVENT_EXIT_PRESSED:
     {
       int level = window_readconfig()->volume_level;

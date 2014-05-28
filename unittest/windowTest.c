@@ -5,7 +5,7 @@
 #include "window.h"
 #include "watch/icons.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include "sys/timer.h"
 #include "sys/etimer.h"
 
@@ -18,49 +18,47 @@
 
 static const tFont *fonts[] =
 {
-(const tFont*)&g_sFontUnicode,
-&g_sFontDriod28b,
-&g_sFontGothamblack30,
-&g_sFontGothambold42,
-&g_sFontGothamlight42,
-(const tFont*)&g_sFontExGothammedium32,
-(const tFont*)&g_sFontExGothammedium42,
-//&g_sFontGothic14,
-//&g_sFontGothic14b,
-&g_sFontGothic18,
-&g_sFontGothic18b,
-//&g_sFontGothic24,
-&g_sFontGothic24b,
-&g_sFontGothic28,
-&g_sFontGothic28b,
-(const tFont*)&g_sFontExIcon16,
-(const tFont*)&g_sFontExIcon32,
-(const tFont*)&g_sFontExIcon48,
-&g_sFontRobotocondensed18b,
- NULL
+ &g_sFontGothic14,
+ &g_sFontGothic18,
+ &g_sFontGothic18b,
+ &g_sFontGothic24b,
+ &g_sFontGothic28,
+ &g_sFontGothic28b,
+(tFont*)&g_sFontExIcon16,
+(tFont*)&g_sFontExIcon32,
+(tFont*)&g_sFontExIcon48,
+ &g_sFontNimbus30,
+ &g_sFontNimbus34,
+(tFont*)&g_sFontExNimbus38,
+(tFont*)&g_sFontExNimbus40,
+(tFont*)&g_sFontExNimbus46,
+(tFont*)&g_sFontExNimbus50,
+(tFont*)&g_sFontExNimbus52,
+(tFont*)&g_sFontExNimbus91,
+(tFont*)&g_sFontUnicode,
+NULL
 };
 
 static const char* names[] = 
 {
-  "Unicode",
-  "Driod28b",
-  "Gothamblack30",
-  "Gothambold42",
-  "Gothamlight42",
-  "ExGothammedium32",
-  "ExGothammedium42",
-//  "Gothic14",
-//  "Gothic14b",
-  "Gothic18",
-  "Gothic18b",
-//  "Gothic24",
-  "Gothic24b",
-  "Gothic28",
-  "Gothic28b",
-  "Icon16",
-  "Icon32",
-  "Icon48",
-  "Robotocondensed18b",
+ "FontGothic14",
+ "FontGothic18",
+ "FontGothic18b",
+ "FontGothic24b",
+ "FontGothic28",
+ "FontGothic28b",
+ "FontExIcon16",
+ "FontExIcon32",
+ "FontExIcon48",
+ "FontNimbus30",
+ "FontNimbus34",
+ "FontExNimbus38",
+ "FontExNimbus40",
+ "FontExNimbus46",
+ "FontExNimbus50",
+ "FontExNimbus52",
+ "FontExNimbus91",
+ "FontUnicode",
 };
 
 struct _event
@@ -72,6 +70,9 @@ struct _event
 };
 
 static struct _event test_events[] = {
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+
     // today's activity
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
@@ -164,6 +165,7 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
    
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
@@ -213,15 +215,19 @@ static struct _event test_events[] = {
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
-   {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
+   {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
+
    {1, EVENT_KEY_PRESSED, (void*)KEY_DOWN, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_ENTER, 0},
    {1, EVENT_KEY_PRESSED, (void*)KEY_EXIT, 0},
@@ -686,7 +692,7 @@ void TestWindows(CuTest *tc)
 
   //test_window(&menu_process, 1);
 
-  for (int i = 1; i <= 6; ++i)
+  for (int i = 0; i < 10; ++i)
     {
       test_window(&analogclock_process, (void*)i);
     }
@@ -752,7 +758,7 @@ const uint8_t chinesedata[] = {
 0xE6, 0x89, 0x93, 0xE8, 0xBD, 0xA6, 0xE5, 0x88, 0xB0, 0xE6, 0xB1, 0x9F,
 0x02, 0xE5, 0x8C, 0x97, 0xE4, 0xB8, 0x87, 0xE8, 0xBE, 0xBE, 0xE5, 0xB9, 0xBF, 0xE5, 0x9C, 0xBA
 };
-extern void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon);
+
 void TestNotification(CuTest *tc)
 {
   GrContextClipRegionSet(&context, &fullscreen_clip);
@@ -786,9 +792,9 @@ void TestNotification(CuTest *tc)
   window_notify_ancs(0, 1, 1, 1);
   window_notify_ancs(0, 2, 1, 1);
   window_notify_ancs(0, 3, 1, 1);
-  window_notify_ancs(2, 2, 1, 1);
-  window_notify_ancs(1, 1, 1, 1);
-  window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T1102", NOTIFY_OK, 'a');
+  //window_notify_ancs(2, 2, 1, 1);
+  //window_notify_ancs(1, 1, 1, 1);
+  window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T110211", NOTIFY_OK, 'a');
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
   window_close();
@@ -802,7 +808,9 @@ void TestNotification(CuTest *tc)
 
 CuSuite* WindowGetSuite(void)
 {
-	CuSuite* suite = CuSuiteNew("Window Test");
+	CuSuite* suite = CuSuiteNew("ui");
+  rtc_init();
+
  
   memlcd_DriverInit();
   GrContextInit(&context, &g_memlcd_Driver);

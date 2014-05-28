@@ -1,8 +1,11 @@
+#include "stdio.h"
 #include "contiki.h"
 #include "window.h"
 
 static uint8_t progress;
-extern int CheckUpgrade();
+extern int CheckUpgrade(void);
+extern void system_reset();
+
 static void onDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrBlack);
@@ -49,7 +52,9 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 		 	{
 		 		if (progress == 100)
 		 		{
-		 			if (!CheckUpgrade())
+		 			int ret = CheckUpgrade();
+		 			printf("CheckUpgrade() %d\n", ret);
+		 			if (ret == 0xff)
 		 				system_reset();
 		 			else
 		 				window_close();
@@ -57,4 +62,5 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 		 	}
 		 	break;
 	}
+	return 1;
 }

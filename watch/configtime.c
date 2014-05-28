@@ -4,6 +4,7 @@
 #include "grlib/grlib.h"
 #include "rtc.h"
 #include "memory.h"
+#include "memlcd.h"
 
 #include <stdio.h>
 
@@ -32,12 +33,12 @@ enum _statedate{
   STATE_CONFIG_DAY,
 };
 
-extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ampm);
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 
 static void OnDrawTime(tContext *pContext)
 {
   char buf[20];
-  GrContextFontSet(pContext, &g_sFontGothambold42);
+  GrContextFontSet(pContext, (const tFont*)&g_sFontExNimbus40);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
@@ -49,38 +50,44 @@ static void OnDrawTime(tContext *pContext)
   sprintf(buf, "%02d", HOUR);
   if (state == STATE_CONFIG_HOUR)
   {
-    window_selecttext(pContext, buf, -1, 10, 70);
+    window_selecttext(pContext, buf, 2, 10, 70);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 10, 70, 0);
+    GrStringDraw(pContext, buf, 2, 10, 70, 0);
   }
 
-  GrStringDraw(pContext, ":", 1, 55, 70, 0);
+  GrStringDraw(pContext, ":", 1, 63, 70, 0);
 
   sprintf(buf, "%02d", MINUTE);
   if (state == STATE_CONFIG_MINUTE)
   {
-    window_selecttext(pContext, buf, -1, 70, 70);
+    window_selecttext(pContext, buf, 2, 75, 70);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 70, 70, 0);
+    GrStringDraw(pContext, buf, 2, 75, 70, 0);
   }
 
   GrContextFontSet(pContext, &g_sFontGothic18b);
+  #if 0
   // draw AM/PM
   uint8_t out;
-  uint8_t ampm;
-  adjustAMPM(HOUR, &out, &ampm);
-  if (ampm)
-    GrStringDraw(pContext, "PM", 2, 120, 93, 0);
+  uint8_t ispm;
+  adjustAMPM(HOUR, &out, &ispm);
+  if (ispm)
+    GrStringDraw(pContext, "PM", 2, 120, 105, 0);
   else
-    GrStringDraw(pContext, "AM", 2, 120, 93, 0);
+    GrStringDraw(pContext, "AM", 2, 120, 105, 0);
+  #endif
 
   if (state != STATE_CONFIG_READY)
   {
     window_button(pContext, KEY_ENTER, "OK");
+  }
+  else
+  {
+    window_button(pContext, KEY_EXIT, "Exit"); 
   }
 }
 
@@ -96,38 +103,43 @@ static void OnDrawDate(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
 
   sprintf(buf, "%4d", 2000 + YEAR);
+  int width = GrStringWidthGet(pContext, buf, -1);
   if (state == STATE_CONFIG_YEAR)
   {
-    window_selecttext(pContext, buf, -1, 40, 100);
+    window_selecttext(pContext, buf, 4, LCD_X_SIZE/2 - width/2, 100);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 40, 100, 0);
+    GrStringDraw(pContext, buf, 4, LCD_X_SIZE/2 - width/2, 100, 0);
   }
 
   sprintf(buf, "%s", month_shortname[MONTH - 1]);
   if (state == STATE_CONFIG_MONTH)
   {
-    window_selecttext(pContext, buf, -1, 25, 60);
+    window_selecttext(pContext, buf, 3, 25, 60);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 25, 60, 0);
+    GrStringDraw(pContext, buf, 3, 25, 60, 0);
   }
 
   sprintf(buf, "%02d", DAY);
   if (state == STATE_CONFIG_DAY)
   {
-    window_selecttext(pContext, buf, -1, 90, 60);
+    window_selecttext(pContext, buf, 2, 90, 60);
   }
   else
   {
-    GrStringDraw(pContext, buf, -1, 90, 60, 0);
+    GrStringDraw(pContext, buf, 2, 90, 60, 0);
   }
 
   if (state != STATE_CONFIG_READY)
   {
     window_button(pContext, KEY_ENTER, "OK");
+  }
+  else
+  {
+    window_button(pContext, KEY_EXIT, "Exit"); 
   }
 }
 

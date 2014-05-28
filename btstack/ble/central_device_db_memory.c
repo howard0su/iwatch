@@ -69,7 +69,7 @@ static int central_device_db_read(int index, central_device_memory_db_t *device)
     }
 
     int size = cfs_read(handle, device, sizeof(central_device_memory_db_t));
-#if 0
+#if 1
     if (size != sizeof(central_device_memory_db_t))
     {
         log_error("read, size mismatch for central file: %d(%d != %d)\n", index, size, sizeof(central_device_memory_db_t));
@@ -165,7 +165,7 @@ void central_device_db_info(int index, int * addr_type, bd_addr_t addr, sm_key_t
     if (central_device_db_read(index, &info))
     {
         printf("faile to read the device info: %d\n", index);
-        if (addr_type) *addr_type = 0;
+        if (addr_type) *addr_type = -1;
         return;
     }
 

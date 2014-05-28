@@ -40,8 +40,6 @@
 //#define ENABLE_LOG_INFO
 //#define ENABLE_LOG_DEBUG
 
-#include "att_server.h"
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,6 +53,9 @@
 #include "hci.h"
 #include "hci_dump.h"
 
+#include "att.h"
+#include "att_server.h"
+
 #include "l2cap.h"
 
 #include "sm.h"
@@ -67,7 +68,6 @@
 #define MTU 100
 
 static void att_run(void);
-static void att_client_run(void);
 
 static uint16_t att_build_request(att_connection_t *, uint8_t *buffer);
 static void att_handle_response(att_connection_t *, uint8_t*, uint16_t);
@@ -133,88 +133,90 @@ static void att_handle_value_indication_timeout(timer_source_t *ts){
 static void att_event_packet_handler (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size){    
     //printf("type=%x ev:%x\n", packet_type, packet[0]);
 
-    switch (packet_type) {
+    switch (packet_type)
+    {
+    case HCI_EVENT_PACKET:
+        switch (packet[0])
+        {
+        case DAEMON_EVENT_HCI_PACKET_SENT:
+            att_run();
+            break;
             
-        case HCI_EVENT_PACKET:
-            switch (packet[0]) {
-                
-                case DAEMON_EVENT_HCI_PACKET_SENT:
-                    att_run();
+        case HCI_EVENT_LE_META:
+            switch (packet[2])
+            {
+                case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
+                	// store connection info 
+                    att_request_handle = READ_BT_16(packet, 4);
+                	att_client_addr_type = packet[7];
+                    bt_flip_addr(att_client_address, &packet[8]);
+                    // reset connection properties
+                    att_connection.mtu = MTU;
+                    att_connection.encryption_key_size = 0;
+                    att_connection.authenticated = 0;
+                	att_connection.authorized = 0;
                     break;
-                    
-                case HCI_EVENT_LE_META:
-                    switch (packet[2]) {
-                        case HCI_SUBEVENT_LE_CONNECTION_COMPLETE:
-                        	// store connection info 
-                            att_request_handle = READ_BT_16(packet, 4);
-                        	att_client_addr_type = packet[7];
-                            bt_flip_addr(att_client_address, &packet[8]);
-                            // reset connection properties
-                            att_connection.mtu = MTU;
-                            att_connection.encryption_key_size = 0;
-                            att_connection.authenticated = 0;
-		                	att_connection.authorized = 0;
-                            break;
-
-                        default:
-                            break;
-                    }
-                    break;
-
-                case HCI_EVENT_ENCRYPTION_CHANGE: 
-                	// check handle
-                	if (att_request_handle != READ_BT_16(packet, 3)) break;
-                	att_connection.encryption_key_size = sm_encryption_key_size(att_client_addr_type, att_client_address);
-                	att_connection.authenticated = sm_authenticated(att_client_addr_type, att_client_address);
-                	break;
-
-                case HCI_EVENT_DISCONNECTION_COMPLETE:
-                    {
-                        uint16_t handle = READ_BT_16(packet, 3);
-                        if (handle <= 1024)
-                            break;
-                    
-                    // restart advertising if we have been connected before
-                    // -> avoid sending advertise enable a second time before command complete was received 
-                    att_server_state = ATT_SERVER_IDLE;
-                    att_request_handle = 0;
-                    att_handle_value_indication_handle = 0; // reset error state
-                    att_clear_transaction_queue();
-                    break;
-                    }
-
-                case SM_IDENTITY_RESOLVING_STARTED:
-                    printf("SM_IDENTITY_RESOLVING_STARTED\n");
-                    att_ir_lookup_active = 1;
-                    break;
-                case SM_IDENTITY_RESOLVING_SUCCEEDED:
-                    att_ir_lookup_active = 0;
-                    att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
-                    printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
-                    break;
-                case SM_IDENTITY_RESOLVING_FAILED:
-                    printf("SM_IDENTITY_RESOLVING_FAILED\n");
-                    att_ir_lookup_active = 0;
-                    att_ir_central_device_db_index = -1;
-                    printf("SM_IDENTITY_RESOLVING_FAILED--\n");
-                    break;
-
-                case SM_AUTHORIZATION_RESULT: {
-                    sm_event_t * event = (sm_event_t *) packet;
-                    if (event->addr_type != att_client_addr_type) break;
-                    if (memcmp(event->address, att_client_address, 6) != 0) break;
-                    att_connection.authorized = event->authorization_result;
-                	break;
-
-                case SM_BONDING_FINISHED:
-                    printf("pairing finished\n");
-                    att_server_send_gatt_services_request();
-                    break;
-                }
 
                 default:
                     break;
             }
+            break;
+
+        case HCI_EVENT_ENCRYPTION_CHANGE: 
+        	// check handle
+        	if (att_request_handle != READ_BT_16(packet, 3)) break;
+        	att_connection.encryption_key_size = sm_encryption_key_size(att_client_addr_type, att_client_address);
+        	att_connection.authenticated = sm_authenticated(att_client_addr_type, att_client_address);
+        	break;
+
+        case HCI_EVENT_DISCONNECTION_COMPLETE:
+            {
+                uint16_t handle = READ_BT_16(packet, 3);
+                if (handle <= 1024)
+                    break;
+            
+            // restart advertising if we have been connected before
+            // -> avoid sending advertise enable a second time before command complete was received 
+            att_server_state = ATT_SERVER_IDLE;
+            att_request_handle = 0;
+            att_handle_value_indication_handle = 0; // reset error state
+            att_clear_transaction_queue();
+            break;
+            }
+
+        case SM_IDENTITY_RESOLVING_STARTED:
+            printf("SM_IDENTITY_RESOLVING_STARTED\n");
+            att_ir_lookup_active = 1;
+            break;
+        case SM_IDENTITY_RESOLVING_SUCCEEDED:
+            att_ir_lookup_active = 0;
+            att_ir_central_device_db_index = ((sm_event_t*) packet)->central_device_db_index;
+            printf("SM_IDENTITY_RESOLVING_SUCCEEDED id %u\n", att_ir_central_device_db_index);
+            break;
+        case SM_IDENTITY_RESOLVING_FAILED:
+            printf("SM_IDENTITY_RESOLVING_FAILED\n");
+            att_ir_lookup_active = 0;
+            att_ir_central_device_db_index = -1;
+            printf("SM_IDENTITY_RESOLVING_FAILED--\n");
+            break;
+
+        case SM_AUTHORIZATION_RESULT:
+            {
+                sm_event_t * event = (sm_event_t *) packet;
+                if (event->addr_type != att_client_addr_type) break;
+                if (memcmp(event->address, att_client_address, 6) != 0) break;
+                att_connection.authorized = event->authorization_result;
+            }
+            break;
+
+        case SM_BONDING_FINISHED:
+            printf("pairing finished\n");
+            att_server_send_gatt_services_request(1);
+            break;
+        }
+
+        default:
+            break;
     }
     
     if (att_client_packet_handler){
@@ -270,7 +272,7 @@ static void att_run(void){
                 // check counter
                 uint32_t counter_packet = READ_BT_32(att_request_buffer, att_request_size-12);
                 uint32_t counter_db     = central_device_db_counter_get(att_ir_central_device_db_index);
-                printf("ATT Signed Write, DB counter %u, packet counter %u\n", counter_db, counter_packet);
+                printf("ATT Signed Write, DB counter %lu, packet counter %lu\n", counter_db, counter_packet);
                 if (counter_packet < counter_db){
                     printf("ATT Signed Write, db reports higher counter, abort\n");
                     att_server_state = ATT_SERVER_IDLE;
@@ -519,10 +521,10 @@ void att_server_query_service(const uint8_t *uuid128)
     att_run();
 }
 
-void att_server_send_gatt_services_request()
+void att_server_send_gatt_services_request(uint16_t start_handle)
 {
     request._read_by_group_type.attribute_group_type = GATT_PRIMARY_SERVICE_UUID;
-    request._read_by_group_type.start_handle = 1;
+    request._read_by_group_type.start_handle = start_handle;
     request._read_by_group_type.end_handle = 0xffff;
 
     request_type = ATT_READ_BY_GROUP_TYPE_REQUEST;
@@ -637,10 +639,10 @@ static void att_clear_request()
 
 static void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint16_t length)
 {
+    uint16_t lasthandle;
     switch(buffer[0])
     {
         case ATT_READ_BY_GROUP_TYPE_RESPONSE:
-            uint16_t lasthandle;
             // check service
             lasthandle = report_gatt_services(att_connection, buffer, length);
 

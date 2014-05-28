@@ -2,9 +2,9 @@
 #include "window.h"
 #include "icons.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 
-#include "btstack/bluetooth.h"
+#include "bluetooth.h"
 
 static enum {BT_ON, BT_OFF, BT_INITIALING, BT_W4PAIR, BT_W4PAIR2} state;
 PROCESS_NAME(bluetooth_process);
@@ -134,7 +134,7 @@ uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)
         else if (state == BT_OFF)
         {
           state = BT_INITIALING;
-          bluetooth_init();
+          bluetooth_start();
         }
         window_invalid(NULL);
         return 1;

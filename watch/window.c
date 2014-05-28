@@ -2,7 +2,7 @@
 
 #include "window.h"
 #include "grlib/grlib.h"
-#include "Template_Driver.h"
+#include "memlcd.h"
 #include <stdio.h>
 #include <string.h>
 #include "backlight.h"
@@ -71,6 +71,7 @@ static ui_config ui_config_data =
     {0, 0, 0},
     {0, 0, 0},
   },
+  0
 };
 
 
@@ -298,11 +299,12 @@ static void window_handle_event(uint8_t ev, void* data)
         GrContextForegroundSet(&context, ClrWhite);
         //printf("update %d, %d %d, %d\n", current_clip.sXMin, current_clip.sYMin, current_clip.sXMax, current_clip.sYMax);
         GrContextClipRegionSet(&context, &current_clip);
-        ui_window(EVENT_WINDOW_PAINT, 0, &context);
         current_clip.sXMin = 255;
         current_clip.sXMax = 0;
         current_clip.sYMin = 255;
         current_clip.sYMax = 0;
+
+        ui_window(EVENT_WINDOW_PAINT, 0, &context);
       }
 
       GrFlush(&context);
@@ -459,7 +461,7 @@ void window_writeconfig()
     printf("error write config\n");
     return;
   }
-  cfs_write(fd, &ui_config_data, sizeof(ui_config_data));
+  cfs_write(fd, &ui_config_data, sizeof(ui_config));
   cfs_close(fd);
 }
 
@@ -483,7 +485,7 @@ void window_postmessage(uint8_t event, uint16_t lparam, void *rparam)
   PROCESS_CONTEXT_END(&system_process);
 }
 
-static uint8_t messagebox_icon;
+static char messagebox_icon;
 static const char* messagebox_message;
 static uint8_t messagebox_result;
 static uint8_t messagebox_flags;
@@ -507,12 +509,23 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
       GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 37, 0);
 
-      GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      if (messagebox_flags & NOTIFY_ALARM)
+      {
+        GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
+      }
+      else
+      {
+        GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
+      }
       GrStringDrawWrap(pContext, messagebox_message, 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
 
       if (messagebox_flags & NOTIFY_CONFIRM)
       {
         window_button(pContext, KEY_ENTER | 0x80, "Confirm");
+      }
+      else if (messagebox_flags & NOTIFY_ALARM)
+      {
+        window_button(pContext, KEY_ENTER | 0x80, "Dismiss");
       }
       else if (messagebox_flags & NOTIFY_OK)
       {
@@ -558,15 +571,6 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
   messagebox_message = message;
   messagebox_flags = flags;
 
-  if (flags & NOTIFY_ALARM)
-  {
-    motor_on(50, 0);
-  }
-  else
-  {
-    motor_on(50, CLOCK_SECOND/2);
-  }
-
   for (int i = 1; i <= stackptr; i++)
   {
     if (stack[i] == &messagebox_process)
@@ -576,5 +580,14 @@ void window_messagebox(uint8_t icon, const char* message, uint8_t flags)
     }
   }
 
+  if (flags & NOTIFY_ALARM)
+  {
+    motor_on(50, CLOCK_SECOND * 180);
+  }
+  else
+  {
+    motor_on(50, CLOCK_SECOND/2);
+  }
+  
   window_open(&messagebox_process, NULL);
 }

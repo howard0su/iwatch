@@ -27,10 +27,12 @@ ALL_INCLUDEDIRS = \
 	. \
 	core \
 	core/lib \
+	platform/common \
 	platform/native \
 	platform/iwatch \
 	btstack/include \
 	btstack/src \
+	platform/common/btstack \
 	platform/iwatch/btstack \
 	unittest \
 
@@ -49,6 +51,9 @@ CORE   = \
     core/lib/assert.c \
     core/lib/list.c
 
+COMMON = \
+	platform/common/memlcd.c
+
 PLATFORM = \
 	platform/native/clock.c \
 	platform/native/notimpl.c \
@@ -66,22 +71,24 @@ GRLIB0 = \
 	string.c
 
 GRLIB_FONTS = \
-	fontdriod28b.c \
-	fontgothamblack30.c \
-	fontgothambold42.c \
-	fontgothamlight42.c \
-	fontgothammedium32.c \
-	fontgothammedium42.c \
 	fontgothic14.c \
 	fontgothic18.c \
 	fontgothic18b.c \
+	fontgothic24b.c \
 	fontgothic24b.c \
 	fontgothic28.c \
 	fontgothic28b.c \
 	fonticon16.c \
 	fonticon32.c \
 	fonticon48.c \
-	fontrobotocondensed18b.c \
+	fontnimbus30.c \
+	fontnimbus38.c \
+	fontnimbus46.c \
+	fontnimbus52.c \
+	fontnimbus34.c \
+	fontnimbus40.c \
+	fontnimbus50.c \
+	fontnimbus91.c \
 	fontunicode.c \
 	logoimg.c
 GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
@@ -93,6 +100,7 @@ WATCH = \
     watch/countdown.c \
     watch/controller.c \
     watch/controls.c \
+    watch/charging.c \
     watch/digit-watch.c \
     watch/stopwatch.c \
     watch/names.c \
@@ -125,17 +133,17 @@ BTSTACK=btstack/src/obex.c \
 	btstack/ble/central_device_db_memory.c \
 	btstack/src/hci_cmds.c \
 	btstack/ble/att.c \
-	platform/iwatch/btstack/ble_file_handler.c \
-	platform/iwatch/btstack/ble_handler.c \
-	platform/iwatch/btstack/stlv.c \
-	platform/iwatch/btstack/stlv_client.c \
-	platform/iwatch/btstack/stlv_server.c \
-	platform/iwatch/btstack/stlv_transport.c \
-	platform/iwatch/btstack/stlv_handler.c
+	platform/common/btstack/ble_file_handler.c \
+	platform/common/btstack/ble_handler.c \
+	platform/common/btstack/stlv.c \
+	platform/common/btstack/stlv_client.c \
+	platform/common/btstack/stlv_server.c \
+	platform/common/btstack/stlv_transport.c \
+	platform/common/btstack/stlv_handler.c
 
 PAWN=pawnscript/amx.c pawnscript/amxcons.c pawnscript/amxwindow.c pawnscript/amxstring.c
 
-SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) \
+SRCS = $(BTSTACK) $(CORE) $(PLATFORM) $(GRLIB) $(WATCH) $(PAWN) $(COMMON) \
  unittest/CuTest.c \
  unittest/AllTests.c \
  unittest/attTest.c \

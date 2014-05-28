@@ -282,6 +282,7 @@ ISR(USCI_A0, usbRxTxISR)
   switch (__even_in_range(UCA0IV, 16)){
 
   case 2: // RXIFG
+  {
     uint8_t data = UCA0RXBUF;
     if (bytes_to_read == 0) {
       BT_RTS_OUT |= BT_RTS_BIT;      // = 1 - RTS high -> stop
@@ -310,6 +311,7 @@ ISR(USCI_A0, usbRxTxISR)
       UCA0IE &= ~UCRXIE ;  // disable RX interrupts
       LPM4_EXIT;
     }
+  }
     break;
 
   default:

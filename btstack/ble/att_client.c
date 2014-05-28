@@ -91,8 +91,10 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
     uint16_t value_handle;
     int i;        
     for (i = 2; i < size; i += attr_length){
+#ifdef ENABLE_LOG_INFO
         uint16_t start_handle = READ_BT_16(packet, i);
         uint8_t  properties = packet[i+2];
+#endif
         value_handle = READ_BT_16(packet, i+3);
 
         uint8_t uuid128[16];
@@ -121,6 +123,7 @@ uint16_t report_service_characters(att_connection_t *conn, uint8_t * packet,  ui
         attribute_handles[2] != -1)
     {
         // subscribe event
+        window_notify_ancs_init();
         log_info("sub to %d\n", attribute_handles[NOTIFICATION]);
         write_handle = attribute_handles[NOTIFICATION] + 1;
         att_server_subscribe(attribute_handles[NOTIFICATION] + 1); // write to CCC
@@ -142,7 +145,6 @@ void report_write_done(att_connection_t *conn, uint16_t handle)
     {
         printf("subscribe to ANCS finished.\n");
         att_enter_mode(MODE_SLEEP);
-        window_notify_ancs_init();
     }
 }
 
@@ -171,7 +173,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     if (handle == attribute_handles[NOTIFICATION])
     {
         uint32_t uid =  READ_BT_32(data, 4);
-        uint32_t combine = READ_BT_32(data, 4);
+        //uint32_t combine = READ_BT_32(data, 4);
         log_info("id: %d flags:%d catery:%d count: %d UID:%ld\n",
             data[0], data[1], data[2], data[3],
             uid
@@ -194,7 +196,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     {
         log_info("data received\n");
         // start notification
-
+        uint16_t l;
         int index = 0;
         while(index < length)
         {
@@ -241,7 +243,6 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     parse_state = STATE_ATTRIBUTE;
                     break;
                 case STATE_ATTRIBUTE:
-                    uint16_t l;
                     if (length - index > attrleftlen)
                         l = attrleftlen;
                     else
@@ -297,10 +298,10 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
 
 void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint16_t length)
 {
+    uint16_t lasthandle;
     switch(buffer[0])
     {
         case ATT_READ_BY_GROUP_TYPE_RESPONSE:
-            uint16_t lasthandle;
             // check service
             lasthandle = report_gatt_services(att_connection, buffer, length);
 
@@ -324,8 +325,8 @@ void att_handle_response(att_connection_t *att_connection, uint8_t* buffer, uint
             break;
 
         case ATT_HANDLE_VALUE_NOTIFICATION:
-            uint16_t handler = READ_BT_16(buffer, 1);
-            att_client_notify(handler, buffer + 3, length - 3);
+            lasthandle = READ_BT_16(buffer, 1);
+            att_client_notify(lasthandle, buffer + 3, length - 3);
         break;
     }
 }

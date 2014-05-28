@@ -60,6 +60,10 @@
 #define __data20
 #endif
 
+#if defined(__GNUC__) && defined(EFM32GG395F1024)
+#define __data20
+#endif
+
 #include "bt_control.h"
 
 

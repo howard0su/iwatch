@@ -1678,7 +1678,7 @@ void sm_init(){
     sm_central_device_test = -1;    // no private address to resolve yet
     sm_central_ah_calculation_active = 0;
 
-    gap_random_adress_update_period = 15 * 60 * 1000;
+    gap_random_adress_update_period = 15 * 60000;
 
     // attach to lower layers
     l2cap_register_fixed_channel(sm_packet_handler, L2CAP_CID_SECURITY_MANAGER_PROTOCOL);

@@ -7,25 +7,18 @@
 
 #define index d.world.index
 
+extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
+
 static void drawItem(tContext *pContext,
                      uint8_t y,
                      const char* name,
                      uint8_t hour, uint8_t minute,
                      uint8_t month, uint8_t day)
 {
-  const char *ampm;
   char buf[20];
+  uint8_t ispm;
+  adjustAMPM(hour, &hour, &ispm);
 
-  if (name[0] == '\0')
-    return;
-
-  if (hour > 12)
-  {
-    hour -= 12;
-    ampm = "PM";
-  }
-  else
-    ampm = "AM";
 
   GrContextForegroundSet(pContext, ClrWhite);
   if (y)
@@ -35,7 +28,7 @@ static void drawItem(tContext *pContext,
   GrStringDraw(pContext, name, -1, 12, y + 10, 0);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
-  sprintf(buf, "%02d:%02d %s", hour, minute, ampm);
+  sprintf(buf, "%02d:%02d %s", hour, minute, ispm?"PM":"AM");
   GrStringDraw(pContext, buf, -1, 12, y + 30, 0);
 
   char str[8];
