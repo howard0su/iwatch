@@ -96,8 +96,10 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 		  }
 
 		case EVENT_KEY_PRESSED:
+#if 0
 			if (lparam == KEY_UP)
 				system_unlock();
+#endif
 			break;
 	}
 

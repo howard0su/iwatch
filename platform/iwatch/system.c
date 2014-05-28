@@ -192,7 +192,7 @@ void system_shutdown(int shipping)
 
 const uint8_t * system_getserial()
 {
-  #if 0
+  #if 1
   const struct system_data *data = (struct system_data *)INFOD;
   return data->serial;
   #else
