@@ -329,6 +329,11 @@ int element_append_int(stlv_packet p, element_handle h, int data)
     return ELEMENT_APPEND_TYPE(p, h, data);
 }
 
+int element_append_long(stlv_packet p, element_handle h, long data)
+{
+    return ELEMENT_APPEND_TYPE(p, h, data);
+}
+
 int element_append_data(stlv_packet p, element_handle h, uint8_t* data_buf, int buf_len)
 {
     unsigned char* body_start = get_element_data_buffer(p, h, NULL, 0);

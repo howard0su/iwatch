@@ -248,3 +248,25 @@ void send_firmware_version(char* version)
     element_append_string(p, h, version);
     send_packet(p, NULL, 0);
 }
+
+void send_daily_activity(uint16_t atime, uint16_t steps, uint32_t calories, uint32_t distance)
+{
+    stlv_packet p = create_packet();
+    if (p == NULL)
+        return;
+    element_handle h = append_element(p, NULL, "0", 1);
+
+    element_handle elm_time = append_element(p, h, "1", 1);
+    element_append_short(p, elm_time, (short)atime);
+
+    element_handle elm_steps = append_element(p, h, "2", 1);
+    element_append_short(p, elm_steps, (short)steps);
+
+    element_handle elm_cal = append_element(p, h, "3", 1);
+    element_append_long(p, elm_cal, (long)calories);
+
+    element_handle elm_dis = append_element(p, h, "4", 1);
+    element_append_long(p, elm_dis, (long)distance);
+
+    send_packet(p, NULL, 0);
+}

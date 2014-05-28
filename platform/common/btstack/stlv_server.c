@@ -189,9 +189,11 @@ void handle_stlv_packet(unsigned char* packet)
             handle_unlock_watch();
             break;
 
+        case ELEMENT_TYPE_DAILY_ACTIVITY:
+            handle_daily_activity();
+            break;
+
         }
-
-
 
         handle = get_next_element(pack, handle);
 

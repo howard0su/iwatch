@@ -50,6 +50,7 @@ void handle_set_watch_config(ui_config* conf);
 void handle_get_activity();
 
 void handle_unlock_watch();
+void handle_daily_activity();
 
 #endif
 
