@@ -11,5 +11,5 @@ extern void codec_suspend();
 
 extern uint8_t codec_getinput();
 extern uint8_t codec_changeinput(int8_t diff);
-
+extern void codec_bypass(int enable);
 #endif
