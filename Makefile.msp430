@@ -5,7 +5,7 @@ LINK    = $(IARPATH)/bin/xlink.exe
 ECHO	= echo
 
 BUILDNUM = buildnum
-FWVERSION ="1.0.0.$$(cat $(BUILDNUM))"
+FWVERSION ="1.0.1.$$(cat $(BUILDNUM))"
 
 IGNORE_WARNINGS=Pa050
 
