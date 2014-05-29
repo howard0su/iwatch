@@ -369,6 +369,7 @@ namespace USBHIDDRIVER.USB
             {
                 //create Read Thread
                 dataReadingThread = new Thread(new ThreadStart(readDataThread));
+                dataReadingThread.IsBackground = true;
                 //start the thread
                 dataReadingThread.Start();
                 Thread.Sleep(0);

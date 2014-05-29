@@ -148,11 +148,6 @@ uint8_t system_testing()
   return 0;
 }
 
-uint8_t system_debug()
-{
-  return 0;
-}
-
 void system_rebootToNormal()
 {
 

@@ -270,3 +270,13 @@ void codec_init()
 
   codec_suspend();
 }
+
+void codec_bypass(int enable)
+{
+  I2C_addr(CODEC_ADDRESS);
+  if (enable)
+    codec_write(REG_LEFT_MIXER_CTRL, 1+2);
+  else
+    codec_write(REG_LEFT_MIXER_CTRL, 1);
+  I2C_done();
+}

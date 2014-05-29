@@ -378,6 +378,13 @@ static void TestSportsFile(CuTest* tc)
     }
 }
 
+static void TestTodayActivity(CuTest* tc)
+{
+    handle_daily_activity();
+    trySendOut();
+    CuAssertIntEquals(tc, 1,  get_send_pack_stub_count());
+}
+
 CuSuite* StlvProtocalGetSuite(void)
 {
 	CuSuite* suite = CuSuiteNew("stlv");
@@ -392,6 +399,7 @@ CuSuite* StlvProtocalGetSuite(void)
     SUITE_ADD_TEST(suite, TestGooglNow);
     SUITE_ADD_TEST(suite, TestSportsFile);
     SUITE_ADD_TEST(suite, TestSportsData);
+    SUITE_ADD_TEST(suite, TestTodayActivity);
     return suite;
 }
 

@@ -32,7 +32,14 @@ namespace FactoryTest
         {
             InitializeComponent();
             device = new Victor70C();
-            device.Start();
+            try
+            {
+                device.Start();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
             OutputPathTextBox.Text = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             InitializControlForRun();
         }
@@ -115,7 +122,8 @@ namespace FactoryTest
             using (fs = new StreamWriter(File.OpenWrite("mac.txt")))
             {
                 fs.WriteLine("@1800");
-                fs.WriteLine(String.Format("01 00 01 01 {0:X2} {1:X2} {2:X2} {3:X2} {4:X2} {5:X2}\r\nq",
+                fs.WriteLine(String.Format("{0} 00 01 01 {1:X2} {2:X2} {3:X2} {4:X2} {5:X2} {6:X2}\r\nq",
+                    testingCheckbox.Checked?"01":"00",
                     addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]));
             }
 
@@ -414,6 +422,8 @@ namespace FactoryTest
 
             if (process != null)
                 process.Kill();
+
+            Application.Exit();
         }
 
         private void timer1_Tick(object sender, EventArgs e)

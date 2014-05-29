@@ -57,6 +57,7 @@ void send_alarm_conf(alarm_conf_t* data);
 void send_device_id(char* device_id);
 void launch_google_now();
 void send_firmware_version(char* version);
+void send_daily_activity(uint16_t time, uint16_t steps, uint32_t calories, uint32_t distance);
 
 #endif
 

@@ -51,6 +51,7 @@
 #include "backlight.h"
 #include "window.h"
 #include "system.h"
+#include "codec.h"
 
 #include "ant/ant.h"
 #include "ant/antinterface.h"
@@ -143,6 +144,24 @@ main(int argc, char **argv)
     t = clock_seconds();
     while(t - clock_seconds() <= CLOCK_SECOND * 3);
     motor_on(0, 0);
+
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 2);
+
+    I2C_Init();
+    codec_init();
+    codec_bypass(1);
+    // sleep 1s
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    printf("$$OK MIC\n");
+    // sleep 1s
+    t = clock_seconds();
+    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    codec_bypass(0);
+
+    codec_shutdown();
+
   }
 
   int reason = CheckUpgrade();
@@ -170,7 +189,8 @@ main(int argc, char **argv)
     bluetooth_discoverable(1);
   }
 
-  ant_init(MODE_HRM);
+  if (system_testing())
+    ant_init(MODE_HRM);
 
   system_restore();
 

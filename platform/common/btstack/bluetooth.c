@@ -40,6 +40,8 @@
 
 #include "bluetooth.h"
 
+#include "system.h"
+
 extern void ble_init(void);
 extern void deviceid_init(void);
 extern void spp_init(void);
@@ -164,8 +166,11 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         printf("\n$$OK BLUETOOTH\n");
 
         // as testing
-        ant_shutdown();
-        printf("\n$$END\n");
+        if (system_testing())
+        {
+          ant_shutdown();
+          printf("\n$$END\n");
+        }
       }
       break;
     }
