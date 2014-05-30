@@ -140,7 +140,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_X_SIZE - 2, 15 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_WIDTH - 2, 15 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -236,7 +236,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 17 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, buf, -1, LCD_WIDTH - 12 - width, 17 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
   }
 }
 
@@ -274,7 +274,7 @@ static void OnDraw(tContext *pContext)
     // there is something more
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - 5 - i);
+        GrLineDrawH(pContext, LCD_WIDTH/2 - i, LCD_WIDTH/2 + i,  LCD_Y_SIZE - 5 - i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }
@@ -285,7 +285,7 @@ static void OnDraw(tContext *pContext)
     // draw some grey area means something in the up
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  18 + i);
+        GrLineDrawH(pContext, LCD_WIDTH/2 - i, LCD_WIDTH/2 + i,  18 + i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }

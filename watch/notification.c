@@ -24,7 +24,7 @@ static uint32_t lastmessageid = -1;
 #define BORDER 5
 
 static const tRectangle contentrect = 
-{0, 12, LCD_X_SIZE, LCD_Y_SIZE};
+{0, 12, LCD_WIDTH, LCD_Y_SIZE};
 
 static enum
 {
@@ -49,7 +49,7 @@ static uint32_t attributes[MAX_NOTIFY];
 static void onDrawTitleBar(tContext *pContext)
 {
   // draw the title bar of circles
-  const tRectangle rect = {0, 0, LCD_X_SIZE, 12};
+  const tRectangle rect = {0, 0, LCD_WIDTH, 12};
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextClipRegionSet(pContext, &rect);
@@ -58,7 +58,7 @@ static void onDrawTitleBar(tContext *pContext)
 
   GrContextForegroundSet(pContext, ClrWhite);
 
-  long startx = LCD_X_SIZE/2 - num_uids * 4;
+  long startx = LCD_WIDTH/2 - num_uids * 4;
 
   for(int i = 0; i < num_uids; i++)
   {
@@ -161,7 +161,7 @@ static void onDraw(tContext *pContext)
       GrContextFontSet(pContext, (tFont*)&g_sFontGothic14);
       const char* text = parse_date(buffer);
       int16_t width = GrStringWidthGet(pContext, text, -1);
-      GrStringDraw(pContext, text, -1, LCD_X_SIZE - 10 - width, starty, 0);
+      GrStringDraw(pContext, text, -1, LCD_WIDTH - 10 - width, starty, 0);
     }
 
     starty += 16;
@@ -178,17 +178,17 @@ static void onDraw(tContext *pContext)
   // draw title
   if (message_title && (*message_title != '\0'))
   {
-    starty = GrStringDrawWrap(pContext, message_title, 1, starty, LCD_X_SIZE - 1, 0);
+    starty = GrStringDrawWrap(pContext, message_title, 1, starty, LCD_WIDTH - 1, 0);
   }
 
   if (message_subtitle && (*message_subtitle != '\0'))
-    starty = GrStringDrawWrap(pContext, message_subtitle, 1, starty, LCD_X_SIZE - 1, 0);
+    starty = GrStringDrawWrap(pContext, message_subtitle, 1, starty, LCD_WIDTH - 1, 0);
     
   GrContextFontSet(pContext, contentFont);
   //draw message
   if (message && *message != '\0')
   {
-    if (GrStringDrawWrap(pContext, message, 1, starty, LCD_X_SIZE - 1,  0) == -1)
+    if (GrStringDrawWrap(pContext, message, 1, starty, LCD_WIDTH - 1,  0) == -1)
     {
       state |= STATE_MORE;
       for(int i = 0; i < 6; i++)

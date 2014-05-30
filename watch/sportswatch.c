@@ -78,27 +78,27 @@ static const struct _datapoints datapoints[] =
 
 static const tRectangle region_3grid[] =
 {
-  {0, 0, LCD_X_SIZE, 83},
+  {0, 0, LCD_WIDTH, 83},
   {0, 84, 74, LCD_Y_SIZE},
-  {75, 85, LCD_X_SIZE, LCD_Y_SIZE}
+  {75, 85, LCD_WIDTH, LCD_Y_SIZE}
 };
 
 
 static const tRectangle region_4grid[] =
 {
-  {0, 0, LCD_X_SIZE, 44},
-  {0, 45, LCD_X_SIZE, 84},
-  {0, 85, LCD_X_SIZE, 124},
-  {0, 125, LCD_X_SIZE, LCD_Y_SIZE},
+  {0, 0, LCD_WIDTH, 44},
+  {0, 45, LCD_WIDTH, 84},
+  {0, 85, LCD_WIDTH, 124},
+  {0, 125, LCD_WIDTH, LCD_Y_SIZE},
 };
 
 static const tRectangle region_5grid[] =
 {
-  {0, 0, LCD_X_SIZE, 44},
+  {0, 0, LCD_WIDTH, 44},
   {0, 45, 72, 104},
-  {72, 45, LCD_X_SIZE, 104},
+  {72, 45, LCD_WIDTH, 104},
   {0, 105, 72, LCD_Y_SIZE},
-  {72, 105, LCD_X_SIZE, LCD_Y_SIZE},
+  {72, 105, LCD_WIDTH, LCD_Y_SIZE},
 };
 
 static const tRectangle *regions[] =
@@ -144,13 +144,13 @@ static void drawGridTime(tContext *pContext)
     GrStringDraw(pContext, datapoints[0].name, -1, 28, 15, 0);
     GrContextFontSet(pContext, &g_sFontGothic28b);
     sprintf(buf, "%02d:%02d:%02d", time[2], time[1], time[0]);
-    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 50, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH/2, 50, 0);
     break;
   case GRID_4:
   case GRID_5:
     GrContextFontSet(pContext, &g_sFontGothic28b);
     sprintf(buf, "%02d:%02d:%02d", time[2], time[1], time[0]);
-    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 18, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH/2, 18, 0);
     break;
   }
 }

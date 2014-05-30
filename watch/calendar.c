@@ -25,7 +25,7 @@ static void OnDraw(tContext *pContext)
   // draw the title bar
   GrContextFontSet(pContext, &g_sFontGothic18b);
   sprintf(buf, "%s %d", month_name[month - 1], year);
-  GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE / 2, 15, 0);
+  GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH / 2, 15, 0);
 
   GrContextForegroundSet(pContext, ClrBlack);
   GrContextBackgroundSet(pContext, ClrWhite);
@@ -74,7 +74,7 @@ static void OnDraw(tContext *pContext)
     weekday++;
     if (weekday == 7)
     {
-      GrLineDrawH(pContext, 0, LCD_X_SIZE, y + 8);
+      GrLineDrawH(pContext, 0, LCD_WIDTH, y + 8);
 
       weekday = 0;
       y += 20;

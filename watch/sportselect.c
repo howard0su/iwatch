@@ -28,7 +28,7 @@ static void onDraw(tContext *pContext)
     GrContextForegroundSet(pContext, ClrWhite);
   	if (i == selection)
   	{
-  		tRectangle rect = {14, 10 + i * 75, LCD_X_SIZE - 14, 77 + i * 75};
+  		tRectangle rect = {14, 10 + i * 75, LCD_WIDTH - 14, 77 + i * 75};
 		  GrRectFillRound(pContext, &rect, 3);
 
   		GrContextForegroundSet(pContext, ClrBlack);
@@ -36,11 +36,11 @@ static void onDraw(tContext *pContext)
 
     GrContextFontSet(pContext, (const tFont*)&g_sFontExIcon48);
     width = GrStringWidthGet(pContext, &buf, 1);
-    GrStringDraw(pContext, &buf, 1, (LCD_X_SIZE - width ) /2, 10 + i * 75, 0);
+    GrStringDraw(pContext, &buf, 1, (LCD_WIDTH - width ) /2, 10 + i * 75, 0);
 
     GrContextFontSet(pContext, &g_sFontGothic18b);
     width = GrStringWidthGet(pContext, selections[i].text, -1);
-    GrStringDraw(pContext, selections[i].text, -1, (LCD_X_SIZE - width ) /2, 55 + i * 75, 0);
+    GrStringDraw(pContext, selections[i].text, -1, (LCD_WIDTH - width ) /2, 55 + i * 75, 0);
   }
 }
 

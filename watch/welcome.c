@@ -10,7 +10,7 @@
 static void OnDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrBlack);
-  static const tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+  static const tRectangle rect = {0, 0, LCD_WIDTH, LCD_Y_SIZE};
   GrRectFill(pContext, &rect);
 
   // draw the log
@@ -46,13 +46,13 @@ static void OnDraw(tContext *pContext)
   }
 
   GrContextFontSet(pContext, (tFont*)&g_sFontGothic28b);
-  GrStringDrawCentered(pContext, "Install the", -1, LCD_X_SIZE/2, 78, 0);
-  GrStringDrawCentered(pContext, "Kreyos App", -1, LCD_X_SIZE/2, 103, 0);
+  GrStringDrawCentered(pContext, "Install the", -1, LCD_WIDTH/2, 78, 0);
+  GrStringDrawCentered(pContext, "Kreyos App", -1, LCD_WIDTH/2, 103, 0);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
-  GrStringDrawCentered(pContext, "kreyos.com/setup", -1, LCD_X_SIZE/2, 123, 0);
+  GrStringDrawCentered(pContext, "kreyos.com/setup", -1, LCD_WIDTH/2, 123, 0);
 
-  static const tRectangle rect3 = {0, 140, LCD_X_SIZE, LCD_Y_SIZE};
+  static const tRectangle rect3 = {0, 140, LCD_WIDTH, LCD_Y_SIZE};
   GrRectFill(pContext, &rect3);
 
   GrContextForegroundSet(pContext, ClrBlack);
@@ -63,13 +63,13 @@ static void OnDraw(tContext *pContext)
     char buf[20];
     const char* btaddr = (const char*)system_getserial();
     sprintf(buf, "Meteor %02X%02X", btaddr[4], btaddr[5]);
-    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 153, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH/2, 153, 0);
   }
 }
 
 uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 {
-	//static const tRectangle rect = {0, 60, LCD_X_SIZE, 160};
+	//static const tRectangle rect = {0, 60, LCD_WIDTH, 160};
 	switch(ev)
 	{
 		case EVENT_WINDOW_CREATED:

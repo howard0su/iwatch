@@ -24,7 +24,7 @@ static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text,
   GrStringDraw(pContext, text, -1, 10, 30 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
-  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 8, 30 + n * LINEMARGIN, 0);
+  GrStringDraw(pContext, value, -1, LCD_WIDTH - width - 8, 30 + n * LINEMARGIN, 0);
 }
 
 static void formattime(char* buf, int minutes)
@@ -82,7 +82,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 		  drawItem(pContext, 4, 0, "Wake Times", buf);
 
 		  // draw diagram
-		  for(int i = offset; i < ((available_minutes + 3) & 0xFC) && i < offset + LCD_X_SIZE; i+=4)
+		  for(int i = offset; i < ((available_minutes + 3) & 0xFC) && i < offset + LCD_WIDTH; i+=4)
 		  {
 			uint8_t data = ptr[i];
 		  	for (int j = i; j < i + 4 && j < available_minutes; j++)
@@ -126,7 +126,7 @@ uint8_t test_sleep(uint8_t ev, uint16_t lparam, void* rparam)
 	      	  	slp_get_availabledatainfo(&available_minutes, &lost_minutes);
 
  				offset += 24;
- 				if (offset + LCD_X_SIZE < available_minutes)
+ 				if (offset + LCD_WIDTH < available_minutes)
  					offset -= 24;
  			}
  			window_invalid(NULL);

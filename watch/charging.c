@@ -65,26 +65,26 @@ uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam)
 	  if (state == 5)
 	  {
 	  	char icon = ICON_LARGE_BATTERY_LEVEL4;
-	  	GrStringDrawCentered(pContext, &icon, 1, LCD_X_SIZE/2, 37, 0);
+	  	GrStringDrawCentered(pContext, &icon, 1, LCD_WIDTH/2, 37, 0);
 
 	  	GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
-	  	GrStringDrawWrap(pContext, "Battery is fully charged.", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+	  	GrStringDrawWrap(pContext, "Battery is fully charged.", 10, 90, LCD_WIDTH - 20, ALIGN_CENTER);
 	  }
 	  else if (state == 6)
 	  {
 	  	char icon = ICON_LARGE_LOWBATTERY;
-	  	GrStringDrawCentered(pContext, &icon, 1, LCD_X_SIZE/2, 37, 0);
+	  	GrStringDrawCentered(pContext, &icon, 1, LCD_WIDTH/2, 37, 0);
 
 	  	GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
-	  	GrStringDrawWrap(pContext, "LOW BATTERY\nConnect charger now.", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);	  	
+	  	GrStringDrawWrap(pContext, "LOW BATTERY\nConnect charger now.", 10, 90, LCD_WIDTH - 20, ALIGN_CENTER);	  	
 	  }
 	  else
 	  {
 	  	char icon = ICON_LARGE_BATTERY_LEVEL1 + state;
-	  	GrStringDrawCentered(pContext, &icon, 1, LCD_X_SIZE/2, 37, 0);
+	  	GrStringDrawCentered(pContext, &icon, 1, LCD_WIDTH/2, 37, 0);
 
 		GrContextFontSet(pContext, (tFont*)&g_sFontGothic24b);
-	  	GrStringDrawWrap(pContext, "Battery is charging.", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+	  	GrStringDrawWrap(pContext, "Battery is charging.", 10, 90, LCD_WIDTH - 20, ALIGN_CENTER);
 	  }
       break;
 	}

@@ -277,7 +277,7 @@ uint8_t test_lcd(uint8_t ev, uint16_t lparam, void* rparam)
 		case EVENT_WINDOW_PAINT:
 		{
 		  tContext *pContext = (tContext*)rparam;
-		  for(int x = 0; x < LCD_X_SIZE; x+=8)
+		  for(int x = 0; x < LCD_WIDTH; x+=8)
 		  	for(int y = 0; y < LCD_Y_SIZE; y+=8)
 		  	{
 		  		tRectangle rect = {

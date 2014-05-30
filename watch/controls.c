@@ -15,7 +15,7 @@ void window_drawtime(tContext *pContext, long y, uint8_t times[3], uint8_t selec
   uint8_t width_all = GrStringWidthGet(pContext, data, 3) + 10;
   uint8_t width_digit = GrStringWidthGet(pContext, data, 2) + 4;
 
-  long startx = (LCD_X_SIZE - width_all - width_all - width_digit) / 2;
+  long startx = (LCD_WIDTH - width_all - width_all - width_digit) / 2;
   if (startx < 0) startx = 0;
 
   for(int i = 0; i < 3; i++)
