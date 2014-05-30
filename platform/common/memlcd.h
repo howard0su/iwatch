@@ -29,12 +29,15 @@
 
 #define BPP 1
 
+#ifdef PRODUCT_W005
+#define PORTRAIT
+#else
 // Define LCD Screen Orientation Here
 #define LANDSCAPE
 //#define LANDSCAPE_FLIP
 //#define PORTRAIT
 //#define PORTRAIT_FLIP
-
+#endif
 
 //*****************************************************************************
 //
