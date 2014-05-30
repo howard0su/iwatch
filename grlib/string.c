@@ -1481,7 +1481,9 @@ GrFontGlyphRender(const tContext *pContext, const unsigned char *pucData,
             //
             // See if the bottom of the clipping region has been exceeded.
             //
-            if((lY + lY0) > pContext->sClipRegion.sYMax)
+            if((lY + lY0) > pContext->sClipRegion.sYMax ||
+               (lX + lX0) > pContext->sClipRegion.sXMax
+                )
             {
                 //
                 // Ignore the remainder of the on pixels.
