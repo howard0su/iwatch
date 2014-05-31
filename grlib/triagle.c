@@ -47,13 +47,7 @@ static void fillFlatSideTriangleInt(const tContext *pContext, long lXA, long lYA
 
   for (int i = 0; i <= dx1; i++)
   {
-    if (fill)
-      GrLineDraw(pContext, lXStart, lYStart, lXEnd, lYEnd);
-    else
-    {
-      GrPixelDraw(pContext, lXStart, lYStart);
-      GrPixelDraw(pContext, lXEnd, lYEnd);
-    }
+    GrLineDraw(pContext, lXStart, lYStart, lXEnd, lYEnd);
     
     while (e1 >= 0)
     {
@@ -126,19 +120,19 @@ void GrTriagleFill(const tContext *pContext, long lXA, long lYA,
     /* check for trivial case of bottom-flat triangle */
     if (lYB == lYC)
     {
-        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXC, lYC, 1);
+        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXC, lYC);
     }
     /* check for trivial case of top-flat triangle */
     else if (lYA == lYB)
     {
-      fillFlatSideTriangleInt(pContext, lXC, lYC, lXA, lYA, lXB, lYB, 1);
+        fillFlatSideTriangleInt(pContext, lXC, lYC, lXA, lYA, lXB, lYB);
     } 
     else
     {
         /* general case - split the triangle in a topflat and bottom-flat one */
         long lXT = lXA + (lYB - lYA)  * (lXC - lXA) / (lYC - lYA);
-        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXT, lYB, 1);
-        fillFlatSideTriangleInt(pContext, lXC, lYC, lXB, lYB, lXT, lYB, 1);
+        fillFlatSideTriangleInt(pContext, lXA, lYA, lXB, lYB, lXT, lYB);
+        fillFlatSideTriangleInt(pContext, lXC, lYC, lXB, lYB, lXT, lYB);
     }
 }
 
