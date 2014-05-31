@@ -664,9 +664,9 @@ static void
 Template_DriverLineDrawV_P(void *pvDisplayData, int _lX, int _lY1, int _lY2,
                          unsigned int ulValue)
 {
-  int lX1 = MAPPED_Y(_lX, _lY1);
-  int lX2 = MAPPED_Y(_lX, _lY2);
-  int lY = MAPPED_X(_lX, _lY1);
+  int lX1 = MAPPED_X(_lX, _lY1);
+  int lX2 = MAPPED_X(_lX, _lY2);
+  int lY = MAPPED_Y(_lX, _lY2);
 
   if (lX1 > lX2)
   {
