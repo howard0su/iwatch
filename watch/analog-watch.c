@@ -42,7 +42,7 @@ typedef void (*draw_function)(tContext *pContext);
 static void drawFace0(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t sx, sy, ex, ey;
+  int sx, sy, ex, ey;
 
   for(int angle = 0; angle < 359; angle +=30)
   {
@@ -60,7 +60,7 @@ static void drawFace0(tContext *pContext)
 static void drawFace3(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t sx, sy, ex, ey;
+  int sx, sy, ex, ey;
 
   for(int angle = 0; angle < 359; angle += 6)
   {
@@ -85,7 +85,7 @@ static void drawFace3(tContext *pContext)
 static void drawFace6(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t x, y;
+  int x, y;
   GrCircleDraw(pContext, CENTER_X, CENTER_Y, 65);
   GrCircleDraw(pContext, CENTER_X, CENTER_Y, 66);
 
@@ -111,7 +111,7 @@ static void drawFace6(tContext *pContext)
 static void drawFace7(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t x, y;
+  int x, y;
   GrCircleDraw(pContext, CENTER_X, CENTER_Y, 62);
   GrCircleDraw(pContext, CENTER_X, CENTER_Y, 63);
 
@@ -128,7 +128,7 @@ static void drawFace7(tContext *pContext)
 static void drawFace4(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t sx, sy, ex, ey;
+  int sx, sy, ex, ey;
 
   for(int angle = 0; angle < 359; angle += 6)
   {
@@ -153,7 +153,7 @@ static void drawFace4(tContext *pContext)
 static void drawFace1(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t x, y;
+  int x, y;
 
   for(int angle = 0; angle < 359; angle += 6)
   {
@@ -175,7 +175,7 @@ static void drawFace1(tContext *pContext)
 static void drawFace5(tContext *pContext)
 {
   int cos_val, sin_val;
-  uint8_t x, y;
+  int x, y;
 
   GrContextFontSet(pContext, &g_sFontNimbus30);
 
@@ -206,7 +206,7 @@ static void drawHand0(tContext *pContext)
 {
   int cos_val, sin_val;
   int angle;
-  uint16_t x, y;
+  int x, y;
 
   // minute hand = length = 70
   angle = _minute * 6+ _sec /10;
@@ -229,7 +229,7 @@ static void drawHand1(tContext *pContext)
 {
   int cos_val, sin_val;
   int angle;
-  uint16_t sx, sy, ex, ey;
+  int sx, sy, ex, ey;
 
   // draw the circle
   GrCircleFill(pContext, CENTER_X, CENTER_Y, 3);
@@ -268,7 +268,7 @@ static void drawHand4(tContext *pContext)
 {
   int cos_val, sin_val;
   int angle;
-  uint16_t sx, sy, ex, ey, mx, my;
+  int sx, sy, ex, ey, mx, my;
 
   // degree is caculated by 
   // arctan(35/7)=?deg
@@ -331,7 +331,7 @@ static void drawHand5(tContext *pContext)
 {
   int cos_val, sin_val;
   int angle;
-  uint16_t sx, sy, ex, ey, mx, my;
+  int sx, sy, ex, ey, mx, my;
 
   // degree is caculated by 
   // arctan(35/7)=?deg
