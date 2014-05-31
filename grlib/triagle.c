@@ -5,7 +5,7 @@
 
 static void fillFlatSideTriangleInt(const tContext *pContext, long lXA, long lYA,
                                              long lXB, long lYB,
-                                             long lXC, long lYC, int fill)
+                                             long lXC, long lYC)
 {
   long lXStart, lYStart, lXEnd, lYEnd;
   lXStart = lXEnd = lXA;
