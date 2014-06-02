@@ -96,14 +96,16 @@ static const struct MenuItem TestMenu[] =
   {0, "Motor", &test_motor},
   {0, "Light", &test_light},
   {0, "LCD", &test_lcd},
+#ifdef PRODUCT_W001
   {0, "ANT+", &test_ant},
+  {0, "Codec", &test_codec},
   {0, "MPU6050", &test_mpu6050},
+#endif
   {0, "Bluetooth", &test_bluetooth},
   {0, "GoogleNow", &test_googlenow},
   {0, "Sleep", &test_sleep},
   {0, "BT DUT", &test_dut},
   {0, "BLE", &test_ble},
-  {0, "Codec", &test_codec},
   {0, "Self-test", &selftest_process},
   {0, "ClearSportsData", &test_cleardata},
   {0, "BuildSportsData", &test_builddata},

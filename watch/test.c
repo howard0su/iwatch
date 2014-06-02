@@ -144,6 +144,7 @@ uint8_t test_motor(uint8_t ev, uint16_t lparam, void* rparam)
 	return 1;
 }
 
+#if PRODUCT_W001
 uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 {
 	switch(ev)
@@ -198,7 +199,7 @@ uint8_t test_codec(uint8_t ev, uint16_t lparam, void* rparam)
 
 	return 1;
 }
-
+#endif
 
 uint8_t test_light(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -313,6 +314,7 @@ uint8_t test_reboot(uint8_t ev, uint16_t lparam, void* rparam)
 	return 1;
 }
 
+#if PRODUCT_W001
 static int rate;
 uint8_t test_ant(uint8_t ev, uint16_t lparam, void* rparam)
 {
@@ -452,6 +454,7 @@ uint8_t test_mpu6050(uint8_t ev, uint16_t lparam, void* rparam)
 
 	return 1;
 }
+#endif
 
 extern void bluetooth_enableConTxMode(int mode, int freq);
 static const uint8_t HCI_VS_DRPb_Tester_Packet_TX_RX_Cmd[] = 

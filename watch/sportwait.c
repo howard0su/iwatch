@@ -16,7 +16,11 @@ static void onDraw(tContext *pContext)
   GrContextForegroundSet(pContext, ClrWhite);
 
   // display the text
+#if PRODUCT_W001
   GrStringDraw(pContext,"Wait for GPS/ANT", -1, 10, 80, 0);
+#else
+  GrStringDraw(pContext,"Wait for GPS", -1, 10, 80, 0);
+#endif
   if (sports_type == SPORTS_DATA_FLAG_RUN)
     window_button(pContext, KEY_ENTER, " IGNORE");
 }
@@ -30,13 +34,17 @@ uint8_t sportwait_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         //running
         sports_type = SPORTS_DATA_FLAG_RUN;
+#if PRODUCT_W001
         ant_init(MODE_HRM);
+#endif
       }
       else
       {
         //cycling
         sports_type = SPORTS_DATA_FLAG_BIKE;
+#if PRODUCT_W001
         ant_init(MODE_CBSC);
+#endif
       }
 
       //send out start workout data to watch

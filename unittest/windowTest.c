@@ -474,6 +474,7 @@ void TestTestButton(CuTest* tc)
   run_window_events(&test_button, test_events);
 }
 
+#if 0
 void TestTestAnt(CuTest *tc)
 {
   struct _event test_events[] = {
@@ -491,6 +492,7 @@ void TestTestAnt(CuTest *tc)
 
   run_window_events(&test_ant, test_events);
 }
+#endif
 
 void TestTestLight(CuTest* tc)
 {
@@ -825,7 +827,6 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestButton);
   SUITE_ADD_TEST(suite, TestTestLight);
   SUITE_ADD_TEST(suite, TestTestLcd);
-  SUITE_ADD_TEST(suite, TestTestAnt);
   SUITE_ADD_TEST(suite, TestPhoneScreen);
   SUITE_ADD_TEST(suite, TestNotification);
   SUITE_ADD_TEST(suite, TestControl);

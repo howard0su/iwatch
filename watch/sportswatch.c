@@ -751,8 +751,10 @@ uint8_t sportswatch_process(uint8_t event, uint16_t lparam, void* rparam)
   case EVENT_WINDOW_CLOSING:
     {
       rtc_enablechange(0);
+#if PRODUCT_W001
       ant_shutdown();
-
+#endif
+      
       uint8_t dummy_stlv_meta = 0;
       uint32_t dummy_stlv_data = 0;
       send_sports_data(0, sports_type | SPORTS_DATA_FLAG_STOP, &dummy_stlv_meta, &dummy_stlv_data, 1);

@@ -213,6 +213,7 @@ static void window_handle_event(uint8_t ev, void* data)
 
       ui_window(ev, 0, (void*)data);
     }
+#if PRODUCT_W001
     else if (ev == EVENT_BT_CIEV)
     {
       uint16_t d = (uint16_t)data;
@@ -235,6 +236,7 @@ static void window_handle_event(uint8_t ev, void* data)
       }
       ui_window(ev, (uint16_t)data, NULL);
     }
+#endif
     else if (ev == EVENT_BT_CLIP || ev == EVENT_BT_RING || ev == EVENT_BT_BVRA)
     {
       ui_window(ev, 0, data);
@@ -253,11 +255,13 @@ static void window_handle_event(uint8_t ev, void* data)
         if (!ret)
             window_close();
       }
+#if PRODUCT_W001
       else if (ev == EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_ENTER)
       {
         // switch to phone call interface to show Siri
         window_open(&siri_process, (void*)1);
       }
+#endif
       else if (EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_EXIT)
       {
         window_close();

@@ -148,6 +148,7 @@ main(int argc, char **argv)
     t = clock_seconds();
     while(t - clock_seconds() <= CLOCK_SECOND * 2);
 
+#if PRODUCT_W001
     I2C_Init();
     codec_init();
     codec_bypass(1);
@@ -161,7 +162,7 @@ main(int argc, char **argv)
     codec_bypass(0);
 
     codec_shutdown();
-
+#endif
   }
 
   int reason = CheckUpgrade();
@@ -180,7 +181,11 @@ main(int argc, char **argv)
   //ant_init();
   bluetooth_init();
 
+#ifdef PRODUCT_W004
+  //bmx_init();
+#else
   mpu6050_init();
+#endif
 
  // motor_on(200, CLOCK_SECOND / 2);
   
@@ -189,9 +194,11 @@ main(int argc, char **argv)
     bluetooth_discoverable(1);
   }
 
+#if PRODUCT_W001
   if (system_testing())
     ant_init(MODE_HRM);
-
+#endif
+  
   system_restore();
 
 //  protocol_init();
