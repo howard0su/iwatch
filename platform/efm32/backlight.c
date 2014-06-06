@@ -6,10 +6,11 @@
 static struct ctimer light_timer;
 static struct ctimer motor_timer;
 static uint8_t LIGHTLEVEL;
-#define TOP 1000       //TOP Set PWM cycle
-#define HIGHPULSE  800   
-#define PWM_FREQ 10000
+#define TOP 1600       //TOP Set PWM cycle
 
+#define MOTOR_ON	0x01
+#define LIGHT_ON	0x02
+static uint8_t light_state;
 /**************************************************************************//**
  * @brief TIMER0_IRQHandler
  * Interrupt Service Routine TIMER0 Interrupt Line
@@ -61,7 +62,7 @@ void backlight_init()
 	TIMER2->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_CC1PEN | TIMER_ROUTE_LOCATION_LOC0);
   	  	
   	 /* Set Top Value */  	   	
-  	TIMER_TopSet(TIMER2, CMU_ClockFreqGet(cmuClock_HFPER)/PWM_FREQ);
+  	 TIMER_TopSet(TIMER2, TOP);  	
   
   	/*Set CCVB = 0 to TIMER2_CC0 and TIMER2_CC1 */
   	TIMER_CompareBufSet(TIMER2, 0, 0);
@@ -91,14 +92,20 @@ void backlight_init()
   	
   	/* Configure timer */
   	TIMER_Init(TIMER2, &timerInit);  	
-	
+	light_state = MOTOR_ON | LIGHT_ON;
 	LIGHTLEVEL = 0;
 }
 
 void backlight_shutdown()
 {
  	TIMER_CompareBufSet(TIMER2, 0, 0);	
-  	TIMER_CompareBufSet(TIMER2, 1, 0);	
+  	TIMER_CompareBufSet(TIMER2, 1, 0);
+  	GPIO_PinOutClear(gpioPortA, 8);		
+  	GPIO_PinOutClear(gpioPortA, 9);		
+  	light_state = 0;
+  	TIMER_Enable(TIMER2,false);
+  	CMU_ClockEnable(cmuClock_TIMER2, false);
+  		
 }
 
 void light_stop(void *ptr)
@@ -113,11 +120,19 @@ void light_stop(void *ptr)
   	{	
   		TIMER_CompareBufSet(TIMER2, 1, 0);	  	
   		GPIO_PinOutClear(gpioPortA, 9);		
-  	}	
+  		light_state &= ~LIGHT_ON;
+  		if(light_state == 0)
+  		{
+  			TIMER_Enable(TIMER2,false);	
+  			CMU_ClockEnable(cmuClock_TIMER2, false);
+  		}	
+  	}		
 }
 
 void backlight_on(uint8_t level, clock_time_t length)
 {
+	CMU_ClockEnable(cmuClock_TIMER2, true);  	
+	TIMER_Enable(TIMER2,true);	
   	if (level > 8) level = 8;
 
   	if (level == 0)
@@ -137,10 +152,19 @@ void motor_stop(void *ptr)
 {
   	TIMER_CompareBufSet(TIMER2, 0, 0);	
   	GPIO_PinOutClear(gpioPortA, 8);		
+  	light_state &= ~MOTOR_ON;
+  	if(light_state == 0)
+  	{
+  		TIMER_Enable(TIMER2,false);	
+  		CMU_ClockEnable(cmuClock_TIMER2, false);  	
+  	}	
 }
 
 void motor_on(uint8_t level, clock_time_t length)
-{
+{	
+	CMU_ClockEnable(cmuClock_TIMER2, true);  	
+	TIMER_Enable(TIMER2,true);	
+  	
   	if (level > 16) level = 16;
   	if (level == 0)
   	{
