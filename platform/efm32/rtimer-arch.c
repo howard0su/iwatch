@@ -68,68 +68,13 @@ a pointer to the declared timer.
 #define TOP 5859
 
 /*---------------------------------------------------------------------------*/
-void TIMER1_IRQHandler(void)
-{   
-	
-  	if (TIMER1->IF & TIMER_IF_OF)
-  	{  	// Overflow event.         		      		
-  		/* Clear flag for TIMER0 overflow interrupt */
-  		TIMER_IntClear(TIMER1, TIMER_IF_OF);
-  		
- 		ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  		watchdog_start();	
-  		
-  		rtimer_run_next();
-
-  		if(process_nevents() > 0) 
-  		{
-#ifdef NOTYET  			
-    			LPM4_EXIT;
-#endif    			
-  		}
-
-  		watchdog_stop();
-
-  		ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-
-	}  
-}
-/*---------------------------------------------------------------------------*/
 void
 rtimer_arch_init(void)
 {
-
-	/* Enable clock for TIMER0 module */
-  	CMU_ClockEnable(cmuClock_TIMER1, true);
-	/*1. Set initialize value to TIMER0*/
-	/* Select TIMER0 parameters */  
-  	TIMER_Init_TypeDef timerInit =
-  	{
-		.enable     = true, 
-		.debugRun   = true, 
-		.prescale   = timerPrescale1024, 
-		.clkSel     = timerClkSelHFPerClk, 
-		.fallAction = timerInputActionNone, 
-		.riseAction = timerInputActionNone, 
-		.mode       = timerModeUp, 
-		.dmaClrAct  = false, 
-		.quadModeX4 = false, 
-		.oneShot    = false, 
-		.sync       = false, 
-  	};
-  	
-  	/* Enable overflow interrupt */
-  	TIMER_IntEnable(TIMER1, TIMER_IF_OF);
-  	
-  	/* Enable TIMER0 interrupt vector in NVIC */
-  	NVIC_EnableIRQ(TIMER1_IRQn);  	  	
-	
-	/* Set TIMER Top value */
-  	TIMER_TopSet(TIMER1, TOP);  	
-  	
-	//2. Enable TIMER0
-	/* Configure TIMER */
-  	TIMER_Init(TIMER1, &timerInit);	
+	dint();	
+	LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP1);
+	/* Enable interrupts. */
+  	eint();
 }
 /*---------------------------------------------------------------------------*/
 #ifdef NOTYET
@@ -149,15 +94,14 @@ void rtimer_arch_enable_irq(void)
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t rtimer_arch_now(void)
 {
-	
-	return (rtimer_clock_t)TIMER_CounterGet(TIMER1);
+	return (0xffff - LETIMER_CounterGet(LETIMER0) );	
 }
 
 /*---------------------------------------------------------------------------*/
 
 void
 rtimer_arch_schedule(rtimer_clock_t t)
-{  
-   	TIMER_TopSet(TIMER1, t);   	
+{ 
+	LETIMER_CompareSet(LETIMER0, 1, t); 
 }
 
