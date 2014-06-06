@@ -86,7 +86,7 @@ extern void testLCD();
 extern void efm32_cpu_init(void);
 extern void clock_delay(unsigned int dlyTicks);
 
-
+static uint8_t msp430_dco_required = 0;
 uint8_t shutdown_mode = 0;
 /*--------------------------------------------------------------------------*/
 
@@ -222,14 +222,15 @@ main(int argc, char **argv)
 			}
 			
 			
-#ifdef NOTYET			
+			EMU_EnterEM1();
+#ifdef NOTYET
 			if (msp430_dco_required)
-			{
-				__low_power_mode_0();
+			{				
+				EMU_EnterEM1();								
 			}
 			else
-			{
-				__low_power_mode_3();
+			{				
+				EMU_EnterEM2(true);
 			}
 #endif
 			/* We get the current processing time for interrupts that was
@@ -252,7 +253,7 @@ main(int argc, char **argv)
 /* so some modules might need to enter their LPM requirements                */
 /* NOTE: currently only works with LPM1 (e.g. DCO) requirements.             */
 /*---------------------------------------------------------------------------*/
-#ifdef UNUSED
+
 void
 power_pin(uint8_t module)
 {
@@ -264,4 +265,4 @@ power_unpin(uint8_t module)
 {
     msp430_dco_required &= ~module;
 }
-#endif
+
