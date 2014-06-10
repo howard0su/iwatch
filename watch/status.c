@@ -14,6 +14,7 @@
 #include "pedometer/pedometer.h"
 #include "sportsdata.h"
 #include "memory.h"
+#include "memlcd.h"
 #include "icons.h"
 
 extern const tRectangle status_clip;
@@ -97,7 +98,7 @@ static void OnDraw(tContext* pContext)
   GrRectFill(pContext, &status_clip);
 
   GrContextForegroundSet(pContext, ClrWhite);
-  GrLineDrawH(pContext, 0, pContext->pDisplay->usWidth, 16);
+  GrLineDrawH(pContext, 0, LCD_WIDTH, 16);
 
   GrContextFontSet(pContext, (tFont*)&g_sFontExIcon16);
   char icon;
@@ -178,7 +179,7 @@ static void OnDraw(tContext* pContext)
 
     sprintf(buf, "%02d:%02d %s", hour, minute, ispm?"PM":"AM");
     GrContextFontSet(pContext, &g_sFontGothic14);
-    GrStringDrawCentered(pContext, buf, -1, pContext->pDisplay->usWidth/2, 8, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH/2, 8, 0);
   }
 }
 
