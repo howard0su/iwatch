@@ -154,7 +154,7 @@ PROCESS_THREAD(button_process, ev, data)
       PRINTF("%d buttons down, now=%ld\n", downbutton, RTIMER_NOW());
 
       if (reboot == 4)
-        system_reset();
+        system_rebootToNormal();
 
       if (downbutton)
       {
