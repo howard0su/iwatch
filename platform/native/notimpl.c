@@ -158,9 +158,9 @@ int mpu6050_selftest()
   return 0;
 }
 
+static char fake[6] = {43,44,45,86,97,32};
  uint8_t * system_getserial()
  {
-  static char fake[6] = {43,44,45,86,97,0xff};
   return fake;
  }
 
