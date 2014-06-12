@@ -77,6 +77,7 @@ namespace USBHIDDRIVER.USB
             connectDevice();
             //create Read Thread
             dataReadingThread = new Thread(new ThreadStart(readDataThread));
+            dataReadingThread.IsBackground = true;
         }
         //---#+************************************************************************
         //---NOTATION:
