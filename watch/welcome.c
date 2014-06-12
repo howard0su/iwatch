@@ -101,6 +101,9 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 		    break;
 		  }
 
+    case EVENT_EXIT_PRESSED:
+    break;
+
 		case EVENT_KEY_PRESSED:
     {
       switch(lparam)
@@ -142,8 +145,12 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
         }
         break;
       }
+      window_invalid(NULL);
 			break;
     }
+
+    default:
+      return 0;
 	}
 
 	return 1;
