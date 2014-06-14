@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include "system.h"
 
+static uint8_t state;
+
 static void OnDraw(tContext *pContext)
 {
   GrContextForegroundSet(pContext, ClrBlack);
@@ -62,7 +64,10 @@ static void OnDraw(tContext *pContext)
   {
     char buf[20];
     const char* btaddr = (const char*)system_getserial();
-    sprintf(buf, "Meteor %02X%02X", btaddr[4], btaddr[5]);
+    if (state == 0)
+      sprintf(buf, "Meteor %02X%02X", btaddr[4], btaddr[5]);
+    else
+      sprintf(buf, "Meteor %02X%02X [%d]", btaddr[4], btaddr[5], state);
     GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH/2, 153, 0);
   }
 }
@@ -79,6 +84,7 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 		      // if btstack is on, make it discoverable
 		      bluetooth_discoverable(1);
 		    }
+      state = 0;
 			return 0x80;
 
 		case EVENT_WINDOW_PAINT:
@@ -95,10 +101,56 @@ uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam)
 		    break;
 		  }
 
+    case EVENT_EXIT_PRESSED:
+    break;
+
 		case EVENT_KEY_PRESSED:
-			if (lparam == KEY_UP)
-				system_unlock();
+    {
+      switch(lparam)
+      {
+        case KEY_ENTER:
+        if (state == 0)
+        {
+          state++;
+        }
+        else
+        {
+          state = 0;
+        }
+        break;
+
+        case KEY_UP:
+        if (state == 1 || state == 3)
+        {
+          state++;
+        }
+        else
+        {
+          state = 0;
+        }
+        break;
+
+        case KEY_DOWN:
+        if (state == 2)
+        {
+          state++;
+        }
+        else if (state == 4)
+        {
+          system_unlock();
+        }
+        else
+        {
+          state = 0;
+        }
+        break;
+      }
+      window_invalid(NULL);
 			break;
+    }
+
+    default:
+      return 0;
 	}
 
 	return 1;
