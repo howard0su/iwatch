@@ -108,6 +108,7 @@ namespace FactoryTest
                     return;
             }
 
+            timeout = 60;
             timer2.Enabled = true;
             // disable controls
             RunButton.Enabled = false;
@@ -428,13 +429,19 @@ namespace FactoryTest
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            try{
             device.Stop();
+
 
             if (resetprocess != null)
                 resetprocess.Kill();
 
             if (process != null)
                 process.Kill();
+            }
+            catch(Exception)
+            {
+            }
 
             Application.Exit();
         }
@@ -452,6 +459,7 @@ namespace FactoryTest
             {
                 OnFinished(Status.Fail);
                 timer2.Enabled = false;
+                timeout = 60;
             }
         }
     }
