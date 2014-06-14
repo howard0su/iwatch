@@ -828,6 +828,8 @@ void Asynchronous_Transaction()
 
       Asynchronous_WriteByte(ucCheckSum);                                           // write out the checksum byte
       stTheTxQueue.ucTail = (stTheTxQueue.ucTail + 1) & (SERIAL_QUEUE_TX_SIZE-1);   // Update queue
+      Asynchronous_WriteByte(0);
+      Asynchronous_WriteByte(0);                 
     }
     ASYNC_SLEEP_ASSERT();      // let ANT sleep
   }

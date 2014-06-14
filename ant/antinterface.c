@@ -37,7 +37,7 @@
 #include "timer.h"
 #include "serial.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -310,7 +310,7 @@ BOOL ANT_ChannelId(UCHAR ucANTChannel_, USHORT usDeviceNumber_, UCHAR ucDeviceTy
 {
    BOOL bSuccess = FALSE;
    UCHAR* pucBuffer = Serial_Get_Tx_Buffer();            // Get space from the queue
-  PRINTF("%s\n", __FUNCTION__);
+   PRINTF("%s\n", __FUNCTION__);
    if(!stCommandTimeout.stTimeoutStruct.bWaitingForResponse)
    {
    
