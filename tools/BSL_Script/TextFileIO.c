@@ -34,6 +34,7 @@ int current_block;
 *******************************************************************************/
 int openTI_TextForRead( char *filename )
 {
+   current_block = 0;
    currentAddr = NO_DATA_READ;
    if( (file = fopen( filename, "rb" )) == 0 )
    {
