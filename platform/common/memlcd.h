@@ -29,13 +29,6 @@
 
 #define BPP 1
 
-// Define LCD Screen Orientation Here
-#define LANDSCAPE
-//#define LANDSCAPE_FLIP
-//#define PORTRAIT
-//#define PORTRAIT_FLIP
-
-
 //*****************************************************************************
 //
 // Defines for the pins that are used to communicate with the LCD Driver
@@ -91,18 +84,26 @@
 #ifdef PORTRAIT
 #define MAPPED_X(x, y) (LCD_X_SIZE - (y) - 1)
 #define MAPPED_Y(x, y) (x)
+#define LCD_WIDTH LCD_Y_SIZE
+#define LCD_HEIGHT LCD_X_SIZE
 #endif
 #ifdef LANDSCAPE
 #define MAPPED_X(x, y) (x)
 #define MAPPED_Y(x, y) (y)
+#define LCD_WIDTH LCD_X_SIZE
+#define LCD_HEIGHT LCD_Y_SIZE
 #endif
 #ifdef PORTRAIT_FLIP
 #define MAPPED_X(x, y)  (y)
 #define MAPPED_Y(x, y)  (LCD_Y_SIZE - (x) - 1)
+#define LCD_WIDTH LCD_Y_SIZE
+#define LCD_HEIGHT LCD_X_SIZE
 #endif
 #ifdef LANDSCAPE_FLIP
 #define MAPPED_X(x, y)  (LCD_X_SIZE - (x) - 1)
 #define MAPPED_Y(x, y)  (LCD_Y_SIZE - (y) - 1)
+#define LCD_WIDTH LCD_X_SIZE
+#define LCD_HEIGHT LCD_Y_SIZE
 #endif
 
 

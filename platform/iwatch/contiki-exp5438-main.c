@@ -125,43 +125,36 @@ main(int argc, char **argv)
     backlight_on(200, 0);
     t = clock_seconds();
     // sleep 1
-    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    while(clock_seconds() - t <= 3);
     printf("$$OK BACKLIGHT\n");
     t = clock_seconds();
-    // sleep 1s
-    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    while(clock_seconds() - t <= 3);
     backlight_on(0, 0);
-
-    t = clock_seconds();
-    while(t - clock_seconds() <= CLOCK_SECOND * 2);
 
     motor_on(200, 0);
     // sleep 1s
     t = clock_seconds();
-    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    while(clock_seconds() - t <= 3);
     printf("$$OK MOTOR\n");
-    // sleep 1s
     t = clock_seconds();
-    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    while(clock_seconds() - t <= 3);
     motor_on(0, 0);
 
-    t = clock_seconds();
-    while(t - clock_seconds() <= CLOCK_SECOND * 2);
-
+#if PRODUCT_W001
     I2C_Init();
     codec_init();
     codec_bypass(1);
     // sleep 1s
     t = clock_seconds();
-    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    while(clock_seconds() - t <= 3);
     printf("$$OK MIC\n");
     // sleep 1s
     t = clock_seconds();
-    while(t - clock_seconds() <= CLOCK_SECOND * 3);
+    while(clock_seconds() - t <= 3);
     codec_bypass(0);
 
     codec_shutdown();
-
+#endif
   }
 
   int reason = CheckUpgrade();
@@ -180,7 +173,11 @@ main(int argc, char **argv)
   //ant_init();
   bluetooth_init();
 
+#ifdef PRODUCT_W004
+  //bmx_init();
+#else
   mpu6050_init();
+#endif
 
  // motor_on(200, CLOCK_SECOND / 2);
   
@@ -189,9 +186,11 @@ main(int argc, char **argv)
     bluetooth_discoverable(1);
   }
 
+#if PRODUCT_W001
   if (system_testing())
     ant_init(MODE_HRM);
-
+#endif
+  
   system_restore();
 
 //  protocol_init();

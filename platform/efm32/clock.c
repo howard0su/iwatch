@@ -64,83 +64,59 @@ static volatile unsigned long seconds;
 
 /* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static unsigned short last_tar = 0;
-//static volatile uint32_t msTicks; /* counts 1ms timeTicks */
-/***************************************************************************//**
- * @brief
- *   Configure the SysTick clock source
- *
- * @details
- *
- * @note
- *
- * @param[in] SysTick_CLKSource
- *	 Specifies the SysTick clock source.
- *
- * @arg SysTick_CLKSource_HCLK_Div8
- * 	 AHB clock divided by 8 selected as SysTick clock source.
- *
- * @arg SysTick_CLKSource_HCLK
- *	 AHB clock selected as SysTick clock source.
- ******************************************************************************/
-static void SysTick_CLKSourceConfig(uint32_t SysTick_CLKSource)
+/**************************************************************************//**
+ * @brief LETIMER0_IRQHandler
+ * Interrupt Service Routine for LETIMER
+ *****************************************************************************/
+void LETIMER0_IRQHandler(void)
 {
-	/* Check the parameters */
-	EM_ASSERT(IS_SYSTICK_CLK_SOURCE(SysTick_CLKSource)); 
+	ENERGEST_ON(ENERGEST_TYPE_IRQ);	
 	
-	uint32_t ctrl = SysTick->CTRL;
-	
-	ctrl &= ~SysTick_CLKSource_MASK;
-	ctrl |= SysTick_CLKSource;
-	
-	SysTick->CTRL = ctrl;
-}
-
-/***************************************************************************//**
- * @brief
- *   Configure the SysTick for OS tick.
- *
- * @details
- *
- * @note
- *
- ******************************************************************************/
-static void  SysTick_Configuration(void)
-{
-
-	uint32_t 	coreClk;
-	uint32_t 	cnts;	
-
-	coreClk = CMU_ClockFreqGet(cmuClock_CORE);
-	cnts = coreClk / TICK_PER_SECOND;
-	
-	SysTick_Config(cnts);
-	SysTick_CLKSourceConfig(SysTick_CLKSource_HFCORECLK);
-
-}
-
-void SysTick_Handler(void)
-{
-  	ENERGEST_ON(ENERGEST_TYPE_IRQ);
-    	count++;
-    	
-    	if(count % CLOCK_CONF_SECOND == 0) 
-	{
-		++seconds;
-		/* Generate a 1hz square wave for memlcd*/
-		GPIO_PinOutToggle(gpioPortC, 4);
-		energest_flush();
-	}
-	
-	if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS)   	
-  	{
-    		etimer_request_poll();    		
+	if (LETIMER0->IF & LETIMER_IF_COMP0)
+	{	
+		LETIMER_IntClear(LETIMER0, LETIMER_IF_COMP0);
+		LETIMER0->COMP0 -=INTERVAL;		
+  		
+    		count++;    		
+    		if(count % CLOCK_CONF_SECOND == 0) 
+		{
+			++seconds;
+			/* Generate a 1hz square wave for memlcd*/
+			GPIO_PinOutToggle(gpioPortC, 4);
+			energest_flush();
+		}
+		last_tar = (0xffff - LETIMER_CounterGet(LETIMER0) );
+		
+		if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS)   	
+  		{
+    			etimer_request_poll();    		
 #ifdef NOTYET    		
-    		LPM4_EXIT;
+    			LPM4_EXIT;
 #endif    		
-  	}  
+  		}    	  		
+  	}	
   	
-  	ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+  	if (LETIMER0->IF & LETIMER_IF_COMP1)
+  	{	/* For rtimer-arch use */
+  		LETIMER_IntClear(LETIMER0, LETIMER_IF_COMP1);
+		
+  		/* Clear flag for TIMER0 overflow interrupt */  		 		
+  		watchdog_start();	
+  		
+  		rtimer_run_next();
 
+  		if(process_nevents() > 0) 
+  		{
+#ifdef NOTYET  			
+    			LPM4_EXIT;
+#endif    			
+  		}
+
+  		watchdog_stop();
+  		
+  	}	
+  	
+  	ENERGEST_OFF(ENERGEST_TYPE_IRQ);	
 }
 
 /***************************************************************************//**
@@ -208,40 +184,64 @@ clock_fine(void)
   	/* Assign last_tar to local varible that can not be changed by interrupt */
   	t = last_tar;
   	/* perform calc based on t, TAR will not be changed during interrupt */
-  	return (unsigned short) (SysTick->VAL - t);  	
+  	return (unsigned short) (LETIMER_CounterGet(LETIMER0) - t);  	
 }
 
 void clock_init(void)
 {
-    /* Configure external oscillator */
-    SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
+	
+    	/* Configure external oscillator */
+    	SystemHFXOClockSet(EFM32_HFXO_FREQUENCY);
 
-    /* Switching the CPU clock source to HFXO */
-    CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    	/* Switching the CPU clock source to HFXO */
+    	CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+    	
+  	CMU_ClockDivSet(cmuClock_HF, 2);
+  	CMU->CTRL &= ~_CMU_CTRL_HFLE_MASK;
+  	CMU->HFCORECLKDIV = _CMU_HFCORECLKDIV_RESETVALUE;    	
 
-    /* Turning off the high frequency RC Oscillator (HFRCO) */
-    CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
+    	/* Turning off the high frequency RC Oscillator (HFRCO) */
+    	CMU_OscillatorEnable(cmuOsc_HFRCO, false, false);
 
-    CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
-    CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
+    	CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
+    	CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
 #if defined(EFM32_SWO_ENABLE)
-    /* Enable SWO */
-    Swo_Configuration();
+    	/* Enable SWO */
+    	Swo_Configuration();
 #endif
 
-
-    /* Enable high frequency peripheral clock */
-    CMU_ClockEnable(cmuClock_HFPER, true);
-    /* Enabling clock to the interface of the low energy modules */
-    CMU_ClockEnable(cmuClock_CORELE, true);
-    /* Enable clock for TIMER0 module */
-  	CMU_ClockEnable(cmuClock_TIMER0, true);
-    /* Enable GPIO clock */
-    CMU_ClockEnable(cmuClock_GPIO, true);
-
-    /* Configure the SysTick */
-    SysTick_Configuration();	
+    	/* Enable high frequency peripheral clock */
+    	CMU_ClockEnable(cmuClock_HFPER, true);
+    	/* Enabling clock to the interface of the low energy modules */
+    	CMU_ClockEnable(cmuClock_CORELE, true);
+    	
+    	/* Enable GPIO clock */
+    	CMU_ClockEnable(cmuClock_GPIO, true);	  	
+  	CMU_ClockEnable(cmuClock_LETIMER0, true);  
+  	/* Set initial compare values for COMP0 */
+  	LETIMER_CompareSet(LETIMER0, 0, (0xffff-INTERVAL) );
+  	
+  	/* Set configurations for LETIMER 0 */
+  	const LETIMER_Init_TypeDef letimerInit = 
+  	{
+  	.enable         = true,                   	/* Don't start counting when init completed - only with RTC compare match */
+  	.debugRun       = false,                  	/* Counter shall not keep running during debug halt. */
+  	.rtcComp0Enable = false,                  	/* Don't start counting on RTC COMP0 match. */
+  	.rtcComp1Enable = false,                  	/* Don't start counting on RTC COMP1 match. */
+  	.comp0Top       = false,                   	/* Load COMP0 register into CNT when counter underflows. COMP is used as TOP */
+  	.bufTop         = false,                  	/* Don't load COMP1 into COMP0 when REP0 reaches 0. */
+  	.out0Pol        = 0,                      	/* Idle value for output 0. */
+  	.out1Pol        = 0,                      	/* Idle value for output 1. */
+  	.ufoa0          = letimerUFOANone,        	/* Pulse output on output 0 */
+  	.ufoa1          = letimerUFOANone,        	/* No output on output 1*/
+  	.repMode        = letimerRepeatFree       	/* Repeat indefinitely */
+  	};  
+  	
+  	/* Initialize LETIMER */
+  	LETIMER_Init(LETIMER0, &letimerInit); 	
+  	LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP0);
+  	NVIC_EnableIRQ(LETIMER0_IRQn);
 }
 
 
@@ -290,6 +290,6 @@ unsigned long clock_seconds(void)
 
 rtimer_clock_t clock_counter(void)
 {
-	return SysTick->VAL;
+	return (0xffff - LETIMER_CounterGet(LETIMER0));
 }
 

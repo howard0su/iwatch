@@ -76,9 +76,9 @@ static ui_config ui_config_data =
 
 
 
-const tRectangle client_clip = {0, 17, LCD_X_SIZE, LCD_Y_SIZE};
-const tRectangle status_clip = {0, 0, LCD_X_SIZE, 16};
-const tRectangle fullscreen_clip = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+const tRectangle client_clip = {0, 17, LCD_WIDTH, LCD_Y_SIZE};
+const tRectangle status_clip = {0, 0, LCD_WIDTH, 16};
+const tRectangle fullscreen_clip = {0, 0, LCD_WIDTH, LCD_Y_SIZE};
 tContext context;
 static struct etimer timer, status_timer;
 
@@ -104,7 +104,7 @@ void window_init(uint8_t reason)
   GrContextInit(&context, &g_memlcd_Driver);
   printf("WIN: Initialize...");
   GrContextForegroundSet(&context, ClrBlack);
-  tRectangle rect = {0, 0, LCD_X_SIZE, LCD_Y_SIZE};
+  tRectangle rect = {0, 0, LCD_WIDTH, LCD_Y_SIZE};
   GrRectFill(&context, &rect);
 
   GrContextForegroundSet(&context, ClrWhite);
@@ -116,7 +116,7 @@ void window_init(uint8_t reason)
 
     // draw the text
     GrContextFontSet(&context, &g_sFontGothic18);
-    GrStringDrawWrap(&context, "Installation in progress,\nplease wait...", 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+    GrStringDrawWrap(&context, "Installation in progress,\nplease wait...", 10, 90, LCD_WIDTH - 20, ALIGN_CENTER);
   }
   else
   {
@@ -213,6 +213,7 @@ static void window_handle_event(uint8_t ev, void* data)
 
       ui_window(ev, 0, (void*)data);
     }
+#if PRODUCT_W001
     else if (ev == EVENT_BT_CIEV)
     {
       uint16_t d = (uint16_t)data;
@@ -235,6 +236,7 @@ static void window_handle_event(uint8_t ev, void* data)
       }
       ui_window(ev, (uint16_t)data, NULL);
     }
+#endif
     else if (ev == EVENT_BT_CLIP || ev == EVENT_BT_RING || ev == EVENT_BT_BVRA)
     {
       ui_window(ev, 0, data);
@@ -253,11 +255,13 @@ static void window_handle_event(uint8_t ev, void* data)
         if (!ret)
             window_close();
       }
+#if PRODUCT_W001
       else if (ev == EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_ENTER)
       {
         // switch to phone call interface to show Siri
         window_open(&siri_process, (void*)1);
       }
+#endif
       else if (EVENT_KEY_LONGPRESSED && (uint16_t)data == KEY_EXIT)
       {
         window_close();
@@ -507,7 +511,7 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
       GrContextForegroundSet(pContext, ClrBlack);
 
       GrContextFontSet(pContext, (tFont*)&g_sFontExIcon48);
-      GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_X_SIZE/2, 37, 0);
+      GrStringDrawCentered(pContext, &messagebox_icon, 1, LCD_WIDTH/2, 37, 0);
 
       if (messagebox_flags & NOTIFY_ALARM)
       {
@@ -517,7 +521,7 @@ static uint8_t messagebox_process(uint8_t ev, uint16_t lparam, void* rparam)
       {
         GrContextFontSet(pContext, (tFont*)&g_sFontGothic18);
       }
-      GrStringDrawWrap(pContext, messagebox_message, 10, 90, LCD_X_SIZE - 20, ALIGN_CENTER);
+      GrStringDrawWrap(pContext, messagebox_message, 10, 90, LCD_WIDTH - 20, ALIGN_CENTER);
 
       if (messagebox_flags & NOTIFY_CONFIRM)
       {

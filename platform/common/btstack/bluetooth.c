@@ -51,7 +51,7 @@ extern void ble_advertise(uint8_t onoff);
 
 //static bd_addr_t currentbd;
 static uint8_t running = 0;
-#ifdef PRODUCT_W001
+#if PRODUCT_W001
 static uint16_t handle_audio = 0;
 #endif
 
@@ -168,7 +168,9 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
         // as testing
         if (system_testing())
         {
+#if PRODUCT_W001
           ant_shutdown();
+#endif
           printf("\n$$END\n");
         }
       }

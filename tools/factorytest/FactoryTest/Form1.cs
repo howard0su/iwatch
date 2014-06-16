@@ -17,6 +17,7 @@ namespace FactoryTest
         StreamWriter fs;
         Process process, resetprocess;
         Victor70C device;
+        int timeout;
 
         enum Status
         {
@@ -31,6 +32,8 @@ namespace FactoryTest
         public MainForm()
         {
             InitializeComponent();
+
+            timer2.Enabled = false;
             device = new Victor70C();
             try
             {
@@ -96,6 +99,17 @@ namespace FactoryTest
                     return;
             }
 
+            // check current for flashing
+            float current = device.Current;
+
+            if (current < 10 || current > 30)
+            {
+                if (MessageBox.Show("电流不正常，无法刷机。一定要尝试吗？", "错误", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+                    return;
+            }
+
+            timeout = 60;
+            timer2.Enabled = true;
             // disable controls
             RunButton.Enabled = false;
             BoardIdTextBox.ReadOnly = true;
@@ -143,6 +157,7 @@ namespace FactoryTest
             startInfo.UseShellExecute = false;
 
             currentstatus = Status.BurnFinish;
+            timer2.Enabled = true;
             
             process = Process.Start(startInfo);
             process.EnableRaisingEvents = true;
@@ -150,8 +165,6 @@ namespace FactoryTest
             process.OutputDataReceived += process_OutputDataReceived;
             process.BeginOutputReadLine();
 
-            // check current for flashing
-            float current = device.Current;
         }
 
         // return true if parse sucessfully
@@ -370,6 +383,7 @@ namespace FactoryTest
                 }
                 fs.Close();
                 // save the result
+                timer2.Enabled = false;
 
                 // enable the control, get ready for next
                 RunButton.Enabled = true;
@@ -415,13 +429,19 @@ namespace FactoryTest
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            try{
             device.Stop();
+
 
             if (resetprocess != null)
                 resetprocess.Kill();
 
             if (process != null)
                 process.Kill();
+            }
+            catch(Exception)
+            {
+            }
 
             Application.Exit();
         }
@@ -429,6 +449,18 @@ namespace FactoryTest
         private void timer1_Tick(object sender, EventArgs e)
         {
             currentLabel.Text = String.Format("{0}mA", device.Current);
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            timeout--;
+            seclbl.Text = String.Format("{0} second", timeout);
+            if (timeout == 0)
+            {
+                OnFinished(Status.Fail);
+                timer2.Enabled = false;
+                timeout = 60;
+            }
         }
     }
 }

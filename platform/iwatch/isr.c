@@ -75,6 +75,7 @@ ISR(PORT1, _PORT1ISR) {
       break;
     }
   case 10: break;                          // Pin4
+#if PRODUCT_W001
   case 12:                                 // Pin5
       {
       if (port1_pin5())
@@ -87,6 +88,7 @@ ISR(PORT1, _PORT1ISR) {
         LPM4_EXIT;
       break;
     }
+#endif
   case 16: break;                          // Pin7
   default: break;
   }

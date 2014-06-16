@@ -410,11 +410,15 @@ void TestWelcome(CuTest* tc)
     {1, EVENT_WINDOW_PAINT, &context, 0},
     {1, PROCESS_EVENT_TIMER, 0, 0},
     {1, EVENT_WINDOW_PAINT, &context, 0},
-    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_ENTER},
     {1, EVENT_WINDOW_PAINT, &context, 0},
-    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
     {1, EVENT_WINDOW_PAINT, &context, 0},
-    {1, PROCESS_EVENT_TIMER, 0, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_UP},
+    {1, EVENT_WINDOW_PAINT, &context, 0},
+    {1, EVENT_KEY_PRESSED, NULL, KEY_DOWN},
     {1, EVENT_WINDOW_PAINT, &context, 0},
     {1, EVENT_WINDOW_CLOSING, NULL, 0},
     {-1}
@@ -474,6 +478,7 @@ void TestTestButton(CuTest* tc)
   run_window_events(&test_button, test_events);
 }
 
+#if 0
 void TestTestAnt(CuTest *tc)
 {
   struct _event test_events[] = {
@@ -491,6 +496,7 @@ void TestTestAnt(CuTest *tc)
 
   run_window_events(&test_ant, test_events);
 }
+#endif
 
 void TestTestLight(CuTest* tc)
 {
@@ -825,7 +831,6 @@ CuSuite* WindowGetSuite(void)
   SUITE_ADD_TEST(suite, TestTestButton);
   SUITE_ADD_TEST(suite, TestTestLight);
   SUITE_ADD_TEST(suite, TestTestLcd);
-  SUITE_ADD_TEST(suite, TestTestAnt);
   SUITE_ADD_TEST(suite, TestPhoneScreen);
   SUITE_ADD_TEST(suite, TestNotification);
   SUITE_ADD_TEST(suite, TestControl);

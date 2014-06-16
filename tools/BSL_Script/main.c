@@ -126,6 +126,7 @@ static const char* getPort()
 unsigned int main(unsigned int argc, unsigned char* argv[])
 {
   SYSTEMTIME lt;
+  setvbuf(stdout, NULL, _IONBF, 0);
   printf( "\n------------------------------------------\n");
   printf("BSL Scripting application %3.2f\n", VERSION);
   GetLocalTime(&lt);

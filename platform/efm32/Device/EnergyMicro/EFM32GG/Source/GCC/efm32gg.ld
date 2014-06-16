@@ -7,7 +7,7 @@
 /* Energy Micro AS, 2012                                            */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 1048576
+  FLASH (rx) : ORIGIN = 0x00004000, LENGTH = 1032192
   RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 131072
 }
 

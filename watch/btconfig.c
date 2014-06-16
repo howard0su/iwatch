@@ -64,7 +64,7 @@ void draw_screen(tContext *pContext)
   GrStringDraw(pContext, &icon, 1, 50 + offset, 50, 0);
 
   GrContextFontSet(pContext, &g_sFontGothic18b);
-  GrStringDrawCentered(pContext, str, -1, LCD_X_SIZE/2, 105, 0);
+  GrStringDrawCentered(pContext, str, -1, LCD_WIDTH/2, 105, 0);
 }
 
 uint8_t btconfig_process(uint8_t ev, uint16_t lparam, void* rparam)

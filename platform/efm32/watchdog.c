@@ -47,16 +47,16 @@ void watchdog_init(void)
 	void watchdog_stop();
 	WDOG_Init_TypeDef init =
 	{
-		.enable     = false,               /* Start watchdog when init done */
-		.debugRun   = false,              /* WDOG not counting during debug halt */
-		.em2Run     = true,               /* WDOG counting when in EM2 */
-		.em3Run     = true,               /* WDOG counting when in EM3 */
-		.em4Block   = false,              /* EM4 can be entered */
-		.swoscBlock = false,              /* Do not block disabling LFRCO/LFXO in CMU */
-		.lock       = false,              /* Do not lock WDOG configuration (if locked, reset needed to unlock) */
-		.clkSel     = wdogClkSelULFRCO,   /* Select 1kHZ WDOG oscillator */
-		.perSel     = wdogPeriod_1k,      /* Set the watchdog period to 2049 clock periods (ie ~2 seconds)*/
-		//.perSel     = wdogPeriod_2k,      /* Set the watchdog period to 2049 clock periods (ie ~2 seconds)*/
+		.enable     = false,               	/* Start watchdog when init done */
+		.debugRun   = false,              	/* WDOG not counting during debug halt */
+		.em2Run     = true,               	/* WDOG counting when in EM2 */
+		.em3Run     = true,               	/* WDOG counting when in EM3 */
+		.em4Block   = false,              	/* EM4 can be entered */
+		.swoscBlock = false,              	/* Do not block disabling LFRCO/LFXO in CMU */
+		.lock       = false,              	/* Do not lock WDOG configuration (if locked, reset needed to unlock) */
+		.clkSel     = wdogClkSelLFXO,   	/* Select the 32.768kHZ LFXO oscillator */
+		.perSel     = wdogPeriod_64k,      	/* Set the watchdog period to 65537 clock periods (ie ~2 seconds)*/
+		
 	};
 	
 	/* Initializing watchdog with choosen settings */
@@ -88,8 +88,9 @@ void watchdog_stop(void)
 
 void watchdog_reboot(void)
 {
-	watchdog_start();
-	while(1);
+    	/* Write to the Application Interrupt/Reset Command Register to reset
+     	 * the EFM32. See section 9.3.7 in the reference manual. */	
+	SCB->AIRCR = 0x05FA0004;
 } 
  
  

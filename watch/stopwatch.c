@@ -50,7 +50,7 @@ static void OnDraw(tContext* pContext)
 
       sprintf(buf, "%02d:%02d:%02d", saved_times[i][0], saved_times[i][1], saved_times[i][2]);
       GrStringDraw(pContext, buf, -1, 25, (i - topView) * 20 + NUMBASE, 0);
-      GrLineDrawH(pContext, 0, LCD_X_SIZE, (i - topView) * 20 + NUMBASE + 15);
+      GrLineDrawH(pContext, 0, LCD_WIDTH, (i - topView) * 20 + NUMBASE + 15);
     }
 
     GrContextFontSet(pContext, &g_sFontGothic18b);

@@ -96,14 +96,16 @@ static const struct MenuItem TestMenu[] =
   {0, "Motor", &test_motor},
   {0, "Light", &test_light},
   {0, "LCD", &test_lcd},
+#ifdef PRODUCT_W001
   {0, "ANT+", &test_ant},
+  {0, "Codec", &test_codec},
   {0, "MPU6050", &test_mpu6050},
+#endif
   {0, "Bluetooth", &test_bluetooth},
   {0, "GoogleNow", &test_googlenow},
   {0, "Sleep", &test_sleep},
   {0, "BT DUT", &test_dut},
   {0, "BLE", &test_ble},
-  {0, "Codec", &test_codec},
   {0, "Self-test", &selftest_process},
   {0, "ClearSportsData", &test_cleardata},
   {0, "BuildSportsData", &test_builddata},
@@ -140,7 +142,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
     GrContextBackgroundSet(pContext, ClrWhite);
   }
 
-  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_X_SIZE - 2, 15 + (index + 1) * MENU_SPACE};
+  tRectangle rect = {2, 23 + index * MENU_SPACE, LCD_WIDTH - 2, 15 + (index + 1) * MENU_SPACE};
   GrRectFillRound(pContext, &rect, 2);
 
   if (!selected)
@@ -236,7 +238,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       break;
     }
     width = GrStringWidthGet(pContext, buf, -1);
-    GrStringDraw(pContext, buf, -1, LCD_X_SIZE - 12 - width, 17 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
+    GrStringDraw(pContext, buf, -1, LCD_WIDTH - 12 - width, 17 + (MENU_SPACE - 8) /2 + index * MENU_SPACE, 0);
   }
 }
 
@@ -274,7 +276,7 @@ static void OnDraw(tContext *pContext)
     // there is something more
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  LCD_Y_SIZE - 5 - i);
+        GrLineDrawH(pContext, LCD_WIDTH/2 - i, LCD_WIDTH/2 + i,  LCD_Y_SIZE - 5 - i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }
@@ -285,7 +287,7 @@ static void OnDraw(tContext *pContext)
     // draw some grey area means something in the up
     for(int i = 0; i < 8; i++)
     {
-        GrLineDrawH(pContext, LCD_X_SIZE/2 - i, LCD_X_SIZE/2 + i,  18 + i);
+        GrLineDrawH(pContext, LCD_WIDTH/2 - i, LCD_WIDTH/2 + i,  18 + i);
     }
     GrContextForegroundSet(pContext, ClrBlack);
   }

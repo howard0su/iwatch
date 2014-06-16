@@ -106,11 +106,11 @@ static void OnDrawDate(tContext *pContext)
   int width = GrStringWidthGet(pContext, buf, -1);
   if (state == STATE_CONFIG_YEAR)
   {
-    window_selecttext(pContext, buf, 4, LCD_X_SIZE/2 - width/2, 100);
+    window_selecttext(pContext, buf, 4, LCD_WIDTH/2 - width/2, 100);
   }
   else
   {
-    GrStringDraw(pContext, buf, 4, LCD_X_SIZE/2 - width/2, 100, 0);
+    GrStringDraw(pContext, buf, 4, LCD_WIDTH/2 - width/2, 100, 0);
   }
 
   sprintf(buf, "%s", month_shortname[MONTH - 1]);

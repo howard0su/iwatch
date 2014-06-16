@@ -30,7 +30,7 @@ static void drawItem(tContext *pContext, uint8_t n, char icon, const char* text,
   GrStringDraw(pContext, text, -1, 20, 10 + n * LINEMARGIN, 0);
 
   uint8_t width = GrStringWidthGet(pContext, value, -1);
-  GrStringDraw(pContext, value, -1, LCD_X_SIZE - width - 4, 10 + n * LINEMARGIN, 0);
+  GrStringDraw(pContext, value, -1, LCD_WIDTH - width - 4, 10 + n * LINEMARGIN, 0);
 }
 
 static void onDraw(tContext *pContext)
@@ -68,7 +68,7 @@ static void onDraw(tContext *pContext)
       window_progress(pContext, 5 + 4 * LINEMARGIN, 100);
     sprintf(buf, "%d%% of %d", (uint16_t)(steps * 100 / goal), goal);
     GrContextForegroundSet(pContext, ClrWhite);
-    GrStringDrawCentered(pContext, buf, -1, LCD_X_SIZE/2, 148, 0);
+    GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH/2, 148, 0);
   }
 }
 

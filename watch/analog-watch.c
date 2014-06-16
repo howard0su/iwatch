@@ -16,19 +16,19 @@
 #include "window.h"
 #include "rtc.h"
 #include "grlib/grlib.h"
-#include "memlcd.h"
 #include "cordic.h"
 #include <stdio.h>
 #include <string.h>
 #include "memory.h"
+#include "memlcd.h"
 /*
 * This implement the digit watch
 * Wake up every 1 second and update the watch
 * If in 10 minutes, no key or other things
 * if get system key in non-suspend state, post event to system.
 */
-#define CENTER_X LCD_X_SIZE/2
-#define CENTER_Y LCD_Y_SIZE/2
+#define CENTER_X (LCD_WIDTH/2)
+#define CENTER_Y (LCD_HEIGHT/2)
 
 #define MIN_HAND_LEN 50
 #define HOUR_HAND_LEN 36
@@ -48,10 +48,10 @@ static void drawFace0(tContext *pContext)
   for(int angle = 0; angle < 359; angle +=30)
   {
     cordic_sincos(angle, 13, &sin_val, &cos_val);
-    ex = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 20);
-    ey = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 20);
-    sx = CENTER_X + cordic_multipy(sin_val, LCD_X_SIZE/2 - 3);
-    sy = CENTER_Y - cordic_multipy(cos_val, LCD_X_SIZE/2 - 3);
+    ex = CENTER_X + cordic_multipy(sin_val, CENTER_X - 20);
+    ey = CENTER_Y - cordic_multipy(cos_val, CENTER_X - 20);
+    sx = CENTER_X + cordic_multipy(sin_val, CENTER_X - 3);
+    sy = CENTER_Y - cordic_multipy(cos_val, CENTER_X - 3);
 
     //tRect rect = {sx, sy, ex, ey};
     GrLineFill(pContext, sx, sy, ex, ey, 5);
