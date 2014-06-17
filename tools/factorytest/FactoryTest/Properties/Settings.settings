@@ -5,9 +5,6 @@
     <Setting Name="BLUETOOTH" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="FLASHING" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">18</Value>
-    </Setting>
     <Setting Name="SPIFLASH" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
@@ -29,11 +26,17 @@
     <Setting Name="BACKLIGHT" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="MOTOR" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
     <Setting Name="MIC" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="FLASHING" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">21</Value>
+    </Setting>
+    <Setting Name="MOTOR" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">70</Value>
+    </Setting>
+    <Setting Name="acceptrange" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">0.15</Value>
     </Setting>
   </Settings>
 </SettingsFile>

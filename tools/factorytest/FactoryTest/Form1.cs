@@ -18,6 +18,7 @@ namespace FactoryTest
         Process process, resetprocess;
         Victor70C device;
         int timeout;
+        float range;
 
         enum Status
         {
@@ -33,6 +34,7 @@ namespace FactoryTest
         {
             InitializeComponent();
 
+            range = (float)Settings.Default["acceptrange"];
             timer2.Enabled = false;
             device = new Victor70C();
             try
@@ -108,7 +110,7 @@ namespace FactoryTest
                     return;
             }
 
-            timeout = 60;
+            timeout = 75;
             timer2.Enabled = true;
             // disable controls
             RunButton.Enabled = false;
@@ -130,7 +132,7 @@ namespace FactoryTest
             // enable status textbox
             label3.Text = "刷机";
             label3.Visible = true;
-
+            ResultLabel.Text = "ONGOING";
 
             // generate mac.txt file
             using (fs = new StreamWriter(File.OpenWrite("mac.txt")))
@@ -276,6 +278,10 @@ namespace FactoryTest
                         else
                             OnFinished(Status.Fail);
                     }
+                    else if (msg.Contains("COMMAND_RESET"))
+                    {
+                        ValidateCurrent(msg);
+                    }
                 }
             }
         }
@@ -284,6 +290,7 @@ namespace FactoryTest
         {
             float current = device.Current;
             AddNewLine(String.Format("Current: {0}mA", current));
+
             // populate the passed item
             foreach (Control c in groupBox1.Controls)
             {
@@ -297,7 +304,7 @@ namespace FactoryTest
                     cb.Text += " " + current.ToString() + "mA";
                     if (v == null
                         || (float)v == 0
-                        || (Math.Abs((float)v - current) < ((float)v * 0.1f))
+                        || (Math.Abs((float)v - current) < ((float)v * range))
                         )
                     {
                         cb.Checked = true;
@@ -373,12 +380,12 @@ namespace FactoryTest
                 if (status == Status.Fail)
                 {
                     // warning 
-                    ResultLabel.Text = "出错了";
+                    ResultLabel.Text = "FAIL";
                     fs.WriteLine("FAIL {0} {1} {2}", MacAddrTextBox.Text, BoardIdTextBox.Text, OperatorTextBox.Text);
                 }
                 else
                 {
-                    ResultLabel.Text = "测试通过";
+                    ResultLabel.Text = "PASS";
                     fs.WriteLine("OK {0} {1} {2}", MacAddrTextBox.Text, BoardIdTextBox.Text, OperatorTextBox.Text);
                 }
                 fs.Close();
@@ -459,7 +466,7 @@ namespace FactoryTest
             {
                 OnFinished(Status.Fail);
                 timer2.Enabled = false;
-                timeout = 60;
+                timeout = 75;
             }
         }
     }
