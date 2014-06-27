@@ -1,0 +1,374 @@
+####################################################################
+# Definitions #
+####################################################################
+
+TARGET_CPU = EFM32GG395F1024
+PROJECTNAME = IWATCH_W002
+
+OBJDIR = objs.efm32
+RM = rm
+
+####################################################################
+# Definitions of toolchain. #
+# You might need to do changes to match your system setup #
+####################################################################
+TOOLDIR = /home/user/gcc-arm-none-eabi-4_7-2013q3
+
+
+CC      =  $(TOOLDIR)/bin/arm-none-eabi-gcc
+LD 	=  $(TOOLDIR)/bin/arm-none-eabi-ld
+AR 	=  $(TOOLDIR)/bin/arm-none-eabi-ar
+OBJCOPY =  $(TOOLDIR)/bin/arm-none-eabi-objcopy
+DUMP 	=  $(TOOLDIR)/bin/arm-none-eabi-objdump --disassemble
+
+#SIZE    = $(TOOLDIR)/bin/arm-none-eabi-size
+#NM	 = $(TOOLDIR)/bin/arm-none-eabi-nm
+#MAKETXT = tools/srec_cat
+ECHO	= echo
+
+#FWVERSION ="0.9.0.$$(cat $(BUILDNUM))"
+FWVERSION="DEBUG"
+
+####################################################################
+# Flags #
+####################################################################
+
+# -MMD : Don't generate dependencies on system header files.
+# -MP : Add phony targets, useful when a h-file is removed from a project.
+# -MF : Specify a file to write the dependencies to.
+DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
+# Add -Wa,-ahlms=$(OBJDIR)/$(@F:.o=.lst) to CFLAGS to produce assembly list files
+CFLAGS += -D$(TARGET_CPU) -mcpu=cortex-m3 -mthumb -Wall $(DEPFLAGS) -std=gnu99 -DFWVERSION=\"$(FWVERSION)\"
+ASMFLAGS += -Ttext 0x0
+LDFLAGS += -Xlinker -Map=$(OBJDIR)/$(PROJECTNAME).map -mcpu=cortex-m3 -mthumb -T./platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/efm32gg.ld
+LDFLAGS += -L"$(TOOLDIR)/arm-none-eabi/lib/thumb"
+LDFLAGS += -L"$(TOOLDIR)/lib/gcc/arm-none-eabi/4.7.4/thumb"
+#LDFLAGS += -L"$(TOOLDIR)/arm-none-eabi/lib/thumb2"
+#LDFLAGS += -L"$(TOOLDIR)/lib/gcc/arm-none-eabi/$(GCCVERSION)/thumb2"
+
+LIBS += -lc -lgcc -lm -lrdimon
+#LIBS += -lc -lcs3 -lcs3unhosted
+ALL_DEFINES = AUTOSTART_ENABLE=1 $(TARGET_CPU) AMX_ANSIONLY=1 BYTE_ORDER=LITTLE_ENDIAN PAWN_CELL_SIZE=32 HAVE_ALLOCA_H=0 PRODUCT_W002
+
+#INCLUDEPATHS += \
+#INCLUDEPATHS += -I..
+ALL_INCLUDEDIRS = $(TOOLDIR)/arm-none-eabi/include \
+    $(TOOLDIR)/lib/gcc/arm-none-eabi/4.7.4/include \
+    . \
+    ./core \
+    ./core/lib \
+    ./platform/common \
+    ./platform/efm32 \
+    ./platform/efm32/CMSIS/Include \
+    ./platform/efm32/Device/EnergyMicro/EFM32GG/Include \
+    ./platform/efm32/emlib/inc \
+    ./platform/efm32/usb/inc \
+    ./platform/efm32/common/bsp \
+    ./watch \
+    ./platform/common/btstack \
+    ./platform/efm32/btstack \
+    ./btstack/src \
+    ./btstack/ble \
+    ./btstack/chipset-cc256x \
+    ./btstack/include
+    
+
+#./drivers
+
+####################################################################
+# Files #
+####################################################################
+CORE   = \
+    core/cfs/cfs-coffee.c \
+    core/sys/autostart.c \
+    core/sys/ctimer.c \
+    core/sys/etimer.c \
+    core/sys/energest.c \
+    core/sys/process.c \
+    core/sys/rtimer.c \
+    core/sys/stimer.c \
+    core/sys/timer.c \
+    core/lib/assert.c \
+    core/lib/list.c
+
+COMMON = \
+    platform/common/memlcd.c \
+    platform/common/sprintf.c \
+    platform/common/printf.c
+    
+    
+PLATFORM = \
+    platform/efm32/contiki-efm32-main.c \
+    platform/efm32/backlight.c \
+    platform/efm32/battery.c \
+    platform/efm32/button.c \
+    platform/efm32/clock.c \
+    platform/efm32/Device/EnergyMicro/EFM32GG/Source/system_efm32gg.c \
+    platform/efm32/efm32.c \
+    platform/efm32/flash.c \
+    platform/efm32/i2c.c \
+    platform/efm32/isr.c \
+    platform/efm32/rtc.c \
+    platform/efm32/rtimer-arch.c \
+    platform/efm32/spiflash.c \
+    platform/efm32/system.c \
+    platform/efm32/Template_Driver.c \
+    platform/efm32/leds.c \
+    platform/efm32/notimpl.c \
+    platform/efm32/watchdog.c
+
+	
+GRLIB0 = \
+  circle.c \
+  charmap.c \
+  context.c \
+  image.c \
+  line.c \
+  rectangle.c \
+  triagle.c \
+  string.c
+
+GRLIB_FONTS = \
+  fontdriod28b.c \
+  fontgothamblack30.c \
+  fontgothambold42.c \
+  fontgothamlight42.c \
+  fontgothammedium32.c \
+  fontgothammedium42.c \
+  fontgothic14.c \
+  fontgothic18.c \
+  fontgothic18b.c \
+  fontgothic24b.c \
+  fontgothic28.c \
+  fontgothic28b.c \
+	fontbaby16.c \
+	fontbaby16b.c \
+	fontronda6.c \
+	fontronda8.c \
+	fontronda10.c \
+	fontronda12.c \
+	fontronda15.c \
+	fontronda15b.c \
+	fontronda16.c \
+	fontronda18.c \
+	fontronda25b.c \
+	fontronda28.c \
+	fontrondablod20b.c \
+	fontrondablod25.c \
+	fonthelvetic18.c \
+	fonthelvetic20.c \
+	fonthelvetic24.c \
+	fonthelvetic28.c \
+	fonthelvetic32.c \
+	fontmetroid16b.c \
+	fontmetroid20.c \
+	fontmetroid32.c \
+	fontmetroid40.c \
+	fontmetroid50b.c \
+	fontmetroid60.c \
+	fontmetroid84.c \
+  fontnimbus30.c \
+  fontnimbus38.c \
+  fontnimbus46.c \
+  fontnimbus52.c \
+  fontnimbus34.c \
+  fontnimbus40.c \
+  fontnimbus50.c \
+  fontnimbus91.c \
+  fonticon16.c \
+  fonticon32.c \
+  fonticon48.c \
+  fonticon64.c \
+  fonticons32.c \
+  fontrobotocondensed18b.c \
+  fontunicode.c \
+  logoimg.c
+
+GRLIB = $(addprefix grlib/, $(GRLIB0)) $(addprefix grlib/fonts/, $(GRLIB_FONTS))
+
+BTSTACK0 = \
+    hal.c \
+    hal_uart_dma.c \
+    bt_init.c
+
+
+BTSTACK1 = \
+    ble/att.c \
+  ble/att_client.c \
+  ble/att_server.c \
+  ble/central_device_db_memory.c \
+  ble/sm.c \
+    chipset-cc256x/bluetooth_init_cc2564_2.10.c \
+    chipset-cc256x/bt_control_cc256x.c \
+    src/avctp.c \
+    src/avrcp.c \
+    src/btstack_memory.c \
+    src/hci.c \
+    src/hci_cmds.c \
+    src/hci_dump.c \
+    src/hci_transport_h4_ehcill_dma.c \
+    src/hfp.c \
+    src/l2cap.c \
+    src/l2cap_signaling.c \
+    src/linked_list.c \
+    src/memory_pool.c \
+    src/remote_device_db_memory.c \
+    src/rfcomm.c \
+    src/sdp.c \
+    src/sdp_util.c \
+    src/utils.c
+
+BTSTACK3 = \
+  bluetooth.c \
+  ble_file_handler.c \
+  ble_handler.c \
+  ble_peripheral.c \
+  sdp_client.c \
+  spp.c \
+  stlv.c \
+  stlv_client.c \
+  stlv_handler.c \
+  stlv_server.c \
+  stlv_transport.c \
+  run_loop.c \
+
+
+BTSTACK = $(addprefix platform/efm32/btstack/, $(BTSTACK0)) $(addprefix btstack/, $(BTSTACK1)) $(addprefix platform/common/btstack/, $(BTSTACK3)) 
+AMX0 = amx.c amxwindow.c amxstring.c amxcons.c
+AMX = $(addprefix pawnscript/, $(AMX0))
+
+MPL0 = mpu3050.c
+MPL = $(addprefix platform/efm32/mpl/, $(MPL0))
+
+WATCH = \
+    watch1/analog-watch.c \
+    watch1/configtime.c \
+    watch1/countdown.c \
+    watch1/controller.c \
+    watch1/controls.c \
+    watch1/charging.c \
+    watch1/digit-watch.c \
+    watch1/stopwatch.c \
+    watch1/names.c \
+    watch1/menu.c \
+    watch1/selftest.c \
+    gesture/gesture.c \
+    watch1/cordic.c \
+    watch1/calendar.c \
+    watch1/sportswatch.c \
+    watch1/sportwait.c \
+    watch1/sportselect.c \
+    watch1/sportsdata.c \
+    watch1/notification.c \
+    watch1/worldclock.c \
+    watch1/host.c \
+    watch1/today.c \
+    watch1/status.c \
+    watch1/btconfig.c \
+    watch1/upgrade.c \
+    watch1/reset.c \
+    watch1/test.c \
+    watch1/welcome.c \
+    watch1/weather.c \
+    watch1/compass.c \
+    watch1/window.c
+
+#platform/efm32/blink.c \    
+#    platform/efm32/uart.c \    
+#	platform/efm32/Template_Driver.c
+#	platform/efm32/backlight.c \
+#	platform/efm32/battery.c \
+#	platform/efm32/button-sensor.c \
+#	platform/efm32/flash.c \
+#	platform/efm32/i2c.c \
+#	platform/efm32/isr.c \
+#	platform/efm32/uart1-putchar.c \
+#	platform/efm32/uart1x.c \
+#	platform/efm32/rtc.c \
+
+CPUPATH = \
+    platform/efm32/common/drivers/retargetio.c \
+    platform/efm32/common/bsp/bsp_trace.c \
+    platform/efm32/emlib/src/em_adc.c \
+    platform/efm32/emlib/src/em_burtc.c \
+    platform/efm32/emlib/src/em_cmu.c \
+    platform/efm32/emlib/src/em_dma.c \
+    platform/efm32/emlib/src/em_emu.c \
+    platform/efm32/emlib/src/em_ebi.c \
+    platform/efm32/emlib/src/em_gpio.c \
+    platform/efm32/emlib/src/em_i2c.c \
+    platform/efm32/emlib/src/em_int.c \
+    platform/efm32/emlib/src/em_letimer.c \
+    platform/efm32/emlib/src/em_msc.c \
+    platform/efm32/emlib/src/em_rmu.c \
+    platform/efm32/emlib/src/em_rtc.c \
+    platform/efm32/emlib/src/em_system.c \
+    platform/efm32/emlib/src/em_timer.c \
+    platform/efm32/emlib/src/em_usart.c \
+    platform/efm32/emlib/src/em_wdog.c
+
+
+
+S_SRC = platform/efm32/Device/EnergyMicro/EFM32GG/Source/GCC/startup_efm32gg.s
+
+SRCS = $(CORE) $(WATCH) $(PLATFORM) $(CPUPATH) $(BTSTACK) $(GRLIB) $(MPL) $(AMX) $(COMMON)
+#SRCS = $(CORE) $(WATCH) $(PLATFORM) $(ANT) $(BTSTACK) $(GRLIB) $(MPL)
+OBJS0 = $(SRCS:.c=.o) $(S_SRC:.s=.o)
+OBJS = $(addprefix $(OBJDIR)/, $(OBJS0))
+DEPFILES = $(addprefix $(OBJDIR)/, $(SRCS:.c=.d))
+
+####################################################################
+# Rules #
+####################################################################
+
+# Default build is debug build
+all: debug
+#all: release
+
+debug: CFLAGS += -DDEBUG -g3 -O0
+debug: $(OBJDIR) $(DEPFILES) $(OBJDIR)/$(PROJECTNAME).bin
+
+release: CFLAGS += -DNDEBUG -O3
+release: $(OBJDIR) $(DEPFILES) $(OBJDIR)/$(PROJECTNAME).bin
+
+# Create objects from C SRC files
+#####################
+# rules to build the object files
+$(OBJDIR)/%.o: %.c
+	@$(ECHO) "Compiling $<"
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
+	@test -d $(@D) || mkdir -pm 775 $(@D)
+	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -c $< -o $@
+
+$(OBJDIR)/%.d: %.c
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
+	@test -d $(@D) || mkdir -pm 775 $(@D)
+	@$(CC) $(CFLAGS) $(ALL_DEFINES:%=-D%) $(ALL_INCLUDEDIRS:%=-I%) -MM $< -MT $(patsubst %.d, %.o, $@)> $@
+
+$(OBJDIR)/%.o: %.s
+	@echo "Assembling $<"
+	@test -d $(OBJDIR) || mkdir -pm 775 $(OBJDIR)
+	@test -d $(@D) || mkdir -pm 775 $(@D)
+	$(CC) $(ASMFLAGS) $(ALL_INCLUDEDIRS:%=-I%) -c -o $@ $<
+	
+# Link
+$(OBJDIR)/$(PROJECTNAME).elf: $(OBJS)
+	@echo "Linking target: $@"
+	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
+
+# Create binary file
+$(OBJDIR)/$(PROJECTNAME).bin: $(OBJDIR)/$(PROJECTNAME).elf
+	@echo "Creating binary file"
+	$(OBJCOPY) -O binary $< $@
+# Uncomment next line to produce assembly listing of entire program
+# $(DUMP) $(EXE_DIR)/$(PROJECTNAME).elf>$(PROJECTNAME).lst
+
+
+
+ifneq ($(MAKECMDGOALS), clean)
+-include $(DEPFILES)
+endif
+.SILENT:
+.PHONY: clean
+clean:
+	rm -Rf $(OBJDIR)
