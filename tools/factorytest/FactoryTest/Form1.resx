@@ -148,7 +148,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;RunButton.ZOrder" xml:space="preserve">
-    <value>15</value>
+    <value>16</value>
   </data>
   <data name="BoardIdTextBox.Location" type="System.Drawing.Point, System.Drawing">
     <value>150, 51</value>
@@ -172,7 +172,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;BoardIdTextBox.ZOrder" xml:space="preserve">
-    <value>14</value>
+    <value>15</value>
   </data>
   <data name="label1.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -202,7 +202,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;label1.ZOrder" xml:space="preserve">
-    <value>11</value>
+    <value>12</value>
   </data>
   <data name="label2.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -235,7 +235,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;label2.ZOrder" xml:space="preserve">
-    <value>9</value>
+    <value>10</value>
   </data>
   <data name="MacAddrTextBox.Location" type="System.Drawing.Point, System.Drawing">
     <value>150, 80</value>
@@ -259,7 +259,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;MacAddrTextBox.ZOrder" xml:space="preserve">
-    <value>8</value>
+    <value>9</value>
   </data>
   <data name="LogTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left, Right</value>
@@ -289,7 +289,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;LogTextBox.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>8</value>
   </data>
   <data name="label3.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom</value>
@@ -325,7 +325,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;label3.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>7</value>
   </data>
   <metadata name="errorProvider1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
@@ -338,6 +338,36 @@
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
     <value>759, 456</value>
+  </data>
+  <data name="seclbl.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="seclbl.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Microsoft Sans Serif, 20pt</value>
+  </data>
+  <data name="seclbl.Location" type="System.Drawing.Point, System.Drawing">
+    <value>364, 24</value>
+  </data>
+  <data name="seclbl.Size" type="System.Drawing.Size, System.Drawing">
+    <value>87, 31</value>
+  </data>
+  <data name="seclbl.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="seclbl.Text" xml:space="preserve">
+    <value>75sec</value>
+  </data>
+  <data name="&gt;&gt;seclbl.Name" xml:space="preserve">
+    <value>seclbl</value>
+  </data>
+  <data name="&gt;&gt;seclbl.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;seclbl.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;seclbl.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <data name="testingCheckbox.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -364,7 +394,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;testingCheckbox.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
   </data>
   <data name="currentLabel.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -373,7 +403,7 @@
     <value>Microsoft Sans Serif, 30pt</value>
   </data>
   <data name="currentLabel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>622, 24</value>
+    <value>586, 24</value>
   </data>
   <data name="currentLabel.Size" type="System.Drawing.Size, System.Drawing">
     <value>97, 46</value>
@@ -394,7 +424,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;currentLabel.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>2</value>
   </data>
   <data name="ResultLabel.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -421,7 +451,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;ResultLabel.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>3</value>
   </data>
   <data name="button2.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom</value>
@@ -451,7 +481,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;button2.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>4</value>
   </data>
   <data name="button1.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom</value>
@@ -478,7 +508,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;button1.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>5</value>
   </data>
   <data name="label4.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom</value>
@@ -508,7 +538,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;label4.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>6</value>
   </data>
   <data name="label5.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -541,7 +571,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;label5.ZOrder" xml:space="preserve">
-    <value>10</value>
+    <value>11</value>
   </data>
   <data name="OperatorTextBox.Location" type="System.Drawing.Point, System.Drawing">
     <value>150, 13</value>
@@ -565,7 +595,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;OperatorTextBox.ZOrder" xml:space="preserve">
-    <value>12</value>
+    <value>13</value>
   </data>
   <data name="OutputPathTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom</value>
@@ -592,7 +622,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;OutputPathTextBox.ZOrder" xml:space="preserve">
-    <value>13</value>
+    <value>14</value>
   </data>
   <data name="groupBox1.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Right</value>
@@ -607,7 +637,7 @@
     <value>6, 277</value>
   </data>
   <data name="checkBox11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>50, 21</value>
+    <value>42, 16</value>
   </data>
   <data name="checkBox11.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
@@ -637,7 +667,7 @@
     <value>6, 250</value>
   </data>
   <data name="checkBox10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>95, 21</value>
+    <value>72, 16</value>
   </data>
   <data name="checkBox10.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -667,7 +697,7 @@
     <value>6, 224</value>
   </data>
   <data name="checkBox9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 21</value>
+    <value>54, 16</value>
   </data>
   <data name="checkBox9.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -697,7 +727,7 @@
     <value>6, 199</value>
   </data>
   <data name="checkBox8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>104, 21</value>
+    <value>78, 16</value>
   </data>
   <data name="checkBox8.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -727,7 +757,7 @@
     <value>6, 173</value>
   </data>
   <data name="checkBox7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>55, 21</value>
+    <value>42, 16</value>
   </data>
   <data name="checkBox7.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -754,7 +784,7 @@
     <value>6, 21</value>
   </data>
   <data name="checkBox1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>47, 21</value>
+    <value>42, 16</value>
   </data>
   <data name="checkBox1.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -784,7 +814,7 @@
     <value>6, 149</value>
   </data>
   <data name="checkBox6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>65, 21</value>
+    <value>48, 16</value>
   </data>
   <data name="checkBox6.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -814,7 +844,7 @@
     <value>6, 47</value>
   </data>
   <data name="checkBox2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>92, 21</value>
+    <value>72, 16</value>
   </data>
   <data name="checkBox2.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -844,7 +874,7 @@
     <value>6, 123</value>
   </data>
   <data name="checkBox5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>89, 21</value>
+    <value>66, 16</value>
   </data>
   <data name="checkBox5.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -874,7 +904,7 @@
     <value>6, 72</value>
   </data>
   <data name="checkBox3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>113, 21</value>
+    <value>78, 16</value>
   </data>
   <data name="checkBox3.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -904,7 +934,7 @@
     <value>6, 98</value>
   </data>
   <data name="checkBox4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>75, 21</value>
+    <value>54, 16</value>
   </data>
   <data name="checkBox4.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -946,7 +976,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;groupBox1.ZOrder" xml:space="preserve">
-    <value>16</value>
+    <value>17</value>
   </data>
   <data name="$this.Font" type="System.Drawing.Font, System.Drawing">
     <value>Microsoft Sans Serif, 10.5pt</value>
@@ -969,6 +999,12 @@
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;timer2.Name" xml:space="preserve">
+    <value>timer2</value>
+  </data>
+  <data name="&gt;&gt;timer2.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>MainForm</value>
   </data>
@@ -977,5 +1013,8 @@
   </data>
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>155, 17</value>
+  </metadata>
+  <metadata name="timer2.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>244, 17</value>
   </metadata>
 </root>

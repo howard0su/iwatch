@@ -393,7 +393,6 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
           {
             if (pucEventBuffer_[3] == MESG_OPEN_CHANNEL_ID)
             {
-              printf("\n$$OK ANT\n");
               process_post(ui_process, EVENT_ANT_STATUS, (void*)BIT0);
             }
             else if (pucEventBuffer_[3] == MESG_CLOSE_CHANNEL_ID)
@@ -419,6 +418,7 @@ void ProcessAntEvents(UCHAR* pucEventBuffer_)
       }
     case MESG_STARTUP_ID:
       {
+        printf("\n$$OK ANT\n");
         if (pucEventBuffer_[2] == 0)
         {
           printf("Reset is complete.\n");

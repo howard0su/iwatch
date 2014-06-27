@@ -20,14 +20,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "memory.h"
+#include "memlcd.h"
 /*
 * This implement the digit watch
 * Wake up every 1 second and update the watch
 * If in 10 minutes, no key or other things
 * if get system key in non-suspend state, post event to system.
 */
-#define CENTER_X (pContext->pDisplay->usWidth/2)
-#define CENTER_Y (pContext->pDisplay->usHeight/2)
+#define CENTER_X (LCD_WIDTH/2)
+#define CENTER_Y (LCD_HEIGHT/2)
 
 #define MIN_HAND_LEN 50
 #define HOUR_HAND_LEN 36

@@ -17,6 +17,7 @@ namespace FactoryTest
         StreamWriter fs;
         Process process, resetprocess;
         Victor70C device;
+        int timeout;
 
         enum Status
         {
@@ -31,6 +32,8 @@ namespace FactoryTest
         public MainForm()
         {
             InitializeComponent();
+
+            timer2.Enabled = false;
             device = new Victor70C();
             try
             {
@@ -96,6 +99,17 @@ namespace FactoryTest
                     return;
             }
 
+            // check current for flashing
+            float current = device.Current;
+
+            if (current < 10 || current > 30)
+            {
+                if (MessageBox.Show("电流不正常，无法刷机。一定要尝试吗？", "错误", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+                    return;
+            }
+
+            timeout = 60;
+            timer2.Enabled = true;
             // disable controls
             RunButton.Enabled = false;
             BoardIdTextBox.ReadOnly = true;
@@ -143,6 +157,7 @@ namespace FactoryTest
             startInfo.UseShellExecute = false;
 
             currentstatus = Status.BurnFinish;
+            timer2.Enabled = true;
             
             process = Process.Start(startInfo);
             process.EnableRaisingEvents = true;
@@ -150,8 +165,6 @@ namespace FactoryTest
             process.OutputDataReceived += process_OutputDataReceived;
             process.BeginOutputReadLine();
 
-            // check current for flashing
-            float current = device.Current;
         }
 
         // return true if parse sucessfully
@@ -267,7 +280,12 @@ namespace FactoryTest
             }
         }
 
-        private void ValidateCurrent(string msg)
+        /// <summary>
+        /// Validate the current 
+        /// </summary>
+        /// <param name="msg">the message which imply which component</param>
+        /// <returns>True if passed, false othewise</returns>
+        private bool ValidateCurrent(string msg)
         {
             float current = device.Current;
             AddNewLine(String.Format("Current: {0}mA", current));
@@ -289,14 +307,18 @@ namespace FactoryTest
                     {
                         cb.Checked = true;
                         cb.ForeColor = Color.Green;
+                        return true;
                     }
                     else
                     {
                         cb.Checked = false;
                         cb.ForeColor = Color.Red;
+                        return false;
                     }
                 }
             }
+
+            return false;
         }
 
         delegate void ProcessExitedCallback(object sender, EventArgs e);
@@ -336,23 +358,32 @@ namespace FactoryTest
                 label3.Text = "测试";
                 process = null;
 
-                ValidateCurrent("$$OK FLASHING");
+                if (ValidateCurrent("$$OK FLASHING"))
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo("bsl.exe");
+                    startInfo.Arguments = "reset";
+                    startInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                    startInfo.RedirectStandardOutput = true;
+                    //startInfo.RedirectStandardError = true;
+                    //startInfo.RedirectStandardInput = true;
+                    startInfo.UseShellExecute = false;
+                    startInfo.CreateNoWindow = true;
+                    //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
-                ProcessStartInfo startInfo = new ProcessStartInfo("bsl.exe");
-                startInfo.Arguments = "reset";
-                startInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                startInfo.RedirectStandardOutput = true;
-                //startInfo.RedirectStandardError = true;
-                //startInfo.RedirectStandardInput = true;
-                startInfo.UseShellExecute = false;
-                startInfo.CreateNoWindow = true;
-                //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                    resetprocess = Process.Start(startInfo);
+                    resetprocess.EnableRaisingEvents = true;
+                    resetprocess.Exited += process_Exited;
+                    resetprocess.OutputDataReceived += process_OutputDataReceived2;
+                    resetprocess.BeginOutputReadLine();
 
-                resetprocess = Process.Start(startInfo);
-                resetprocess.EnableRaisingEvents = true;
-                resetprocess.Exited += process_Exited;
-                resetprocess.OutputDataReceived += process_OutputDataReceived2;
-                resetprocess.BeginOutputReadLine();
+                    return;
+
+                }
+                else
+                {
+                    ResultLabel.Text = "FAIL";
+                    fs.WriteLine("FAIL {0} {1} {2}", MacAddrTextBox.Text, BoardIdTextBox.Text, OperatorTextBox.Text);
+                }
             }
             else if (status != Status.Done)
             {
@@ -368,18 +399,19 @@ namespace FactoryTest
                     ResultLabel.Text = "测试通过";
                     fs.WriteLine("OK {0} {1} {2}", MacAddrTextBox.Text, BoardIdTextBox.Text, OperatorTextBox.Text);
                 }
-                fs.Close();
-                // save the result
-
-                // enable the control, get ready for next
-                RunButton.Enabled = true;
-                MacAddrTextBox.ReadOnly = false;
-                label3.Text = "测试通过，下一个";
-
-                MacAddrTextBox.Focus();
-                MacAddrTextBox.SelectAll();
-                LogTextBox.Clear();
             }
+            fs.Close();
+            // save the result
+            timer2.Enabled = false;
+
+            // enable the control, get ready for next
+            RunButton.Enabled = true;
+            MacAddrTextBox.ReadOnly = false;
+            label3.Text = "测试通过，下一个";
+
+            MacAddrTextBox.Focus();
+            MacAddrTextBox.SelectAll();
+            LogTextBox.Clear();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -415,13 +447,19 @@ namespace FactoryTest
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            try{
             device.Stop();
+
 
             if (resetprocess != null)
                 resetprocess.Kill();
 
             if (process != null)
                 process.Kill();
+            }
+            catch(Exception)
+            {
+            }
 
             Application.Exit();
         }
@@ -429,6 +467,18 @@ namespace FactoryTest
         private void timer1_Tick(object sender, EventArgs e)
         {
             currentLabel.Text = String.Format("{0}mA", device.Current);
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            timeout--;
+            seclbl.Text = String.Format("{0} second", timeout);
+            if (timeout == 0)
+            {
+                OnFinished(Status.Fail);
+                timer2.Enabled = false;
+                timeout = 60;
+            }
         }
     }
 }

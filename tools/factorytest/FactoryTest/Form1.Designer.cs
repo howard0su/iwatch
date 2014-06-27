@@ -46,6 +46,8 @@
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.checkBox7 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkBox11 = new System.Windows.Forms.CheckBox();
+            this.checkBox10 = new System.Windows.Forms.CheckBox();
             this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.checkBox8 = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -57,9 +59,9 @@
             this.ResultLabel = new System.Windows.Forms.Label();
             this.currentLabel = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.checkBox10 = new System.Windows.Forms.CheckBox();
-            this.checkBox11 = new System.Windows.Forms.CheckBox();
             this.testingCheckbox = new System.Windows.Forms.CheckBox();
+            this.seclbl = new System.Windows.Forms.Label();
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -166,6 +168,18 @@
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.TabStop = false;
             // 
+            // checkBox11
+            // 
+            resources.ApplyResources(this.checkBox11, "checkBox11");
+            this.checkBox11.Name = "checkBox11";
+            this.checkBox11.UseVisualStyleBackColor = true;
+            // 
+            // checkBox10
+            // 
+            resources.ApplyResources(this.checkBox10, "checkBox10");
+            this.checkBox10.Name = "checkBox10";
+            this.checkBox10.UseVisualStyleBackColor = true;
+            // 
             // checkBox9
             // 
             resources.ApplyResources(this.checkBox9, "checkBox9");
@@ -229,18 +243,6 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // checkBox10
-            // 
-            resources.ApplyResources(this.checkBox10, "checkBox10");
-            this.checkBox10.Name = "checkBox10";
-            this.checkBox10.UseVisualStyleBackColor = true;
-            // 
-            // checkBox11
-            // 
-            resources.ApplyResources(this.checkBox11, "checkBox11");
-            this.checkBox11.Name = "checkBox11";
-            this.checkBox11.UseVisualStyleBackColor = true;
-            // 
             // testingCheckbox
             // 
             resources.ApplyResources(this.testingCheckbox, "testingCheckbox");
@@ -249,10 +251,21 @@
             this.testingCheckbox.Name = "testingCheckbox";
             this.testingCheckbox.UseVisualStyleBackColor = true;
             // 
+            // seclbl
+            // 
+            resources.ApplyResources(this.seclbl, "seclbl");
+            this.seclbl.Name = "seclbl";
+            // 
+            // timer2
+            // 
+            this.timer2.Interval = 1000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.seclbl);
             this.Controls.Add(this.testingCheckbox);
             this.Controls.Add(this.currentLabel);
             this.Controls.Add(this.ResultLabel);
@@ -312,6 +325,8 @@
         private System.Windows.Forms.CheckBox checkBox11;
         private System.Windows.Forms.CheckBox checkBox10;
         private System.Windows.Forms.CheckBox testingCheckbox;
+        private System.Windows.Forms.Label seclbl;
+        private System.Windows.Forms.Timer timer2;
     }
 }
 
