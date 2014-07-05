@@ -770,8 +770,12 @@ void TestNotification(CuTest *tc)
   GrContextClipRegionSet(&context, &fullscreen_clip);
 
   handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
+  GrFlush(&context);
+
+  window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
+
   window_close();
 
   handle_message('S', "+8615618273349", "testing 123");
