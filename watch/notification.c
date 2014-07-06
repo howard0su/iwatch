@@ -370,6 +370,9 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     return 0;
     break;
   case EVENT_KEY_PRESSED:
+    if (message == NULL)
+      break;
+    
     if (lparam == KEY_DOWN)
     {
       if (state & STATE_MORE)
@@ -377,7 +380,7 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
         skip += 16;
         window_invalid(NULL);
       }
-      else if (selectidx < num_uids)
+      else if (selectidx < num_uids - 1)
       {
         selectidx++;
         fetch_content();

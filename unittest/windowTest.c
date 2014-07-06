@@ -772,6 +772,11 @@ void TestNotification(CuTest *tc)
   handle_message('S', "+8615618273349", "hey KREYOS, how are you doing today? I will be dropping by later at CES to check out the Meteor!");
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
+
+  window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
   window_close();
 
   handle_message('S', "+8615618273349", "testing 123");
@@ -794,15 +799,38 @@ void TestNotification(CuTest *tc)
   GrFlush(&context);
   window_close();
 
-  window_notify_ancs(0, 0, 1, 1);
-  window_notify_ancs(0, 1, 1, 1);
-  window_notify_ancs(0, 2, 1, 1);
-  window_notify_ancs(0, 3, 1, 1);
-  //window_notify_ancs(2, 2, 1, 1);
-  //window_notify_ancs(1, 1, 1, 1);
-  window_notify_content("mail", "from junsu", "adsf dafas adfas da xad ew asd dadfar dasf.", "20140302T110211", NOTIFY_OK, 'a');
+  window_notify_ancs(0, 9, 1, 1);
+  window_notify_ancs(0, 10, 1, 1);
+  window_notify_ancs(0, 11, 1, 1);
+  window_notify_ancs(2, 9, 1, 1);
+  window_notify_ancs(0, 12, 1, 1);
   window_current()(EVENT_WINDOW_PAINT, 0, &context);
   GrFlush(&context);
+
+    window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
+
+  window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
+
+  window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
+
+  window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
+
+  window_current()(EVENT_KEY_PRESSED, KEY_DOWN, NULL);
+  window_current()(EVENT_WINDOW_PAINT, 0, &context);
+  GrFlush(&context);
+
   window_close();
 
   window_messagebox(ICON_LARGE_WARNING, "Please Pair your Smartphone to the meteor.", 0);

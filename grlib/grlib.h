@@ -2279,7 +2279,42 @@ extern unsigned long GrMapWIN1254_Unicode(const char *pcSrcChar,
 #include <assert.h>
 #define ASSERT(x) assert(x)
 typedef unsigned char tBoolean;
+extern const tFont g_sFontBaby16;
+extern const tFont g_sFontBaby16b;
+extern const tFont g_sFontRonda10;
+extern const tFont g_sFontRonda12;
+extern const tFont g_sFontRonda16;
+extern const tFont g_sFontRonda18;
+extern const tFont g_sFontRonda28;
+extern const tFont g_sFontRonda15b;
+extern const tFont g_sFontRonda25b;
 
+extern const tFont g_sFontRondablod20b;
+extern const tFont g_sFontRondablod25;
+
+extern const tFont g_sFontHelvetic18;
+extern const tFont g_sFontHelvetic20;
+extern const tFont g_sFontHelvetic24;
+extern const tFont g_sFontHelvetic28;
+extern const tFont g_sFontHelvetic32;
+
+extern const tFont g_sFontMetroid16b;
+extern const tFont g_sFontMetroid20;
+//extern const tFont g_sFontMetroid22;
+//extern const tFont g_sFontMetroid24;
+//extern const tFont g_sFontMetroid26;
+//extern const tFont g_sFontMetroid28;
+//extern const tFont g_sFontMetroid30;
+extern const tFont g_sFontMetroid32;
+extern const tFont g_sFontMetroid40;
+//extern const tFont g_sFontMetroid48;
+extern const tFont g_sFontMetroid50b;
+extern const tFont g_sFontMetroid60;
+//extern const tFont g_sFontMetroid70;
+//extern const tFont g_sFontMetroid72;
+//extern const tFont g_sFontMetroid75;
+//extern const tFont g_sFontMetroid80;
+extern const tFont g_sFontMetroid84;
 extern const tFont g_sFontGothic14;
 extern const tFont g_sFontGothic18;
 extern const tFont g_sFontGothic18b;
@@ -2289,7 +2324,8 @@ extern const tFont g_sFontGothic28b;
 extern const tFontEx g_sFontExIcon16;
 extern const tFontEx g_sFontExIcon32;
 extern const tFontEx g_sFontExIcon48;
-
+extern const tFontEx g_sFontExIcon64;
+extern const tFontEx g_sFontExIcons32;
 extern const tFont g_sFontNimbus30;
 extern const tFont g_sFontNimbus34;
 extern const tFontEx g_sFontExNimbus38;

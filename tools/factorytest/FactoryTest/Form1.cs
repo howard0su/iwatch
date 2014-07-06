@@ -286,7 +286,12 @@ namespace FactoryTest
             }
         }
 
-        private void ValidateCurrent(string msg)
+        /// <summary>
+        /// Validate the current 
+        /// </summary>
+        /// <param name="msg">the message which imply which component</param>
+        /// <returns>True if passed, false othewise</returns>
+        private bool ValidateCurrent(string msg)
         {
             float current = device.Current;
             AddNewLine(String.Format("Current: {0}mA", current));
@@ -309,14 +314,18 @@ namespace FactoryTest
                     {
                         cb.Checked = true;
                         cb.ForeColor = Color.Green;
+                        return true;
                     }
                     else
                     {
                         cb.Checked = false;
                         cb.ForeColor = Color.Red;
+                        return false;
                     }
                 }
             }
+
+            return false;
         }
 
         delegate void ProcessExitedCallback(object sender, EventArgs e);
@@ -356,23 +365,32 @@ namespace FactoryTest
                 label3.Text = "测试";
                 process = null;
 
-                ValidateCurrent("$$OK FLASHING");
+                if (ValidateCurrent("$$OK FLASHING"))
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo("bsl.exe");
+                    startInfo.Arguments = "reset";
+                    startInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                    startInfo.RedirectStandardOutput = true;
+                    //startInfo.RedirectStandardError = true;
+                    //startInfo.RedirectStandardInput = true;
+                    startInfo.UseShellExecute = false;
+                    startInfo.CreateNoWindow = true;
+                    //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
-                ProcessStartInfo startInfo = new ProcessStartInfo("bsl.exe");
-                startInfo.Arguments = "reset";
-                startInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                startInfo.RedirectStandardOutput = true;
-                //startInfo.RedirectStandardError = true;
-                //startInfo.RedirectStandardInput = true;
-                startInfo.UseShellExecute = false;
-                startInfo.CreateNoWindow = true;
-                //startInfo.WindowStyle = ProcessWindowStyle.Minimized;
+                    resetprocess = Process.Start(startInfo);
+                    resetprocess.EnableRaisingEvents = true;
+                    resetprocess.Exited += process_Exited;
+                    resetprocess.OutputDataReceived += process_OutputDataReceived2;
+                    resetprocess.BeginOutputReadLine();
 
-                resetprocess = Process.Start(startInfo);
-                resetprocess.EnableRaisingEvents = true;
-                resetprocess.Exited += process_Exited;
-                resetprocess.OutputDataReceived += process_OutputDataReceived2;
-                resetprocess.BeginOutputReadLine();
+                    return;
+
+                }
+                else
+                {
+                    ResultLabel.Text = "FAIL";
+                    fs.WriteLine("FAIL {0} {1} {2}", MacAddrTextBox.Text, BoardIdTextBox.Text, OperatorTextBox.Text);
+                }
             }
             else if (status != Status.Done)
             {
@@ -388,19 +406,19 @@ namespace FactoryTest
                     ResultLabel.Text = "PASS";
                     fs.WriteLine("OK {0} {1} {2}", MacAddrTextBox.Text, BoardIdTextBox.Text, OperatorTextBox.Text);
                 }
-                fs.Close();
-                // save the result
-                timer2.Enabled = false;
-
-                // enable the control, get ready for next
-                RunButton.Enabled = true;
-                MacAddrTextBox.ReadOnly = false;
-                label3.Text = "测试通过，下一个";
-
-                MacAddrTextBox.Focus();
-                MacAddrTextBox.SelectAll();
-                LogTextBox.Clear();
             }
+            fs.Close();
+            // save the result
+            timer2.Enabled = false;
+
+            // enable the control, get ready for next
+            RunButton.Enabled = true;
+            MacAddrTextBox.ReadOnly = false;
+            label3.Text = "测试通过，下一个";
+
+            MacAddrTextBox.Focus();
+            MacAddrTextBox.SelectAll();
+            LogTextBox.Clear();
         }
 
         private void button1_Click(object sender, EventArgs e)

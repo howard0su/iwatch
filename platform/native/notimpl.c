@@ -9,7 +9,7 @@
 #include "ant/ant.h"
 #include <stdio.h>
 #include <string.h>
-
+#include "window.h"
 #include "btstack/utils.h"
 
 uint8_t shutdown_mode;
@@ -351,7 +351,23 @@ uint8_t hci_le_data_packet_length()
     return 26;
 }
 void att_fetch_next(uint32_t uid, uint32_t combine)
-{}
+{
+  switch(uid)
+  {
+    case 10:
+    window_notify_content("mail", "from junsu", "message 0, 126312764128364817236417234612837463278467128346124128346", "20140302T110211", NOTIFY_OK, 'a');
+    break;
+    case 11:
+    window_notify_content("mail", "from junsu", "message 1, hello fasudyreneu ds auwe", "20140302T110211", NOTIFY_OK, 'a');
+    break;
+    case 12:
+    window_notify_content("mail", "from junsu", "message 2, dasdh dasfjds dasjhasdkjf  asjdhaksdf adfhkasfd kjdafsjk ajsdfasdf", "20140302T110211", NOTIFY_OK, 'a');
+    break;
+    default:
+      window_notify_content("mail", "ERROR", "ERROR", "20140302T110211", NOTIFY_OK, 'a');
+  }
+
+}
 
 void ble_advertise(uint8_t onoff)
 {

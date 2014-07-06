@@ -279,10 +279,6 @@ uint8_t control_process(uint8_t ev, uint16_t lparam, void* rparam)
         {
           avctp_send_passthrough(PAUSE_OP);
         }
-        else if (state == AVRCP_PLAY_STATUS_PAUSED)
-        {
-          avctp_send_passthrough(PAUSE_OP);
-        }
         else
         {
           avctp_send_passthrough(PLAY_OP);

@@ -667,11 +667,9 @@ static void att_handle_response(att_connection_t *att_connection, uint8_t* buffe
             break;
         case ATT_ERROR_RESPONSE:
             // done the last step
-            if (buffer[0] == ATT_ERROR_RESPONSE
-                && (
-                    buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHORIZATION
-                    || buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHENTICATION
-                    )
+            hexdump(buffer, length);
+            if ((buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHORIZATION
+                    || buffer[4] == ATT_ERROR_INSUFFICIENT_AUTHENTICATION)
                 && att_connection->authenticated){
                 switch (sm_authorization_state(att_client_addr_type, att_client_address)){
                     case AUTHORIZATION_UNKNOWN:

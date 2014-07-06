@@ -1,0 +1,126 @@
+#include "contiki.h"
+
+#include "window.h"
+#include <stdio.h>
+#include "icons.h"
+#include "grlib/grlib.h"
+#include "memlcd.h"
+#include "memory.h"
+
+
+#define CENTER_X 71
+#define CENTER_Y 84
+static int azimuthangle = 0;
+int Compass_get_angle()
+{
+	return azimuthangle;
+}
+
+static void onDraw(tContext *pContext)
+{
+	int  azimuth_angle;
+	char buf[20];
+	azimuth_angle = Compass_get_angle();
+	GrContextForegroundSet(pContext, ClrWhite);
+	//draw a Circle
+	GrCircleDraw(pContext, CENTER_X, CENTER_Y, 66);
+	
+	GrCircleFill(pContext, CENTER_X, CENTER_Y, 32);
+	GrContextForegroundSet(pContext, ClrBlack);
+	GrCircleFill(pContext, CENTER_X, CENTER_Y, 28);
+	
+	GrContextForegroundSet(pContext, ClrWhite);
+	GrTriagleDraw(pContext, 65, 19, 78, 19, 71, 26);
+	GrTriagleDraw(pContext, 66, 52, 76, 52, 71, 45);
+	
+	GrContextFontSet(pContext, &g_sFontRondablod20b);	
+	if((azimuth_angle<23) || (azimuth_angle>337) )
+	{
+		buf[0] = 'N'		
+		//N
+	}	
+	else if((azimuth_angle<68) && (azimuth_angle>22) )
+	{
+		//NE
+		buf[0] = 'N';
+		buf[1] = 'E';
+	}	
+	else if((azimuth_angle<113) && (azimuth_angle>67) )
+	{
+		//E
+		buf[0] = 'E';		
+	}	
+	else if((azimuth_angle<158) && (azimuth_angle>112) )
+	{
+		//SE
+		buf[0] = 'S';
+		buf[1] = 'E';		
+	}	
+	else if((azimuth_angle<203) && (azimuth_angle>157) )
+	{
+		//S
+		buf[0] = 'S';
+				
+	}	
+	else if((azimuth_angle<248) && (azimuth_angle>202) )
+	{
+		//SW
+		buf[0] = 'S';
+		buf[1] = 'W';		
+	}	
+	else if((azimuth_angle<293) && (azimuth_angle>247) )
+	{
+		//W
+		buf[0] = 'W';						
+	}	
+	else if((azimuth_angle<338) && (azimuth_angle>292) )
+	{
+		//NW
+		buf[0] = 'N';
+		buf[1] = 'W';		
+	}			
+	GrStringDrawCentered(pContext, buf, -1, CENTER_X, CENTER_Y -6 , 0);    		
+	buf[0] = 0;
+	buf[1] = 0;		
+	
+	GrLineDrawV(pContext, 81, 90, 92);
+	GrLineDrawH(pContext, 80, 82, 91);
+	
+	GrContextFontSet(pContext, &g_sFontRonda12);	
+	sprintf(buf, "%d", azimuth_angle);		
+	
+}
+
+uint8_t compassr_process(uint8_t ev, uint16_t lparam, void* rparam)
+{
+	switch(ev)
+	{
+	case EVENT_WINDOW_CREATED:
+		//Enable BOCHE BMC050L Compass	
+		//Enable_Compass(true);
+		break;
+			
+	case EVENT_WINDOW_PAINT:
+	{
+		tContext *pContext = (tContext*)rparam;
+    		GrContextForegroundSet(pContext, ClrBlack);
+    		GrRectFill(pContext, &fullscreen_clip);
+    		onDraw(pContext);
+	}		
+		break;
+			
+	case EVENT_KEY_PRESSED:
+		if (lparam == KEY_EXIT)
+		{
+			//Disable BOCHE BMC050L Compass
+			//Enable_Compass(false);
+			window_close();
+			return 1;
+		}
+		break;		
+
+  	default:
+    		return 0;				
+	}
+	
+}

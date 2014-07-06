@@ -1800,6 +1800,7 @@ tBoolean CompressGlyph(tConversionParameters *pParams, tGlyph *pGlyph,
             iZero = 1;
             iOne = 0;
 
+#if 0
             //
             // Print an error and return if the size of the compressed
             // character is too large.
@@ -1810,6 +1811,7 @@ tBoolean CompressGlyph(tConversionParameters *pParams, tGlyph *pGlyph,
                     "bytes!\n", pParams->pcAppName, pGlyph->ulCodePoint);
                 return (false);
             }
+#endif
         }
     }
 
