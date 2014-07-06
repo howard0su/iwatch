@@ -179,9 +179,6 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             uid
             );
 
-        if (data[0] != 0)
-            return;
-
         if (data[2] == CategoryIDIncomingCall)
         {
             // need convert the title to CLIP command
