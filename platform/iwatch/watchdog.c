@@ -39,6 +39,7 @@
 #include "button.h"
 #include "grlib/grlib.h"
 #include "sys/process.h"
+#include "system.h"
 #include "backlight.h"
 
 extern void flushlcdsync();
@@ -108,8 +109,7 @@ ISR(WDT, watchdog_interrupt)
 #if PRINT_STACK_ON_REBOOT == 2
   displaystack(&dummy);
 #endif /* PRINT_STACK_ON_REBOOT */
-  rtc_save();
-  watchdog_reboot();
+  system_reset();
 }
 /*---------------------------------------------------------------------------*/
 void
