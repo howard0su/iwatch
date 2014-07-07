@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
-const char * const month_name[] =
+static const char * const month_name[] =
 {
   "January", "February", "March", "April", "May",
   "June", "July", "August", "September", "October",
@@ -23,7 +23,7 @@ static const char* const english_name_prefix[] =
     "SEVENTY", "EIGHTY", "NINTY"
 };
 
-const char * const month_shortname[] = {
+static const char * const month_shortname[] = {
   "JAN","FEB","MAR","APR", "MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"
 };
 
@@ -88,6 +88,17 @@ const char* toEnglishPeriod(uint32_t seconds, char* buffer)
   }
 
   return "a long while ago";
+}
+
+// shortorlong short = 0, long = 1
+const char* toMonthName(uint8_t month, int shortorlong)
+{
+  if (month >= 12 || month == 0)
+    month = 1;
+  if (shortorlong)
+    return month_name[month - 1];
+  else
+    return month_shortname[month - 1];
 }
 
 const char* PairingWarning = "Please Pair your smartphone to the Meteor.";

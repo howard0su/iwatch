@@ -29,7 +29,7 @@ static void OnDraw(tContext *pContext)
 
   	// draw the title bar
   
-  	sprintf(buf, "%s %d", month_name[month - 1], year);
+  	sprintf(buf, "%s %d", toMonthName(month, 1), year);
 #if defined(PRODUCT_W002) || defined(PRODUCT_W004)  
 	GrContextFontSet(pContext, &g_sFontBaby16b);
 	GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH / 2, 30, 0);
@@ -154,18 +154,18 @@ static void OnDraw(tContext *pContext)
 
   	// draw the buttons
 	if (month == 1)
-    		sprintf(buf, "%s %d", month_shortname[11], year - 1);
+    		sprintf(buf, "%s %d", toMonthName(12, 0), year - 1);
   	else
-    		sprintf(buf, "%s %d", month_shortname[month - 2], year);
+    		sprintf(buf, "%s %d", toMonthName(month - 1, 0), year);
 #if defined(PRODUCT_W002) || defined(PRODUCT_W004)    
 	window_button(pContext, KEY_UP|0x80, buf);
 #else    
   	window_button(pContext, KEY_ENTER, buf);
 #endif
   	if (month == 12)
-    		sprintf(buf, "%s %d", month_shortname[0], year + 1);
+    		sprintf(buf, "%s %d", toMonthName(1, 0), year + 1);
   	else
-    		sprintf(buf, "%s %d", month_shortname[month], year);
+    		sprintf(buf, "%s %d", toMonthName(month + 1, 0), year);
 #if defined(PRODUCT_W002) || defined(PRODUCT_W004)    
 	window_button(pContext, KEY_DOWN|0x80, buf);
 #else    
