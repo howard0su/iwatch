@@ -253,7 +253,7 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
         		uint8_t  month, day;
         		uint16_t year;
         		rtc_readdate(&year, &month, &day, NULL);
-        		sprintf(buf, "%s %d, %04d", month_shortname[month - 1], day, year);
+        		sprintf(buf, "%s %d, %04d", toMonthName(month, 0), day, year);
         		break;
       		}
       

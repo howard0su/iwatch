@@ -24,7 +24,7 @@ static void OnDraw(tContext *pContext)
 
   // draw the title bar
   GrContextFontSet(pContext, &g_sFontGothic18b);
-  sprintf(buf, "%s %d", month_name[month - 1], year);
+  sprintf(buf, "%s %d", toMonthName(month, 1), year);
   GrStringDrawCentered(pContext, buf, -1, LCD_WIDTH / 2, 15, 0);
 
   GrContextForegroundSet(pContext, ClrBlack);
@@ -85,15 +85,15 @@ static void OnDraw(tContext *pContext)
 
   // draw the buttons
   if (month == 1)
-    sprintf(buf, "%s %d", month_shortname[11], year - 1);
+    sprintf(buf, "%s %d", toMonthName(12, 0), year - 1);
   else
-    sprintf(buf, "%s %d", month_shortname[month - 2], year);
+    sprintf(buf, "%s %d", toMonthName(month - 1, 0), year);
   window_button(pContext, KEY_ENTER, buf);
 
   if (month == 12)
-    sprintf(buf, "%s %d", month_shortname[0], year + 1);
+    sprintf(buf, "%s %d", toMonthName(1, 0), year + 1);
   else
-    sprintf(buf, "%s %d", month_shortname[month], year);
+    sprintf(buf, "%s %d", toMonthName(month + 1, 0), year);
   window_button(pContext, KEY_DOWN, buf);
 }
 

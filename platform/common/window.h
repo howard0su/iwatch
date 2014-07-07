@@ -198,12 +198,11 @@ extern void window_writeconfig();
 extern void window_loadconfig();
 
 // the const strings
-extern const char * const month_name[];
-extern const char * const month_shortname[];
 extern const char * const week_shortname[];
 extern const char * const fontconfig_name[];
 extern const char * toEnglish(uint8_t number, char* buffer);
 extern const char * toEnglishPeriod(uint32_t seconds, char* buffer);
+extern const char* toMonthName(uint8_t month, int shortorlong);
 extern const char * PairingWarning;
 
 // #define EVENT_SPORT_DATA              0x92
