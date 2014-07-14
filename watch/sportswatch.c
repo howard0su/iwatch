@@ -168,7 +168,9 @@ static void drawGridData(tContext *pContext, uint8_t grid, uint32_t data)
 
   int index = findDataGrid(grid);
   if (index == -1)
-    return;
+  {
+    index = 4; // default to distance
+  }
   struct _datapoints const *d = &datapoints[grid];
 
   char buf[20];

@@ -447,6 +447,15 @@ void window_loadconfig()
       window_writeconfig();      
     }
 
+    /* Verify the data in the right range */
+    if (ui_config_data.font_config > 2)
+      ui_config_data.font_config = 0;
+
+    if (ui_config_data.sports_grid > 2)
+      ui_config_data.sports_grid = 0;
+
+    // skip sports_grid_data validation, it will default to 4/
+
     window_invalid(NULL);
     status_invalid();
   }
