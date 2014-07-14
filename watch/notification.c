@@ -288,7 +288,7 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
     if (state & STATE_ACTIVE)
     {
       // check if the current 
-      if (uids[0] == uid)
+      if (uids[selectidx] == uid)
       {
         fetch_content();
       }
@@ -302,7 +302,7 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
       return;
 
     uint8_t refresh = 0;
-    if (uids[0] == uid)
+    if (uids[selectidx] == uid)
     {
       refresh = 1;
     }
@@ -325,7 +325,9 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
     }
     num_uids--;
 
-    if (refresh)
+    if (num_uids == 0)
+      window_close();
+    else if (refresh)
       fetch_content();
   }
 }

@@ -156,6 +156,7 @@ static enum
     STATE_UID,
     STATE_ATTRIBUTEID,
     STATE_ATTRIBUTELEN,
+    STATE_ATTRIBUTELEN2, // when len is breakup into two packages
     STATE_ATTRIBUTE,
     STATE_DONE
 }parse_state = STATE_NONE;
@@ -193,6 +194,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     {
         log_info("data received\n");
         // start notification
+        hexdump(data, length);
         uint16_t l;
         int index = 0;
         while(index < length)
@@ -216,28 +218,58 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     {
                         case NotificationAttributeIDAppIdentifier:
                         bufptr = appidbuf;
+                        len = 32;
                         break;
                         case NotificationAttributeIDTitle:
                         bufptr = titlebuf;
+                        len = MAX_TITLE;
                         break;
                         case NotificationAttributeIDSubtitle:
                         bufptr = subtitlebuf;
+                        len = MAX_TITLE;
                         break;
                         case NotificationAttributeIDMessage:
                         bufptr = msgbuf;
+                        len = MAX_MESSAGE;
                         break;
                         case NotificationAttributeIDDate:
                         bufptr = datebuf;
+                        len = 16;
                         break;
                     }
                     index++;
                     parse_state = STATE_ATTRIBUTELEN;
                     break;
                 case STATE_ATTRIBUTELEN:
-                    len = attrleftlen = READ_BT_16(data, index);
+                    // //
+                    // max length is less than 255.
+                    if (length - index > 1)
+                    {
+                        attrleftlen = READ_BT_16(data, index);
+                        log_info("len: %d\t", attrleftlen);
+                        index+=2;
+                        parse_state = STATE_ATTRIBUTE;
+                        if (attrleftlen > len)
+                            attrleftlen = len;
+                        else
+                            len = attrleftlen;
+                    }
+                    else
+                    {
+                        attrleftlen = data[index];
+                        index++;
+                        parse_state = STATE_ATTRIBUTELEN2;
+                    }
+                    break;
+                case STATE_ATTRIBUTELEN2:
+                    attrleftlen = attrleftlen + (uint16_t)data[index];
+                    index++;
                     log_info("len: %d\t", attrleftlen);
-                    index+=2;
                     parse_state = STATE_ATTRIBUTE;
+                    if (attrleftlen > len)
+                        attrleftlen = len;
+                    else
+                        len = attrleftlen;
                     break;
                 case STATE_ATTRIBUTE:
                     if (length - index > attrleftlen)
@@ -255,11 +287,13 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     {
                         bufptr[len] = '\0';
                         if (attributeid == NotificationAttributeIDDate)
-                            parse_state = STATE_NONE;
+                            parse_state = STATE_DONE;
                         else
                             parse_state = STATE_ATTRIBUTEID;
                     }
                     break;
+                case STATE_DONE:
+                    return;
             }
         }
         // parse the data
@@ -281,9 +315,10 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             icon = ICON_FACEBOOK;
         }
 
-        if (parse_state == STATE_NONE)
+        if (parse_state == STATE_DONE)
         {
             window_notify_content(titlebuf, subtitlebuf, msgbuf, datebuf, 0, icon);
+            parse_state = STATE_NONE;
         }
     }
     else
@@ -341,5 +376,6 @@ void att_fetch_next(uint32_t uid, uint32_t combine)
             NotificationAttributeIDDate,
     };
     bt_store_32(buffer, 1, uid);
+    parse_state = STATE_NONE;
     att_server_write(attribute_handles[CONTROLPOINT], buffer, sizeof(buffer));
 }
