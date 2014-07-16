@@ -135,8 +135,10 @@ void system_ready()
 {
   if (system_retail() && !(SFRRPCR & SYSNMI))
   {
+    #if RELEASE_VERSION
     SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
     SFRIE1 &= ~NMIIE;
+    #endif
   }
 }
 
@@ -192,7 +194,7 @@ void system_shutdown(int shipping)
 
 const uint8_t * system_getserial()
 {
-  #if 1
+  #if RELEASE_VERSION
   const struct system_data *data = (struct system_data *)INFOD;
   return data->serial;
   #else
