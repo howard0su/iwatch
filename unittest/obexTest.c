@@ -247,7 +247,236 @@ void msgparser(CuTest* tc)
 }
 
 
+#define NOTIFICATION 0
+#define CONTROLPOINT 1
+#define DATASOURCE   2
+static uint16_t attribute_handles[3] = {1, 2, 0};
+#define log_info printf
+static char data1[] = {
+0x00, 0x6F, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x63, 0x6F, 0x6D, 0x2E, 0x61, 0x70, 0x70, 0x6C, 0x65, 0x2E, 0x6D, 0x6F, 0x62, 0x69, 0x6C, 0x65, 0x6D, 0x61, 0x69,
+0x6C, 0x01, 0x12, 0x00, 0x54, 0x72, 0x61, 0x76, 0x65, 0x6C, 0x7A, 0x6F, 0x6F, 0xE6, 0x97, 0x85, 0xE6, 0xB8, 0xB8, 0xE6, 0x97, 0x8F, 0x02, 0x2B, 0x00, 0xE3, 0x80,
+0x90, 0xE6, 0x85, 0xA2, 0xE8, 0x8A, 0x82, 0xE5, 0xA5, 0x8F, 0x20, 0xE6, 0x96, 0xB0, 0xE5, 0x91, 0xB3, 0xE9, 0x81, 0x93, 0xE3, 0x80, 0x91, 0xE6, 0x96, 0xB0, 0xE5,
+0xA4, 0xA9, 0xE5, 0x9C, 0xB0, 0xE5, 0xAE, 0x89, 0xE8, 0xBE, 0xBE, 0xE4, 0xBB, 0x95, 0x03, 0xFA
+};
 
+static char data2[] = {
+0x00, 0x4C, 0x4F, 0x43, 0x41, 0x4C, 0x20, 0x44, 0x45, 0x41, 0x4C, 0x20, 0x2D, 0x2D, 0x2D, 0x2D, 0x20, 0xE4, 0xB8, 0x8A, 0xE6, 0xB5, 0xB7, 0x20, 0x32, 0x30, 0x31,
+0x34, 0x20, 0xE5, 0xB9, 0xB4, 0x20, 0x37, 0x20, 0xE6, 0x9C, 0x88, 0x20, 0x31, 0x33, 0x20, 0xE6, 0x97, 0xA5, 0x20, 0xEF, 0xBF, 0xA5, 0x33, 0x39, 0x38, 0x20, 0x2D,
+0x2D, 0x20, 0xE4, 0xBA, 0xAE, 0xE4, 0xB8, 0xBD, 0xE7, 0x84, 0x95, 0xE8, 0x82, 0xA4, 0x20, 0xE8, 0x8A, 0xB3, 0xE9, 0xA6, 0x99, 0xE5, 0xA4, 0x8F, 0xE6, 0x97, 0xA5,
+0x20, 0xE5, 0x87, 0xAF, 0xE6, 0x82, 0xA6, 0xE6, 0x97, 0x97, 0xE4, 0xB8, 0x8B, 0xE6, 0x96, 0xB0
+};
+
+static char data3[] = 
+{
+0xE5, 0xA4, 0xA9, 0xE5, 0x9C, 0xB0, 0xE5, 0xAE, 0x89, 0xE8, 0xBE, 0xBE, 0xE4, 0xBB, 0x95, 0xE9, 0x85, 0x92, 0xE5, 0xBA, 0x97, 0xE5, 0x8D, 0x95, 0xE4, 0xBA, 0xBA,
+0x20, 0x39, 0x30, 0x20, 0xE5, 0x88, 0x86, 0xE9, 0x92, 0x9F, 0x20, 0x53, 0x70, 0x61, 0x20, 0xE5, 0x89, 0xAF, 0xE4, 0xB8, 0xBB, 0xE7, 0xBC, 0x96, 0x3A, 0x20, 0xE9,
+0xBB, 0x84, 0xE9, 0x9B, 0xA8, 0x20, 0x7C, 0x20, 0xE4, 0xBC, 0x98, 0xE6, 0x83, 0xA0, 0xE6, 0x8F, 0x90, 0xE4, 0xBE, 0x9B, 0x3A, 0x20, 0xE4, 0xB8, 0x8A, 0xE6,
+0xB5, 0xB7, 0xE6, 0x96, 0xB0, 0xE5, 0xA4, 0xA9, 0xE5, 0x9C, 0xB0, 0xE5, 0xAE, 0x89, 0xE8, 0xBE, 0xBE
+};
+
+static char data4[] = 
+{
+0xE4, 0xBB, 0x95, 0xE9, 0x85, 0x92, 0xE5, 0xBA, 0x97, 0x20, 0x4F, 0x70, 0x74, 0x69, 0x6D, 0x65, 0x20, 0x53, 0x70, 0x61, 0x20, 0xE7, 0x94, 0xB3, 0xE5, 0x9F, 0x8E,
+0xE5, 0xA4, 0x8F, 0xE6, 0x97, 0xA5, 0xEF, 0xBC, 0x8C, 0xE5, 0xA7, 0x97, 0xE5, 0xA7, 0x97, 0xE6, 0x9D, 0xA5, 0xE8, 0xBF, 0x9F, 0xE3, 0x80, 0x82, 0xE8, 0xB6, 0x81,
+0xE7, 0x9D, 0x80, 0x05, 0x0F, 0x00, 0x32, 0x30, 0x31, 0x34, 0x30, 0x37, 0x31, 0x33, 0x54, 0x31, 0x31, 0x31, 0x37, 0x30, 0x35
+};
+
+static char data5[] =
+{
+0x00, 0x9E, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x63, 0x6F, 0x6D, 0x2E, 0x61, 0x70, 0x70, 0x6C, 0x65, 0x2E, 0x6D, 0x6F, 0x62, 0x69, 0x6C, 0x65, 0x6D, 0x61, 0x69,
+0x6C, 0x01, 0x06, 0x00, 0x4A, 0x75, 0x6E, 0x20, 0x53, 0x75, 0x02, 0x11, 0x00, 0x46, 0x77, 0x64, 0x3A, 0x20, 0x55, 0x52, 0x47, 0x45, 0x4E, 0x54, 0x20, 0x49, 0x53,
+0x53, 0x55, 0x45, 0x03, 0x1C, 0x00, 0x54, 0x68, 0x69, 0x73, 0x20, 0x6D, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x68, 0x61, 0x73, 0x20, 0x6E, 0x6F, 0x20,
+0x63, 0x6F, 0x6E, 0x74, 0x65, 0x6E, 0x74, 0x2E, 0x05, 0x0F, 0x00, 0x32, 0x30, 0x31, 0x34, 0x30, 0x37
+};
+
+#define MAX_TITLE 43
+#define MAX_MESSAGE 250
+static enum 
+{
+    STATE_NONE,
+    STATE_UID,
+    STATE_ATTRIBUTEID,
+    STATE_ATTRIBUTELEN,
+    STATE_ATTRIBUTELEN2,
+    STATE_ATTRIBUTE,
+    STATE_DONE
+}parse_state = STATE_NONE;
+static uint8_t attributeid;
+static uint16_t attrleftlen, len;
+static char* bufptr;
+static char appidbuf[32];
+static char titlebuf[MAX_TITLE + 1];
+static char subtitlebuf[MAX_TITLE + 1];
+static char msgbuf[MAX_MESSAGE + 1];
+static char datebuf[16];
+
+void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
+{
+  printf("==>state:%d len:%d   attrleftlen:%d\n", parse_state, length, attrleftlen);
+    if (handle == attribute_handles[NOTIFICATION])
+    {
+        uint32_t uid =  READ_BT_32(data, 4);
+        //uint32_t combine = READ_BT_32(data, 4);
+        log_info("id: %d flags:%d catery:%d count: %d UID:%ld\n",
+            data[0], data[1], data[2], data[3],
+            uid
+            );
+
+        if (data[2] == CategoryIDIncomingCall)
+        {
+            // need convert the title to CLIP command
+
+        }
+        else
+        {
+            window_notify_ancs(data[0], uid, data[1], data[2]);
+        }
+    }
+    else if (handle == attribute_handles[DATASOURCE])
+    {
+        log_info("data received\n");
+        // start notification
+        hexdump(data, length);
+        uint16_t l;
+        int index = 0;
+        while(index < length)
+        {
+            switch(parse_state)
+            {
+                case STATE_NONE:
+                    log_info("Command: %d\t", data[index]);
+                    index++;
+                    parse_state = STATE_UID;
+                    break;
+                case STATE_UID:
+                    log_info("uid: %ld\t", READ_BT_32(data, index));
+                    index += 4;
+                    parse_state = STATE_ATTRIBUTEID;
+                    break;
+                case STATE_ATTRIBUTEID:
+                    attributeid = data[index];
+                    log_info("\nattributeid: %d\t", attributeid);
+                    switch(attributeid)
+                    {
+                        case NotificationAttributeIDAppIdentifier:
+                        bufptr = appidbuf;
+                        len = 32;
+                        break;
+                        case NotificationAttributeIDTitle:
+                        bufptr = titlebuf;
+                        len = MAX_TITLE;
+                        break;
+                        case NotificationAttributeIDSubtitle:
+                        bufptr = subtitlebuf;
+                        len = MAX_TITLE;
+                        break;
+                        case NotificationAttributeIDMessage:
+                        bufptr = msgbuf;
+                        len = MAX_MESSAGE;
+                        break;
+                        case NotificationAttributeIDDate:
+                        bufptr = datebuf;
+                        len = 16;
+                        break;
+                    }
+                    index++;
+                    parse_state = STATE_ATTRIBUTELEN;
+                    break;
+                case STATE_ATTRIBUTELEN:
+                    // //
+                    // max length is less than 255.
+                    if (length - index > 1)
+                    {
+                        attrleftlen = READ_BT_16(data, index);
+                        log_info("len: %d\t", attrleftlen);
+                        index+=2;
+                        parse_state = STATE_ATTRIBUTE;
+                        if (attrleftlen > len)
+                            attrleftlen = len;
+                        else
+                            len = attrleftlen;
+                    }
+                    else
+                    {
+                        attrleftlen = data[index];
+                        index++;
+                        parse_state = STATE_ATTRIBUTELEN2;
+                    }
+                    break;
+                case STATE_ATTRIBUTELEN2:
+                    attrleftlen = attrleftlen + (uint16_t)data[index];
+                    index++;
+                    log_info("len: %d\t", attrleftlen);
+                    parse_state = STATE_ATTRIBUTE;
+                    if (attrleftlen > len)
+                        attrleftlen = len;
+                    else
+                        len = attrleftlen;
+                    break;
+                case STATE_ATTRIBUTE:
+                    if (length - index > attrleftlen)
+                        l = attrleftlen;
+                    else
+                        l = length - index;
+                    for(int i = 0; i < l; i++)
+                    {
+                        //putchar(data[index + i]);
+                        bufptr[i + len - attrleftlen] = data[index + i];
+                    }
+                    index += l;
+                    attrleftlen -= l;
+                    if (attrleftlen == 0)
+                    {
+                        bufptr[len] = '\0';
+                        if (attributeid == NotificationAttributeIDDate)
+                            parse_state = STATE_DONE;
+                        else
+                            parse_state = STATE_ATTRIBUTEID;
+                    }
+                    break;
+            }
+        }
+        // parse the data
+        char icon = -1;
+#define ICON_FACEBOOK 's'
+#define ICON_TWITTER  't'
+#define ICON_MSG      'u' 
+
+        if (strcmp("com.apple.MobileSMS", appidbuf) == 0)
+        {
+            icon = ICON_MSG;
+        }
+        else if (strcmp("XX", appidbuf) == 0)
+        {
+            icon = ICON_TWITTER;
+        }
+        else if (strcmp("XX", appidbuf) == 0)
+        {
+            icon = ICON_FACEBOOK;
+        }
+
+        if (parse_state == STATE_DONE)
+        {
+            window_notify_content(titlebuf, subtitlebuf, msgbuf, datebuf, 0, icon);
+            parse_state = STATE_NONE;
+            printf("done!!!\n");
+        }
+    }
+    else
+    {
+        log_info("handle: %d\n", handle);
+    }
+}
+
+
+void ancsparser(CuTest* tc)
+{
+  att_client_notify(0, data1, sizeof(data1));
+  att_client_notify(0, data2, sizeof(data2));
+  att_client_notify(0, data3, sizeof(data3));
+  att_client_notify(0, data4, sizeof(data4));
+  att_client_notify(0, data5, sizeof(data5));
+}
 
 CuSuite* obexGetSuite(void)
 {
@@ -255,6 +484,7 @@ CuSuite* obexGetSuite(void)
 
 	SUITE_ADD_TEST(suite, testobex);
   SUITE_ADD_TEST(suite, msgparser);
-  
+  SUITE_ADD_TEST(suite, ancsparser);
+
 	return suite;
 }
