@@ -46,24 +46,28 @@ extern uint8_t upgrade_process(uint8_t ev, uint16_t lparam, void* rparam)
 			if (rparam == (void*)-1)
 			{
 				progress = PROGRESS_FINISH;
+				window_timer(0);
 			}
 			else
 			{
 				progress = (long)rparam * 100/(230UL*1024);
+				window_timer(CLOCK_SECOND * 30);
 			}
 			window_invalid(NULL);
 			break;
 		case EVENT_WINDOW_PAINT:
 			onDraw((tContext*)rparam);
-			window_timer(CLOCK_SECOND * 30);
 		    break;
 		case EVENT_EXIT_PRESSED:
 			if (progress != PROGRESS_FINISH || progress != PROGRESS_TIMEOUT)
 				return 1;
 			break;
 		case PROCESS_EVENT_TIMER:
-			progress = PROGRESS_TIMEOUT;
-			window_invalid(NULL);
+			if (progress != PROGRESS_FINISH)
+			{
+				progress = PROGRESS_TIMEOUT;
+				window_invalid(NULL);
+			}
 			break;
 		case EVENT_KEY_PRESSED:
 		 	if (lparam == KEY_ENTER)
