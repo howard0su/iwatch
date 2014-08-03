@@ -66,6 +66,39 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
   }
 
   switch (packet[0]) {
+  case BTSTACK_EVENT_STATE:
+    // bt stack activated, get started - set local name
+    if (packet[2] == HCI_STATE_WORKING) {
+      log_info("Start initialize bluetooth chip!\n");
+      running = 1;
+      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
+    }
+    break;
+
+  }
+
+
+  switch (packet[0]) {
+  case BTSTACK_EVENT_STATE:
+    // bt stack activated, get started - set local name
+    if (packet[2] == HCI_STATE_WORKING) {
+      log_info("Start initialize bluetooth chip!\n");
+      running = 1;
+      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
+    }
+    else if (packet[2] == HCI_STATE_OFF)
+      {
+        // close the connection
+        process_exit(&bluetooth_process);
+        
+        bluetooth_platform_shutdown();
+
+        // notify UI that we are shutdown
+        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
+        break;
+      }
+    break;
+
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
     {
       if (packet[2]) {
@@ -111,42 +144,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       // close bluetooth information page
       break;
     }
-  case BTSTACK_EVENT_STATE:
-    {
-      if (packet[2] == HCI_STATE_OFF)
-      {
-        // close the connection
-        process_exit(&bluetooth_process);
-        
-        bluetooth_platform_shutdown();
-
-        // notify UI that we are shutdown
-        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
-        break;
-      }
-    }
-  }
-}
-
-static void init_packet_handler (void * connection, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size)
-{
-
-  // handle events, ignore data
-  if (packet_type != HCI_EVENT_PACKET)
-  {
-    return;
-  }
-
-  switch (packet[0]) {
-  case BTSTACK_EVENT_STATE:
-    // bt stack activated, get started - set local name
-    if (packet[2] == HCI_STATE_WORKING) {
-      log_info("Start initialize bluetooth chip!\n");
-      running = 1;
-      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
-    }
-    break;
-  case HCI_EVENT_COMMAND_COMPLETE:
+    case HCI_EVENT_COMMAND_COMPLETE:
     {
       if (COMMAND_COMPLETE_EVENT(packet, hci_vs_write_sco_config)){
         hci_send_cmd(&hci_vs_write_codec_config, 2048, 0, (uint32_t)8000, 0, 1, 0, 0,
@@ -161,8 +159,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
       }
       else if (COMMAND_COMPLETE_EVENT(packet, hci_write_default_link_policy_settings)) {
         process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
-        l2cap_unregister_packet_handler(init_packet_handler);
-        l2cap_register_packet_handler(packet_handler);
         printf("\n$$OK BLUETOOTH\n");
 
         // as testing
@@ -178,7 +174,6 @@ static void init_packet_handler (void * connection, uint8_t packet_type, uint16_
     }
   }
 }
-
 
 static void btstack_setup(){
   /// GET STARTED with BTstack ///
@@ -206,7 +201,7 @@ static void btstack_setup(){
 
   // init L2CAP
   l2cap_init();
-  l2cap_register_packet_handler(init_packet_handler);
+  l2cap_register_packet_handler(packet_handler);
 
   // init RFCOMM
   rfcomm_init();

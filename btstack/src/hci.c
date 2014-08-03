@@ -1231,6 +1231,7 @@ int hci_power_control(HCI_POWER_MODE power_mode){
             switch (power_mode){
                 case HCI_POWER_ON:
                     // set up state machine
+                    hci_stack->num_cmd_packets = 1; // assume that one cmd can be sent
                     hci_stack->state = HCI_STATE_INITIALIZING;
                     hci_stack->substate = 0;
                     break;
@@ -1252,6 +1253,7 @@ int hci_power_control(HCI_POWER_MODE power_mode){
 #if defined(USE_POWERMANAGEMENT) && defined(USE_BLUETOOL)
                     // nothing to do, if H4 supports power management
                     if (bt_control_iphone_power_management_enabled()){
+                        hci_stack->num_cmd_packets = 1; // assume that one cmd can be sent
                         hci_stack->state = HCI_STATE_INITIALIZING;
                         hci_stack->substate = HCI_INTIALIZING_SUBSTATE_AFTER_SLEEP;
                         break;
@@ -1279,6 +1281,7 @@ int hci_power_control(HCI_POWER_MODE power_mode){
 #if defined(USE_POWERMANAGEMENT) && defined(USE_BLUETOOL)
                     // nothing to do, if H4 supports power management
                     if (bt_control_iphone_power_management_enabled()){
+                        hci_stack->num_cmd_packets = 1; // assume that one cmd can be sent
                         hci_stack->state = HCI_STATE_INITIALIZING;
                         hci_stack->substate = HCI_INTIALIZING_SUBSTATE_AFTER_SLEEP;
                         hci_update_scan_enable();

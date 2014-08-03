@@ -183,6 +183,7 @@ static int h4_open(void *transport_config){
     run_loop_add_data_source(&hci_transport_h4_dma_ds);
 
     // init state machiens
+    ehcill_state = EHCILL_STATE_AWAKE;
     h4_rx_init_sm();
     tx_state = TX_IDLE;
 

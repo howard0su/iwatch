@@ -76,6 +76,12 @@ PROCESS_THREAD(bluetooth_process, ev, data)
 
   // wait RTS of BT pull down to 0
   //BUSYWAIT_UNTIL(0, RTIMER_SECOND);
+  BUSYWAIT_UNTIL(((BT_CTS_IN & BT_CTS_BIT)==0), RTIMER_SECOND/10);
+  if((BT_CTS_IN & BT_CTS_BIT)==0)
+  {
+    printf("CTS is ready");
+  }
+
 
   // wait about 100ms for bluetooth to start
   etimer_set(&timer, CLOCK_SECOND/10);
