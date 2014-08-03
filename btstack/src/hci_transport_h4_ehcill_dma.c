@@ -111,9 +111,9 @@ static void ehcill_handle(uint8_t action);
 static void ehcill_cts_irq_handler();
 
 // eCHILL: state machine
-static EHCILL_STATE ehcill_state = EHCILL_STATE_AWAKE;
+static EHCILL_STATE ehcill_state;
 static uint8_t *    ehcill_defer_rx_buffer;
-static uint16_t     ehcill_defer_rx_size = 0;
+static uint16_t     ehcill_defer_rx_size;
 static uint8_t      ehcill_command_to_send;
 
 // H4: packet reader state machine
@@ -163,6 +163,7 @@ hci_transport_t * hci_transport_h4_dma_instance() {
 
 static void h4_rx_init_sm(void){
     h4_state = H4_W4_PACKET_TYPE;
+    ehcill_defer_rx_size = 0;
     read_pos = 0;
     bytes_to_read = 1;
     ehcill_uart_dma_receive_block(hci_packet, bytes_to_read);

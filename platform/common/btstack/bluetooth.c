@@ -43,6 +43,7 @@
 #include "system.h"
 
 extern void ble_init(void);
+extern void ble_start(void);
 extern void deviceid_init(void);
 extern void spp_init(void);
 extern void sdpc_open(const bd_addr_t remote_addr);
@@ -85,6 +86,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       log_info("Start initialize bluetooth chip!\n");
       running = 1;
       hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
+      process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
     }
     else if (packet[2] == HCI_STATE_OFF)
       {
@@ -250,6 +252,7 @@ void bluetooth_shutdown()
 
 void bluetooth_start()
 {
+  ble_start();
   bluetooth_platform_init();
 
   process_start(&bluetooth_process, NULL);

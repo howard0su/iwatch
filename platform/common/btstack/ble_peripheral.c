@@ -69,7 +69,7 @@
 #include "profile.h"
 
 ///------
-static int advertisements_enabled = 0;
+static int advertisements_enabled;
 
 typedef enum {
     DISABLE_ADVERTISEMENTS   = 1 << 0,
@@ -78,7 +78,7 @@ typedef enum {
     SET_SCAN_RESPONSE_DATA   = 1 << 3,
     ENABLE_ADVERTISEMENTS    = 1 << 4,
 } todo_t;
-static uint16_t todos = 0;
+static uint16_t todos;
 
 static void gap_run();
 
@@ -294,4 +294,10 @@ void ble_init(void){
     // setup ATT server
     att_server_init(profile_data, att_read_callback, att_write_callback);
     att_server_register_packet_handler(app_packet_handler);
+}
+
+void ble_start(void)
+{
+    todos = 0;
+    advertisements_enabled = 0;
 }

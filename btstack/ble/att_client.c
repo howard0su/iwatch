@@ -249,9 +249,6 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                         log_info("len: %d\t", attrleftlen);
                         index+=2;
                         parse_state = STATE_ATTRIBUTE;
-                        if (attrleftlen > len)
-                            attrleftlen = len;
-                        else
                             len = attrleftlen;
                     }
                     else
@@ -266,9 +263,6 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     index++;
                     log_info("len: %d\t", attrleftlen);
                     parse_state = STATE_ATTRIBUTE;
-                    if (attrleftlen > len)
-                        attrleftlen = len;
-                    else
                         len = attrleftlen;
                     break;
                 case STATE_ATTRIBUTE:
@@ -285,7 +279,10 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     attrleftlen -= l;
                     if (attrleftlen == 0)
                     {
-                        bufptr[len] = '\0';
+                        if (attributeid == NotificationAttributeIDMessage ||
+                            attributeid == NotificationAttributeIDSubtitle ||
+                            attributeid == NotificationAttributeIDTitle)
+                                bufptr[len] = '\0'; // if this is string context
                         if (attributeid == NotificationAttributeIDDate)
                             parse_state = STATE_DONE;
                         else
@@ -293,7 +290,8 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     }
                     break;
                 case STATE_DONE:
-                    return;
+                    log_error("Unexpect bytes\n");
+                    break;
             }
         }
         // parse the data
@@ -323,7 +321,8 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
     }
     else
     {
-        log_info("handle: %d\n", handle);
+        log_info("unknow handle: %d\n", handle);
+        hexdump(data, length);
     }
 }
 
