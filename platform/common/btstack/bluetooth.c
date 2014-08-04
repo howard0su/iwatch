@@ -90,6 +90,7 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
     }
     else if (packet[2] == HCI_STATE_OFF)
       {
+        running = 0;
         // close the connection
         process_exit(&bluetooth_process);
         
