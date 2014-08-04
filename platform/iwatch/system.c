@@ -8,6 +8,7 @@
 #include "window.h"
 #include "bluetooth.h"
 #include "pedometer/pedometer.h"
+#include "button.h"
 
 struct system_data
 {
@@ -17,6 +18,8 @@ struct system_data
   uint8_t system_lock;
   uint8_t serial[6];
 };
+
+static uint8_t emerging;
 
 #if defined(__GNUC__)
 __attribute__ ((section(".infod")))
@@ -40,11 +43,14 @@ void system_init()
   const struct system_data *data = (struct system_data *)INFOD;
   struct system_data new_data;
   new_data = *data;
+#if 0
   for(int i = 0; i < 9; i++)
   {
     printf("%d ", ((uint8_t*)&init_data)[i]);
   }
   printf("\n");
+#endif
+
   // check if need factory reset
   if (data->system_reset)
   {
@@ -59,6 +65,8 @@ void system_init()
     flash_writepage(INFOD, (uint16_t*)&new_data, 128);
     flash_done();
   }
+
+  emerging = 0;
 }
 
 uint8_t system_testing()
@@ -133,12 +141,10 @@ uint8_t system_retail()
 
 void system_ready()
 {
-  if (system_retail() && !(SFRRPCR & SYSNMI))
+  if (system_retail() && !(SFRRPCR & SYSNMI) && !emerging)
   {
-    #if RELEASE_VERSION
     SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
     SFRIE1 &= ~NMIIE;
-    #endif
   }
 }
 
@@ -205,7 +211,7 @@ const uint8_t * system_getserial()
 uint8_t system_locked()
 {
   const struct system_data *data = (struct system_data *)INFOD;
-  return data->system_lock;
+  return (data->system_lock || emerging);
 }
 
 void system_unlock()
@@ -243,4 +249,10 @@ void system_resetfactory()
 
   system_reset();
 
+}
+
+void system_setemerging()
+{
+  printf("---Emerging is Set---\n");
+  emerging = 1;
 }

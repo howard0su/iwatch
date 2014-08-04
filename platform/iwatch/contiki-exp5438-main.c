@@ -46,6 +46,7 @@
 #include "node-id.h"
 #include "power.h"
 #include "battery.h"
+#include "button.h"
 #include "spiflash.h"
 #include "bluetooth.h"
 #include "backlight.h"
@@ -179,7 +180,21 @@ main(int argc, char **argv)
   mpu6050_init();
 #endif
 
- // motor_on(200, CLOCK_SECOND / 2);
+  // check the button status
+  if (button_snapshot() & (1 << BUTTON_UP))
+  {
+    clock_time_t t;
+    // delay 1 second
+    // button up is pressed, we will set emerging flag
+    motor_on(200, CLOCK_SECOND * 2);
+    t = clock_seconds();
+    while(clock_seconds() - t <= 1);
+
+    if (button_snapshot() & (1 << BUTTON_UP)) 
+
+    system_setemerging();
+    motor_on(0, 0);
+  }  
   
   if (!system_retail())
   {

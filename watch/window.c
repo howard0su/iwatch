@@ -126,13 +126,6 @@ void window_init(uint8_t reason)
   GrFlush(&context);
   stackptr = 0;
   //window_open(&menu_process, NULL);
-  if (
-    system_testing())
-    ui_window = menu_process;
-  else if (system_locked())
-    ui_window = welcome_process;
-  else
-    ui_window = menu_process;
   printf("Done\n");
   return;
 }
@@ -323,6 +316,13 @@ static void window_handle_event(uint8_t ev, void* data)
 PROCESS_THREAD(system_process, ev, data)
 {
   PROCESS_BEGIN();
+  if (
+    system_testing())
+    ui_window = menu_process;
+  else if (system_locked())
+    ui_window = welcome_process;
+  else
+    ui_window = menu_process;
 
   while(1)
   {
@@ -413,13 +413,6 @@ void window_reload()
    stackptr = 0;
    statusflag = 0;
   //window_open(&menu_process, NULL);
-  if (
-    system_testing())
-    ui_window = menu_process;
-  else if (system_locked())
-    ui_window = welcome_process;
-  else
-    ui_window = menu_process;
 
   process_exit(&system_process);
   process_start(&system_process, NULL);

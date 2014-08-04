@@ -16,6 +16,7 @@ void system_unlock();
 void system_reset();
 void system_restore();
 const uint8_t *system_getserial();
+void system_setemerging();
 
 extern struct pesistent_data
 {
