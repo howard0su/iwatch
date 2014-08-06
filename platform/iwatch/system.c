@@ -141,7 +141,7 @@ uint8_t system_retail()
 
 void system_ready()
 {
-  if (system_retail() && !(SFRRPCR & SYSNMI) && !emerging)
+  if (!(SFRRPCR & SYSNMI) && !emerging)
   {
     SFRRPCR |= (SYSRSTRE + SYSRSTUP + SYSNMI);
     SFRIE1 &= ~NMIIE;
