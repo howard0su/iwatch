@@ -73,33 +73,19 @@ static void packet_handler (void * connection, uint8_t packet_type, uint16_t cha
       log_info("Start initialize bluetooth chip!\n");
       running = 1;
       hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
-    }
-    break;
-
-  }
-
-
-  switch (packet[0]) {
-  case BTSTACK_EVENT_STATE:
-    // bt stack activated, get started - set local name
-    if (packet[2] == HCI_STATE_WORKING) {
-      log_info("Start initialize bluetooth chip!\n");
-      running = 1;
-      hci_send_cmd(&hci_vs_write_sco_config, 0x00, 120, 720, 0x01);
       process_post(ui_process, EVENT_BT_STATUS, (void*)BT_INITIALIZED);
     }
     else if (packet[2] == HCI_STATE_OFF)
-      {
-        running = 0;
-        // close the connection
-        process_exit(&bluetooth_process);
-        
-        bluetooth_platform_shutdown();
+    {
+      running = 0;
+      // close the connection
+      process_exit(&bluetooth_process);
+      
+      bluetooth_platform_shutdown();
 
-        // notify UI that we are shutdown
-        process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
-        break;
-      }
+      // notify UI that we are shutdown
+      process_post(ui_process, EVENT_BT_STATUS, (void*)BT_SHUTDOWN);
+    }
     break;
 
   case BTSTACK_EVENT_NR_CONNECTIONS_CHANGED:
