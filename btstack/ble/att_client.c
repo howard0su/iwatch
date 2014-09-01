@@ -180,15 +180,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
             uid
             );
 
-        if (data[2] == CategoryIDIncomingCall)
-        {
-            // need convert the title to CLIP command
-
-        }
-        else
-        {
-            window_notify_ancs(data[0], uid, data[1], data[2]);
-        }
+        window_notify_ancs(data[0], uid, data[1], data[2]);
     }
     else if (handle == attribute_handles[DATASOURCE])
     {
