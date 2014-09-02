@@ -181,7 +181,7 @@ static int CheckForShake(int16_t *last, int16_t *now, uint16_t threshold)
 
 static int8_t _shakeCount;
 static int8_t _shaking;
-#define ShakeThreshold 180
+#define ShakeThreshold 250
 
 PROCESS_THREAD(mpu6050_process, ev, data)
 {

@@ -24,7 +24,7 @@
 enum _statetime{
   STATE_CONFIG_HOUR, // times[0]
   STATE_CONFIG_MINUTE, // times[1]
-
+  STATE_CONFIG_ALARMDISABLED
 };
 
 enum _statedate{
@@ -38,7 +38,6 @@ extern void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm);
 static void OnDrawTime(tContext *pContext)
 {
   char buf[20];
-  GrContextFontSet(pContext, (const tFont*)&g_sFontExNimbus40);
 
   // clear the region
   GrContextForegroundSet(pContext, ClrBlack);
@@ -47,47 +46,44 @@ static void OnDrawTime(tContext *pContext)
 
   GrContextForegroundSet(pContext, ClrWhite);
 
-  sprintf(buf, "%02d", HOUR);
-  if (state == STATE_CONFIG_HOUR)
+  if (state == STATE_CONFIG_ALARMDISABLED)
   {
-    window_selecttext(pContext, buf, 2, 10, 70);
+    GrContextFontSet(pContext, &g_sFontGothic28b);
+    GrStringDraw(pContext, "Disabled", -1, 10, 70, 0);
   }
   else
   {
-    GrStringDraw(pContext, buf, 2, 10, 70, 0);
-  }
+    GrContextFontSet(pContext, (const tFont*)&g_sFontExNimbus40);
+    sprintf(buf, "%02d", HOUR);
+    if (state == STATE_CONFIG_HOUR)
+    {
+      window_selecttext(pContext, buf, 2, 10, 70);
+    }
+    else
+    {
+      GrStringDraw(pContext, buf, 2, 10, 70, 0);
+    }
 
-  GrStringDraw(pContext, ":", 1, 63, 70, 0);
+    GrStringDraw(pContext, ":", 1, 63, 70, 0);
 
-  sprintf(buf, "%02d", MINUTE);
-  if (state == STATE_CONFIG_MINUTE)
-  {
-    window_selecttext(pContext, buf, 2, 75, 70);
-  }
-  else
-  {
-    GrStringDraw(pContext, buf, 2, 75, 70, 0);
-  }
-
-  GrContextFontSet(pContext, &g_sFontGothic18b);
-  #if 0
-  // draw AM/PM
-  uint8_t out;
-  uint8_t ispm;
-  adjustAMPM(HOUR, &out, &ispm);
-  if (ispm)
-    GrStringDraw(pContext, "PM", 2, 120, 105, 0);
-  else
-    GrStringDraw(pContext, "AM", 2, 120, 105, 0);
-  #endif
-
-  if (state != STATE_CONFIG_READY)
-  {
-    window_button(pContext, KEY_ENTER, "OK");
-  }
-  else
-  {
-    window_button(pContext, KEY_EXIT, "Exit"); 
+    sprintf(buf, "%02d", MINUTE);
+    if (state == STATE_CONFIG_MINUTE)
+    {
+      window_selecttext(pContext, buf, 2, 75, 70);
+    }
+    else
+    {
+      GrStringDraw(pContext, buf, 2, 75, 70, 0);
+    }
+  
+    if (state != STATE_CONFIG_READY)
+    {
+      window_button(pContext, KEY_ENTER, "OK");
+    }
+    else
+    {
+      window_button(pContext, KEY_EXIT, "Exit"); 
+    }
   }
 }
 
@@ -178,7 +174,13 @@ static int process_key_time(uint8_t key)
     if (state == STATE_CONFIG_HOUR)
     {
       state = STATE_CONFIG_READY;
-      rtc_settime(HOUR, MINUTE, 0);
+      window_invalid(NULL);
+      return 2;
+    }
+    else if (state == STATE_CONFIG_READY)
+    {
+      window_invalid(NULL);
+      return 3;
     }
     else
     {
@@ -297,7 +299,8 @@ uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam)
     }
   case EVENT_KEY_PRESSED:
     {
-      process_key_time((uint8_t)lparam);
+      if (process_key_time((uint8_t)lparam) == 2)
+        rtc_settime(HOUR, MINUTE, 0);
     }
   default:
     return 0;
@@ -306,6 +309,53 @@ uint8_t configtime_process(uint8_t event, uint16_t lparam, void* rparam)
   return 1;
 }
 
+uint8_t configalarm_process(uint8_t event, uint16_t lparam, void* rparam)
+{
+  ui_config* uiconf = window_readconfig();
+
+  switch(event)
+  {
+  case EVENT_WINDOW_CREATED:
+    {
+      HOUR = uiconf->alarms[0].hour;
+      MINUTE = uiconf->alarms[0].minutes;
+      if (uiconf->alarms[0].flag != 0)
+        state = STATE_CONFIG_MINUTE;
+      else
+        state = STATE_CONFIG_ALARMDISABLED;
+      break;
+    }
+  case EVENT_WINDOW_PAINT:
+    {
+      OnDrawTime((tContext*)rparam);
+      if (state == STATE_CONFIG_ALARMDISABLED)
+        window_button((tContext*)rparam, KEY_ENTER, "Enable");
+      if (state == STATE_CONFIG_READY)
+        window_button((tContext*)rparam, KEY_ENTER, "Disable");
+      break;
+    }
+  case EVENT_KEY_PRESSED:
+    {
+      if ((uint8_t)lparam == KEY_ENTER && state == STATE_CONFIG_READY)
+      {
+          state = STATE_CONFIG_ALARMDISABLED;
+          uiconf->alarms[0].flag = 0;
+          window_invalid(NULL);
+      }
+      else if (process_key_time((uint8_t)lparam) == 2)
+      {
+          uiconf->alarms[0].hour = HOUR;
+          uiconf->alarms[0].minutes = MINUTE;
+          uiconf->alarms[0].flag = 1;
+      }
+      break;
+    }
+  default:
+    return 0;
+  }
+
+  return 1;
+}
 
 static void OnDrawLevel(tContext *pContext, int level)
 {

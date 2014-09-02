@@ -127,6 +127,7 @@ extern uint8_t welcome_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t about_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t reset_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t charging_process(uint8_t ev, uint16_t lparam, void* rparam);
+extern uint8_t configalarm_process(uint8_t event, uint16_t lparam, void* rparam);
 #if defined(PRODUCT_W002) || defined(PRODUCT_W004)  
 extern uint8_t weather_process(uint8_t ev, uint16_t lparam, void* rparam);
 extern uint8_t compass_process(uint8_t ev, uint16_t lparam, void* rparam);
