@@ -241,7 +241,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                         log_info("len: %d\t", attrleftlen);
                         index+=2;
                         parse_state = STATE_ATTRIBUTE;
-                            len = attrleftlen;
+                        len = attrleftlen;
                     }
                     else
                     {
@@ -255,7 +255,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     index++;
                     log_info("len: %d\t", attrleftlen);
                     parse_state = STATE_ATTRIBUTE;
-                        len = attrleftlen;
+                    len = attrleftlen;
                     break;
                 case STATE_ATTRIBUTE:
                     if (length - index > attrleftlen)
@@ -269,21 +269,22 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                     }
                     index += l;
                     attrleftlen -= l;
-                    if (attrleftlen == 0)
-                    {
-                        if (attributeid == NotificationAttributeIDMessage ||
-                            attributeid == NotificationAttributeIDSubtitle ||
-                            attributeid == NotificationAttributeIDTitle)
-                                bufptr[len] = '\0'; // if this is string context
-                        if (attributeid == NotificationAttributeIDDate)
-                            parse_state = STATE_DONE;
-                        else
-                            parse_state = STATE_ATTRIBUTEID;
-                    }
                     break;
                 case STATE_DONE:
                     log_error("Unexpect bytes\n");
                     break;
+            }
+
+            if (parse_state == STATE_ATTRIBUTE && attrleftlen == 0)
+            {
+                if (attributeid == NotificationAttributeIDMessage ||
+                    attributeid == NotificationAttributeIDSubtitle ||
+                    attributeid == NotificationAttributeIDTitle)
+                        bufptr[len] = '\0'; // if this is string context
+                if (attributeid == NotificationAttributeIDDate)
+                    parse_state = STATE_DONE;
+                else
+                    parse_state = STATE_ATTRIBUTEID;
             }
         }
         // parse the data

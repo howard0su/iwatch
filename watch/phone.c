@@ -13,6 +13,20 @@
 
 static char phonenumber[20];
 
+static const tFont *get_titlefont()
+{
+  switch(window_readconfig()->font_config)
+  {
+    case 1:
+      return (const tFont*)&g_sFontGothic28b;
+    case 2:
+      return (const tFont*)&g_sFontUnicode;
+      break;
+    default:
+      return (const tFont*)&g_sFontGothic24b;
+  }
+}
+
 /*
 * The dialog shows the option to accept the call, reject call
 * or send SMS (if we can get MNS works)
@@ -61,7 +75,7 @@ static void onDraw(tContext *pContext)
   }
 
   // draw the phone number
-  GrContextFontSet(pContext, &g_sFontGothic18b);
+  GrContextFontSet(pContext, get_titlefont());
   GrStringDrawCentered(pContext, phonenumber, -1, 72, 80, 0);
 }
 
@@ -113,7 +127,11 @@ uint8_t phone_process(uint8_t ev, uint16_t lparam, void* rparam)
     {
       if (!hfp_connected())
         window_close();
-      phonenumber[0] = '\0';
+      if (rparam == NULL)
+        phonenumber[0] = '\0';
+      else
+        strcpy(phonenumber, rparam);
+
       uint8_t flag = window_readconfig()->gesture_flag;
       if (flag & BIT0)
       {

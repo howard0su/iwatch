@@ -229,11 +229,22 @@ static void window_handle_event(uint8_t ev, void* data)
       }
       ui_window(ev, (uint16_t)data, NULL);
     }
-#endif
-    else if (ev == EVENT_BT_CLIP || ev == EVENT_BT_RING || ev == EVENT_BT_BVRA)
+    else if (ev == EVENT_BT_CLIP)
+    {
+        if (window_current() != &phone_process)
+        {
+          window_open(&phone_process, data);
+        }
+        else
+        {
+          ui_window(ev, 0, data);
+        }
+    }
+    else if (ev == EVENT_BT_RING || ev == EVENT_BT_BVRA)
     {
       ui_window(ev, 0, data);
     }
+#endif
     else if (ev == EVENT_NOTIFY_RESULT || ev == EVENT_GESTURE_MATCHED)
     {
       ui_window(ev, (uint16_t)data, NULL);

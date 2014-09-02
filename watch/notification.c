@@ -6,7 +6,7 @@
 #include "status.h"
 #include "rtc.h"
 #include "btstack/ble/att_client.h"
-
+#include "btstack/ble/ancs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -272,7 +272,10 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
     message = NULL;
     push_uid(uid, (flag << 8) | category);
     selectidx = 0;
-    motor_on(50, CLOCK_SECOND);
+    if (category == CategoryIDIncomingCall)
+      motor_on(50, CLOCK_SECOND * 60);
+    else
+      motor_on(50, CLOCK_SECOND);
     backlight_on(window_readconfig()->light_level, CLOCK_SECOND * 3);
 
     lastmessageid = uid;
@@ -334,6 +337,14 @@ void window_notify_ancs(uint8_t command, uint32_t uid, uint8_t flag, uint8_t cat
 
 void window_notify_content(const char* title, const char* subtitle, const char* msg, const char* date, uint8_t buttons, char icon)
 {
+  uint16_t attr = attributes[selectidx];
+  printf("Find phone number %d from %d", attr, selectidx);
+  if ((attr & 0xFF) == CategoryIDIncomingCall)
+  {
+    
+    process_post(ui_process, EVENT_BT_CLIP, (void*)title);
+  }
+
   message_title = title;
   message_subtitle = subtitle;
   message = msg;
@@ -372,6 +383,8 @@ static uint8_t notify_process(uint8_t ev, uint16_t lparam, void* rparam)
     return 0;
     break;
   case EVENT_KEY_PRESSED:
+    motor_on(0, 0);
+
     if (message == NULL)
       break;
     
