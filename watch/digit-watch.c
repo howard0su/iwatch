@@ -27,6 +27,8 @@
 #define _minute d.digit.minute
 static uint8_t _selection;
 
+extern uint8_t disable_key;
+
 typedef void (*draw_function)(tContext *pContext);
 
 void adjustAMPM(uint8_t hour, uint8_t *outhour, uint8_t *ispm)
@@ -364,7 +366,7 @@ uint8_t digitclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     _minute = dt->minute;
     window_invalid(NULL);
   }
-  else if (ev == EVENT_KEY_PRESSED)
+  else if ((ev == EVENT_KEY_PRESSED) && (disable_key == 0))
   {
     if (lparam == KEY_DOWN)
     {

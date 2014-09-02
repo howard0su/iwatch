@@ -38,6 +38,8 @@
 #define _sec d.analog.sec
 static uint8_t selection;
 
+extern uint8_t disable_key;
+
 typedef void (*draw_function)(tContext *pContext);
 
 static void drawFace0(tContext *pContext)
@@ -435,7 +437,7 @@ uint8_t analogclock_process(uint8_t ev, uint16_t lparam, void* rparam)
     _sec = dt->second;
     window_invalid(NULL);
   }
-  else if (ev == EVENT_KEY_PRESSED)
+  else if ((ev == EVENT_KEY_PRESSED) && (disable_key == 0))
   {
     if (lparam == KEY_DOWN)
     {

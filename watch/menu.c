@@ -49,6 +49,8 @@ struct MenuItem
   windowproc handler;
 };
 
+uint8_t disable_key;
+
 static const struct MenuItem SetupMenu[] =
 {
   {DATA_DATE, "Date", &configdate_process},
@@ -332,6 +334,8 @@ static void menu_timeout()
 {
   if (battery_state() == BATTERY_STATE_DISCHARGING)
   {
+    disable_key = 1;
+
     // check analog or digit
     if (!window_readconfig()->default_clock)
       window_open(&analogclock_process, NULL);
@@ -372,6 +376,7 @@ uint8_t menu_process(uint8_t ev, uint16_t lparam, void* rparam)
     }
     case EVENT_WINDOW_ACTIVE:
     {
+      disable_key = 0;
       if (!system_testing())
         etimer_set(&timer, CLOCK_SECOND * 30);
       break;
