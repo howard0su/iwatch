@@ -336,7 +336,7 @@ uint8_t status_process(uint8_t event, uint16_t lparam, void* rparam)
         if (uiconf->alarms[i].flag != 0 &&
             uiconf->alarms[i].hour    == hour &&
             uiconf->alarms[i].minutes == minute &&
-            second <= 30)
+            second < 30)
         {
           uint8_t ispm;
           adjustAMPM(hour, &hour, &ispm);
