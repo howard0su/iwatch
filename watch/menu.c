@@ -40,6 +40,7 @@
 #define DATA_LIGHT 0xF8
 #define DATA_VOL  0xF9
 #define DATA_FONTCONFIG 0xFA
+#define DATA_ALARM 0xFB
 #define NO_DATA   0xFF
 
 struct MenuItem
@@ -59,6 +60,7 @@ static const struct MenuItem SetupMenu[] =
   {DATA_VOL, "Volume", &configvol_process},
   {DATA_BT, "Bluetooth", &btconfig_process},
   {DATA_FONTCONFIG, "Font", &configfont_process},
+  {DATA_ALARM, "Alarm", &configalarm_process},  
   {-1,   "Factory Reset", &reset_process},
   {-1,   "About", &about_process},
 //  {NO_DATA, "Shutdown", &shutdown_process},
@@ -233,6 +235,31 @@ static void drawMenuItem(tContext *pContext, const tFont* textFont, int MENU_SPA
       case DATA_FONTCONFIG:
       {
         strcpy(buf, fontconfig_name[window_readconfig()->font_config]);
+        break;
+      }
+      case DATA_ALARM:
+      {
+        uint8_t hour, minute;
+        char buf0[2];
+        uint8_t ispm = 0;
+        
+        ui_config* uiconf = window_readconfig();
+        if (uiconf->alarms[0].flag == 0)
+        {
+          strcpy(buf, "Disabled");
+          break;
+        }
+
+        hour = uiconf->alarms[0].hour;
+        minute = uiconf->alarms[0].minutes;
+        // draw time
+        adjustAMPM(hour, &hour, &ispm);
+
+        if (ispm) buf0[0] = 'P';
+          else buf0[0] = 'A';
+        buf0[1] = 'M';
+
+        sprintf(buf, "%02d:%02d %c%c", hour, minute, buf0[0], buf0[1]);
         break;
       }
       default:
