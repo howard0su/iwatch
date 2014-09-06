@@ -153,7 +153,7 @@ static void onDraw(tContext *pContext)
       GrStringDraw(pContext, &message_icon, 1, 8, starty, 0);
     }
 
-    if (message_date)
+    if (message_date && message_date[0] != '\0')
     {
       char buffer[20];
 

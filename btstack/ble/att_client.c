@@ -229,6 +229,7 @@ void att_client_notify(uint16_t handle, uint8_t *data, uint16_t length)
                         len = 16;
                         break;
                     }
+                    bufptr[0] = '\0';
                     index++;
                     parse_state = STATE_ATTRIBUTELEN;
                     break;
